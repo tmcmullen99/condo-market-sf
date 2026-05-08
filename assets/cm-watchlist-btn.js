@@ -43,7 +43,8 @@ export async function init() {
   if (!m) return;
   const slug = m[1];
   const target = document.querySelector('header.masthead .nav-meta')
-              || document.querySelector('header.masthead .meta');
+              || document.querySelector('header.masthead .meta')
+              || document.querySelector('header.cm-masthead .cm-masthead-meta');
   if (!target) return;
   if (target.querySelector('.cm-save-btn')) return; // idempotent
   injectStyles();
