@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signing you in… · Condo Market</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1a1f2e;
+      --periwinkle: #9fb4d8;
+      --ivory: #e8e3d8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      background: var(--navy);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .cm-cb-card {
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+    }
+    .cm-cb-brand {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: #cfd4e0;
+      margin-bottom: 40px;
+    }
+    .cm-cb-brand .sf {
+      color: var(--periwinkle);
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+    .cm-cb-headline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 38px;
+      line-height: 1.1;
+      color: #fff;
+      margin-bottom: 18px;
+    }
+    .cm-cb-headline .accent { color: var(--periwinkle); }
+    .cm-cb-sub {
+      font-size: 15px;
+      color: #a0a6b8;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    .cm-cb-spinner {
+      display: inline-block;
+      width: 34px; height: 34px;
+      border: 3px solid rgba(159, 180, 216, 0.25);
+      border-top-color: var(--periwinkle);
+      border-radius: 50%;
+      animation: cm-spin 0.9s linear infinite;
+    }
+    @keyframes cm-spin { to { transform: rotate(360deg); } }
+    .cm-cb-err {
+      background: rgba(255, 80, 80, 0.12);
+      border: 1px solid rgba(255, 80, 80, 0.35);
+      color: #ffc8c8;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .cm-cb-btn {
+      display: inline-block;
+      background: var(--periwinkle);
+      color: var(--navy);
+      border: none;
+      padding: 11px 24px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .cm-cb-btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="cm-cb-card">
+    <div class="cm-cb-brand">Condo Market<span class="sf">· sf</span></div>
+
+    <div id="cm-cb-pending">
+      <h1 class="cm-cb-headline">Signing you <span class="accent">in…</span></h1>
+      <p class="cm-cb-sub">Verifying your email link. This should take a moment.</p>
+      <div class="cm-cb-spinner"></div>
+    </div>
+
+    <div id="cm-cb-success" style="display:none;">
+      <h1 class="cm-cb-headline">You're <span class="accent">in.</span></h1>
+      <p class="cm-cb-sub">Redirecting you now…</p>
+      <div class="cm-cb-spinner"></div>
+    </div>
+
+    <div id="cm-cb-error" style="display:none;">
+      <h1 class="cm-cb-headline">Link <span class="accent">expired.</span></h1>
+      <div class="cm-cb-err" id="cm-cb-err-msg">
+        This sign-in link is no longer valid. It may have expired or already been used.
+      </div>
+      <a class="cm-cb-btn" href="/buildings/">Return to Condo Market</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { CM } from '/assets/cm-supabase.js';
+
+    const pending = document.getElementById('cm-cb-pending');
+    const success = document.getElementById('cm-cb-success');
+    const errorEl = document.getElementById('cm-cb-error');
+    const errorMsg = document.getElementById('cm-cb-err-msg');
+
+    function show(which) {
+      pending.style.display = 'none';
+      success.style.display = 'none';
+      errorEl.style.display = 'none';
+      if (which === 'pending') pending.style.display = 'block';
+      if (which === 'success') success.style.display = 'block';
+      if (which === 'error') errorEl.style.display = 'block';
+    }
+
+    function showError(msg) {
+      if (msg) errorMsg.textContent = msg;
+      show('error');
+    }
+
+    // Read the return path from localStorage (set by the modal when user submitted).
+    // Fall back to /buildings/ which is the Condo Market homepage.
+    function getReturnPath() {
+      try {
+        const stored = localStorage.getItem('cm_return_to');
+        if (stored && stored.startsWith('/')) {
+          localStorage.removeItem('cm_return_to');
+          return stored;
+        }
+      } catch (e) {}
+      return '/buildings/';
+    }
+
+    // Supabase error detection: errors arrive as query params, not fragments.
+    const params = new URLSearchParams(window.location.search);
+    const errorCode = params.get('error') || params.get('error_code');
+    const errorDesc = params.get('error_description');
+    if (errorCode) {
+      showError(errorDesc ? decodeURIComponent(errorDesc.replace(/\+/g, ' ')) : 'Sign-in link error.');
+    } else {
+      // Wait for Supabase to detect the URL hash tokens and fire SIGNED_IN.
+      // cm-supabase.js initializes the client with detectSessionInUrl: true by default.
+      let handled = false;
+
+      const redirect = () => {
+        if (handled) return;
+        handled = true;
+        show('success');
+        const dest = getReturnPath();
+        setTimeout(() => { window.location.replace(dest); }, 450);
+      };
+
+      // Listen for SIGNED_IN event
+      CM.onAuthChange((event, session) => {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+          redirect();
+        }
+      });
+
+      // Belt-and-suspenders: also poll getSession() for 5 seconds
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        const session = await CM.getSession();
+        if (session) {
+          clearInterval(poll);
+          redirect();
+        } else if (attempts >= 25) {
+          clearInterval(poll);
+          if (!handled) {
+            showError('We could not complete your sign-in. Please request a new link.');
+          }
+        }
+      }, 200);
+    }
+  </script>
+</body>
+</html>

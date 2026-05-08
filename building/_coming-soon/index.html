@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building dossier coming soon · Condo Market SF</title>
+<meta name="description" content="Dossier for this building is in preparation. Join the waitlist.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e;
+    --cm-navy-deep: #0f131d;
+    --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8;
+    --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-ff-display: 'Playfair Display', Georgia, serif;
+    --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
+    --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--cm-ff-body); font-weight: 300;
+    line-height: 1.55; min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); font-style: italic; }
+  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  main { padding: 64px 0 96px; }
+  .kicker { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 24px; }
+  h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(40px, 6vw, 68px); line-height: 1.05; letter-spacing: -0.015em; margin-bottom: 28px; }
+  h1 .accent { color: var(--cm-peri); }
+  .lead { font-size: 17px; color: var(--cm-ivory-dim); max-width: 54ch; margin-bottom: 48px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 28px; border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); padding: 32px 0; margin-bottom: 56px; }
+  .stat-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 6px; }
+  .stat-val { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 28px; color: var(--cm-ivory); }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .btn { display: inline-block; padding: 13px 24px; border-radius: 999px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid; transition: all 0.15s; }
+  .btn-p { background: var(--cm-peri); color: var(--cm-navy); border-color: var(--cm-peri); }
+  .btn-p:hover { opacity: 0.88; }
+  .btn-s { background: transparent; color: var(--cm-ivory); border-color: var(--cm-rule); }
+  .btn-s:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
+  .signed-in-note { background: rgba(159, 180, 216, 0.08); border-left: 2px solid var(--cm-peri); padding: 14px 18px; margin-top: 32px; border-radius: 4px; font-size: 14px; color: var(--cm-ivory-dim); display: none; }
+  .signed-in-note.show { display: block; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <div class="meta">
+        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← All buildings</a>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="kicker">Dossier in preparation</div>
+    <h1 id="building-name">This building's <span class="accent">dossier</span><br>is being prepared.</h1>
+    <p class="lead">We're still gathering the tax records, unit data, and sale history for <strong id="b-name-inline">this building</strong>. Join the waitlist and we'll let you know the moment it's ready — usually within a week.</p>
+
+    <div class="stats" id="stats" style="display:none;">
+      <div><div class="stat-label">Neighborhood</div><div class="stat-val" id="b-hood">—</div></div>
+      <div><div class="stat-label">Units</div><div class="stat-val" id="b-units">—</div></div>
+      <div><div class="stat-label">Built</div><div class="stat-val" id="b-year">—</div></div>
+      <div><div class="stat-label">Median PSF</div><div class="stat-val" id="b-psf">—</div></div>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn btn-p" href="#signup" data-cm-auth="signup">Join the waitlist</a>
+      <a class="btn btn-s" href="/buildings/">Browse all buildings</a>
+    </div>
+
+    <div class="signed-in-note" id="signed-in-note">
+      You're already signed in. We'll email you at <strong id="user-email">…</strong> the moment this dossier is ready.
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { CM } from '/assets/cm-supabase.js';
+
+  // Read ?b=<long-slug-or-short-slug> from URL
+  const params = new URLSearchParams(window.location.search);
+  let b = (params.get('b') || '').replace(/\/$/, '');
+
+  // Load buildings.json and find the matching building
+  try {
+    const res = await fetch('/assets/buildings.json', { cache: 'no-store' });
+    const buildings = await res.json();
+    // Try to match by long slug in href (old style) OR by short slug
+    const match = buildings.find(x => {
+      const parts = x.href.split('/').filter(Boolean);
+      return parts[parts.length-1] === b || x.href.includes(b);
+    }) || buildings.find(x => x.name.toLowerCase().replace(/\s+/g, '-') === b.toLowerCase());
+
+    if (match) {
+      document.getElementById('building-name').innerHTML =
+        `<span class="accent">${match.name}</span><br>dossier in preparation.`;
+      document.getElementById('b-name-inline').textContent = match.name;
+      document.title = `${match.name} — coming soon · Condo Market SF`;
+      const stats = document.getElementById('stats');
+      stats.style.display = 'grid';
+      document.getElementById('b-hood').textContent = match.hood || '—';
+      document.getElementById('b-units').textContent = match.units ? match.units.toLocaleString() : '—';
+      document.getElementById('b-year').textContent = match.year || '—';
+      document.getElementById('b-psf').textContent = match.psf ? '$' + match.psf.toLocaleString() : '—';
+    }
+  } catch (e) { console.warn('Could not load building data:', e); }
+
+  // If user is signed in, show the note
+  window.addEventListener('cm-ready', async () => {
+    try {
+      const session = await CM.getSession();
+      if (session?.user) {
+        const note = document.getElementById('signed-in-note');
+        document.getElementById('user-email').textContent = session.user.email;
+        note.classList.add('show');
+      }
+    } catch (e) {}
+  });
+</script>
+</body>
+</html>

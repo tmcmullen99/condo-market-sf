@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=4.0">
+<title>450 Hayes · Unit Map · Condo Market SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cm-navy:       #1a1f2e;
+  --cm-navy-deep:  #0f131d;
+  --cm-periwinkle: #9fb4d8;
+  --cm-peri-dim:   #6a7fa3;
+  --cm-peri-cool:  #4a5a75;
+  --cm-ivory:      #e8e3d8;
+  --cm-ivory-dim:  rgba(232, 227, 216, 0.64);
+  --cm-rule:       rgba(232, 227, 216, 0.14);
+  --cm-cool:       #5b7294;
+  --cm-warm:       #b89169;
+  --cm-hot:        #d4a574;
+  --cm-accent:     #d4a574;
+  --cm-gain:       #8fb97a;
+  --cm-ff-display: 'Playfair Display', Georgia, serif;
+  --cm-ff-body:    'DM Sans', -apple-system, sans-serif;
+  --cm-ff-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--cm-navy-deep);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-body);
+  font-weight: 300;
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; }
+
+.cm-wrap { max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+/* Masthead */
+.cm-masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+.cm-masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.cm-wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 600; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+.cm-wordmark em { color: var(--cm-periwinkle); }
+.cm-meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; }
+
+/* Hero */
+.cm-hero { padding: 56px 0 32px; }
+.cm-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cm-kicker::before { content:''; width: 24px; height: 1px; background: var(--cm-periwinkle); }
+.cm-hero h1 {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--cm-ivory);
+  margin-bottom: 18px;
+}
+.cm-hero h1 em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-hero-dek {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--cm-ivory-dim);
+  max-width: 620px;
+  line-height: 1.45;
+}
+
+/* Stats strip */
+.cm-statbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  margin-top: 40px;
+}
+.cm-statcell { padding: 22px 20px; border-left: 1px solid var(--cm-rule); }
+.cm-statcell:first-child { border-left: none; padding-left: 0; }
+.cm-statcell-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 8px; }
+.cm-statcell-value { font-family: var(--cm-ff-display); font-size: 30px; line-height: 1; color: var(--cm-ivory); }
+.cm-statcell-value small { font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); margin-left: 4px; }
+@media (max-width: 700px) { .cm-statbar { grid-template-columns: 1fr 1fr; }
+  .cm-statcell:nth-child(3) { border-left: none; padding-left: 0; } }
+
+/* Controls */
+.cm-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 32px 0 24px;
+  flex-wrap: wrap;
+}
+.cm-control-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-right: 6px;
+}
+.cm-chip {
+  background: transparent;
+  border: 1px solid var(--cm-rule);
+  color: var(--cm-ivory);
+  padding: 8px 14px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.cm-chip:hover { border-color: var(--cm-periwinkle); color: var(--cm-periwinkle); }
+.cm-chip.is-active {
+  background: var(--cm-periwinkle);
+  color: var(--cm-navy);
+  border-color: var(--cm-periwinkle);
+}
+
+/* MAIN LAYOUT: tower + panel */
+.cm-explorer {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 60px;
+  padding: 20px 0 80px;
+  border-top: 1px solid var(--cm-rule);
+  padding-top: 40px;
+}
+@media (max-width: 960px) {
+  .cm-explorer { grid-template-columns: 1fr; }
+  .cm-panel { position: static; }
+}
+
+/* Tower SVG */
+.cm-tower-wrap {
+  display: flex;
+  justify-content: center;
+}
+.cm-tower {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+}
+.cm-floor-label {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.cm-cell {
+  stroke: var(--cm-navy-deep);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.cm-cell--cool { fill: var(--cm-cool); fill-opacity: 0.85; }
+.cm-cell--warm { fill: var(--cm-warm); fill-opacity: 0.85; }
+.cm-cell--hot  { fill: var(--cm-hot);  fill-opacity: 0.95; }
+.cm-cell--unsold {
+  fill: transparent;
+  stroke: var(--cm-peri-cool);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+.cm-cell--top {
+  stroke: var(--cm-accent);
+  stroke-width: 1.5;
+}
+.cm-unit-g { transition: transform 200ms ease; transform-origin: center; transform-box: fill-box; }
+.cm-unit-g:hover .cm-cell { stroke: var(--cm-ivory); stroke-width: 1.5; fill-opacity: 1; }
+.cm-unit-g.is-selected .cm-cell { stroke: var(--cm-ivory); stroke-width: 2; fill-opacity: 1; }
+.cm-unit-g.is-dimmed { opacity: 0.18; }
+.cm-cell-label {
+  fill: var(--cm-ivory);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+.cm-unit-g.cm-cell--unsold-group .cm-cell-label { fill: var(--cm-peri-dim); }
+.cm-cell-star {
+  fill: var(--cm-accent);
+  font-size: 9px;
+  font-family: monospace;
+  pointer-events: none;
+}
+
+/* Ground marker */
+.cm-ground { fill: var(--cm-rule); }
+.cm-ground-label { fill: var(--cm-peri-dim); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; }
+
+/* Legend */
+.cm-legend {
+  margin-top: 32px;
+  padding: 20px 0;
+  border-top: 1px solid var(--cm-rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cm-legend-swatch { display: inline-block; width: 14px; height: 14px; vertical-align: -3px; margin-right: 8px; border-radius: 1px; }
+.cm-legend-swatch--cool   { background: var(--cm-cool); }
+.cm-legend-swatch--warm   { background: var(--cm-warm); }
+.cm-legend-swatch--hot    { background: var(--cm-hot); }
+.cm-legend-swatch--unsold { background: transparent; border: 1px dashed var(--cm-peri-cool); }
+.cm-legend-swatch--top    { background: var(--cm-hot); border: 1.5px solid var(--cm-accent); position: relative; }
+.cm-legend-swatch--top::after { content:'✦'; color: var(--cm-navy); font-size: 9px; position: absolute; top: -3px; left: 3px; font-family: monospace; }
+
+/* PANEL (right side) */
+.cm-panel {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding: 28px 28px;
+  background: linear-gradient(155deg, rgba(159,180,216,0.04), rgba(212,165,116,0.03));
+  border: 1px solid var(--cm-rule);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.cm-panel-empty {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.cm-panel-empty::before { content: '→'; color: var(--cm-periwinkle); margin-right: 8px; font-style: normal; }
+.cm-panel-heading {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 12px;
+}
+.cm-panel-unit {
+  font-family: var(--cm-ff-display);
+  font-size: 52px;
+  line-height: 0.9;
+  color: var(--cm-ivory);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.cm-panel-unit em { color: var(--cm-periwinkle); font-style: italic; }
+.cm-panel-sub {
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 28px;
+}
+.cm-panel-price {
+  font-family: var(--cm-ff-display);
+  font-size: 44px;
+  line-height: 0.95;
+  color: var(--cm-ivory);
+  margin-bottom: 6px;
+}
+.cm-panel-price em { color: var(--cm-accent); font-style: italic; }
+.cm-panel-psf {
+  font-family: var(--cm-ff-mono);
+  font-size: 13px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 28px;
+}
+.cm-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  margin-bottom: 28px;
+}
+.cm-panel-grid-cell { }
+.cm-panel-grid-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 6px; }
+.cm-panel-grid-value { font-family: var(--cm-ff-display); font-size: 22px; color: var(--cm-ivory); }
+.cm-panel-empty-sale {
+  padding: 20px 16px;
+  background: rgba(232,227,216,0.03);
+  border-left: 2px solid var(--cm-peri-dim);
+  margin-bottom: 28px;
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cm-panel-cta {
+  display: block;
+  text-align: center;
+  padding: 16px 20px;
+  background: var(--cm-ivory);
+  color: var(--cm-navy);
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: all 180ms ease;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  font-weight: 500;
+}
+.cm-panel-cta:hover { background: var(--cm-periwinkle); color: var(--cm-navy); }
+.cm-panel-cta--alt {
+  background: transparent;
+  border: 1px solid var(--cm-ivory);
+  color: var(--cm-ivory);
+}
+.cm-panel-cta--alt:hover { background: var(--cm-ivory); color: var(--cm-navy); }
+
+/* Method note */
+.cm-method {
+  padding: 48px 0 80px;
+  border-top: 1px solid var(--cm-rule);
+  font-family: var(--cm-ff-body);
+  font-size: 14px;
+  color: var(--cm-ivory-dim);
+  line-height: 1.65;
+  max-width: 720px;
+}
+.cm-method strong { color: var(--cm-ivory); font-weight: 500; }
+.cm-method em { font-style: italic; color: var(--cm-accent); font-family: var(--cm-ff-display); }
+
+
+/* ─── PAN/ZOOM CONTAINER (v29+) ─── */
+.cm-tower-frame {
+  position: relative;
+  background: linear-gradient(180deg, rgba(159,180,216,0.02), rgba(15,19,29,0.15));
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.cm-tower-viewport {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 780px);
+  min-height: 460px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cm-tower-viewport.is-grabbing { cursor: grabbing; }
+.cm-tower-stage {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: transform 120ms cubic-bezier(.2,.6,.2,1);
+}
+.cm-tower-stage.is-dragging { transition: none; }
+.cm-tower-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20px 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+.cm-tower-wrap .cm-tower {
+  max-width: 620px;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+.cm-zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  background: rgba(15,19,29,0.88);
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  backdrop-filter: blur(8px);
+  padding: 3px;
+  align-items: stretch;
+}
+.cm-zoom-btn {
+  background: transparent;
+  color: var(--cm-ivory);
+  border: none;
+  padding: 8px 14px;
+  font-family: var(--cm-ff-mono);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1;
+  min-width: 36px;
+  border-radius: 1px;
+  transition: background 120ms ease;
+}
+.cm-zoom-btn:hover { background: rgba(159,180,216,0.14); }
+.cm-zoom-btn:active { background: rgba(159,180,216,0.22); }
+.cm-zoom-reset {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-left: 1px solid var(--cm-rule);
+  color: var(--cm-periwinkle);
+}
+.cm-zoom-readout {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  padding: 0 10px;
+  align-self: center;
+  min-width: 38px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.cm-zoom-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  opacity: 0.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  background: rgba(15,19,29,0.7);
+  padding: 4px 10px;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+.cm-zoom-hint-mobile { display: none; }
+.cm-zoom-hint-desktop { display: inline; }
+@media (hover: none) and (pointer: coarse) {
+  .cm-zoom-hint-mobile { display: inline; }
+  .cm-zoom-hint-desktop { display: none; }
+}
+
+/* Facing-direction dot on unit cells (when orientation data is present) */
+.cm-cell-facing {
+  fill: var(--cm-accent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.cm-unit-g:hover .cm-cell-facing { opacity: 1; }
+.cm-unit-g.is-selected .cm-cell-facing {
+  opacity: 1;
+  fill: var(--cm-ivory);
+}
+.cm-legend-swatch--facing {
+  background: var(--cm-navy-deep);
+  position: relative;
+  border: 1px solid var(--cm-rule);
+}
+.cm-legend-swatch--facing::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--cm-accent);
+}
+
+/* ─── FLOOR PLATE (orientation map) ─── */
+.cm-panel-orient {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cm-rule);
+}
+.cm-panel-orient-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.cm-panel-orient-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+}
+.cm-panel-orient-facing {
+  font-family: var(--cm-ff-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cm-accent);
+  letter-spacing: 0.02em;
+}
+.cm-panel-orient-view {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--cm-ivory);
+  margin-bottom: 20px;
+  line-height: 1.35;
+}
+.cm-plate-wrap {
+  background: rgba(15,19,29,0.4);
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  padding: 10px;
+}
+.cm-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.cm-plate-outline {
+  fill: none;
+  stroke: var(--cm-peri-cool);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.cm-plate-core {
+  fill: rgba(74,90,117,0.3);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.5;
+}
+.cm-plate-core-label {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+}
+.cm-plate-card {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.cm-plate-compass-bg {
+  fill: rgba(15,19,29,0.85);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.5;
+}
+.cm-plate-compass-n {
+  fill: var(--cm-periwinkle);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 600;
+}
+.cm-plate-compass-tri {
+  fill: var(--cm-accent);
+}
+.cm-plate-compass-arrow {
+  stroke: var(--cm-accent);
+  stroke-width: 0.5;
+}
+.cm-plate-unit-box {
+  fill: rgba(159,180,216,0.08);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.6;
+  transition: all 180ms ease;
+}
+.cm-plate-unit-pos {
+  fill: var(--cm-ivory-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+}
+.cm-plate-unit-facing {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+}
+.cm-plate-unit.is-active .cm-plate-unit-box {
+  fill: var(--cm-accent);
+  stroke: var(--cm-accent);
+  stroke-width: 1;
+}
+.cm-plate-unit.is-active .cm-plate-unit-pos,
+.cm-plate-unit.is-active .cm-plate-unit-facing {
+  fill: var(--cm-navy);
+  font-weight: 600;
+}
+.cm-plate-legend {
+  font-family: var(--cm-ff-mono);
+  font-size: 9px;
+  color: var(--cm-ivory-dim);
+  text-align: center;
+  letter-spacing: 0.06em;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+</style>
+  <script type="module" src="/assets/cm-auth-nav.js"></script>
+</head>
+<body>
+<main>
+  <header class="cm-masthead">
+    <div class="cm-wrap">
+      <div class="cm-masthead-row">
+        <a href="/" class="cm-wordmark">Condo <em>Market</em> SF</a>
+        <div class="cm-meta">
+          <span>Unit Map</span>
+          <span>450 Hayes</span>
+          <span></span>
+        </div>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="margin-left:auto;font-family:var(--cm-ff-body, 'DM Sans', sans-serif);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory,#e8e3d8);border:1px solid var(--cm-rule,rgba(232,227,216,0.22));padding:7px 14px;border-radius:999px;text-decoration:none;transition:border-color 0.15s;">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="cm-hero">
+    <div class="cm-wrap">
+      <div class="cm-kicker">Interactive · Every Unit · Every Sale</div>
+      <h1>Click anywhere on <em>450 Hayes.</em></h1>
+      <p class="cm-hero-dek">
+        Each square is a residence. Color reflects recorded price per square foot. The bronze-outlined unit is the building's all-time high. Hollow squares have never publicly traded.
+      </p>
+
+      <div class="cm-statbar">
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Total Units</div>
+          <div class="cm-statcell-value">41</div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Ever Sold</div>
+          <div class="cm-statcell-value">37<small>/41</small></div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Never Traded</div>
+          <div class="cm-statcell-value">4</div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Median PSF</div>
+          <div class="cm-statcell-value">$1,340<small>/sf</small></div>
+        </div>
+      </div>
+
+      <div class="cm-controls">
+        <span class="cm-control-label">Show</span>
+        <button class="cm-chip is-active" data-filter="all">All units</button>
+        <button class="cm-chip" data-filter="sold">Sold</button>
+        <button class="cm-chip" data-filter="unsold">Never traded</button>
+        <span class="cm-control-label" style="margin-left: 16px;">Beds</span>
+        <button class="cm-chip" data-beds="1">1BR</button>
+        <button class="cm-chip" data-beds="2">2BR</button>
+        <button class="cm-chip" data-beds="3">3BR</button>
+        <button class="cm-chip" data-beds="4">4BR+</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cm-wrap">
+      <div class="cm-explorer">
+        <div>
+          <!-- PAN/ZOOM CONTAINER -->
+          <div class="cm-tower-frame">
+            <div class="cm-zoom-controls" role="toolbar" aria-label="Zoom controls">
+              <button class="cm-zoom-btn" data-zoom="out" aria-label="Zoom out">−</button>
+              <div class="cm-zoom-readout" id="cmZoomReadout">100%</div>
+              <button class="cm-zoom-btn" data-zoom="in" aria-label="Zoom in">+</button>
+              <button class="cm-zoom-btn cm-zoom-reset" data-zoom="reset" aria-label="Reset view">Reset</button>
+            </div>
+            <div class="cm-tower-viewport" id="cmViewport">
+              <div class="cm-tower-stage" id="cmStage">
+                <div class="cm-tower-wrap">
+                  <svg class="cm-tower" viewBox="0 0 714 216" xmlns="http://www.w3.org/2000/svg">
+                    <text x="88" y="55.0" text-anchor="end" class="cm-floor-label">4</text>
+    <g class="cm-unit-g" data-unit="4a" data-floor="4" data-beds="2" data-baths="2" data-sqft="1160" data-price="1610000" data-psf="1388" data-date="2024-09-03" data-tax="19883" data-sold="1" data-top="0" data-pos="A" data-facing="" data-view="" data-angle=""><rect x="195.0" y="40" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="212.5" y="54.5" class="cm-cell-label" text-anchor="middle">A</text></g>
+    <g class="cm-unit-g" data-unit="4b" data-floor="4" data-beds="2" data-baths="2" data-sqft="1022" data-price="1670000" data-psf="1634" data-date="2016-04-19" data-tax="17612" data-sold="1" data-top="0" data-pos="B" data-facing="" data-view="" data-angle=""><rect x="233.0" y="40" width="35" height="21" class="cm-cell cm-cell--hot" rx="1" /><text x="250.5" y="54.5" class="cm-cell-label" text-anchor="middle">B</text></g>
+    <g class="cm-unit-g" data-unit="4c" data-floor="4" data-beds="2" data-baths="2" data-sqft="1022" data-price="1880000" data-psf="1840" data-date="2021-10-13" data-tax="14300" data-sold="1" data-top="0" data-pos="C" data-facing="" data-view="" data-angle=""><rect x="271.0" y="40" width="35" height="21" class="cm-cell cm-cell--hot" rx="1" /><text x="288.5" y="54.5" class="cm-cell-label" text-anchor="middle">C</text></g>
+    <g class="cm-unit-g" data-unit="4d" data-floor="4" data-beds="2" data-baths="2" data-sqft="1026" data-price="1601000" data-psf="1560" data-date="2025-09-23" data-tax="24999" data-sold="1" data-top="0" data-pos="D" data-facing="" data-view="" data-angle=""><rect x="309.0" y="40" width="35" height="21" class="cm-cell cm-cell--hot" rx="1" /><text x="326.5" y="54.5" class="cm-cell-label" text-anchor="middle">D</text></g>
+    <g class="cm-unit-g" data-unit="4e" data-floor="4" data-beds="2" data-baths="2" data-sqft="1096" data-price="1895000" data-psf="1729" data-date="2016-04-19" data-tax="26987" data-sold="1" data-top="0" data-pos="E" data-facing="" data-view="" data-angle=""><rect x="347.0" y="40" width="35" height="21" class="cm-cell cm-cell--hot" rx="1" /><text x="364.5" y="54.5" class="cm-cell-label" text-anchor="middle">E</text></g>
+    <g class="cm-unit-g" data-unit="4f" data-floor="4" data-beds="2" data-baths="2" data-sqft="1141" data-price="1650000" data-psf="1446" data-date="2024-12-12" data-tax="20356" data-sold="1" data-top="0" data-pos="F" data-facing="" data-view="" data-angle=""><rect x="385.0" y="40" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="402.5" y="54.5" class="cm-cell-label" text-anchor="middle">F</text></g>
+    <g class="cm-unit-g" data-unit="4g" data-floor="4" data-beds="3" data-baths="2" data-sqft="1450" data-price="2700000" data-psf="1862" data-date="2016-04-19" data-tax="37819" data-sold="1" data-top="1" data-pos="G" data-facing="" data-view="" data-angle=""><rect x="423.0" y="40" width="35" height="21" class="cm-cell cm-cell--hot cm-cell--top" rx="1" /><text x="440.5" y="54.5" class="cm-cell-label" text-anchor="middle">G</text><text x="454.0" y="47" class="cm-cell-star">✦</text></g>
+    <g class="cm-unit-g" data-unit="4h" data-floor="4" data-beds="2" data-baths="2" data-sqft="1191" data-price="1579000" data-psf="1326" data-date="2023-12-23" data-tax="19807" data-sold="1" data-top="0" data-pos="H" data-facing="" data-view="" data-angle=""><rect x="461.0" y="40" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="478.5" y="54.5" class="cm-cell-label" text-anchor="middle">H</text></g>
+    <text x="88" y="79.0" text-anchor="end" class="cm-floor-label">3</text>
+    <g class="cm-unit-g" data-unit="3a" data-floor="3" data-beds="2" data-baths="2" data-sqft="1016" data-price="1210100" data-psf="1191" data-date="2016-04-19" data-tax="13425" data-sold="1" data-top="0" data-pos="A" data-facing="" data-view="" data-angle=""><rect x="100.0" y="64" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="117.5" y="78.5" class="cm-cell-label" text-anchor="middle">A</text></g>
+    <g class="cm-unit-g" data-unit="3b" data-floor="3" data-beds="1" data-baths="1" data-sqft="620" data-price="900000" data-psf="1452" data-date="2016-04-19" data-tax="13195" data-sold="1" data-top="0" data-pos="B" data-facing="" data-view="" data-angle=""><rect x="138.0" y="64" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="155.5" y="78.5" class="cm-cell-label" text-anchor="middle">B</text></g>
+    <g class="cm-unit-g" data-unit="3c" data-floor="3" data-beds="1" data-baths="1" data-sqft="611" data-price="880000" data-psf="1440" data-date="2021-11-01" data-tax="11886" data-sold="1" data-top="0" data-pos="C" data-facing="" data-view="" data-angle=""><rect x="176.0" y="64" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="193.5" y="78.5" class="cm-cell-label" text-anchor="middle">C</text></g>
+    <g class="cm-unit-g" data-unit="3d" data-floor="3" data-beds="1" data-baths="1" data-sqft="618" data-price="895000" data-psf="1448" data-date="2016-04-19" data-tax="11923" data-sold="1" data-top="0" data-pos="D" data-facing="" data-view="" data-angle=""><rect x="214.0" y="64" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="231.5" y="78.5" class="cm-cell-label" text-anchor="middle">D</text></g>
+    <g class="cm-unit-g" data-unit="3e" data-floor="3" data-beds="2" data-baths="2" data-sqft="915" data-price="1030000" data-psf="1126" data-date="2016-04-19" data-tax="14702" data-sold="1" data-top="0" data-pos="E" data-facing="" data-view="" data-angle=""><rect x="252.0" y="64" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="269.5" y="78.5" class="cm-cell-label" text-anchor="middle">E</text></g>
+    <g class="cm-unit-g" data-unit="3f" data-floor="3" data-beds="1" data-baths="1" data-sqft="729" data-price="975000" data-psf="1337" data-date="2021-03-18" data-tax="13323" data-sold="1" data-top="0" data-pos="F" data-facing="" data-view="" data-angle=""><rect x="290.0" y="64" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="307.5" y="78.5" class="cm-cell-label" text-anchor="middle">F</text></g>
+    <g class="cm-unit-g" data-unit="3g" data-floor="3" data-beds="1" data-baths="1" data-sqft="677" data-price="907353" data-psf="1340" data-date="2016-04-19" data-tax="13194" data-sold="1" data-top="0" data-pos="G" data-facing="" data-view="" data-angle=""><rect x="328.0" y="64" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="345.5" y="78.5" class="cm-cell-label" text-anchor="middle">G</text></g>
+    <g class="cm-unit-g" data-unit="3h" data-floor="3" data-beds="1" data-baths="1" data-sqft="673" data-price="323500" data-psf="481" data-date="2025-11-05" data-tax="3677" data-sold="1" data-top="0" data-pos="H" data-facing="" data-view="" data-angle=""><rect x="366.0" y="64" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="383.5" y="78.5" class="cm-cell-label" text-anchor="middle">H</text></g>
+    <g class="cm-unit-g" data-unit="3i" data-floor="3" data-beds="1" data-baths="1" data-sqft="955" data-price="" data-psf="" data-date="" data-tax="4157" data-sold="0" data-top="0" data-pos="I" data-facing="" data-view="" data-angle=""><rect x="404.0" y="64" width="35" height="21" class="cm-cell cm-cell--unsold" rx="1" /><text x="421.5" y="78.5" class="cm-cell-label" text-anchor="middle">I</text></g>
+    <g class="cm-unit-g" data-unit="3j" data-floor="3" data-beds="1" data-baths="1" data-sqft="1015" data-price="1800000" data-psf="1773" data-date="2016-04-19" data-tax="13413" data-sold="1" data-top="0" data-pos="J" data-facing="" data-view="" data-angle=""><rect x="442.0" y="64" width="35" height="21" class="cm-cell cm-cell--hot" rx="1" /><text x="459.5" y="78.5" class="cm-cell-label" text-anchor="middle">J</text></g>
+    <g class="cm-unit-g" data-unit="3k" data-floor="3" data-beds="1" data-baths="1" data-sqft="727" data-price="860000" data-psf="1183" data-date="2023-11-14" data-tax="11216" data-sold="1" data-top="0" data-pos="K" data-facing="" data-view="" data-angle=""><rect x="480.0" y="64" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="497.5" y="78.5" class="cm-cell-label" text-anchor="middle">K</text></g>
+    <g class="cm-unit-g" data-unit="3l" data-floor="3" data-beds="1" data-baths="1" data-sqft="711" data-price="830000" data-psf="1167" data-date="2023-11-07" data-tax="10854" data-sold="1" data-top="0" data-pos="L" data-facing="" data-view="" data-angle=""><rect x="518.0" y="64" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="535.5" y="78.5" class="cm-cell-label" text-anchor="middle">L</text></g>
+    <g class="cm-unit-g" data-unit="3m" data-floor="3" data-beds="2" data-baths="2" data-sqft="1227" data-price="1850000" data-psf="1508" data-date="2019-12-12" data-tax="24770" data-sold="1" data-top="0" data-pos="M" data-facing="" data-view="" data-angle=""><rect x="556.0" y="64" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="573.5" y="78.5" class="cm-cell-label" text-anchor="middle">M</text></g>
+    <text x="88" y="103.0" text-anchor="end" class="cm-floor-label">2</text>
+    <g class="cm-unit-g" data-unit="2a" data-floor="2" data-beds="2" data-baths="2" data-sqft="1008" data-price="1066000" data-psf="1058" data-date="2016-04-19" data-tax="15470" data-sold="1" data-top="0" data-pos="A" data-facing="" data-view="" data-angle=""><rect x="100.0" y="88" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="117.5" y="102.5" class="cm-cell-label" text-anchor="middle">A</text></g>
+    <g class="cm-unit-g" data-unit="2b" data-floor="2" data-beds="1" data-baths="1" data-sqft="612" data-price="" data-psf="" data-date="" data-tax="4360" data-sold="0" data-top="0" data-pos="B" data-facing="" data-view="" data-angle=""><rect x="138.0" y="88" width="35" height="21" class="cm-cell cm-cell--unsold" rx="1" /><text x="155.5" y="102.5" class="cm-cell-label" text-anchor="middle">B</text></g>
+    <g class="cm-unit-g" data-unit="2c" data-floor="2" data-beds="1" data-baths="1" data-sqft="618" data-price="842500" data-psf="1363" data-date="2016-04-19" data-tax="13816" data-sold="1" data-top="0" data-pos="C" data-facing="" data-view="" data-angle=""><rect x="176.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="193.5" y="102.5" class="cm-cell-label" text-anchor="middle">C</text></g>
+    <g class="cm-unit-g" data-unit="2d" data-floor="2" data-beds="1" data-baths="1" data-sqft="612" data-price="845000" data-psf="1381" data-date="2016-04-19" data-tax="8718" data-sold="1" data-top="0" data-pos="D" data-facing="" data-view="" data-angle=""><rect x="214.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="231.5" y="102.5" class="cm-cell-label" text-anchor="middle">D</text></g>
+    <g class="cm-unit-g" data-unit="2e" data-floor="2" data-beds="2" data-baths="2" data-sqft="921" data-price="1200000" data-psf="1303" data-date="2016-04-19" data-tax="12361" data-sold="1" data-top="0" data-pos="E" data-facing="" data-view="" data-angle=""><rect x="252.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="269.5" y="102.5" class="cm-cell-label" text-anchor="middle">E</text></g>
+    <g class="cm-unit-g" data-unit="2f" data-floor="2" data-beds="1" data-baths="1" data-sqft="729" data-price="1060000" data-psf="1454" data-date="2017-05-22" data-tax="15391" data-sold="1" data-top="0" data-pos="F" data-facing="" data-view="" data-angle=""><rect x="290.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="307.5" y="102.5" class="cm-cell-label" text-anchor="middle">F</text></g>
+    <g class="cm-unit-g" data-unit="2g" data-floor="2" data-beds="1" data-baths="1" data-sqft="641" data-price="900000" data-psf="1404" data-date="2016-04-19" data-tax="9144" data-sold="1" data-top="0" data-pos="G" data-facing="" data-view="" data-angle=""><rect x="328.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="345.5" y="102.5" class="cm-cell-label" text-anchor="middle">G</text></g>
+    <g class="cm-unit-g" data-unit="2h" data-floor="2" data-beds="1" data-baths="1" data-sqft="672" data-price="" data-psf="" data-date="" data-tax="3761" data-sold="0" data-top="0" data-pos="H" data-facing="" data-view="" data-angle=""><rect x="366.0" y="88" width="35" height="21" class="cm-cell cm-cell--unsold" rx="1" /><text x="383.5" y="102.5" class="cm-cell-label" text-anchor="middle">H</text></g>
+    <g class="cm-unit-g" data-unit="2i" data-floor="2" data-beds="1" data-baths="1" data-sqft="997" data-price="" data-psf="" data-date="" data-tax="5939" data-sold="0" data-top="0" data-pos="I" data-facing="" data-view="" data-angle=""><rect x="404.0" y="88" width="35" height="21" class="cm-cell cm-cell--unsold" rx="1" /><text x="421.5" y="102.5" class="cm-cell-label" text-anchor="middle">I</text></g>
+    <g class="cm-unit-g" data-unit="2j" data-floor="2" data-beds="1" data-baths="1" data-sqft="952" data-price="1150000" data-psf="1208" data-date="2022-08-16" data-tax="14992" data-sold="1" data-top="0" data-pos="J" data-facing="" data-view="" data-angle=""><rect x="442.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="459.5" y="102.5" class="cm-cell-label" text-anchor="middle">J</text></g>
+    <g class="cm-unit-g" data-unit="2k" data-floor="2" data-beds="1" data-baths="1" data-sqft="711" data-price="845000" data-psf="1188" data-date="2024-01-17" data-tax="11035" data-sold="1" data-top="0" data-pos="K" data-facing="" data-view="" data-angle=""><rect x="480.0" y="88" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="497.5" y="102.5" class="cm-cell-label" text-anchor="middle">K</text></g>
+    <g class="cm-unit-g" data-unit="2l" data-floor="2" data-beds="1" data-baths="1" data-sqft="706" data-price="860000" data-psf="1218" data-date="2023-06-06" data-tax="11340" data-sold="1" data-top="0" data-pos="L" data-facing="" data-view="" data-angle=""><rect x="518.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="535.5" y="102.5" class="cm-cell-label" text-anchor="middle">L</text></g>
+    <g class="cm-unit-g" data-unit="2m" data-floor="2" data-beds="2" data-baths="2" data-sqft="1250" data-price="1625000" data-psf="1300" data-date="2016-04-19" data-tax="16015" data-sold="1" data-top="0" data-pos="M" data-facing="" data-view="" data-angle=""><rect x="556.0" y="88" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="573.5" y="102.5" class="cm-cell-label" text-anchor="middle">M</text></g>
+    <text x="88" y="127.0" text-anchor="end" class="cm-floor-label">1</text>
+    <g class="cm-unit-g" data-unit="1a" data-floor="1" data-beds="1" data-baths="2" data-sqft="1085" data-price="950000" data-psf="876" data-date="2024-10-31" data-tax="12077" data-sold="1" data-top="0" data-pos="A" data-facing="" data-view="" data-angle=""><rect x="214.0" y="112" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="231.5" y="126.5" class="cm-cell-label" text-anchor="middle">A</text></g>
+    <g class="cm-unit-g" data-unit="1b" data-floor="1" data-beds="1" data-baths="2" data-sqft="1095" data-price="1300000" data-psf="1187" data-date="2016-04-19" data-tax="18685" data-sold="1" data-top="0" data-pos="B" data-facing="" data-view="" data-angle=""><rect x="252.0" y="112" width="35" height="21" class="cm-cell cm-cell--cool" rx="1" /><text x="269.5" y="126.5" class="cm-cell-label" text-anchor="middle">B</text></g>
+    <g class="cm-unit-g" data-unit="1c" data-floor="1" data-beds="1" data-baths="2" data-sqft="1090" data-price="1675000" data-psf="1537" data-date="2019-09-13" data-tax="22506" data-sold="1" data-top="0" data-pos="C" data-facing="" data-view="" data-angle=""><rect x="290.0" y="112" width="35" height="21" class="cm-cell cm-cell--hot" rx="1" /><text x="307.5" y="126.5" class="cm-cell-label" text-anchor="middle">C</text></g>
+    <g class="cm-unit-g" data-unit="1d" data-floor="1" data-beds="1" data-baths="2" data-sqft="1086" data-price="1410000" data-psf="1298" data-date="2022-10-31" data-tax="18191" data-sold="1" data-top="0" data-pos="D" data-facing="" data-view="" data-angle=""><rect x="328.0" y="112" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="345.5" y="126.5" class="cm-cell-label" text-anchor="middle">D</text></g>
+    <g class="cm-unit-g" data-unit="1e" data-floor="1" data-beds="1" data-baths="2" data-sqft="1086" data-price="1310000" data-psf="1206" data-date="2016-04-19" data-tax="14206" data-sold="1" data-top="0" data-pos="E" data-facing="" data-view="" data-angle=""><rect x="366.0" y="112" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="383.5" y="126.5" class="cm-cell-label" text-anchor="middle">E</text></g>
+    <g class="cm-unit-g" data-unit="1f" data-floor="1" data-beds="1" data-baths="2" data-sqft="1095" data-price="1625000" data-psf="1484" data-date="2021-09-17" data-tax="17612" data-sold="1" data-top="0" data-pos="F" data-facing="" data-view="" data-angle=""><rect x="404.0" y="112" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="421.5" y="126.5" class="cm-cell-label" text-anchor="middle">F</text></g>
+    <g class="cm-unit-g" data-unit="1g" data-floor="1" data-beds="1" data-baths="2" data-sqft="1476" data-price="1807500" data-psf="1225" data-date="2020-11-10" data-tax="18475" data-sold="1" data-top="0" data-pos="G" data-facing="" data-view="" data-angle=""><rect x="442.0" y="112" width="35" height="21" class="cm-cell cm-cell--warm" rx="1" /><text x="459.5" y="126.5" class="cm-cell-label" text-anchor="middle">G</text></g>
+                    <rect x="100" y="142" width="491" height="3" class="cm-ground"/>
+                    
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="cm-zoom-hint">
+              <span class="cm-zoom-hint-mobile">Pinch to zoom · Drag to pan</span>
+              <span class="cm-zoom-hint-desktop">Scroll to zoom · Drag to pan · Double-click to reset</span>
+            </div>
+          </div>
+
+          <div class="cm-legend">
+            <span><span class="cm-legend-swatch cm-legend-swatch--cool"></span> Low PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--warm"></span> Mid PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--hot"></span> High PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--unsold"></span> Never publicly sold</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--top"></span> Building all-time high</span>
+            
+          </div>
+        </div>
+
+        <aside class="cm-panel" id="cmPanel">
+          <div id="cmPanelEmpty" class="cm-panel-empty">
+            Select any unit on the tower to see its full dossier. Hover for quick read-out.
+          </div>
+          <div id="cmPanelBody" style="display: none;">
+            <div class="cm-panel-heading" id="cmPanelStatus">Last Recorded Sale</div>
+            <div class="cm-panel-unit">Unit <em id="cmPanelUnit"></em></div>
+            <div class="cm-panel-sub" id="cmPanelSub"></div>
+            <div id="cmPanelSaleBlock">
+              <div class="cm-panel-price"><em id="cmPanelPrice"></em></div>
+              <div class="cm-panel-psf" id="cmPanelPSF"></div>
+            </div>
+            <div id="cmPanelNoSale" class="cm-panel-empty-sale" style="display: none;">
+              This residence has not publicly traded. The closest comparable transactions in the building are shown in the last-sale data for similar floor plans.
+            </div>
+
+            
+
+            <div class="cm-panel-grid">
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Bedrooms</div>
+                <div class="cm-panel-grid-value" id="cmPanelBeds">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Bathrooms</div>
+                <div class="cm-panel-grid-value" id="cmPanelBaths">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Square Feet</div>
+                <div class="cm-panel-grid-value" id="cmPanelSqft">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Floor</div>
+                <div class="cm-panel-grid-value" id="cmPanelFloor">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Annual Tax</div>
+                <div class="cm-panel-grid-value" id="cmPanelTax">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Last Sale</div>
+                <div class="cm-panel-grid-value" id="cmPanelDate" style="font-size: 15px;">—</div>
+              </div>
+            </div>
+            <button class="cm-panel-cta" onclick="alert('In production: opens offer form with this unit pre-filled')">Make an offer on this unit →</button>
+            <button class="cm-panel-cta cm-panel-cta--alt" onclick="alert('In production: opens Make-Me-Move price-post flow')">Name a price for a unit like this</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="cm-method">
+        <strong>How to read this.</strong> Each square is a real residence at 450 Hayes — 41 total, stacked from floor 1 to floor 4. Filled squares have publicly recorded sales; <em>warmer</em> colors indicate higher price-per-square-foot within this building. Hollow dashed squares have never publicly traded — they either sold at original purchase and have stayed with their owner, or the transaction predates what the tax roll captures. The bronze-outlined square (&#x2726;) marks Unit 4g, the building's highest-ever recorded transaction at $2.70M. Click any square for full detail and to start an offer — including on units that have never been listed.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const UNITS = [{"unit":"1a","floor":1,"beds":1,"baths":2,"sqft":1085,"price":950000,"psf":876,"date":"2024-10-31","tax":12077},{"unit":"1b","floor":1,"beds":1,"baths":2,"sqft":1095,"price":1300000,"psf":1187,"date":"2016-04-19","tax":18685},{"unit":"1c","floor":1,"beds":1,"baths":2,"sqft":1090,"price":1675000,"psf":1537,"date":"2019-09-13","tax":22506},{"unit":"1d","floor":1,"beds":1,"baths":2,"sqft":1086,"price":1410000,"psf":1298,"date":"2022-10-31","tax":18191},{"unit":"1e","floor":1,"beds":1,"baths":2,"sqft":1086,"price":1310000,"psf":1206,"date":"2016-04-19","tax":14206},{"unit":"1f","floor":1,"beds":1,"baths":2,"sqft":1095,"price":1625000,"psf":1484,"date":"2021-09-17","tax":17612},{"unit":"1g","floor":1,"beds":1,"baths":2,"sqft":1476,"price":1807500,"psf":1225,"date":"2020-11-10","tax":18475},{"unit":"2a","floor":2,"beds":2,"baths":2,"sqft":1008,"price":1066000,"psf":1058,"date":"2016-04-19","tax":15470},{"unit":"2b","floor":2,"beds":1,"baths":1,"sqft":612,"price":null,"psf":null,"date":null,"tax":4360},{"unit":"2c","floor":2,"beds":1,"baths":1,"sqft":618,"price":842500,"psf":1363,"date":"2016-04-19","tax":13816},{"unit":"2d","floor":2,"beds":1,"baths":1,"sqft":612,"price":845000,"psf":1381,"date":"2016-04-19","tax":8718},{"unit":"2e","floor":2,"beds":2,"baths":2,"sqft":921,"price":1200000,"psf":1303,"date":"2016-04-19","tax":12361},{"unit":"2f","floor":2,"beds":1,"baths":1,"sqft":729,"price":1060000,"psf":1454,"date":"2017-05-22","tax":15391},{"unit":"2g","floor":2,"beds":1,"baths":1,"sqft":641,"price":900000,"psf":1404,"date":"2016-04-19","tax":9144},{"unit":"2h","floor":2,"beds":1,"baths":1,"sqft":672,"price":null,"psf":null,"date":null,"tax":3761},{"unit":"2i","floor":2,"beds":1,"baths":1,"sqft":997,"price":null,"psf":null,"date":null,"tax":5939},{"unit":"2j","floor":2,"beds":1,"baths":1,"sqft":952,"price":1150000,"psf":1208,"date":"2022-08-16","tax":14992},{"unit":"2k","floor":2,"beds":1,"baths":1,"sqft":711,"price":845000,"psf":1188,"date":"2024-01-17","tax":11035},{"unit":"2l","floor":2,"beds":1,"baths":1,"sqft":706,"price":860000,"psf":1218,"date":"2023-06-06","tax":11340},{"unit":"2m","floor":2,"beds":2,"baths":2,"sqft":1250,"price":1625000,"psf":1300,"date":"2016-04-19","tax":16015},{"unit":"3a","floor":3,"beds":2,"baths":2,"sqft":1016,"price":1210100,"psf":1191,"date":"2016-04-19","tax":13425},{"unit":"3b","floor":3,"beds":1,"baths":1,"sqft":620,"price":900000,"psf":1452,"date":"2016-04-19","tax":13195},{"unit":"3c","floor":3,"beds":1,"baths":1,"sqft":611,"price":880000,"psf":1440,"date":"2021-11-01","tax":11886},{"unit":"3d","floor":3,"beds":1,"baths":1,"sqft":618,"price":895000,"psf":1448,"date":"2016-04-19","tax":11923},{"unit":"3e","floor":3,"beds":2,"baths":2,"sqft":915,"price":1030000,"psf":1126,"date":"2016-04-19","tax":14702},{"unit":"3f","floor":3,"beds":1,"baths":1,"sqft":729,"price":975000,"psf":1337,"date":"2021-03-18","tax":13323},{"unit":"3g","floor":3,"beds":1,"baths":1,"sqft":677,"price":907353,"psf":1340,"date":"2016-04-19","tax":13194},{"unit":"3h","floor":3,"beds":1,"baths":1,"sqft":673,"price":323500,"psf":481,"date":"2025-11-05","tax":3677},{"unit":"3i","floor":3,"beds":1,"baths":1,"sqft":955,"price":null,"psf":null,"date":null,"tax":4157},{"unit":"3j","floor":3,"beds":1,"baths":1,"sqft":1015,"price":1800000,"psf":1773,"date":"2016-04-19","tax":13413},{"unit":"3k","floor":3,"beds":1,"baths":1,"sqft":727,"price":860000,"psf":1183,"date":"2023-11-14","tax":11216},{"unit":"3l","floor":3,"beds":1,"baths":1,"sqft":711,"price":830000,"psf":1167,"date":"2023-11-07","tax":10854},{"unit":"3m","floor":3,"beds":2,"baths":2,"sqft":1227,"price":1850000,"psf":1508,"date":"2019-12-12","tax":24770},{"unit":"4a","floor":4,"beds":2,"baths":2,"sqft":1160,"price":1610000,"psf":1388,"date":"2024-09-03","tax":19883},{"unit":"4b","floor":4,"beds":2,"baths":2,"sqft":1022,"price":1670000,"psf":1634,"date":"2016-04-19","tax":17612},{"unit":"4c","floor":4,"beds":2,"baths":2,"sqft":1022,"price":1880000,"psf":1840,"date":"2021-10-13","tax":14300},{"unit":"4d","floor":4,"beds":2,"baths":2,"sqft":1026,"price":1601000,"psf":1560,"date":"2025-09-23","tax":24999},{"unit":"4e","floor":4,"beds":2,"baths":2,"sqft":1096,"price":1895000,"psf":1729,"date":"2016-04-19","tax":26987},{"unit":"4f","floor":4,"beds":2,"baths":2,"sqft":1141,"price":1650000,"psf":1446,"date":"2024-12-12","tax":20356},{"unit":"4g","floor":4,"beds":3,"baths":2,"sqft":1450,"price":2700000,"psf":1862,"date":"2016-04-19","tax":37819},{"unit":"4h","floor":4,"beds":2,"baths":2,"sqft":1191,"price":1579000,"psf":1326,"date":"2023-12-23","tax":19807}];
+const MEDIAN_PSF = 1340;
+
+const fmt = {
+  money: n => n ? '$' + n.toLocaleString() : '—',
+  money_short: n => {
+    if (!n) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + n;
+  },
+  date_long: s => {
+    if (!s) return '—';
+    const d = new Date(s);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  },
+  sqft: n => n ? n.toLocaleString() + ' sf' : '—',
+};
+
+const panelEmpty = document.getElementById('cmPanelEmpty');
+const panelBody = document.getElementById('cmPanelBody');
+
+function showUnit(g) {
+  document.querySelectorAll('.cm-unit-g.is-selected').forEach(n => n.classList.remove('is-selected'));
+  g.classList.add('is-selected');
+
+  const d = g.dataset;
+  const isSold = d.sold === '1';
+  const isTop = d.top === '1';
+
+  panelEmpty.style.display = 'none';
+  panelBody.style.display = 'block';
+
+  document.getElementById('cmPanelUnit').textContent = d.unit;
+  document.getElementById('cmPanelBeds').textContent = d.beds || '—';
+  document.getElementById('cmPanelBaths').textContent = d.baths || '—';
+  document.getElementById('cmPanelSqft').textContent = fmt.sqft(d.sqft);
+  document.getElementById('cmPanelFloor').textContent = d.floor || '—';
+  document.getElementById('cmPanelTax').textContent = d.tax ? fmt.money(+d.tax) : '—';
+  document.getElementById('cmPanelDate').textContent = fmt.date_long(d.date);
+
+  const sub = [d.beds ? d.beds + 'BR' : '', d.baths ? d.baths + 'BA' : '', fmt.sqft(d.sqft)].filter(Boolean).join(' · ');
+  document.getElementById('cmPanelSub').textContent = sub;
+
+  if (isSold) {
+    document.getElementById('cmPanelSaleBlock').style.display = 'block';
+    document.getElementById('cmPanelNoSale').style.display = 'none';
+    document.getElementById('cmPanelStatus').textContent = isTop ? 'Building All-Time High' : 'Last Recorded Sale';
+    document.getElementById('cmPanelPrice').textContent = fmt.money_short(+d.price);
+    document.getElementById('cmPanelPSF').textContent = d.psf ? '$' + (+d.psf).toLocaleString() + '/sf' : '';
+  } else {
+    document.getElementById('cmPanelSaleBlock').style.display = 'none';
+    document.getElementById('cmPanelNoSale').style.display = 'block';
+    document.getElementById('cmPanelStatus').textContent = 'No Public Record';
+  }
+
+  // Orientation panel — only active when building has orientation data
+  const orientEl = document.getElementById('cmPanelOrient');
+  if (orientEl) {
+    const facing = d.facing || '';
+    const view = d.view || '';
+    if (facing) {
+      orientEl.style.display = 'block';
+      document.getElementById('cmPanelFacing').textContent = facing + '-facing';
+      document.getElementById('cmPanelView').textContent = view || 'View data not yet recorded';
+      // Highlight this position on the floor plate
+      document.querySelectorAll('.cm-plate-unit').forEach(p => p.classList.remove('is-active'));
+      const pos = d.pos;
+      const plateUnit = document.querySelector(`.cm-plate-unit[data-pos="${pos}"]`);
+      if (plateUnit) plateUnit.classList.add('is-active');
+    } else {
+      // No orientation data for this unit position — hide the panel
+      orientEl.style.display = 'none';
+    }
+  }
+}
+
+document.querySelectorAll('.cm-unit-g').forEach(g => {
+  g.addEventListener('click', () => showUnit(g));
+});
+
+document.querySelectorAll('.cm-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const group = chip.dataset.filter ? 'filter' : 'beds';
+    document.querySelectorAll(`.cm-chip[data-${group}]`).forEach(c => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+    applyFilters();
+  });
+});
+
+function applyFilters() {
+  const activeFilter = document.querySelector('.cm-chip[data-filter].is-active')?.dataset.filter;
+  const activeBeds = document.querySelector('.cm-chip[data-beds].is-active')?.dataset.beds;
+
+  document.querySelectorAll('.cm-unit-g').forEach(g => {
+    const d = g.dataset;
+    let show = true;
+    if (activeFilter === 'sold' && d.sold !== '1') show = false;
+    if (activeFilter === 'unsold' && d.sold === '1') show = false;
+    if (activeBeds) {
+      const beds = +d.beds;
+      if (activeBeds === '4') show = show && beds >= 4;
+      else show = show && beds === +activeBeds;
+    }
+    g.style.opacity = show ? '' : '0.15';
+  });
+}
+
+// ─── PAN / ZOOM ─────────────────────────────────────────────────────────
+(function() {
+  const viewport = document.getElementById('cmViewport');
+  const stage    = document.getElementById('cmStage');
+  const readout  = document.getElementById('cmZoomReadout');
+  if (!viewport || !stage) return;
+
+  const MIN_SCALE = 0.6;
+  const MAX_SCALE = 4.0;
+  const STEP = 1.25;
+  let scale = 1;
+  let tx = 0, ty = 0;
+
+  function applyTransform(animate = true) {
+    stage.classList.toggle('is-dragging', !animate);
+    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    readout.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function zoomAt(clientX, clientY, nextScale) {
+    nextScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
+    const rect = viewport.getBoundingClientRect();
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+    // Adjust translation so the point under cursor stays in place
+    const k = nextScale / scale;
+    tx = px - (px - tx) * k;
+    ty = py - (py - ty) * k;
+    scale = nextScale;
+    applyTransform();
+  }
+
+  function reset() {
+    scale = 1; tx = 0; ty = 0;
+    applyTransform();
+  }
+
+  // Button controls
+  document.querySelectorAll('.cm-zoom-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rect = viewport.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const action = btn.dataset.zoom;
+      if (action === 'in')  zoomAt(cx, cy, scale * STEP);
+      if (action === 'out') zoomAt(cx, cy, scale / STEP);
+      if (action === 'reset') reset();
+    });
+  });
+
+  // Wheel zoom
+  viewport.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) < 1) return;
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 1/1.1 : 1.1;
+    zoomAt(e.clientX, e.clientY, scale * factor);
+  }, { passive: false });
+
+  // Double-click reset
+  viewport.addEventListener('dblclick', e => {
+    // Don't reset when clicking a unit
+    if (e.target.closest('.cm-unit-g')) return;
+    reset();
+  });
+
+  // Mouse drag to pan
+  let dragStart = null;
+  viewport.addEventListener('mousedown', e => {
+    // Don't start drag when clicking a unit
+    if (e.target.closest('.cm-unit-g')) return;
+    dragStart = { x: e.clientX - tx, y: e.clientY - ty };
+    viewport.classList.add('is-grabbing');
+    stage.classList.add('is-dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragStart) return;
+    tx = e.clientX - dragStart.x;
+    ty = e.clientY - dragStart.y;
+    applyTransform(false);
+  });
+  window.addEventListener('mouseup', () => {
+    dragStart = null;
+    viewport.classList.remove('is-grabbing');
+    stage.classList.remove('is-dragging');
+  });
+
+  // Touch: 1-finger pan, 2-finger pinch zoom
+  let touchState = null;
+  function touchDist(t) {
+    const dx = t[0].clientX - t[1].clientX;
+    const dy = t[0].clientY - t[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+  function touchMid(t) {
+    return {
+      x: (t[0].clientX + t[1].clientX) / 2,
+      y: (t[0].clientY + t[1].clientY) / 2,
+    };
+  }
+
+  viewport.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      if (e.target.closest('.cm-unit-g')) return;  // let tap through
+      touchState = { mode: 'pan', x: e.touches[0].clientX - tx, y: e.touches[0].clientY - ty };
+    } else if (e.touches.length === 2) {
+      const d = touchDist(e.touches);
+      touchState = { mode: 'pinch', startDist: d, startScale: scale, mid: touchMid(e.touches) };
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchmove', e => {
+    if (!touchState) return;
+    if (touchState.mode === 'pan' && e.touches.length === 1) {
+      tx = e.touches[0].clientX - touchState.x;
+      ty = e.touches[0].clientY - touchState.y;
+      applyTransform(false);
+      e.preventDefault();
+    } else if (touchState.mode === 'pinch' && e.touches.length === 2) {
+      const d = touchDist(e.touches);
+      const mid = touchMid(e.touches);
+      const nextScale = touchState.startScale * (d / touchState.startDist);
+      zoomAt(mid.x, mid.y, nextScale);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchend', () => {
+    touchState = null;
+  });
+
+  // Disable image drag ghosting inside the stage
+  stage.addEventListener('dragstart', e => e.preventDefault());
+})();
+</script>
+</body>
+</html>

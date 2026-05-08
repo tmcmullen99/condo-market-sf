@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The rise of San Francisco · Condo Market SF</title>
+<meta name="description" content="A scroll-animated visual history of San Francisco's condominium buildings — 64 towers, built from the 1960s to today.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+:root {
+  --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+  --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+  --cm-rule: rgba(232, 227, 216, 0.14);
+  --ff-display: 'Playfair Display', Georgia, serif;
+  --ff-body: 'DM Sans', -apple-system, sans-serif;
+  --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --page-max: 1280px;
+  --gutter: clamp(20px, 4vw, 56px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--cm-navy-deep); color: var(--cm-ivory); font-family: var(--ff-body); font-weight: 300; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+.wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
+.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+.masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+.wordmark em { color: var(--cm-peri); }
+.nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
+.nav-meta a { color: var(--cm-ivory-dim); transition: color 0.15s; }
+.nav-meta a:hover { color: var(--cm-ivory); }
+.nav-meta a.active { color: var(--cm-peri); }
+.signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
+.signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
+
+.hero { padding: 80px 0 56px; text-align: center; }
+.hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 22px; }
+.hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(44px, 7vw, 88px); line-height: 1.02; letter-spacing: -0.015em; margin-bottom: 20px; }
+.hero h1 em { font-style: italic; color: var(--cm-peri); }
+.hero p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto; }
+
+footer { padding: 48px 0 40px; background: var(--cm-navy); color: var(--cm-ivory-dim); font-size: 13px; border-top: 1px solid var(--cm-rule); margin-top: 80px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+@media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+footer h5 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory); margin-bottom: 14px; font-weight: 500; }
+footer ul { list-style: none; }
+footer li { padding: 4px 0; }
+footer a { color: var(--cm-ivory-dim); }
+footer a:hover { color: var(--cm-peri); }
+.footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--cm-rule); font-size: 12px; opacity: 0.7; text-align: center; }
+
+/* ─── RISE OF SF — GROWING SKYLINE ───────────────────────── */
+.rise-section {
+  background: #0a0d12;
+  color: #e8e3d8;
+  padding: 80px 0 0;
+  --bldg-fill: #1a1f2e;
+  --bldg-stroke: #9fb4d8;
+  --bldg-window: #e8e3d8;
+}
+.rise-intro { padding-bottom: 40px; max-width: 800px; }
+.rise-title { font-size: clamp(36px, 4.5vw, 52px); line-height: 1.1; margin: 12px 0 16px; color: var(--ivory); }
+.rise-title em { font-style: italic; font-weight: 400; color: var(--peri); }
+.rise-intro-lede {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 17px; font-style: italic; line-height: 1.6; margin: 0;
+  color: rgba(232,227,216,.65); max-width: 640px;
+}
+
+.rise-stage {
+  position: relative;
+  height: calc(var(--stage-vh, 500) * 1vh);
+  background: #0a0d12;
+}
+.rise-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: #0a0d12;
+  border-top: 1px solid rgba(159,180,216,.15);
+  border-bottom: 1px solid rgba(159,180,216,.15);
+}
+
+/* Skyline SVG fills the sticky viewport */
+.rise-sky { position: absolute; inset: 0; z-index: 1; }
+.rise-sky-svg { display: block; width: 100%; height: 100%; }
+
+/* Buildings animate via inline style from JS */
+.sky-bldg { transition: opacity .5s ease-out, transform .5s ease-out; }
+.sky-bldg .sky-bldg-body { transition: fill .3s; }
+.sky-bldg.is-emerging .sky-bldg-body {
+  fill: #2a3040;
+}
+
+/* Marquee towers — subtle stroke lift so the 5 famous buildings catch the eye */
+.sky-bldg-marquee rect,
+.sky-bldg-marquee path {
+  stroke: rgba(159,180,216,0.95);
+}
+.sky-bldg-marquee.is-emerging {
+  filter: drop-shadow(0 0 8px rgba(159,180,216,.35));
+}
+
+/* HUD — year counter top-left */
+.rise-hud {
+  position: absolute;
+  top: 32px; left: 32px; z-index: 5;
+  background: rgba(10,13,18,.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(159,180,216,.2);
+  border-radius: 3px;
+  padding: 22px 26px;
+  min-width: 260px;
+  pointer-events: none;
+}
+.rise-year {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700; font-size: 52px; line-height: 1;
+  color: var(--ivory); letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 14px;
+}
+.rise-era {
+  display: flex; flex-direction: column; gap: 3px;
+  margin-bottom: 16px; padding-bottom: 14px;
+  border-bottom: 1px solid rgba(159,180,216,.15);
+}
+.rise-era-yrs {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--peri); letter-spacing: .18em; font-weight: 500;
+}
+.rise-era-name {
+  font-family: 'Playfair Display', Georgia, serif; font-style: italic;
+  font-size: 18px; color: var(--ivory);
+}
+.rise-progress-track {
+  height: 2px; background: rgba(159,180,216,.12);
+  border-radius: 999px; overflow: hidden; margin-bottom: 10px;
+}
+.rise-progress-fill {
+  height: 100%; width: 0;
+  background: var(--peri); transition: width .12s linear;
+}
+.rise-count {
+  font-family: 'DM Sans', sans-serif; font-size: 11px;
+  color: rgba(232,227,216,.6); letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+.rise-count span { color: var(--peri); font-weight: 700; }
+
+/* Era copy (bottom-left) */
+.rise-copy {
+  position: absolute;
+  bottom: 32px; left: 32px; z-index: 5;
+  max-width: 380px;
+  background: rgba(10,13,18,.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(159,180,216,.15);
+  border-radius: 3px;
+  padding: 18px 22px;
+  pointer-events: none;
+}
+.rise-copy-body {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 14px; line-height: 1.6;
+  color: rgba(232,227,216,.82); margin: 0;
+  transition: opacity .25s;
+}
+
+/* Building detail card (right side) */
+.rise-card {
+  position: absolute;
+  top: 32px; right: 32px; bottom: 32px; z-index: 5;
+  width: 340px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.3,1);
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.rise-card.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.rise-card-inner {
+  background: rgba(10,13,18,.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(159,180,216,.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.rise-card-img-wrap {
+  aspect-ratio: 16/10;
+  background: #1a1f2e;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(159,180,216,.15);
+}
+.rise-card-img {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+  transition: transform .6s;
+}
+.rise-card-body { padding: 20px 22px 22px; }
+.rise-card-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: .15em; color: var(--peri);
+  margin: 0 0 6px; font-weight: 500;
+}
+.rise-card-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 22px; font-weight: 700;
+  margin: 0 0 6px; color: var(--ivory); letter-spacing: -.01em;
+  line-height: 1.1;
+}
+.rise-card-hood {
+  font-size: 13px; color: rgba(232,227,216,.6);
+  margin: 0 0 18px;
+}
+.rise-card-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  margin: 0 0 18px;
+  border-top: 1px solid rgba(159,180,216,.12);
+  border-bottom: 1px solid rgba(159,180,216,.12);
+  padding: 14px 0;
+}
+.rise-card-stats > div { text-align: center; }
+.rise-card-stats dt {
+  font-family: 'DM Sans', sans-serif; font-size: 9px;
+  letter-spacing: .18em; color: var(--peri); font-weight: 700;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.rise-card-stats dd {
+  font-family: 'Playfair Display', Georgia, serif; font-size: 18px;
+  font-weight: 700; color: var(--ivory); margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rise-card-link {
+  display: inline-block;
+  font-size: 12px; font-weight: 600; color: var(--peri);
+  text-decoration: none; letter-spacing: .04em;
+  transition: color .15s;
+}
+.rise-card-link:hover { color: #fff; }
+
+/* Scroll hint */
+.rise-hint {
+  position: absolute;
+  bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 5;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px;
+  background: rgba(10,13,18,.72);
+  border: 1px solid rgba(159,180,216,.2);
+  border-radius: 999px;
+  font-size: 11px; letter-spacing: .1em;
+  color: var(--peri); font-weight: 600;
+  pointer-events: none;
+  transition: opacity .4s ease-out;
+}
+.rise-hint-arrow {
+  font-size: 14px;
+  animation: riseHintArrow 1.5s ease-in-out infinite;
+}
+@keyframes riseHintArrow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+/* Legend recap strip below the stage */
+.rise-legend {
+  background: #0d111a;
+  border-bottom: 1px solid rgba(159,180,216,.15);
+  padding: 40px 0;
+}
+.rise-legend-inner {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+}
+.rise-legend-era {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 14px 18px;
+  border-left: 2px solid rgba(159,180,216,.18);
+}
+.rise-legend-yrs {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--peri); letter-spacing: .12em;
+}
+.rise-legend-title {
+  font-family: 'Playfair Display', Georgia, serif; font-style: italic;
+  font-size: 15px; color: var(--ivory); font-weight: 400;
+}
+.rise-legend-count {
+  font-size: 10px; color: rgba(232,227,216,.5); letter-spacing: .14em;
+  text-transform: uppercase; font-weight: 600;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .rise-legend-inner { grid-template-columns: 1fr 1fr; padding: 0 20px; }
+  .rise-hud { top: 16px; left: 16px; padding: 16px 18px; min-width: 0; max-width: calc(100% - 32px); }
+  .rise-year { font-size: 36px; }
+  .rise-era-name { font-size: 15px; }
+  .rise-copy { display: none; }
+  .rise-card { top: auto; bottom: 16px; right: 16px; left: 16px; width: auto; }
+  .rise-card-inner { display: flex; flex-direction: row; }
+  .rise-card-img-wrap { width: 120px; aspect-ratio: 1; flex-shrink: 0; border-bottom: 0; border-right: 1px solid rgba(159,180,216,.15); }
+  .rise-card-body { padding: 12px 16px; flex: 1; }
+  .rise-card-name { font-size: 16px; margin-bottom: 4px; }
+  .rise-card-hood { font-size: 11px; margin-bottom: 10px; }
+  .rise-card-stats { padding: 8px 0; margin-bottom: 10px; }
+  .rise-card-stats dd { font-size: 14px; }
+  .rise-card-link { font-size: 11px; }
+}
+@media (max-width: 760px) {
+  .rise-stage { height: calc(var(--stage-vh, 500) * 0.5vh); }
+}
+@media (max-width: 560px) {
+  .rise-legend-inner { grid-template-columns: 1fr; gap: 6px; }
+  .rise-legend-era { padding: 8px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-stage { height: auto; }
+  .rise-sticky { position: relative; height: auto; aspect-ratio: 16 / 7; }
+  .sky-bldg { opacity: 1 !important; transform: none !important; }
+  .rise-hint { display: none; }
+}
+
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <nav class="nav-meta">
+        <a href="/buildings/">Buildings</a>
+        <a href="/intelligence/">Intelligence</a>
+        <a href="/history/" class="active">History</a>
+        <a href="/how-it-works/">How it works</a>
+        <a href="/refer/">Refer</a>
+        <a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-kicker">A visual chronology</div>
+      <h1>The <em>rise</em> of San Francisco.</h1>
+      <p>Scroll down. Every building tracked by Condo Market, in the order it was built — from the 1960s to today. An editorial chronology of the city's condo market.</p>
+    </div>
+  </section>
+
+
+<!-- ═══ RISE OF SF — GROWING SKYLINE ═══════════════════════════ -->
+<section class="cm-section-dark rise-section" id="history">
+  <div class="cm-container rise-intro">
+    <p class="cm-eyebrow">A brief history</p>
+    <h2 class="cm-h rise-title">How San Francisco <em>rose.</em></h2>
+    <p class="rise-intro-lede">Sixty-four buildings, 56 years, one skyline. Scroll forward in time. Watch the city grow taller.</p>
+  </div>
+
+  <div class="rise-stage" style="--stage-vh: 5220;">
+    <div class="rise-sticky">
+
+      <!-- Year counter / era (top-left) -->
+      <div class="rise-hud">
+        <div class="rise-year" id="riseYear">1962</div>
+        <div class="rise-era">
+          <span class="rise-era-yrs" id="riseEraYrs">1962–1980</span>
+          <span class="rise-era-name" id="riseEraName">The quiet decades</span>
+        </div>
+        <div class="rise-progress-track"><div class="rise-progress-fill" id="riseProgress"></div></div>
+        <div class="rise-count"><span id="riseBuilt">0</span> of 64 built</div>
+      </div>
+
+      <!-- Era copy (bottom-left) -->
+      <div class="rise-copy">
+        <p class="rise-copy-body" id="riseCopyBody">Mid-century San Francisco was stubbornly low. The first tower generation appeared on Russian Hill and Nob Hill — cooperative apartment buildings aimed at residents who wanted the view without the house.</p>
+      </div>
+
+      <!-- Building detail card (right) -->
+      <aside class="rise-card" id="riseCard">
+        <div class="rise-card-inner">
+          <div class="rise-card-img-wrap">
+            <img class="rise-card-img" id="riseCardImg" alt="" loading="lazy"/>
+          </div>
+          <div class="rise-card-body">
+            <p class="rise-card-eyebrow" id="riseCardEyebrow">—</p>
+            <h3 class="rise-card-name" id="riseCardName">—</h3>
+            <p class="rise-card-hood" id="riseCardHood">—</p>
+            <dl class="rise-card-stats">
+              <div><dt>Floors</dt><dd id="riseCardFloors">—</dd></div>
+              <div><dt>Units</dt><dd id="riseCardUnits">—</dd></div>
+              <div><dt>$/sf</dt><dd id="riseCardPsf">—</dd></div>
+            </dl>
+            <a class="rise-card-link" id="riseCardLink" href="#">View building &rarr;</a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- The skyline itself -->
+      <div class="rise-sky">
+        <svg class="rise-sky-svg" id="riseSkySvg"
+             viewBox="0 0 1600 640"
+             preserveAspectRatio="xMinYMax meet"
+             xmlns="http://www.w3.org/2000/svg">
+
+          <defs>
+            <!-- Sky gradient: dark at top, subtle dawn band near ground -->
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#0a0d12"/>
+              <stop offset="0.6" stop-color="#0d111a"/>
+              <stop offset="0.9" stop-color="#141a28"/>
+              <stop offset="1" stop-color="#0a0d12"/>
+            </linearGradient>
+            <!-- Ground pattern: subtle horizontal lines -->
+            <pattern id="groundPat" x="0" y="0" width="20" height="4" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="2" x2="20" y2="2" stroke="rgba(159,180,216,.08)" stroke-width=".5"/>
+            </pattern>
+            <!-- Window patterns — one per decade style. All use the same ivory window color. -->
+            <!-- Modernist: sparse, 12×14 tile, small windows -->
+            <pattern id="winPat-modernist" x="0" y="0" width="12" height="14" patternUnits="userSpaceOnUse">
+              <rect x="2" y="3" width="3" height="2.5" fill="#e8e3d8" opacity=".3"/>
+              <rect x="7" y="3" width="3" height="2.5" fill="#e8e3d8" opacity=".22"/>
+              <rect x="7" y="9" width="3" height="2.5" fill="#e8e3d8" opacity=".28"/>
+            </pattern>
+            <!-- Posthmod: medium density, 11×12 -->
+            <pattern id="winPat-posthmod" x="0" y="0" width="11" height="12" patternUnits="userSpaceOnUse">
+              <rect x="1.5" y="2.5" width="3" height="2.5" fill="#e8e3d8" opacity=".32"/>
+              <rect x="6.5" y="2.5" width="3" height="2.5" fill="#e8e3d8" opacity=".36"/>
+              <rect x="1.5" y="7.5" width="3" height="2.5" fill="#e8e3d8" opacity=".28"/>
+              <rect x="6.5" y="7.5" width="3" height="2.5" fill="#e8e3d8" opacity=".34"/>
+            </pattern>
+            <!-- Glass box: dense uniform grid, 10×10 -->
+            <pattern id="winPat-glass_box" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+              <rect x="1.5" y="2" width="3" height="2.5" fill="#e8e3d8" opacity=".4"/>
+              <rect x="5.5" y="2" width="3" height="2.5" fill="#e8e3d8" opacity=".35"/>
+              <rect x="1.5" y="6.5" width="3" height="2.5" fill="#e8e3d8" opacity=".38"/>
+              <rect x="5.5" y="6.5" width="3" height="2.5" fill="#e8e3d8" opacity=".42"/>
+            </pattern>
+            <!-- Contemp: tall narrow windows, 10×14 -->
+            <pattern id="winPat-contemp" x="0" y="0" width="10" height="14" patternUnits="userSpaceOnUse">
+              <rect x="2" y="2" width="2" height="5" fill="#e8e3d8" opacity=".38"/>
+              <rect x="6" y="2" width="2" height="5" fill="#e8e3d8" opacity=".32"/>
+              <rect x="2" y="9" width="2" height="5" fill="#e8e3d8" opacity=".42"/>
+              <rect x="6" y="9" width="2" height="5" fill="#e8e3d8" opacity=".36"/>
+            </pattern>
+          </defs>
+
+          <!-- Backdrop sky (full width of virtual skyline) -->
+          <rect x="0" y="0" width="7018" height="640" fill="url(#skyGrad)"/>
+
+          <!-- Subtle horizon line just above ground -->
+          <line x1="0" y1="519.5" x2="7018" y2="519.5"
+                stroke="rgba(159,180,216,.2)" stroke-width=".8"/>
+
+          <!-- Ground -->
+          <rect x="0" y="520" width="7018" height="120"
+                fill="url(#groundPat)"/>
+          <line x1="0" y1="520" x2="7018" y2="520"
+                stroke="rgba(159,180,216,.5)" stroke-width="1"/>
+
+          <!-- Distant city silhouette (parallax far-back layer, static) -->
+          <g class="rise-far" opacity=".25">
+            <rect x="50" y="490" width="40" height="30" fill="var(--peri)" opacity=".3"/><rect x="140" y="477" width="48" height="43" fill="var(--peri)" opacity=".3"/><rect x="230" y="464" width="56" height="56" fill="var(--peri)" opacity=".3"/><rect x="320" y="451" width="40" height="69" fill="var(--peri)" opacity=".3"/><rect x="410" y="438" width="48" height="82" fill="var(--peri)" opacity=".3"/><rect x="500" y="480" width="56" height="40" fill="var(--peri)" opacity=".3"/><rect x="590" y="467" width="40" height="53" fill="var(--peri)" opacity=".3"/><rect x="680" y="454" width="48" height="66" fill="var(--peri)" opacity=".3"/><rect x="770" y="441" width="56" height="79" fill="var(--peri)" opacity=".3"/><rect x="860" y="483" width="40" height="37" fill="var(--peri)" opacity=".3"/><rect x="950" y="470" width="48" height="50" fill="var(--peri)" opacity=".3"/><rect x="1040" y="457" width="56" height="63" fill="var(--peri)" opacity=".3"/><rect x="1130" y="444" width="40" height="76" fill="var(--peri)" opacity=".3"/><rect x="1220" y="486" width="48" height="34" fill="var(--peri)" opacity=".3"/><rect x="1310" y="473" width="56" height="47" fill="var(--peri)" opacity=".3"/><rect x="1400" y="460" width="40" height="60" fill="var(--peri)" opacity=".3"/><rect x="1490" y="447" width="48" height="73" fill="var(--peri)" opacity=".3"/><rect x="1580" y="489" width="56" height="31" fill="var(--peri)" opacity=".3"/><rect x="1670" y="476" width="40" height="44" fill="var(--peri)" opacity=".3"/><rect x="1760" y="463" width="48" height="57" fill="var(--peri)" opacity=".3"/><rect x="1850" y="450" width="56" height="70" fill="var(--peri)" opacity=".3"/><rect x="1940" y="437" width="40" height="83" fill="var(--peri)" opacity=".3"/><rect x="2030" y="479" width="48" height="41" fill="var(--peri)" opacity=".3"/><rect x="2120" y="466" width="56" height="54" fill="var(--peri)" opacity=".3"/><rect x="2210" y="453" width="40" height="67" fill="var(--peri)" opacity=".3"/><rect x="2300" y="440" width="48" height="80" fill="var(--peri)" opacity=".3"/><rect x="2390" y="482" width="56" height="38" fill="var(--peri)" opacity=".3"/><rect x="2480" y="469" width="40" height="51" fill="var(--peri)" opacity=".3"/><rect x="2570" y="456" width="48" height="64" fill="var(--peri)" opacity=".3"/><rect x="2660" y="443" width="56" height="77" fill="var(--peri)" opacity=".3"/><rect x="2750" y="485" width="40" height="35" fill="var(--peri)" opacity=".3"/><rect x="2840" y="472" width="48" height="48" fill="var(--peri)" opacity=".3"/><rect x="2930" y="459" width="56" height="61" fill="var(--peri)" opacity=".3"/><rect x="3020" y="446" width="40" height="74" fill="var(--peri)" opacity=".3"/><rect x="3110" y="488" width="48" height="32" fill="var(--peri)" opacity=".3"/><rect x="3200" y="475" width="56" height="45" fill="var(--peri)" opacity=".3"/><rect x="3290" y="462" width="40" height="58" fill="var(--peri)" opacity=".3"/><rect x="3380" y="449" width="48" height="71" fill="var(--peri)" opacity=".3"/><rect x="3470" y="436" width="56" height="84" fill="var(--peri)" opacity=".3"/><rect x="3560" y="478" width="40" height="42" fill="var(--peri)" opacity=".3"/><rect x="3650" y="465" width="48" height="55" fill="var(--peri)" opacity=".3"/><rect x="3740" y="452" width="56" height="68" fill="var(--peri)" opacity=".3"/><rect x="3830" y="439" width="40" height="81" fill="var(--peri)" opacity=".3"/><rect x="3920" y="481" width="48" height="39" fill="var(--peri)" opacity=".3"/><rect x="4010" y="468" width="56" height="52" fill="var(--peri)" opacity=".3"/><rect x="4100" y="455" width="40" height="65" fill="var(--peri)" opacity=".3"/><rect x="4190" y="442" width="48" height="78" fill="var(--peri)" opacity=".3"/><rect x="4280" y="484" width="56" height="36" fill="var(--peri)" opacity=".3"/><rect x="4370" y="471" width="40" height="49" fill="var(--peri)" opacity=".3"/><rect x="4460" y="458" width="48" height="62" fill="var(--peri)" opacity=".3"/><rect x="4550" y="445" width="56" height="75" fill="var(--peri)" opacity=".3"/><rect x="4640" y="487" width="40" height="33" fill="var(--peri)" opacity=".3"/><rect x="4730" y="474" width="48" height="46" fill="var(--peri)" opacity=".3"/><rect x="4820" y="461" width="56" height="59" fill="var(--peri)" opacity=".3"/><rect x="4910" y="448" width="40" height="72" fill="var(--peri)" opacity=".3"/><rect x="5000" y="490" width="48" height="30" fill="var(--peri)" opacity=".3"/><rect x="5090" y="477" width="56" height="43" fill="var(--peri)" opacity=".3"/><rect x="5180" y="464" width="40" height="56" fill="var(--peri)" opacity=".3"/><rect x="5270" y="451" width="48" height="69" fill="var(--peri)" opacity=".3"/><rect x="5360" y="438" width="56" height="82" fill="var(--peri)" opacity=".3"/><rect x="5450" y="480" width="40" height="40" fill="var(--peri)" opacity=".3"/><rect x="5540" y="467" width="48" height="53" fill="var(--peri)" opacity=".3"/><rect x="5630" y="454" width="56" height="66" fill="var(--peri)" opacity=".3"/><rect x="5720" y="441" width="40" height="79" fill="var(--peri)" opacity=".3"/><rect x="5810" y="483" width="48" height="37" fill="var(--peri)" opacity=".3"/><rect x="5900" y="470" width="56" height="50" fill="var(--peri)" opacity=".3"/><rect x="5990" y="457" width="40" height="63" fill="var(--peri)" opacity=".3"/><rect x="6080" y="444" width="48" height="76" fill="var(--peri)" opacity=".3"/><rect x="6170" y="486" width="56" height="34" fill="var(--peri)" opacity=".3"/><rect x="6260" y="473" width="40" height="47" fill="var(--peri)" opacity=".3"/><rect x="6350" y="460" width="48" height="60" fill="var(--peri)" opacity=".3"/><rect x="6440" y="447" width="56" height="73" fill="var(--peri)" opacity=".3"/><rect x="6530" y="489" width="40" height="31" fill="var(--peri)" opacity=".3"/><rect x="6620" y="476" width="48" height="44" fill="var(--peri)" opacity=".3"/><rect x="6710" y="463" width="56" height="57" fill="var(--peri)" opacity=".3"/><rect x="6800" y="450" width="40" height="70" fill="var(--peri)" opacity=".3"/><rect x="6890" y="437" width="48" height="83" fill="var(--peri)" opacity=".3"/><rect x="6980" y="479" width="56" height="41" fill="var(--peri)" opacity=".3"/><rect x="7070" y="466" width="40" height="54" fill="var(--peri)" opacity=".3"/>
+          </g>
+
+          <!-- Buildings foreground -->
+          <g class="rise-bldgs">
+            
+    <g class="sky-bldg" data-idx="0" data-name="1090 Chestnut" data-year="1962"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="80" y="455.32142857142856" width="88" height="64.67857142857143" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="93.2" y="443.32142857142856" width="26.4" height="12" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="80" y="455.32142857142856" width="88" height="64.67857142857143" fill="url(#winPat-modernist)" pointer-events="none"/><rect x="93.2" y="443.32142857142856" width="26.4" height="12" fill="url(#winPat-modernist)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="124.0" y1="520"
+            x2="124.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="124.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1962</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="1" data-name="1070 Green" data-year="1965"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="182" y="420.8571428571429" width="88" height="99.14285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="195.2" y="408.8571428571429" width="26.4" height="12" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="182" y="420.8571428571429" width="88" height="99.14285714285714" fill="url(#winPat-modernist)" pointer-events="none"/><rect x="195.2" y="408.8571428571429" width="26.4" height="12" fill="url(#winPat-modernist)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="226.0" y1="520"
+            x2="226.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="226.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1965</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="2" data-name="1200 California" data-year="1965"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="284" y="386.3928571428571" width="88" height="133.60714285714286" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="284" y="386.3928571428571" width="88" height="133.60714285714286" fill="url(#winPat-modernist)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="328.0" y1="520"
+            x2="328.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="328.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1965</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="3" data-name="1150 Lombard" data-year="1968"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="386" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="399.2" y="436.42857142857144" width="26.4" height="12" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="386" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-modernist)" pointer-events="none"/><rect x="399.2" y="436.42857142857144" width="26.4" height="12" fill="url(#winPat-modernist)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="430.0" y1="520"
+            x2="430.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="430.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1968</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="4" data-name="1598 Bay" data-year="1997"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="488" y="494.0" width="88" height="26.0" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="501.2" y="476.0" width="61.599999999999994" height="18" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="488" y="494.0" width="88" height="26.0" fill="url(#winPat-posthmod)" pointer-events="none"/><rect x="501.2" y="476.0" width="61.599999999999994" height="18" fill="url(#winPat-posthmod)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="532.0" y1="520"
+            x2="532.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="532.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1997</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="5" data-name="1645 Pacific" data-year="1998"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="590" y="480.2142857142857" width="88" height="39.785714285714285" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="603.2" y="462.2142857142857" width="61.599999999999994" height="18" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="590" y="480.2142857142857" width="88" height="39.785714285714285" fill="url(#winPat-posthmod)" pointer-events="none"/><rect x="603.2" y="462.2142857142857" width="61.599999999999994" height="18" fill="url(#winPat-posthmod)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="634.0" y1="520"
+            x2="634.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="634.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1998</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="6" data-name="200 Brannan" data-year="1999"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="692" y="466.42857142857144" width="110" height="53.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="708.5" y="448.42857142857144" width="77.0" height="18" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="692" y="466.42857142857144" width="110" height="53.57142857142857" fill="url(#winPat-posthmod)" pointer-events="none"/><rect x="708.5" y="448.42857142857144" width="77.0" height="18" fill="url(#winPat-posthmod)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="747.0" y1="520"
+            x2="747.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="747.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">1999</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="7" data-name="The Brannan" data-year="2002"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="816" y="448.42857142857144" width="110" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="816" y="448.42857142857144" width="110" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="871.0" y1="520"
+            x2="871.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="871.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2002</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="8" data-name="235 Berry" data-year="2003"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="940" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="947.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="940" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="947.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="984.0" y1="520"
+            x2="984.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="984.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2003</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="9" data-name="1 Daniel Burnham" data-year="2004"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1042" y="393.2857142857143" width="110" height="126.71428571428571" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1042" y="393.2857142857143" width="110" height="126.71428571428571" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1097.0" y1="520"
+            x2="1097.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1097.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2004</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="10" data-name="170 Off Third" data-year="2004"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1166" y="457.01714285714286" width="110" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="1175.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1166" y="457.01714285714286" width="110" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="1175.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1221.0" y1="520"
+            x2="1221.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1221.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2004</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="11" data-name="2100 Green" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1290" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="1297.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1290" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="1297.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1334.0" y1="520"
+            x2="1334.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1334.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="12" data-name="2200 Pacific" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1392" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1392" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1436.0" y1="520"
+            x2="1436.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1436.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="13" data-name="2200 Sacramento" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1494" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1494" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1538.0" y1="520"
+            x2="1538.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1538.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="14" data-name="288 Pacific" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1596" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1596" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1640.0" y1="520"
+            x2="1640.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1640.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="15" data-name="325 Berry" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1698" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="1705.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1698" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="1705.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1742.0" y1="520"
+            x2="1742.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1742.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="16" data-name="388 Fulton" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1800" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1800" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1844.0" y1="520"
+            x2="1844.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1844.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="17" data-name="450 Hayes" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="1902" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="1902" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="1946.0" y1="520"
+            x2="1946.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="1946.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="18" data-name="733 Front" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2004" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="2011.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2004" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="2011.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2048.0" y1="520"
+            x2="2048.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2048.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="19" data-name="Arden" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2106" y="457.01714285714286" width="110" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="2115.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2106" y="457.01714285714286" width="110" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="2115.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2161.0" y1="520"
+            x2="2161.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2161.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="20" data-name="Bellaire Tower" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2230" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2230" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2274.0" y1="520"
+            x2="2274.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2274.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="21" data-name="Broadway Towers" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2332" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2332" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2376.0" y1="520"
+            x2="2376.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2376.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="22" data-name="Broderick Place" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2434" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="2441.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2434" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="2441.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2478.0" y1="520"
+            x2="2478.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2478.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="23" data-name="Clay Jones" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2536" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="2543.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2536" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="2543.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2580.0" y1="520"
+            x2="2580.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2580.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="24" data-name="Green Hill Tower" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2638" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2638" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2682.0" y1="520"
+            x2="2682.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2682.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="25" data-name="Jackson Towers" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2740" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2740" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2784.0" y1="520"
+            x2="2784.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2784.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="26" data-name="Laguna Hayes" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2842" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="2849.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2842" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="2849.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2886.0" y1="520"
+            x2="2886.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2886.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="27" data-name="Linea" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="2944" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="2944" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="2988.0" y1="520"
+            x2="2988.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="2988.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="28" data-name="Maison au Pont" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3046" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="3053.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3046" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="3053.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3090.0" y1="520"
+            x2="3090.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3090.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="29" data-name="Marina Chateau" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3148" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3148" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3192.0" y1="520"
+            x2="3192.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3192.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="30" data-name="Murano" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3250" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="3257.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3250" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="3257.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3294.0" y1="520"
+            x2="3294.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3294.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="31" data-name="One Mission Bay" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3352" y="457.01714285714286" width="110" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="3361.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3352" y="457.01714285714286" width="110" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="3361.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3407.0" y1="520"
+            x2="3407.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3407.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="32" data-name="Parc Telegraph" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3476" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="3483.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3476" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="3483.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3520.0" y1="520"
+            x2="3520.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3520.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="33" data-name="Park Terrace" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3578" y="457.01714285714286" width="110" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="3587.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3578" y="457.01714285714286" width="110" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="3587.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3633.0" y1="520"
+            x2="3633.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3633.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="34" data-name="Royal Towers" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3702" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3702" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3746.0" y1="520"
+            x2="3746.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3746.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="35" data-name="St Regis" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3804" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3804" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3848.0" y1="520"
+            x2="3848.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3848.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="36" data-name="The Amero" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="3906" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="3906" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="3950.0" y1="520"
+            x2="3950.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="3950.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+<g class="sky-bldg sky-bldg-marquee" data-idx="37" data-name="The Avery" data-year="2005" style="opacity: 0; transform: translateY(30px);"><rect x="4027.25" y="131.35714285714283" width="71.5" height="388.64285714285717" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="4027.25" y="131.35714285714283" width="71.5" height="388.64285714285717" fill="url(#winPat-contemp)" pointer-events="none"/><line x1="4039.2" y1="135.35714285714283" x2="4039.2" y2="518" stroke="rgba(159,180,216,.45)" stroke-width=".9" pointer-events="none"/><line x1="4051.1" y1="135.35714285714283" x2="4051.1" y2="518" stroke="rgba(159,180,216,.45)" stroke-width=".9" pointer-events="none"/><line x1="4063.0" y1="135.35714285714283" x2="4063.0" y2="518" stroke="rgba(159,180,216,.45)" stroke-width=".9" pointer-events="none"/><line x1="4074.9" y1="135.35714285714283" x2="4074.9" y2="518" stroke="rgba(159,180,216,.45)" stroke-width=".9" pointer-events="none"/><line x1="4086.8" y1="135.35714285714283" x2="4086.8" y2="518" stroke="rgba(159,180,216,.45)" stroke-width=".9" pointer-events="none"/><line class="sky-bldg-tick" x1="4063.0" y1="520" x2="4063.0" y2="530" stroke="var(--peri)" stroke-width="1" opacity=".5"/><text x="4063.0" y="542" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text></g>
+
+    <g class="sky-bldg" data-idx="38" data-name="The Comstock" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4132" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="4139.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4132" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="4139.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4176.0" y1="520"
+            x2="4176.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4176.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="39" data-name="The Crescent" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4234" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="4241.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4234" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="4241.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4278.0" y1="520"
+            x2="4278.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4278.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="40" data-name="The Harrison" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4336" y="448.42857142857144" width="110" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4336" y="448.42857142857144" width="110" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4391.0" y1="520"
+            x2="4391.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4391.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="41" data-name="The Knox" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4460" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4460" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4504.0" y1="520"
+            x2="4504.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4504.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="42" data-name="The Luxe" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4562" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4562" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4606.0" y1="520"
+            x2="4606.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4606.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="43" data-name="The Marlow" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4664" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4664" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4708.0" y1="520"
+            x2="4708.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4708.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="44" data-name="The Pacific" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4766" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="4773.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4766" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="4773.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4810.0" y1="520"
+            x2="4810.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4810.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="45" data-name="The Rockwell" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4868" y="457.01714285714286" width="110" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="4877.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4868" y="457.01714285714286" width="110" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="4877.9" y="448.42857142857144" width="90.19999999999999" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="4923.0" y1="520"
+            x2="4923.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="4923.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="46" data-name="The Rowan" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="4992" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="4999.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="4992" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="4999.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5036.0" y1="520"
+            x2="5036.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5036.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="47" data-name="The Summit" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5094" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="5101.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5094" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="5101.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5138.0" y1="520"
+            x2="5138.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5138.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="48" data-name="The Valencia" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5196" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="5203.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5196" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="5203.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5240.0" y1="520"
+            x2="5240.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5240.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="49" data-name="The Washingtonian" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5298" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5298" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5342.0" y1="520"
+            x2="5342.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5342.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="50" data-name="Union House" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5400" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5400" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5444.0" y1="520"
+            x2="5444.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5444.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="51" data-name="UnionSF" data-year="2005"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5502" y="457.01714285714286" width="88" height="62.98285714285714" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="5509.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5502" y="457.01714285714286" width="88" height="62.98285714285714" fill="url(#winPat-glass_box)" pointer-events="none"/><rect x="5509.92" y="448.42857142857144" width="72.16" height="8.588571428571427" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5546.0" y1="520"
+            x2="5546.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5546.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2005</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="52" data-name="300 Ivy" data-year="2006"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5604" y="455.32142857142856" width="88" height="64.67857142857143" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5604" y="455.32142857142856" width="88" height="64.67857142857143" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5648.0" y1="520"
+            x2="5648.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5648.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2006</text>
+    </g>
+<g class="sky-bldg sky-bldg-marquee" data-idx="53" data-name="One Rincon Hill" data-year="2008" style="opacity: 0; transform: translateY(30px);"><path d="M5710 520 L5710 90.0 L5734.0 90.0 Q5758.0 93.6 5758.0 108.0 L5758.0 520 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M5764.0 520 L5764.0 133.8 Q5764.0 119.39999999999999 5788.0 115.8 L5812.0 115.8 L5812.0 520 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="5706" y="477.0" width="110" height="43.0" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M5710 520 L5710 90.0 L5734.0 90.0 Q5758.0 93.6 5758.0 108.0 L5758.0 520 Z" fill="url(#winPat-glass_box)" pointer-events="none" stroke="none"/><path d="M5764.0 520 L5764.0 133.8 Q5764.0 119.39999999999999 5788.0 115.8 L5812.0 115.8 L5812.0 520 Z" fill="url(#winPat-glass_box)" pointer-events="none" stroke="none"/><line class="sky-bldg-tick" x1="5761.0" y1="520" x2="5761.0" y2="530" stroke="var(--peri)" stroke-width="1" opacity=".5"/><text x="5761.0" y="542" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="var(--peri)" opacity=".7" letter-spacing=".05em">2008</text></g>
+
+    <g class="sky-bldg" data-idx="54" data-name="Radiance" data-year="2008"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="5830" y="448.42857142857144" width="88" height="71.57142857142857" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="5830" y="448.42857142857144" width="88" height="71.57142857142857" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="5874.0" y1="520"
+            x2="5874.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="5874.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2008</text>
+    </g>
+<g class="sky-bldg sky-bldg-marquee" data-idx="55" data-name="Millennium Tower" data-year="2009" style="opacity: 0; transform: translateY(30px);"><path d="M5932 520 L5932 112.78571428571428 L5941 103.78571428571428 L6033 103.78571428571428 L6042 112.78571428571428 L6042 520 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><rect x="5960.6" y="94.78571428571428" width="52.8" height="9" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M5932 520 L5932 112.78571428571428 L5941 103.78571428571428 L6033 103.78571428571428 L6042 112.78571428571428 L6042 520 Z" fill="url(#winPat-glass_box)" pointer-events="none" stroke="none"/><line class="sky-bldg-tick" x1="5987.0" y1="520" x2="5987.0" y2="530" stroke="var(--peri)" stroke-width="1" opacity=".5"/><text x="5987.0" y="542" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="var(--peri)" opacity=".7" letter-spacing=".05em">2009</text></g>
+
+    <g class="sky-bldg" data-idx="56" data-name="The Hayes" data-year="2009"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="6056" y="455.32142857142856" width="88" height="64.67857142857143" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      
+      <rect x="6056" y="455.32142857142856" width="88" height="64.67857142857143" fill="url(#winPat-glass_box)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="6100.0" y1="520"
+            x2="6100.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="6100.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2009</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="57" data-name="1515 15th" data-year="2013"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="6158" y="476.6607142857143" width="88" height="43.339285714285715" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <path d="M 6158,476.6607142857143 L 6170.32,462.2142857142857
+                             L 6233.679999999999,462.2142857142857 L 6246,476.6607142857143 Z"
+                          fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <rect x="6158" y="476.6607142857143" width="88" height="43.339285714285715" fill="url(#winPat-contemp)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="6202.0" y1="520"
+            x2="6202.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="6202.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2013</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="58" data-name="1188 Valencia" data-year="2014"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="6260" y="481.83035714285717" width="88" height="38.169642857142854" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <path d="M 6260,481.83035714285717 L 6272.32,469.1071428571429
+                             L 6335.679999999999,469.1071428571429 L 6348,481.83035714285717 Z"
+                          fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <rect x="6260" y="481.83035714285717" width="88" height="38.169642857142854" fill="url(#winPat-contemp)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="6304.0" y1="520"
+            x2="6304.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="6304.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2014</text>
+    </g>
+
+    <g class="sky-bldg" data-idx="59" data-name="400 Grove" data-year="2014"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="6362" y="481.83035714285717" width="88" height="38.169642857142854" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <path d="M 6362,481.83035714285717 L 6374.32,469.1071428571429
+                             L 6437.679999999999,469.1071428571429 L 6450,481.83035714285717 Z"
+                          fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <rect x="6362" y="481.83035714285717" width="88" height="38.169642857142854" fill="url(#winPat-contemp)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="6406.0" y1="520"
+            x2="6406.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="6406.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2014</text>
+    </g>
+<g class="sky-bldg sky-bldg-marquee" data-idx="60" data-name="LUMINA" data-year="2016" style="opacity: 0; transform: translateY(30px);"><path d="M6470 520 L6470 228.07142857142856 A23.0 14 0 0 1 6516.0 228.07142857142856 L6516.0 520 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M6522.0 520 L6522.0 270.90142857142854 A23.0 14 0 0 1 6568.0 270.90142857142854 L6568.0 520 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M6464 520 L6464 470.93285714285713 L6502.5 464.93285714285713 L6535.5 464.93285714285713 L6574 470.93285714285713 L6574 520 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M6470 520 L6470 228.07142857142856 A23.0 14 0 0 1 6516.0 228.07142857142856 L6516.0 520 Z" fill="url(#winPat-contemp)" pointer-events="none" stroke="none"/><path d="M6522.0 520 L6522.0 270.90142857142854 A23.0 14 0 0 1 6568.0 270.90142857142854 L6568.0 520 Z" fill="url(#winPat-contemp)" pointer-events="none" stroke="none"/><line x1="6472" y1="234.1" x2="6514.0" y2="234.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="245.1" x2="6514.0" y2="245.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="256.1" x2="6514.0" y2="256.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="267.1" x2="6514.0" y2="267.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="278.1" x2="6514.0" y2="278.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="289.1" x2="6514.0" y2="289.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="300.1" x2="6514.0" y2="300.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="311.1" x2="6514.0" y2="311.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="322.1" x2="6514.0" y2="322.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="333.1" x2="6514.0" y2="333.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="344.1" x2="6514.0" y2="344.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="355.1" x2="6514.0" y2="355.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="366.1" x2="6514.0" y2="366.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="377.1" x2="6514.0" y2="377.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="388.1" x2="6514.0" y2="388.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="399.1" x2="6514.0" y2="399.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="410.1" x2="6514.0" y2="410.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="421.1" x2="6514.0" y2="421.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="432.1" x2="6514.0" y2="432.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="443.1" x2="6514.0" y2="443.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6472" y1="454.1" x2="6514.0" y2="454.1" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="276.9" x2="6566.0" y2="276.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="287.9" x2="6566.0" y2="287.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="298.9" x2="6566.0" y2="298.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="309.9" x2="6566.0" y2="309.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="320.9" x2="6566.0" y2="320.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="331.9" x2="6566.0" y2="331.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="342.9" x2="6566.0" y2="342.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="353.9" x2="6566.0" y2="353.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="364.9" x2="6566.0" y2="364.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="375.9" x2="6566.0" y2="375.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="386.9" x2="6566.0" y2="386.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="397.9" x2="6566.0" y2="397.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="408.9" x2="6566.0" y2="408.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="419.9" x2="6566.0" y2="419.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="430.9" x2="6566.0" y2="430.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="441.9" x2="6566.0" y2="441.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line x1="6524.0" y1="452.9" x2="6566.0" y2="452.9" stroke="rgba(159,180,216,.35)" stroke-width=".8" pointer-events="none"/><line class="sky-bldg-tick" x1="6519.0" y1="520" x2="6519.0" y2="530" stroke="var(--peri)" stroke-width="1" opacity=".5"/><text x="6519.0" y="542" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="var(--peri)" opacity=".7" letter-spacing=".05em">2016</text></g>
+
+    <g class="sky-bldg" data-idx="61" data-name="Madrone" data-year="2016"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="6588" y="481.83035714285717" width="110" height="38.169642857142854" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <path d="M 6588,481.83035714285717 L 6603.4,469.1071428571429
+                             L 6682.599999999999,469.1071428571429 L 6698,481.83035714285717 Z"
+                          fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <rect x="6588" y="481.83035714285717" width="110" height="38.169642857142854" fill="url(#winPat-contemp)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="6643.0" y1="520"
+            x2="6643.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="6643.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2016</text>
+    </g>
+<g class="sky-bldg sky-bldg-marquee" data-idx="62" data-name="181 Fremont" data-year="2017" style="opacity: 0; transform: translateY(30px);"><rect x="6728.5" y="174.46428571428572" width="77.0" height="345.5357142857143" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><path d="M6728.5 174.46428571428572 L6751.6 142.46428571428572 L6782.400000000001 142.46428571428572 L6805.5 174.46428571428572 Z" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/><line x1="6767.0" y1="142.46428571428572" x2="6767.0" y2="116.46428571428572" stroke="var(--bldg-stroke)" stroke-width="1.4"/><rect x="6728.5" y="174.46428571428572" width="77.0" height="345.5357142857143" fill="url(#winPat-contemp)" pointer-events="none"/><path d="M6728.5 204 L6805.5 254 M6805.5 204 L6728.5 254" stroke="rgba(159,180,216,.45)" stroke-width=".8" fill="none" pointer-events="none"/><path d="M6728.5 254 L6805.5 304 M6805.5 254 L6728.5 304" stroke="rgba(159,180,216,.45)" stroke-width=".8" fill="none" pointer-events="none"/><path d="M6728.5 304 L6805.5 354 M6805.5 304 L6728.5 354" stroke="rgba(159,180,216,.45)" stroke-width=".8" fill="none" pointer-events="none"/><path d="M6728.5 354 L6805.5 404 M6805.5 354 L6728.5 404" stroke="rgba(159,180,216,.45)" stroke-width=".8" fill="none" pointer-events="none"/><path d="M6728.5 404 L6805.5 454 M6805.5 404 L6728.5 454" stroke="rgba(159,180,216,.45)" stroke-width=".8" fill="none" pointer-events="none"/><path d="M6728.5 454 L6805.5 504 M6805.5 454 L6728.5 504" stroke="rgba(159,180,216,.45)" stroke-width=".8" fill="none" pointer-events="none"/><line class="sky-bldg-tick" x1="6767.0" y1="520" x2="6767.0" y2="530" stroke="var(--peri)" stroke-width="1" opacity=".5"/><text x="6767.0" y="542" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="var(--peri)" opacity=".7" letter-spacing=".05em">2017</text></g>
+
+    <g class="sky-bldg" data-idx="63" data-name="950 Tennessee" data-year="2018"
+       style="opacity: 0; transform: translateY(30px);">
+      <rect x="6836" y="481.83035714285717" width="88" height="38.169642857142854" fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <path d="M 6836,481.83035714285717 L 6848.32,469.1071428571429
+                             L 6911.679999999999,469.1071428571429 L 6924,481.83035714285717 Z"
+                          fill="var(--bldg-fill)" stroke="var(--bldg-stroke)" stroke-width="1"/>
+      <rect x="6836" y="481.83035714285717" width="88" height="38.169642857142854" fill="url(#winPat-contemp)" pointer-events="none"/>
+      <line class="sky-bldg-tick" x1="6880.0" y1="520"
+            x2="6880.0" y2="530"
+            stroke="var(--peri)" stroke-width="1" opacity=".5"/>
+      <text x="6880.0" y="542" text-anchor="middle"
+            font-family="'JetBrains Mono', monospace" font-size="9"
+            fill="var(--peri)" opacity=".7" letter-spacing=".05em">2018</text>
+    </g>
+          </g>
+
+        </svg>
+      </div>
+
+      <!-- Scroll hint -->
+      <div class="rise-hint" id="riseHint">
+        <span class="rise-hint-arrow">↓</span>
+        <span>Scroll to build the skyline</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Recap legend -->
+  <div class="rise-legend">
+    <div class="cm-container">
+      <div class="rise-legend-inner">
+        <div class="rise-legend-era"><span class="rise-legend-yrs">1962–1980</span><span class="rise-legend-title">The quiet decades</span><span class="rise-legend-count">4 bldgs</span></div><div class="rise-legend-era"><span class="rise-legend-yrs">1981–1995</span><span class="rise-legend-title">First wave</span><span class="rise-legend-count">0 bldgs</span></div><div class="rise-legend-era"><span class="rise-legend-yrs">1996–2005</span><span class="rise-legend-title">The live-work years</span><span class="rise-legend-count">48 bldgs</span></div><div class="rise-legend-era"><span class="rise-legend-yrs">2006–2012</span><span class="rise-legend-title">Rincon Hill rezoning</span><span class="rise-legend-count">5 bldgs</span></div><div class="rise-legend-era"><span class="rise-legend-yrs">2013–2020</span><span class="rise-legend-title">The current skyline</span><span class="rise-legend-count">7 bldgs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const BLDGS = [{"idx": 0, "name": "1090 Chestnut", "year": 1962, "hood": "Russian Hill", "units": 12, "floors": 7, "psf": 1486, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d909ba8560262a3383a4_6552df1649c943ca05642744_chestnut.jpeg", "href": "/building/1090-chestnut", "x": 124.0, "era": "1962\u20131980"}, {"idx": 1, "name": "1070 Green", "year": 1965, "hood": "Russian Hill", "units": 48, "floors": 12, "psf": 803, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91045c37e0986ee7510_6552c3e3718b0d3c927097e6_gph.webp", "href": "/building/1070-green", "x": 226.0, "era": "1962\u20131980"}, {"idx": 2, "name": "1200 California", "year": 1965, "hood": "Nob Hill", "units": 95, "floors": 17, "psf": 1964, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90ab587f0fdd95c6146_6552dc35687cbaf869b696a7_1200%2520cal.webp", "href": "/building/1200-california", "x": 328.0, "era": "1962\u20131980"}, {"idx": 3, "name": "1150 Lombard", "year": 1968, "hood": "Russian Hill", "units": 42, "floors": 8, "psf": 671, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9092b3e03f580d2160a_65692557178a0f7b8b8d84a4_22.webp", "href": "/building/1150-lombard", "x": 430.0, "era": "1962\u20131980"}, {"idx": 4, "name": "1598 Bay", "year": 1997, "hood": "The Marina", "units": 28, "floors": 4, "psf": 1501, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90a598c1263d9068e3a_655412d6afb97d26ea7ec8f8_Screen%2520Shot%25202023-11-14%2520at%25204.37.14%2520PM.png", "href": "/building/1598-bay", "x": 532.0, "era": "1996\u20132005"}, {"idx": 5, "name": "1645 Pacific", "year": 1998, "hood": "Nob Hill", "units": 39, "floors": 6, "psf": 1355, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90a418c1a10235e98fa_65693cf549c26cdb95f34549_Screen%2520Shot%25202023-11-30%2520at%25205.44.12%2520PM.png", "href": "/building/1645-pacific", "x": 634.0, "era": "1996\u20132005"}, {"idx": 6, "name": "200 Brannan", "year": 1999, "hood": "South Beach", "units": 193, "floors": 8, "psf": 746, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90c2d98ed18e90c184e_6552c0a39b595293fe63e471_200%2520brannan%2520facade.jpeg", "href": "/building/200-brannan", "x": 747.0, "era": "1996\u20132005"}, {"idx": 7, "name": "The Brannan", "year": 2002, "hood": "South Beach", "units": 336, "floors": 8, "psf": 851, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d917a1f7ec24f51490ff_6552e3703439e5a5b03e9c3b_530661095-51.jpeg", "href": "/building/the-brannan", "x": 871.0, "era": "1996\u20132005"}, {"idx": 8, "name": "235 Berry", "year": 2003, "hood": "Mission Bay", "units": 99, "floors": 8, "psf": 1146, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90dbed4cd3c2cb8ac78_656d30d6b9eb7c642a6706b6_530641639-2.jpeg", "href": "/building/235-berry", "x": 984.0, "era": "1996\u20132005"}, {"idx": 9, "name": "1 Daniel Burnham", "year": 2004, "hood": "Civic Center", "units": 247, "floors": 16, "psf": 655, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9091fb27f35da06845d_655410371d6c0446bb98fbab_530696784-1.jpeg", "href": "/building/1-daniel-burnham", "x": 1097.0, "era": "1996\u20132005"}, {"idx": 10, "name": "170 Off Third", "year": 2004, "hood": "South Beach", "units": 151, "floors": 8, "psf": 1000, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90abed4cd3c2cb8ab16_65697255f25e72003331fb98_fed.jpeg", "href": "/building/170-off-third", "x": 1221.0, "era": "1996\u20132005"}, {"idx": 11, "name": "2100 Green", "year": 2005, "hood": "Cow Hollow", "units": 21, "floors": 8, "psf": 1063, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90c167148022c6a4d32_656d21df84f95c4a42561ce3_c825c0373137c14cc65f76df2d789f6a-uncropped_scaled_within_1536_1152.webp", "href": "/building/2100-green", "x": 1334.0, "era": "1996\u20132005"}, {"idx": 12, "name": "2200 Pacific", "year": 2005, "hood": "Pacific Heights", "units": 65, "floors": 8, "psf": 885, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90c878345a7dae8bcba_655418dcbcd6022f45b51a5d_Screen%2520Shot%25202023-11-14%2520at%25205.02.36%2520PM.png", "href": "/building/2200-pacific", "x": 1436.0, "era": "1996\u20132005"}, {"idx": 13, "name": "2200 Sacramento", "year": 2005, "hood": "Pacific Heights", "units": 128, "floors": 8, "psf": 891, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9142203a3bc1183ff64_655419ccf07a3e5f1133d8b1_Screen%2520Shot%25202023-11-14%2520at%25205.04.41%2520PM.png", "href": "/building/2200-sacramento", "x": 1538.0, "era": "1996\u20132005"}, {"idx": 14, "name": "288 Pacific", "year": 2005, "hood": "Jackson Square", "units": 30, "floors": 8, "psf": 1848, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90d1bae0bede879ae94_655414a0406cb6602cc8e277_Screen%2520Shot%25202023-11-14%2520at%25204.43.30%2520PM.png", "href": "/building/288-pacific", "x": 1640.0, "era": "1996\u20132005"}, {"idx": 15, "name": "325 Berry", "year": 2005, "hood": "Mission Bay", "units": 111, "floors": 8, "psf": 913, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d915cc6c87805fe5b439_656d339ea4e346961e50e010_Screen%2520Shot%25202023-12-03%2520at%25206.03.26%2520PM.png", "href": "/building/325-berry", "x": 1742.0, "era": "1996\u20132005"}, {"idx": 16, "name": "388 Fulton", "year": 2005, "hood": "Hayes Valley", "units": 69, "floors": 8, "psf": 1490, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90de9f18df731229278_656e03df43f891e7bab49ecb_21205_388fulton_%2525C3%252582%2525C2%2525A9brucedamonte_01.jpg.webp", "href": "/building/388-fulton", "x": 1844.0, "era": "1996\u20132005"}, {"idx": 17, "name": "450 Hayes", "year": 2005, "hood": "Hayes Valley", "units": 41, "floors": 8, "psf": 1300, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90e878345a7dae8bd84_656e0b61c41c5757253a37b0_530673275-34.jpeg", "href": "/building/450-hayes", "x": 1946.0, "era": "1996\u20132005"}, {"idx": 18, "name": "733 Front", "year": 2005, "hood": "Financial District", "units": 69, "floors": 8, "psf": 1072, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90fd755ec60d4c24f9b_656e04c22c9bab76d0ac03ab_01_TIM_8910.jpeg", "href": "/building/733-front", "x": 2048.0, "era": "1996\u20132005"}, {"idx": 19, "name": "Arden", "year": 2005, "hood": "Mission Bay", "units": 268, "floors": 8, "psf": 1175, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90e686262296e004849_6554263771056e9aaa747fd6_6513119067ec072954288eb1_1.jpeg", "href": "/building/arden", "x": 2161.0, "era": "1996\u20132005"}, {"idx": 20, "name": "Bellaire Tower", "year": 2005, "hood": "Russian Hill", "units": 64, "floors": 8, "psf": 873, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90f334a88529517691b_6552c2a17b2e8e6cffd5e20c_bellaire.jpeg", "href": "/building/bellaire-tower", "x": 2274.0, "era": "1996\u20132005"}, {"idx": 21, "name": "Broadway Towers", "year": 2005, "hood": "Pacific Heights", "units": 82, "floors": 8, "psf": 661, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9101bae0bede879b15b_6554170cfb92fb086260b456_Screen%2520Shot%25202023-11-14%2520at%25204.55.36%2520PM.png", "href": "/building/broadway-towers", "x": 2376.0, "era": "1996\u20132005"}, {"idx": 22, "name": "Broderick Place", "year": 2005, "hood": "NOPA", "units": 70, "floors": 8, "psf": 952, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d910a86f167a3667e575_656e02ac5b995772329dd7fd_Screen%2520Shot%25202023-12-04%2520at%25208.46.08%2520AM.png", "href": "/building/broderick-place", "x": 2478.0, "era": "1996\u20132005"}, {"idx": 23, "name": "Clay Jones", "year": 2005, "hood": "Nob Hill", "units": 44, "floors": 8, "psf": 704, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9189f4a50c1f6ffcda5_6552dd2c27f02d8ced418fb0_Screen%2520Shot%25202023-11-13%2520at%25206.36.05%2520PM.png", "href": "/building/clay-jones", "x": 2580.0, "era": "1996\u20132005"}, {"idx": 24, "name": "Green Hill Tower", "year": 2005, "hood": "Russian Hill", "units": 48, "floors": 8, "psf": 803, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91045c37e0986ee7510_6552c3e3718b0d3c927097e6_gph.webp", "href": "/building/green-hill-tower", "x": 2682.0, "era": "1996\u20132005"}, {"idx": 25, "name": "Jackson Towers", "year": 2005, "hood": "Pacific Heights", "units": 80, "floors": 8, "psf": 827, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9106675b534904d4478_65541851ff3db49b8c1f5756_Screen%2520Shot%25202023-11-14%2520at%25205.00.36%2520PM.png", "href": "/building/jackson-towers", "x": 2784.0, "era": "1996\u20132005"}, {"idx": 26, "name": "Laguna Hayes", "year": 2005, "hood": "Hayes Valley", "units": 29, "floors": 8, "psf": 1345, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9116a50675da5780a46_656e13561f3fdf7bf0044b31_7.webp", "href": "/building/laguna-hayes", "x": 2886.0, "era": "1996\u20132005"}, {"idx": 27, "name": "Linea", "year": 2005, "hood": "Hayes Valley", "units": 119, "floors": 8, "psf": 1107, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d911a750acafb3a9a458_656e0d5a7f3f18c4352863ec_530569648-49.jpeg", "href": "/building/linea", "x": 2988.0, "era": "1996\u20132005"}, {"idx": 28, "name": "Maison au Pont", "year": 2005, "hood": "The Marina", "units": 82, "floors": 8, "psf": 1615, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9128223a96a7ae54c74_6569670d79ab2f7b64722d4a_Screen%2520Shot%25202023-11-30%2520at%25208.54.25%2520PM.png", "href": "/building/maison-au-pont", "x": 3090.0, "era": "1996\u20132005"}, {"idx": 29, "name": "Marina Chateau", "year": 2005, "hood": "The Marina", "units": 64, "floors": 8, "psf": 785, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d912605f43107ad11459_656969a8c96c6793f4405980_Screen%2520Shot%25202023-11-30%2520at%25209.05.35%2520PM.png", "href": "/building/marina-chateau", "x": 3192.0, "era": "1996\u20132005"}, {"idx": 30, "name": "Murano", "year": 2005, "hood": "The Marina", "units": 22, "floors": 8, "psf": 1450, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9135967de40cb0b1ad6_656d1018c1583e53c0236e08_Screen%2520Shot%25202023-12-03%2520at%25203.30.00%2520PM.png", "href": "/building/murano", "x": 3294.0, "era": "1996\u20132005"}, {"idx": 31, "name": "One Mission Bay", "year": 2005, "hood": "Mission Bay", "units": 353, "floors": 8, "psf": 1285, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9134940c2aa054169db_655429e5bcd6022f45b51a5d_OMB%2520Pool.jpeg", "href": "/building/one-mission-bay", "x": 3407.0, "era": "1996\u20132005"}, {"idx": 32, "name": "Parc Telegraph", "year": 2005, "hood": "Russian Hill", "units": 103, "floors": 8, "psf": 699, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9154807e1ba242cbc75_656978ec621150032311d063_Screen%2520Shot%25202023-11-30%2520at%252010.10.44%2520PM.png", "href": "/building/parc-telegraph", "x": 3520.0, "era": "1996\u20132005"}, {"idx": 33, "name": "Park Terrace", "year": 2005, "hood": "Mission Bay", "units": 200, "floors": 8, "psf": 876, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d915cc6c87805fe5b439_656d339ea4e346961e50e010_Screen%2520Shot%25202023-12-03%2520at%25206.03.26%2520PM.png", "href": "/building/park-terrace", "x": 3633.0, "era": "1996\u20132005"}, {"idx": 34, "name": "Royal Towers", "year": 2005, "hood": "Russian Hill", "units": 75, "floors": 8, "psf": 1287, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9156a50675da5780ccd_65541d7f71056e9aaa6ed402_1750%2520Taylor%2520St.webp", "href": "/building/royal-towers", "x": 3746.0, "era": "1996\u20132005"}, {"idx": 35, "name": "St Regis", "year": 2005, "hood": "Yerba Buena", "units": 99, "floors": 8, "psf": 1378, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9165132686cc6ebe3c5_65542239d279120ef9edb645_Screen%2520Shot%25202023-11-14%2520at%25205.42.25%2520PM.png", "href": "/building/st-regis", "x": 3848.0, "era": "1996\u20132005"}, {"idx": 36, "name": "The Amero", "year": 2005, "hood": "The Marina", "units": 20, "floors": 8, "psf": 3268, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d916491be0c493631e03_65696c8563931ea93e1cb228_Screen%2520Shot%25202023-11-30%2520at%25209.17.43%2520PM.png", "href": "/building/the-amero", "x": 3950.0, "era": "1996\u20132005"}, {"idx": 37, "name": "The Avery", "year": 2005, "hood": "South Beach", "units": 118, "floors": 54, "psf": 1884, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d916f206e6c9d1ca232e_65541f7fe312eebcf48ddeab_Screen%2520Shot%25202023-11-14%2520at%25205.30.44%2520PM.png", "href": "/building/the-avery", "x": 4063.0, "era": "1996\u20132005"}, {"idx": 38, "name": "The Comstock", "year": 2005, "hood": "Nob Hill", "units": 128, "floors": 8, "psf": 859, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9173d52a4edc035584d_656a262d86ef12bc3f50b40b_the-comstock-san-francisco-ca-building-photo.jpeg", "href": "/building/the-comstock", "x": 4176.0, "era": "1996\u20132005"}, {"idx": 39, "name": "The Crescent", "year": 2005, "hood": "Nob Hill", "units": 40, "floors": 8, "psf": 1579, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d919686262296e0050b1_6552d9c6f28c89800f6cce2e_ph1.jpeg", "href": "/building/the-crescent", "x": 4278.0, "era": "1996\u20132005"}, {"idx": 40, "name": "The Harrison", "year": 2005, "hood": "South Beach", "units": 297, "floors": 8, "psf": 1370, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91956cc58e44b22186e_6552e49e25d40f3e2b8aab14_bb853e21c0d8da73240e1bdc2354cd6f8ea63cfc.jpeg", "href": "/building/the-harrison", "x": 4391.0, "era": "1996\u20132005"}, {"idx": 41, "name": "The Knox", "year": 2005, "hood": "Dogpatch", "units": 91, "floors": 8, "psf": 1196, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9199f4a50c1f6ffceaf_656e30e0b52eb862d2f5020e_Screen%2520Shot%25202023-12-04%2520at%252011.59.28%2520AM.png", "href": "/building/the-knox", "x": 4504.0, "era": "1996\u20132005"}, {"idx": 42, "name": "The Luxe", "year": 2005, "hood": "Pacific Heights", "units": 25, "floors": 8, "psf": 1464, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d919f206e6c9d1ca24a6_65692a3a74c171d6894ecd84_Screen%2520Shot%25202023-11-30%2520at%25204.32.44%2520PM.png", "href": "/building/the-luxe", "x": 4606.0, "era": "1996\u20132005"}, {"idx": 43, "name": "The Marlow", "year": 2005, "hood": "Nob Hill", "units": 95, "floors": 8, "psf": 1173, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91a58182d83084bce1f_65541634557c8b888d09d64d_Screen%2520Shot%25202023-11-14%2520at%25204.48.15%2520PM.png", "href": "/building/the-marlow", "x": 4708.0, "era": "1996\u20132005"}, {"idx": 44, "name": "The Pacific", "year": 2005, "hood": "Pacific Heights", "units": 55, "floors": 8, "psf": 1887, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91bbed4cd3c2cb8b714_65541b89c6386451416d937e_Screen%2520Shot%25202023-11-14%2520at%25205.14.44%2520PM.png", "href": "/building/the-pacific", "x": 4810.0, "era": "1996\u20132005"}, {"idx": 45, "name": "The Rockwell", "year": 2005, "hood": "Pacific Heights", "units": 259, "floors": 8, "psf": 1237, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91ab70408289a788156_6552e2824fe04d909b14e2ca_530688526-20.jpeg", "href": "/building/the-rockwell", "x": 4923.0, "era": "1996\u20132005"}, {"idx": 46, "name": "The Rowan", "year": 2005, "hood": "Mission", "units": 66, "floors": 8, "psf": 1234, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91a7aeb34b47b4bd1cd_656e1cf3e6ff103a5f2f89a1_Rowan-1.jpeg", "href": "/building/the-rowan", "x": 5036.0, "era": "1996\u20132005"}, {"idx": 47, "name": "The Summit", "year": 2005, "hood": "Russian Hill", "units": 112, "floors": 8, "psf": 1527, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91b4940c2aa05416d83_6552e13c1d33c702ff759ecb_thesummit.jpeg", "href": "/building/the-summit", "x": 5138.0, "era": "1996\u20132005"}, {"idx": 48, "name": "The Valencia", "year": 2005, "hood": "Mission", "units": 48, "floors": 8, "psf": 609, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91c88c200a5fb966594_6567d656ae40b49206a69ad8_Screen%2520Shot%25202023-11-29%2520at%25204.24.01%2520PM.png", "href": "/building/the-valencia", "x": 5240.0, "era": "1996\u20132005"}, {"idx": 49, "name": "The Washingtonian", "year": 2005, "hood": "Pacific Heights", "units": 25, "floors": 8, "psf": 1113, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91c0d86794ddbbe4e9e_656cff80e6fb037bb302206f_1840%2520washintong.jpeg", "href": "/building/the-washingtonian", "x": 5342.0, "era": "1996\u20132005"}, {"idx": 50, "name": "Union House", "year": 2005, "hood": "The Marina", "units": 34, "floors": 8, "psf": 1473, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91da86f167a3667eb77_6552d7d0dae720623ebc1bfa_u2.jpeg", "href": "/building/union-house", "x": 5444.0, "era": "1996\u20132005"}, {"idx": 51, "name": "UnionSF", "year": 2005, "hood": "Mission", "units": 52, "floors": 8, "psf": 854, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d91c4fc36f8e1d214d5b_656e1f89515a7bfa1a3185de_530503648-28.jpeg", "href": "/building/unionsf", "x": 5546.0, "era": "1996\u20132005"}, {"idx": 52, "name": "300 Ivy", "year": 2006, "hood": "Hayes Valley", "units": 63, "floors": 7, "psf": 1131, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90d5967de40cb0b17da_656e00321a51b1ea76f18090_300ivy_photo%2525C3%252582%2525C2%2525A9brucedamonte_34.jpg.webp", "href": "/building/300-ivy", "x": 5648.0, "era": "2006\u20132012"}, {"idx": 53, "name": "One Rincon Hill", "year": 2008, "hood": "South Beach", "units": 359, "floors": 60, "psf": 1119, "img": "https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69d40b49920c46329c3e6cc4_SF%20skyline%20Condo%20Market%20Image.avif", "href": "/building/one-rincon-hill", "x": 5761.0, "era": "2006\u20132012"}, {"idx": 54, "name": "Radiance", "year": 2008, "hood": "Mission Bay", "units": 100, "floors": 8, "psf": 1015, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d915c5ba47f24dbce9ef_655d6acd6497426212ab2a95_radiance.jpeg", "href": "/building/radiance", "x": 5874.0, "era": "2006\u20132012"}, {"idx": 55, "name": "Millennium Tower", "year": 2009, "hood": "Yerba Buena", "units": 407, "floors": 58, "psf": 1033, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9137bab8df7332344a1_655437277f0df24e5f5cf910_mill.jpeg", "href": "/building/millennium-tower", "x": 5987.0, "era": "2006\u20132012"}, {"idx": 56, "name": "The Hayes", "year": 2009, "hood": "Hayes Valley", "units": 128, "floors": 7, "psf": 1025, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d918ea72e24c7844ec4c_656e0f3ba263cd9c03588843_Screen%2520Shot%25202023-12-04%2520at%25209.39.06%2520AM.png", "href": "/building/the-hayes", "x": 6100.0, "era": "2006\u20132012"}, {"idx": 57, "name": "1515 15th", "year": 2013, "hood": "Mission", "units": 40, "floors": 6, "psf": 1093, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d9097c370fc852733f4c_656e21208ea99a537602b593_1515-15th-street-stanley-saitowitz-natoma-architects-inc-12.jpeg", "href": "/building/1515-15th", "x": 6202.0, "era": "2013\u20132020"}, {"idx": 58, "name": "1188 Valencia", "year": 2014, "hood": "Mission", "units": 49, "floors": 5, "psf": 1355, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d909b6d620140f0b1094_6554117f3f3244f2bcd9abb1_Screen%2520Shot%25202023-11-14%2520at%25204.31.07%2520PM.png", "href": "/building/1188-valencia", "x": 6304.0, "era": "2013\u20132020"}, {"idx": 59, "name": "400 Grove", "year": 2014, "hood": "Hayes Valley", "units": 34, "floors": 5, "psf": 1236, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90fd755ec60d4c24f9b_656e04c22c9bab76d0ac03ab_01_TIM_8910.jpeg", "href": "/building/400-grove", "x": 6406.0, "era": "2013\u20132020"}, {"idx": 60, "name": "LUMINA", "year": 2016, "hood": "South Beach", "units": 664, "floors": 42, "psf": 1264, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d911a750acafb3a9a460_6552c7e8dae720623eb1235e_min.webp", "href": "/building/lumina", "x": 6519.0, "era": "2013\u20132020"}, {"idx": 61, "name": "Madrone", "year": 2016, "hood": "Mission Bay", "units": 461, "floors": 5, "psf": 887, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d911dcb16e163ee20cc8_65542807f22553f435dd43a3_madronee.jpeg", "href": "/building/madrone", "x": 6643.0, "era": "2013\u20132020"}, {"idx": 62, "name": "181 Fremont", "year": 2017, "hood": "South Beach", "units": 68, "floors": 55, "psf": 1856, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90b45c37e0986ee7171_6554214aed49d803454c34a7_Screen%2520Shot%25202023-11-14%2520at%25205.38.29%2520PM.png", "href": "/building/181-fremont", "x": 6767.0, "era": "2013\u20132020"}, {"idx": 63, "name": "950 Tennessee", "year": 2018, "hood": "Dogpatch", "units": 100, "floors": 5, "psf": 1313, "img": "https://cdn.prod.website-files.com/6566cb43925080ed789f6ec7/6570d90e6675b534904d4352_6552c6772bac6240fba41464_Screen%2520Shot%25202023-11-13%2520at%25204.59.10%2520PM.png", "href": "/building/950-tennessee", "x": 6880.0, "era": "2013\u20132020"}];
+      const ERAS = [{"label": "1962\u20131980", "title": "The quiet decades", "body": "Mid-century San Francisco was stubbornly low. The first tower generation appeared on Russian Hill and Nob Hill \u2014 cooperative apartment buildings aimed at residents who wanted the view without the house."}, {"label": "1981\u20131995", "title": "First wave", "body": "The condominium format arrived. Pacific Heights and the Marina filled in with boutique mid-rises. Residential construction stayed modest, traditional, and out of the core."}, {"label": "1996\u20132005", "title": "The live-work years", "body": "South of Market reinvented itself. Live-work lofts \u2014 legal through a zoning quirk \u2014 put the first wave of residents into SoMa. The Brannan demonstrated what mid-rise condos could look like when the neighborhood was designed around them."}, {"label": "2006\u20132012", "title": "Rincon Hill rezoning", "body": "The Rincon Hill area plan of 2005 tripled allowable heights on three adjacent blocks. One Rincon Hill went up first. Millennium Tower followed. San Francisco had, finally, a residential skyline."}, {"label": "2013\u20132020", "title": "The current skyline", "body": "Residential construction went taller and more refined: LUMINA, 181 Fremont, The Avery, MIRA. ONE Steuart Lane closed the era with finishes that would have been unbuildable a decade earlier."}];
+      const YEAR_MIN = 1962;
+      const YEAR_MAX = 2018;
+      const N = BLDGS.length;
+      const TOTAL_W = 7018;
+      const VIEW_H = 640;
+      const CAMERA_W = 1400;   // how much of the skyline we see at once
+      const GROUND_Y = 520;
+
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('.sky-bldg').forEach(el => {
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+        });
+        return;
+      }
+
+      const stage = document.querySelector('.rise-stage');
+      const svg = document.getElementById('riseSkySvg');
+      const yearEl = document.getElementById('riseYear');
+      const eraYrsEl = document.getElementById('riseEraYrs');
+      const eraNmEl = document.getElementById('riseEraName');
+      const copyBodyEl = document.getElementById('riseCopyBody');
+      const progressEl = document.getElementById('riseProgress');
+      const builtEl = document.getElementById('riseBuilt');
+      const hintEl = document.getElementById('riseHint');
+      const cardEl = document.getElementById('riseCard');
+      const cardImg = document.getElementById('riseCardImg');
+      const cardEyebrow = document.getElementById('riseCardEyebrow');
+      const cardName = document.getElementById('riseCardName');
+      const cardHood = document.getElementById('riseCardHood');
+      const cardFloors = document.getElementById('riseCardFloors');
+      const cardUnits = document.getElementById('riseCardUnits');
+      const cardPsf = document.getElementById('riseCardPsf');
+      const cardLink = document.getElementById('riseCardLink');
+
+      if (!stage || !svg) return;
+
+      const bldgEls = Array.from(document.querySelectorAll('.sky-bldg'));
+
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const easeInOut = t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+
+      let lastActive = -1;
+      let lastEraIdx = -1;
+      let lastYear = -1;
+      let pending = false;
+
+      function computeState() {
+        const rect = stage.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const stageH = rect.height;
+        const scrolled = -rect.top;
+        const total = Math.max(stageH - vh, 1);
+        const p = clamp(scrolled / total, 0, 1);
+
+        // Map p to beat index — intro (60vh) + N*80vh + outro (40vh)
+        const totalVh = 60 + N * 80 + 40;
+        const pVh = p * totalVh;
+        let beat, beatP;
+        if (pVh < 60) { beat = -1; beatP = pVh / 60; }
+        else if (pVh < 60 + N * 80) { const into = pVh - 60; beat = Math.floor(into / 80); beatP = (into - beat * 80) / 80; }
+        else { beat = N; beatP = 1; }
+        return { p, beat, beatP };
+      }
+
+      function update() {
+        pending = false;
+        const { p, beat, beatP } = computeState();
+
+        if (progressEl) progressEl.style.width = (p * 100).toFixed(1) + '%';
+        if (hintEl) hintEl.style.opacity = beat >= 0 ? '0' : '1';
+
+        // Reveal buildings up to the current beat
+        const activeIdx = clamp(beat, -1, N - 1);
+        for (let i = 0; i < N; i++) {
+          if (i < activeIdx) {
+            bldgEls[i].style.opacity = '1';
+            bldgEls[i].style.transform = 'translateY(0)';
+            bldgEls[i].classList.remove('is-emerging');
+          } else if (i === activeIdx) {
+            // Current beat — rise animation across beatP
+            const riseT = easeInOut(clamp(beatP * 1.6, 0, 1));
+            bldgEls[i].style.opacity = riseT.toFixed(2);
+            bldgEls[i].style.transform = `translateY(${(30 * (1 - riseT)).toFixed(1)}px)`;
+            bldgEls[i].classList.add('is-emerging');
+          } else {
+            bldgEls[i].style.opacity = '0';
+            bldgEls[i].style.transform = 'translateY(30px)';
+            bldgEls[i].classList.remove('is-emerging');
+          }
+        }
+
+        // Camera: center on active building, smoothly
+        let cameraX;
+        if (beat < 0) {
+          cameraX = 0;
+        } else if (beat >= N) {
+          cameraX = Math.max(0, TOTAL_W - CAMERA_W);
+        } else {
+          const active = BLDGS[beat];
+          // Want active building near right-third so you see history trailing left
+          const target = active.x - CAMERA_W * 0.72;
+          cameraX = clamp(target, 0, Math.max(0, TOTAL_W - CAMERA_W));
+          // Smooth pan from previous beat's camera
+          if (beat > 0 && beatP < 0.4) {
+            const prev = BLDGS[beat - 1];
+            const prevCam = clamp(prev.x - CAMERA_W * 0.72, 0, Math.max(0, TOTAL_W - CAMERA_W));
+            cameraX = lerp(prevCam, cameraX, easeInOut(beatP / 0.4));
+          }
+        }
+        svg.setAttribute('viewBox', `${cameraX.toFixed(0)} 0 ${CAMERA_W} ${VIEW_H}`);
+
+        // Update year, era, card when active changes
+        if (activeIdx !== lastActive) {
+          lastActive = activeIdx;
+          if (activeIdx < 0) {
+            if (yearEl) yearEl.textContent = YEAR_MIN;
+            cardEl.classList.remove('is-visible');
+          } else {
+            const b = BLDGS[activeIdx];
+            if (yearEl) yearEl.textContent = b.year;
+            // Era
+            const eraIdx = ERAS.findIndex(e => e.label === b.era);
+            if (eraIdx !== lastEraIdx && eraIdx >= 0) {
+              lastEraIdx = eraIdx;
+              const era = ERAS[eraIdx];
+              if (eraYrsEl) eraYrsEl.textContent = era.label;
+              if (eraNmEl) eraNmEl.textContent = era.title;
+              if (copyBodyEl) {
+                copyBodyEl.style.opacity = '0';
+                setTimeout(() => {
+                  copyBodyEl.textContent = era.body;
+                  copyBodyEl.style.opacity = '1';
+                }, 200);
+              }
+            }
+            // Card
+            cardImg.src = b.img;
+            cardImg.alt = b.name;
+            cardEyebrow.textContent = b.year + ' · ' + (b.floors || '—') + ' floors';
+            cardName.textContent = b.name;
+            cardHood.textContent = b.hood;
+            cardFloors.textContent = b.floors || '—';
+            cardUnits.textContent = (b.units || 0).toLocaleString();
+            cardPsf.textContent = b.psf ? ('$' + b.psf.toLocaleString()) : '—';
+            cardLink.href = b.href;
+            cardEl.classList.add('is-visible');
+          }
+        }
+
+        // Built count = current beat index + 1 (clamped)
+        if (builtEl) {
+          const built = clamp(beat + 1, 0, N);
+          builtEl.textContent = built;
+        }
+      }
+
+      function onScroll() {
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(update);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      update();
+    })();
+  </script>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
+        <p style="max-width:42ch;">A private exchange for every condo in San Francisco.</p>
+      </div>
+      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/history/">History</a></li><li><a href="/refer/">Refer</a></li></ul></div>
+      <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
+      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
+    </div>
+    <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=4.0">
+<title>Linea · Unit Map · Condo Market SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cm-navy:       #1a1f2e;
+  --cm-navy-deep:  #0f131d;
+  --cm-periwinkle: #9fb4d8;
+  --cm-peri-dim:   #6a7fa3;
+  --cm-peri-cool:  #4a5a75;
+  --cm-ivory:      #e8e3d8;
+  --cm-ivory-dim:  rgba(232, 227, 216, 0.64);
+  --cm-rule:       rgba(232, 227, 216, 0.14);
+  --cm-cool:       #5b7294;
+  --cm-warm:       #b89169;
+  --cm-hot:        #d4a574;
+  --cm-accent:     #d4a574;
+  --cm-gain:       #8fb97a;
+  --cm-ff-display: 'Playfair Display', Georgia, serif;
+  --cm-ff-body:    'DM Sans', -apple-system, sans-serif;
+  --cm-ff-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--cm-navy-deep);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-body);
+  font-weight: 300;
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; }
+
+.cm-wrap { max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+/* Masthead */
+.cm-masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+.cm-masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.cm-wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 600; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+.cm-wordmark em { color: var(--cm-periwinkle); }
+.cm-meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; }
+
+/* Hero */
+.cm-hero { padding: 56px 0 32px; }
+.cm-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cm-kicker::before { content:''; width: 24px; height: 1px; background: var(--cm-periwinkle); }
+.cm-hero h1 {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--cm-ivory);
+  margin-bottom: 18px;
+}
+.cm-hero h1 em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-hero-dek {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--cm-ivory-dim);
+  max-width: 620px;
+  line-height: 1.45;
+}
+
+/* Stats strip */
+.cm-statbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  margin-top: 40px;
+}
+.cm-statcell { padding: 22px 20px; border-left: 1px solid var(--cm-rule); }
+.cm-statcell:first-child { border-left: none; padding-left: 0; }
+.cm-statcell-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 8px; }
+.cm-statcell-value { font-family: var(--cm-ff-display); font-size: 30px; line-height: 1; color: var(--cm-ivory); }
+.cm-statcell-value small { font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); margin-left: 4px; }
+@media (max-width: 700px) { .cm-statbar { grid-template-columns: 1fr 1fr; }
+  .cm-statcell:nth-child(3) { border-left: none; padding-left: 0; } }
+
+/* Controls */
+.cm-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 32px 0 24px;
+  flex-wrap: wrap;
+}
+.cm-control-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-right: 6px;
+}
+.cm-chip {
+  background: transparent;
+  border: 1px solid var(--cm-rule);
+  color: var(--cm-ivory);
+  padding: 8px 14px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.cm-chip:hover { border-color: var(--cm-periwinkle); color: var(--cm-periwinkle); }
+.cm-chip.is-active {
+  background: var(--cm-periwinkle);
+  color: var(--cm-navy);
+  border-color: var(--cm-periwinkle);
+}
+
+/* MAIN LAYOUT: tower + panel */
+.cm-explorer {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 60px;
+  padding: 20px 0 80px;
+  border-top: 1px solid var(--cm-rule);
+  padding-top: 40px;
+}
+@media (max-width: 960px) {
+  .cm-explorer { grid-template-columns: 1fr; }
+  .cm-panel { position: static; }
+}
+
+/* Tower SVG */
+.cm-tower-wrap {
+  display: flex;
+  justify-content: center;
+}
+.cm-tower {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+}
+.cm-floor-label {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.cm-cell {
+  stroke: var(--cm-navy-deep);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.cm-cell--cool { fill: var(--cm-cool); fill-opacity: 0.85; }
+.cm-cell--warm { fill: var(--cm-warm); fill-opacity: 0.85; }
+.cm-cell--hot  { fill: var(--cm-hot);  fill-opacity: 0.95; }
+.cm-cell--unsold {
+  fill: transparent;
+  stroke: var(--cm-peri-cool);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+.cm-cell--top {
+  stroke: var(--cm-accent);
+  stroke-width: 1.5;
+}
+.cm-unit-g { transition: transform 200ms ease; transform-origin: center; transform-box: fill-box; }
+.cm-unit-g:hover .cm-cell { stroke: var(--cm-ivory); stroke-width: 1.5; fill-opacity: 1; }
+.cm-unit-g.is-selected .cm-cell { stroke: var(--cm-ivory); stroke-width: 2; fill-opacity: 1; }
+.cm-unit-g.is-dimmed { opacity: 0.18; }
+.cm-cell-label {
+  fill: var(--cm-ivory);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+.cm-unit-g.cm-cell--unsold-group .cm-cell-label { fill: var(--cm-peri-dim); }
+.cm-cell-star {
+  fill: var(--cm-accent);
+  font-size: 9px;
+  font-family: monospace;
+  pointer-events: none;
+}
+
+/* Ground marker */
+.cm-ground { fill: var(--cm-rule); }
+.cm-ground-label { fill: var(--cm-peri-dim); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; }
+
+/* Legend */
+.cm-legend {
+  margin-top: 32px;
+  padding: 20px 0;
+  border-top: 1px solid var(--cm-rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cm-legend-swatch { display: inline-block; width: 14px; height: 14px; vertical-align: -3px; margin-right: 8px; border-radius: 1px; }
+.cm-legend-swatch--cool   { background: var(--cm-cool); }
+.cm-legend-swatch--warm   { background: var(--cm-warm); }
+.cm-legend-swatch--hot    { background: var(--cm-hot); }
+.cm-legend-swatch--unsold { background: transparent; border: 1px dashed var(--cm-peri-cool); }
+.cm-legend-swatch--top    { background: var(--cm-hot); border: 1.5px solid var(--cm-accent); position: relative; }
+.cm-legend-swatch--top::after { content:'✦'; color: var(--cm-navy); font-size: 9px; position: absolute; top: -3px; left: 3px; font-family: monospace; }
+
+/* PANEL (right side) */
+.cm-panel {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding: 28px 28px;
+  background: linear-gradient(155deg, rgba(159,180,216,0.04), rgba(212,165,116,0.03));
+  border: 1px solid var(--cm-rule);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.cm-panel-empty {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.cm-panel-empty::before { content: '→'; color: var(--cm-periwinkle); margin-right: 8px; font-style: normal; }
+.cm-panel-heading {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 12px;
+}
+.cm-panel-unit {
+  font-family: var(--cm-ff-display);
+  font-size: 52px;
+  line-height: 0.9;
+  color: var(--cm-ivory);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.cm-panel-unit em { color: var(--cm-periwinkle); font-style: italic; }
+.cm-panel-sub {
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 28px;
+}
+.cm-panel-price {
+  font-family: var(--cm-ff-display);
+  font-size: 44px;
+  line-height: 0.95;
+  color: var(--cm-ivory);
+  margin-bottom: 6px;
+}
+.cm-panel-price em { color: var(--cm-accent); font-style: italic; }
+.cm-panel-psf {
+  font-family: var(--cm-ff-mono);
+  font-size: 13px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 28px;
+}
+.cm-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  margin-bottom: 28px;
+}
+.cm-panel-grid-cell { }
+.cm-panel-grid-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 6px; }
+.cm-panel-grid-value { font-family: var(--cm-ff-display); font-size: 22px; color: var(--cm-ivory); }
+.cm-panel-empty-sale {
+  padding: 20px 16px;
+  background: rgba(232,227,216,0.03);
+  border-left: 2px solid var(--cm-peri-dim);
+  margin-bottom: 28px;
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cm-panel-cta {
+  display: block;
+  text-align: center;
+  padding: 16px 20px;
+  background: var(--cm-ivory);
+  color: var(--cm-navy);
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: all 180ms ease;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  font-weight: 500;
+}
+.cm-panel-cta:hover { background: var(--cm-periwinkle); color: var(--cm-navy); }
+.cm-panel-cta--alt {
+  background: transparent;
+  border: 1px solid var(--cm-ivory);
+  color: var(--cm-ivory);
+}
+.cm-panel-cta--alt:hover { background: var(--cm-ivory); color: var(--cm-navy); }
+
+/* Method note */
+.cm-method {
+  padding: 48px 0 80px;
+  border-top: 1px solid var(--cm-rule);
+  font-family: var(--cm-ff-body);
+  font-size: 14px;
+  color: var(--cm-ivory-dim);
+  line-height: 1.65;
+  max-width: 720px;
+}
+.cm-method strong { color: var(--cm-ivory); font-weight: 500; }
+.cm-method em { font-style: italic; color: var(--cm-accent); font-family: var(--cm-ff-display); }
+
+
+/* ─── PAN/ZOOM CONTAINER (v29+) ─── */
+.cm-tower-frame {
+  position: relative;
+  background: linear-gradient(180deg, rgba(159,180,216,0.02), rgba(15,19,29,0.15));
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.cm-tower-viewport {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 780px);
+  min-height: 460px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cm-tower-viewport.is-grabbing { cursor: grabbing; }
+.cm-tower-stage {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: transform 120ms cubic-bezier(.2,.6,.2,1);
+}
+.cm-tower-stage.is-dragging { transition: none; }
+.cm-tower-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20px 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+.cm-tower-wrap .cm-tower {
+  max-width: 620px;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+.cm-zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  background: rgba(15,19,29,0.88);
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  backdrop-filter: blur(8px);
+  padding: 3px;
+  align-items: stretch;
+}
+.cm-zoom-btn {
+  background: transparent;
+  color: var(--cm-ivory);
+  border: none;
+  padding: 8px 14px;
+  font-family: var(--cm-ff-mono);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1;
+  min-width: 36px;
+  border-radius: 1px;
+  transition: background 120ms ease;
+}
+.cm-zoom-btn:hover { background: rgba(159,180,216,0.14); }
+.cm-zoom-btn:active { background: rgba(159,180,216,0.22); }
+.cm-zoom-reset {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-left: 1px solid var(--cm-rule);
+  color: var(--cm-periwinkle);
+}
+.cm-zoom-readout {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  padding: 0 10px;
+  align-self: center;
+  min-width: 38px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.cm-zoom-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  opacity: 0.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  background: rgba(15,19,29,0.7);
+  padding: 4px 10px;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+.cm-zoom-hint-mobile { display: none; }
+.cm-zoom-hint-desktop { display: inline; }
+@media (hover: none) and (pointer: coarse) {
+  .cm-zoom-hint-mobile { display: inline; }
+  .cm-zoom-hint-desktop { display: none; }
+}
+
+/* Facing-direction dot on unit cells (when orientation data is present) */
+.cm-cell-facing {
+  fill: var(--cm-accent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.cm-unit-g:hover .cm-cell-facing { opacity: 1; }
+.cm-unit-g.is-selected .cm-cell-facing {
+  opacity: 1;
+  fill: var(--cm-ivory);
+}
+.cm-legend-swatch--facing {
+  background: var(--cm-navy-deep);
+  position: relative;
+  border: 1px solid var(--cm-rule);
+}
+.cm-legend-swatch--facing::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--cm-accent);
+}
+
+/* ─── FLOOR PLATE (orientation map) ─── */
+.cm-panel-orient {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cm-rule);
+}
+.cm-panel-orient-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.cm-panel-orient-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+}
+.cm-panel-orient-facing {
+  font-family: var(--cm-ff-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cm-accent);
+  letter-spacing: 0.02em;
+}
+.cm-panel-orient-view {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--cm-ivory);
+  margin-bottom: 20px;
+  line-height: 1.35;
+}
+.cm-plate-wrap {
+  background: rgba(15,19,29,0.4);
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  padding: 10px;
+}
+.cm-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.cm-plate-outline {
+  fill: none;
+  stroke: var(--cm-peri-cool);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.cm-plate-core {
+  fill: rgba(74,90,117,0.3);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.5;
+}
+.cm-plate-core-label {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+}
+.cm-plate-card {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.cm-plate-compass-bg {
+  fill: rgba(15,19,29,0.85);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.5;
+}
+.cm-plate-compass-n {
+  fill: var(--cm-periwinkle);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 600;
+}
+.cm-plate-compass-tri {
+  fill: var(--cm-accent);
+}
+.cm-plate-compass-arrow {
+  stroke: var(--cm-accent);
+  stroke-width: 0.5;
+}
+.cm-plate-unit-box {
+  fill: rgba(159,180,216,0.08);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.6;
+  transition: all 180ms ease;
+}
+.cm-plate-unit-pos {
+  fill: var(--cm-ivory-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+}
+.cm-plate-unit-facing {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+}
+.cm-plate-unit.is-active .cm-plate-unit-box {
+  fill: var(--cm-accent);
+  stroke: var(--cm-accent);
+  stroke-width: 1;
+}
+.cm-plate-unit.is-active .cm-plate-unit-pos,
+.cm-plate-unit.is-active .cm-plate-unit-facing {
+  fill: var(--cm-navy);
+  font-weight: 600;
+}
+.cm-plate-legend {
+  font-family: var(--cm-ff-mono);
+  font-size: 9px;
+  color: var(--cm-ivory-dim);
+  text-align: center;
+  letter-spacing: 0.06em;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+</style>
+  <script type="module" src="/assets/cm-auth-nav.js"></script>
+</head>
+<body>
+<main>
+  <header class="cm-masthead">
+    <div class="cm-wrap">
+      <div class="cm-masthead-row">
+        <a href="/" class="cm-wordmark">Condo <em>Market</em> SF</a>
+        <div class="cm-meta">
+          <span>Unit Map</span>
+          <span>Linea</span>
+          <span></span>
+        </div>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="margin-left:auto;font-family:var(--cm-ff-body, 'DM Sans', sans-serif);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory,#e8e3d8);border:1px solid var(--cm-rule,rgba(232,227,216,0.22));padding:7px 14px;border-radius:999px;text-decoration:none;transition:border-color 0.15s;">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="cm-hero">
+    <div class="cm-wrap">
+      <div class="cm-kicker">Interactive · Every Unit · Every Sale</div>
+      <h1>Click anywhere on <em>Linea.</em></h1>
+      <p class="cm-hero-dek">
+        Each square is a residence. Color reflects recorded price per square foot. The bronze-outlined unit is the building's all-time high. Hollow squares have never publicly traded.
+      </p>
+
+      <div class="cm-statbar">
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Total Units</div>
+          <div class="cm-statcell-value">119</div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Ever Sold</div>
+          <div class="cm-statcell-value">114<small>/119</small></div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Never Traded</div>
+          <div class="cm-statcell-value">5</div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Median PSF</div>
+          <div class="cm-statcell-value">$1,099<small>/sf</small></div>
+        </div>
+      </div>
+
+      <div class="cm-controls">
+        <span class="cm-control-label">Show</span>
+        <button class="cm-chip is-active" data-filter="all">All units</button>
+        <button class="cm-chip" data-filter="sold">Sold</button>
+        <button class="cm-chip" data-filter="unsold">Never traded</button>
+        <span class="cm-control-label" style="margin-left: 16px;">Beds</span>
+        <button class="cm-chip" data-beds="1">1BR</button>
+        <button class="cm-chip" data-beds="2">2BR</button>
+        <button class="cm-chip" data-beds="3">3BR</button>
+        <button class="cm-chip" data-beds="4">4BR+</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cm-wrap">
+      <div class="cm-explorer">
+        <div>
+          <!-- PAN/ZOOM CONTAINER -->
+          <div class="cm-tower-frame">
+            <div class="cm-zoom-controls" role="toolbar" aria-label="Zoom controls">
+              <button class="cm-zoom-btn" data-zoom="out" aria-label="Zoom out">−</button>
+              <div class="cm-zoom-readout" id="cmZoomReadout">100%</div>
+              <button class="cm-zoom-btn" data-zoom="in" aria-label="Zoom in">+</button>
+              <button class="cm-zoom-btn cm-zoom-reset" data-zoom="reset" aria-label="Reset view">Reset</button>
+            </div>
+            <div class="cm-tower-viewport" id="cmViewport">
+              <div class="cm-tower-stage" id="cmStage">
+                <div class="cm-tower-wrap">
+                  <svg class="cm-tower" viewBox="0 0 696 300" xmlns="http://www.w3.org/2000/svg">
+                    <text x="88" y="53.0" text-anchor="end" class="cm-floor-label">9</text>
+    <g class="cm-unit-g" data-unit="900" data-floor="9" data-beds="2" data-baths="1" data-sqft="884" data-price="1220500" data-psf="1381" data-date="2022-02-17" data-tax="11813" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="268.0" y="40" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="280.5" y="52.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="901" data-floor="9" data-beds="2" data-baths="1" data-sqft="977" data-price="1195000" data-psf="1223" data-date="2014-01-08" data-tax="13723" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="296.0" y="40" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="308.5" y="52.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="902" data-floor="9" data-beds="2" data-baths="2" data-sqft="884" data-price="1225000" data-psf="1386" data-date="2022-02-03" data-tax="16236" data-sold="1" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="324.0" y="40" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="336.5" y="52.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="903" data-floor="9" data-beds="2" data-baths="2" data-sqft="884" data-price="1470000" data-psf="1663" data-date="2014-01-08" data-tax="20979" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="352.0" y="40" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="364.5" y="52.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="904" data-floor="9" data-beds="2" data-baths="2" data-sqft="1015" data-price="1260000" data-psf="1241" data-date="2014-01-08" data-tax="14175" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="380.0" y="40" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="392.5" y="52.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <text x="88" y="73.0" text-anchor="end" class="cm-floor-label">8</text>
+    <g class="cm-unit-g" data-unit="800" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="950000" data-psf="1075" data-date="2014-01-08" data-tax="14282" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="128.0" y="60" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="140.5" y="72.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="801" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="886000" data-psf="1002" data-date="2014-01-08" data-tax="11896" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="156.0" y="60" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="168.5" y="72.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="802" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="" data-psf="" data-date="" data-tax="11590" data-sold="0" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="184.0" y="60" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="196.5" y="72.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="803" data-floor="8" data-beds="1" data-baths="1" data-sqft="601" data-price="720000" data-psf="1198" data-date="2014-01-08" data-tax="11728" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="212.0" y="60" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="224.5" y="72.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="804" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="733000" data-psf="829" data-date="2014-01-08" data-tax="11405" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="240.0" y="60" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="252.5" y="72.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="805" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1300000" data-psf="1471" data-date="2025-09-25" data-tax="21157" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="268.0" y="60" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="280.5" y="72.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="806" data-floor="8" data-beds="" data-baths="2" data-sqft="884" data-price="1200000" data-psf="1357" data-date="2017-12-26" data-tax="14009" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="296.0" y="60" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="308.5" y="72.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="807" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1160000" data-psf="1312" data-date="2014-01-08" data-tax="17679" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="324.0" y="60" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="336.5" y="72.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="808" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="989000" data-psf="1119" data-date="2022-12-12" data-tax="12948" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="352.0" y="60" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="364.5" y="72.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="809" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1010000" data-psf="1143" data-date="2023-01-27" data-tax="12510" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="380.0" y="60" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="392.5" y="72.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="810" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1380000" data-psf="1561" data-date="2014-05-28" data-tax="20786" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="408.0" y="60" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="420.5" y="72.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="811" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1205000" data-psf="1363" data-date="2014-01-08" data-tax="11813" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="436.0" y="60" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="448.5" y="72.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="812" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1325000" data-psf="1499" data-date="2014-01-08" data-tax="19988" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="464.0" y="60" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="476.5" y="72.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="813" data-floor="8" data-beds="2" data-baths="2" data-sqft="884" data-price="1090000" data-psf="1233" data-date="2014-01-08" data-tax="11896" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="492.0" y="60" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="504.5" y="72.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="814" data-floor="8" data-beds="1" data-baths="1" data-sqft="616" data-price="675000" data-psf="1096" data-date="2020-12-07" data-tax="8826" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="520.0" y="60" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="532.5" y="72.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <text x="88" y="93.0" text-anchor="end" class="cm-floor-label">7</text>
+    <g class="cm-unit-g" data-unit="700" data-floor="7" data-beds="2" data-baths="1" data-sqft="881" data-price="916500" data-psf="1040" data-date="2026-01-07" data-tax="13889" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="128.0" y="80" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="140.5" y="92.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="701" data-floor="7" data-beds="2" data-baths="1" data-sqft="884" data-price="876000" data-psf="991" data-date="2014-01-08" data-tax="13561" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="156.0" y="80" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="168.5" y="92.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="702" data-floor="7" data-beds="2" data-baths="1" data-sqft="606" data-price="661000" data-psf="1091" data-date="2014-01-08" data-tax="9648" data-sold="1" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="184.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="196.5" y="92.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="703" data-floor="7" data-beds="1" data-baths="1" data-sqft="600" data-price="666000" data-psf="1110" data-date="2014-01-08" data-tax="10417" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="212.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="224.5" y="92.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="704" data-floor="7" data-beds="1" data-baths="1" data-sqft="884" data-price="655000" data-psf="741" data-date="2014-01-08" data-tax="10357" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="240.0" y="80" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="252.5" y="92.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="705" data-floor="7" data-beds="2" data-baths="2" data-sqft="1152" data-price="1195000" data-psf="1037" data-date="2024-10-23" data-tax="20547" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="268.0" y="80" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="92.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="706" data-floor="7" data-beds="1" data-baths="1" data-sqft="793" data-price="900000" data-psf="1135" data-date="2014-01-08" data-tax="11500" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="296.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="308.5" y="92.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="707" data-floor="7" data-beds="2" data-baths="2" data-sqft="962" data-price="1140000" data-psf="1185" data-date="2022-05-17" data-tax="14893" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="324.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="336.5" y="92.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="708" data-floor="7" data-beds="2" data-baths="2" data-sqft="884" data-price="1121000" data-psf="1268" data-date="2014-01-08" data-tax="11813" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="352.0" y="80" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="364.5" y="92.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="709" data-floor="7" data-beds="2" data-baths="2" data-sqft="884" data-price="1151000" data-psf="1302" data-date="2022-06-30" data-tax="15024" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="380.0" y="80" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="392.5" y="92.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="710" data-floor="7" data-beds="2" data-baths="2" data-sqft="884" data-price="1220500" data-psf="1381" data-date="2014-01-08" data-tax="18553" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="408.0" y="80" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="420.5" y="92.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="711" data-floor="7" data-beds="2" data-baths="2" data-sqft="982" data-price="1155000" data-psf="1176" data-date="2014-01-08" data-tax="13699" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="436.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="448.5" y="92.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="712" data-floor="7" data-beds="2" data-baths="1" data-sqft="1107" data-price="1267000" data-psf="1145" data-date="2014-01-08" data-tax="15256" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="464.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="476.5" y="92.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="713" data-floor="7" data-beds="2" data-baths="2" data-sqft="963" data-price="1035000" data-psf="1075" data-date="2014-01-08" data-tax="12717" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="492.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="504.5" y="92.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="714" data-floor="7" data-beds="1" data-baths="1" data-sqft="614" data-price="690000" data-psf="1124" data-date="2022-10-28" data-tax="9269" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="520.0" y="80" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="532.5" y="92.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <text x="88" y="113.0" text-anchor="end" class="cm-floor-label">6</text>
+    <g class="cm-unit-g" data-unit="600" data-floor="6" data-beds="2" data-baths="1" data-sqft="881" data-price="889000" data-psf="1009" data-date="2014-01-08" data-tax="13744" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="128.0" y="100" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="140.5" y="112.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="601" data-floor="6" data-beds="2" data-baths="1" data-sqft="787" data-price="899000" data-psf="1142" data-date="2014-12-30" data-tax="13634" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="156.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="168.5" y="112.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="602" data-floor="6" data-beds="1" data-baths="1" data-sqft="606" data-price="654000" data-psf="1079" data-date="2014-01-08" data-tax="10326" data-sold="1" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="184.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="196.5" y="112.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="603" data-floor="6" data-beds="1" data-baths="1" data-sqft="600" data-price="665000" data-psf="1108" data-date="2014-01-08" data-tax="10485" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="212.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="224.5" y="112.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="604" data-floor="6" data-beds="1" data-baths="1" data-sqft="544" data-price="685000" data-psf="1259" data-date="2022-09-26" data-tax="8327" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="240.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="252.5" y="112.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="605" data-floor="6" data-beds="2" data-baths="2" data-sqft="1150" data-price="1300000" data-psf="1130" data-date="2022-03-07" data-tax="17194" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="268.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="280.5" y="112.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="606" data-floor="6" data-beds="1" data-baths="1" data-sqft="710" data-price="849000" data-psf="1196" data-date="2018-01-17" data-tax="12276" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="296.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="308.5" y="112.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="607" data-floor="6" data-beds="2" data-baths="2" data-sqft="958" data-price="1280000" data-psf="1336" data-date="2016-12-05" data-tax="12657" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="324.0" y="100" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="336.5" y="112.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="608" data-floor="6" data-beds="2" data-baths="2" data-sqft="969" data-price="1080000" data-psf="1115" data-date="2014-01-08" data-tax="12859" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="352.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="364.5" y="112.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="609" data-floor="6" data-beds="2" data-baths="2" data-sqft="990" data-price="995000" data-psf="1005" data-date="2023-02-02" data-tax="13111" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="380.0" y="100" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="392.5" y="112.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="610" data-floor="6" data-beds="2" data-baths="2" data-sqft="1034" data-price="1117000" data-psf="1080" data-date="2025-02-27" data-tax="14081" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="408.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="420.5" y="112.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="611" data-floor="6" data-beds="2" data-baths="2" data-sqft="982" data-price="1155000" data-psf="1176" data-date="2014-01-08" data-tax="13002" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="436.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="448.5" y="112.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="612" data-floor="6" data-beds="2" data-baths="1" data-sqft="1107" data-price="1130000" data-psf="1021" data-date="2021-01-12" data-tax="15341" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="464.0" y="100" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="476.5" y="112.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="613" data-floor="6" data-beds="2" data-baths="2" data-sqft="" data-price="790000" data-psf="" data-date="2025-06-12" data-tax="12799" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="492.0" y="100" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="504.5" y="112.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="614" data-floor="6" data-beds="1" data-baths="1" data-sqft="616" data-price="670000" data-psf="1088" data-date="2014-01-08" data-tax="10559" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="520.0" y="100" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="532.5" y="112.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <text x="88" y="133.0" text-anchor="end" class="cm-floor-label">5</text>
+    <g class="cm-unit-g" data-unit="500" data-floor="5" data-beds="2" data-baths="1" data-sqft="881" data-price="880441" data-psf="999" data-date="2014-01-08" data-tax="13622" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="100.0" y="120" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="112.5" y="132.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="501" data-floor="5" data-beds="2" data-baths="1" data-sqft="786" data-price="839000" data-psf="1067" data-date="2014-01-08" data-tax="12781" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="128.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="140.5" y="132.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="502" data-floor="5" data-beds="1" data-baths="1" data-sqft="605" data-price="653000" data-psf="1079" data-date="2014-01-08" data-tax="10312" data-sold="1" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="156.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="168.5" y="132.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="503" data-floor="5" data-beds="1" data-baths="1" data-sqft="600" data-price="655000" data-psf="1092" data-date="2014-01-08" data-tax="10340" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="184.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="196.5" y="132.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="504" data-floor="5" data-beds="1" data-baths="1" data-sqft="544" data-price="815000" data-psf="1498" data-date="2021-08-03" data-tax="8410" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="212.0" y="120" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="224.5" y="132.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="505" data-floor="5" data-beds="2" data-baths="2" data-sqft="1025" data-price="1175000" data-psf="1146" data-date="2025-08-26" data-tax="17456" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="240.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="252.5" y="132.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="506" data-floor="5" data-beds="1" data-baths="1" data-sqft="788" data-price="861000" data-psf="1093" data-date="2014-01-08" data-tax="10719" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="268.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="280.5" y="132.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="507" data-floor="5" data-beds="1" data-baths="1" data-sqft="636" data-price="805000" data-psf="1266" data-date="2018-06-07" data-tax="9480" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="296.0" y="120" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="308.5" y="132.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="508" data-floor="5" data-beds="1" data-baths="1" data-sqft="652" data-price="689500" data-psf="1058" data-date="2014-01-08" data-tax="10837" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="324.0" y="120" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="336.5" y="132.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="509" data-floor="5" data-beds="1" data-baths="1" data-sqft="659" data-price="676500" data-psf="1027" data-date="2014-01-08" data-tax="10661" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="352.0" y="120" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="364.5" y="132.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="510" data-floor="5" data-beds="1" data-baths="1" data-sqft="643" data-price="688000" data-psf="1070" data-date="2014-01-08" data-tax="10820" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="380.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="392.5" y="132.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="511" data-floor="5" data-beds="1" data-baths="1" data-sqft="658" data-price="665000" data-psf="1011" data-date="2014-01-08" data-tax="10402" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="408.0" y="120" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="420.5" y="132.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="512" data-floor="5" data-beds="1" data-baths="1" data-sqft="768" data-price="844000" data-psf="1099" data-date="2020-11-05" data-tax="11576" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="436.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="448.5" y="132.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="513" data-floor="5" data-beds="2" data-baths="2" data-sqft="924" data-price="1120000" data-psf="1212" data-date="2014-01-08" data-tax="12360" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="464.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="476.5" y="132.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="514" data-floor="5" data-beds="2" data-baths="1" data-sqft="1105" data-price="1081000" data-psf="978" data-date="2014-01-08" data-tax="16547" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="492.0" y="120" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="504.5" y="132.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <g class="cm-unit-g" data-unit="515" data-floor="5" data-beds="2" data-baths="2" data-sqft="963" data-price="1130000" data-psf="1173" data-date="2016-03-07" data-tax="12799" data-sold="1" data-top="0" data-pos="15" data-facing="" data-view="" data-angle=""><rect x="520.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="532.5" y="132.5" class="cm-cell-label" text-anchor="middle">15</text></g>
+    <g class="cm-unit-g" data-unit="516" data-floor="5" data-beds="1" data-baths="1" data-sqft="616" data-price="665500" data-psf="1080" data-date="2014-01-08" data-tax="10493" data-sold="1" data-top="0" data-pos="16" data-facing="" data-view="" data-angle=""><rect x="548.0" y="120" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="560.5" y="132.5" class="cm-cell-label" text-anchor="middle">16</text></g>
+    <text x="88" y="153.0" text-anchor="end" class="cm-floor-label">4</text>
+    <g class="cm-unit-g" data-unit="400" data-floor="4" data-beds="2" data-baths="1" data-sqft="881" data-price="950000" data-psf="1078" data-date="2022-01-05" data-tax="11872" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="100.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="112.5" y="152.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="401" data-floor="4" data-beds="2" data-baths="1" data-sqft="789" data-price="870000" data-psf="1103" data-date="2022-02-03" data-tax="11775" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="128.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="140.5" y="152.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="402" data-floor="4" data-beds="1" data-baths="1" data-sqft="605" data-price="653000" data-psf="1079" data-date="2014-01-08" data-tax="10312" data-sold="1" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="156.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="168.5" y="152.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="403" data-floor="4" data-beds="1" data-baths="1" data-sqft="600" data-price="643000" data-psf="1072" data-date="2014-01-08" data-tax="10162" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="184.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="196.5" y="152.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="404" data-floor="4" data-beds="2" data-baths="2" data-sqft="884" data-price="655000" data-psf="741" data-date="2014-01-08" data-tax="10275" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="212.0" y="140" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="224.5" y="152.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="405" data-floor="4" data-beds="2" data-baths="2" data-sqft="1019" data-price="1395000" data-psf="1369" data-date="2014-01-08" data-tax="14222" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="240.0" y="140" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="252.5" y="152.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="406" data-floor="4" data-beds="1" data-baths="1" data-sqft="778" data-price="829000" data-psf="1066" data-date="2014-11-05" data-tax="12638" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="268.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="280.5" y="152.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="407" data-floor="4" data-beds="1" data-baths="1" data-sqft="634" data-price="657500" data-psf="1037" data-date="2014-01-08" data-tax="10375" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="296.0" y="140" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="308.5" y="152.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="408" data-floor="4" data-beds="1" data-baths="1" data-sqft="652" data-price="676100" data-psf="1037" data-date="2014-01-08" data-tax="9682" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="324.0" y="140" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="336.5" y="152.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="409" data-floor="4" data-beds="1" data-baths="1" data-sqft="640" data-price="834000" data-psf="1303" data-date="2021-11-10" data-tax="9007" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="352.0" y="140" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="364.5" y="152.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="410" data-floor="4" data-beds="1" data-baths="1" data-sqft="641" data-price="721500" data-psf="1126" data-date="2025-11-18" data-tax="10953" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="380.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="392.5" y="152.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="411" data-floor="4" data-beds="1" data-baths="1" data-sqft="657" data-price="698000" data-psf="1062" data-date="2014-01-08" data-tax="10967" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="408.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="420.5" y="152.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="412" data-floor="4" data-beds="1" data-baths="1" data-sqft="766" data-price="801000" data-psf="1046" data-date="2014-01-08" data-tax="12467" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="436.0" y="140" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="448.5" y="152.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="413" data-floor="4" data-beds="2" data-baths="2" data-sqft="920" data-price="999000" data-psf="1086" data-date="2014-01-08" data-tax="15347" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="464.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="476.5" y="152.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="414" data-floor="4" data-beds="2" data-baths="1" data-sqft="1102" data-price="925000" data-psf="839" data-date="2025-06-20" data-tax="14345" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="492.0" y="140" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="504.5" y="152.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <g class="cm-unit-g" data-unit="415" data-floor="4" data-beds="2" data-baths="2" data-sqft="963" data-price="859000" data-psf="892" data-date="2025-05-20" data-tax="14685" data-sold="1" data-top="0" data-pos="15" data-facing="" data-view="" data-angle=""><rect x="520.0" y="140" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="532.5" y="152.5" class="cm-cell-label" text-anchor="middle">15</text></g>
+    <g class="cm-unit-g" data-unit="416" data-floor="4" data-beds="1" data-baths="1" data-sqft="616" data-price="745000" data-psf="1209" data-date="2017-03-24" data-tax="10988" data-sold="1" data-top="0" data-pos="16" data-facing="" data-view="" data-angle=""><rect x="548.0" y="140" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="560.5" y="152.5" class="cm-cell-label" text-anchor="middle">16</text></g>
+    <text x="88" y="173.0" text-anchor="end" class="cm-floor-label">3</text>
+    <g class="cm-unit-g" data-unit="300" data-floor="3" data-beds="2" data-baths="2" data-sqft="1098" data-price="1099000" data-psf="1001" data-date="2014-01-08" data-tax="16808" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="114.0" y="160" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="126.5" y="172.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="301" data-floor="3" data-beds="2" data-baths="2" data-sqft="884" data-price="1129000" data-psf="1277" data-date="2014-01-08" data-tax="17230" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="142.0" y="160" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="154.5" y="172.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="302" data-floor="3" data-beds="2" data-baths="2" data-sqft="1223" data-price="1490000" data-psf="1218" data-date="2014-10-10" data-tax="15689" data-sold="1" data-top="1" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="170.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm cm-cell--top" rx="1" /><text x="182.5" y="172.5" class="cm-cell-label" text-anchor="middle">02</text><text x="191.0" y="167" class="cm-cell-star">✦</text></g>
+    <g class="cm-unit-g" data-unit="303" data-floor="3" data-beds="1" data-baths="1" data-sqft="700" data-price="735000" data-psf="1050" data-date="2022-08-08" data-tax="9894" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="198.0" y="160" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="210.5" y="172.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="304" data-floor="3" data-beds="1" data-baths="1" data-sqft="633" data-price="643500" data-psf="1017" data-date="2014-01-08" data-tax="9597" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="226.0" y="160" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="238.5" y="172.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="305" data-floor="3" data-beds="1" data-baths="1" data-sqft="652" data-price="726000" data-psf="1113" data-date="2014-01-08" data-tax="11373" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="254.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="266.5" y="172.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="306" data-floor="3" data-beds="1" data-baths="1" data-sqft="640" data-price="825000" data-psf="1289" data-date="2021-09-13" data-tax="11118" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="282.0" y="160" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="294.5" y="172.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="307" data-floor="3" data-beds="1" data-baths="1" data-sqft="643" data-price="792000" data-psf="1232" data-date="2018-10-11" data-tax="11296" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="310.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="322.5" y="172.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="308" data-floor="3" data-beds="1" data-baths="1" data-sqft="657" data-price="845000" data-psf="1286" data-date="2016-01-28" data-tax="9292" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="338.0" y="160" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="350.5" y="172.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="309" data-floor="3" data-beds="1" data-baths="1" data-sqft="725" data-price="775000" data-psf="1069" data-date="2017-06-06" data-tax="11489" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="366.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="378.5" y="172.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="310" data-floor="3" data-beds="1" data-baths="1" data-sqft="721" data-price="715000" data-psf="992" data-date="2022-08-25" data-tax="9649" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="394.0" y="160" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="406.5" y="172.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="311" data-floor="3" data-beds="1" data-baths="1" data-sqft="639" data-price="805000" data-psf="1260" data-date="2017-05-10" data-tax="8995" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="422.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="434.5" y="172.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="312" data-floor="3" data-beds="2" data-baths="2" data-sqft="836" data-price="749000" data-psf="896" data-date="2014-01-08" data-tax="11422" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="450.0" y="160" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="462.5" y="172.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="313" data-floor="3" data-beds="2" data-baths="1" data-sqft="876" data-price="1050000" data-psf="1199" data-date="2022-03-15" data-tax="13260" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="478.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="490.5" y="172.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="314" data-floor="3" data-beds="1" data-baths="1" data-sqft="642" data-price="715000" data-psf="1114" data-date="2016-09-09" data-tax="10661" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="506.0" y="160" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="518.5" y="172.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <g class="cm-unit-g" data-unit="315" data-floor="3" data-beds="1" data-baths="1" data-sqft="453" data-price="689000" data-psf="1521" data-date="2018-04-17" data-tax="10107" data-sold="1" data-top="0" data-pos="15" data-facing="" data-view="" data-angle=""><rect x="534.0" y="160" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="546.5" y="172.5" class="cm-cell-label" text-anchor="middle">15</text></g>
+    <text x="88" y="193.0" text-anchor="end" class="cm-floor-label">2</text>
+    <g class="cm-unit-g" data-unit="200" data-floor="2" data-beds="2" data-baths="2" data-sqft="884" data-price="1132000" data-psf="1281" data-date="2021-10-18" data-tax="14366" data-sold="1" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="128.0" y="180" width="25" height="17" class="cm-cell cm-cell--hot" rx="1" /><text x="140.5" y="192.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="201" data-floor="2" data-beds="2" data-baths="2" data-sqft="1225" data-price="1225000" data-psf="1000" data-date="2026-02-06" data-tax="18280" data-sold="1" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="156.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="168.5" y="192.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="202" data-floor="2" data-beds="1" data-baths="1" data-sqft="778" data-price="732000" data-psf="941" data-date="2025-07-01" data-tax="12165" data-sold="1" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="184.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="196.5" y="192.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="203" data-floor="2" data-beds="" data-baths="2" data-sqft="" data-price="618000" data-psf="" data-date="2014-01-08" data-tax="9820" data-sold="1" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="212.0" y="180" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="224.5" y="192.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+    <g class="cm-unit-g" data-unit="204" data-floor="2" data-beds="1" data-baths="1" data-sqft="652" data-price="798000" data-psf="1224" data-date="2022-04-19" data-tax="10863" data-sold="1" data-top="0" data-pos="04" data-facing="" data-view="" data-angle=""><rect x="240.0" y="180" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="252.5" y="192.5" class="cm-cell-label" text-anchor="middle">04</text></g>
+    <g class="cm-unit-g" data-unit="205" data-floor="2" data-beds="1" data-baths="1" data-sqft="640" data-price="410000" data-psf="641" data-date="2016-02-08" data-tax="9090" data-sold="1" data-top="0" data-pos="05" data-facing="" data-view="" data-angle=""><rect x="268.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="192.5" class="cm-cell-label" text-anchor="middle">05</text></g>
+    <g class="cm-unit-g" data-unit="206" data-floor="2" data-beds="1" data-baths="1" data-sqft="" data-price="770000" data-psf="" data-date="2018-02-12" data-tax="9043" data-sold="1" data-top="0" data-pos="06" data-facing="" data-view="" data-angle=""><rect x="296.0" y="180" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="308.5" y="192.5" class="cm-cell-label" text-anchor="middle">06</text></g>
+    <g class="cm-unit-g" data-unit="207" data-floor="2" data-beds="1" data-baths="1" data-sqft="657" data-price="710000" data-psf="1081" data-date="2016-11-22" data-tax="10593" data-sold="1" data-top="0" data-pos="07" data-facing="" data-view="" data-angle=""><rect x="324.0" y="180" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="336.5" y="192.5" class="cm-cell-label" text-anchor="middle">07</text></g>
+    <g class="cm-unit-g" data-unit="208" data-floor="2" data-beds="1" data-baths="1" data-sqft="725" data-price="744000" data-psf="1026" data-date="2014-01-08" data-tax="11555" data-sold="1" data-top="0" data-pos="08" data-facing="" data-view="" data-angle=""><rect x="352.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="364.5" y="192.5" class="cm-cell-label" text-anchor="middle">08</text></g>
+    <g class="cm-unit-g" data-unit="209" data-floor="2" data-beds="1" data-baths="1" data-sqft="721" data-price="849000" data-psf="1178" data-date="2021-10-04" data-tax="11507" data-sold="1" data-top="0" data-pos="09" data-facing="" data-view="" data-angle=""><rect x="380.0" y="180" width="25" height="17" class="cm-cell cm-cell--warm" rx="1" /><text x="392.5" y="192.5" class="cm-cell-label" text-anchor="middle">09</text></g>
+    <g class="cm-unit-g" data-unit="210" data-floor="2" data-beds="1" data-baths="1" data-sqft="639" data-price="569500" data-psf="891" data-date="2014-01-08" data-tax="9078" data-sold="1" data-top="0" data-pos="10" data-facing="" data-view="" data-angle=""><rect x="408.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="420.5" y="192.5" class="cm-cell-label" text-anchor="middle">10</text></g>
+    <g class="cm-unit-g" data-unit="211" data-floor="2" data-beds="1" data-baths="1" data-sqft="836" data-price="719000" data-psf="860" data-date="2014-01-08" data-tax="11078" data-sold="1" data-top="0" data-pos="11" data-facing="" data-view="" data-angle=""><rect x="436.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="448.5" y="192.5" class="cm-cell-label" text-anchor="middle">11</text></g>
+    <g class="cm-unit-g" data-unit="212" data-floor="2" data-beds="2" data-baths="1" data-sqft="876" data-price="875000" data-psf="999" data-date="2017-04-04" data-tax="12871" data-sold="1" data-top="0" data-pos="12" data-facing="" data-view="" data-angle=""><rect x="464.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="476.5" y="192.5" class="cm-cell-label" text-anchor="middle">12</text></g>
+    <g class="cm-unit-g" data-unit="213" data-floor="2" data-beds="1" data-baths="1" data-sqft="642" data-price="634000" data-psf="988" data-date="2014-01-08" data-tax="9956" data-sold="1" data-top="0" data-pos="13" data-facing="" data-view="" data-angle=""><rect x="492.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="504.5" y="192.5" class="cm-cell-label" text-anchor="middle">13</text></g>
+    <g class="cm-unit-g" data-unit="214" data-floor="2" data-beds="1" data-baths="1" data-sqft="453" data-price="479000" data-psf="1057" data-date="2014-01-08" data-tax="7780" data-sold="1" data-top="0" data-pos="14" data-facing="" data-view="" data-angle=""><rect x="520.0" y="180" width="25" height="17" class="cm-cell cm-cell--cool" rx="1" /><text x="532.5" y="192.5" class="cm-cell-label" text-anchor="middle">14</text></g>
+    <text x="88" y="213.0" text-anchor="end" class="cm-floor-label">1</text>
+    <g class="cm-unit-g" data-unit="100" data-floor="1" data-beds="" data-baths="" data-sqft="1874" data-price="" data-psf="" data-date="" data-tax="17291" data-sold="0" data-top="0" data-pos="00" data-facing="" data-view="" data-angle=""><rect x="282.0" y="200" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="294.5" y="212.5" class="cm-cell-label" text-anchor="middle">00</text></g>
+    <g class="cm-unit-g" data-unit="101" data-floor="1" data-beds="" data-baths="" data-sqft="1336" data-price="" data-psf="" data-date="" data-tax="12559" data-sold="0" data-top="0" data-pos="01" data-facing="" data-view="" data-angle=""><rect x="310.0" y="200" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="322.5" y="212.5" class="cm-cell-label" text-anchor="middle">01</text></g>
+    <g class="cm-unit-g" data-unit="102" data-floor="1" data-beds="" data-baths="" data-sqft="2147" data-price="" data-psf="" data-date="" data-tax="20635" data-sold="0" data-top="0" data-pos="02" data-facing="" data-view="" data-angle=""><rect x="338.0" y="200" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="350.5" y="212.5" class="cm-cell-label" text-anchor="middle">02</text></g>
+    <g class="cm-unit-g" data-unit="103" data-floor="1" data-beds="" data-baths="" data-sqft="389" data-price="" data-psf="" data-date="" data-tax="5069" data-sold="0" data-top="0" data-pos="03" data-facing="" data-view="" data-angle=""><rect x="366.0" y="200" width="25" height="17" class="cm-cell cm-cell--unsold" rx="1" /><text x="378.5" y="212.5" class="cm-cell-label" text-anchor="middle">03</text></g>
+                    <rect x="100" y="226" width="473" height="3" class="cm-ground"/>
+                    
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="cm-zoom-hint">
+              <span class="cm-zoom-hint-mobile">Pinch to zoom · Drag to pan</span>
+              <span class="cm-zoom-hint-desktop">Scroll to zoom · Drag to pan · Double-click to reset</span>
+            </div>
+          </div>
+
+          <div class="cm-legend">
+            <span><span class="cm-legend-swatch cm-legend-swatch--cool"></span> Low PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--warm"></span> Mid PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--hot"></span> High PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--unsold"></span> Never publicly sold</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--top"></span> Building all-time high</span>
+            
+          </div>
+        </div>
+
+        <aside class="cm-panel" id="cmPanel">
+          <div id="cmPanelEmpty" class="cm-panel-empty">
+            Select any unit on the tower to see its full dossier. Hover for quick read-out.
+          </div>
+          <div id="cmPanelBody" style="display: none;">
+            <div class="cm-panel-heading" id="cmPanelStatus">Last Recorded Sale</div>
+            <div class="cm-panel-unit">Unit <em id="cmPanelUnit"></em></div>
+            <div class="cm-panel-sub" id="cmPanelSub"></div>
+            <div id="cmPanelSaleBlock">
+              <div class="cm-panel-price"><em id="cmPanelPrice"></em></div>
+              <div class="cm-panel-psf" id="cmPanelPSF"></div>
+            </div>
+            <div id="cmPanelNoSale" class="cm-panel-empty-sale" style="display: none;">
+              This residence has not publicly traded. The closest comparable transactions in the building are shown in the last-sale data for similar floor plans.
+            </div>
+
+            
+
+            <div class="cm-panel-grid">
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Bedrooms</div>
+                <div class="cm-panel-grid-value" id="cmPanelBeds">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Bathrooms</div>
+                <div class="cm-panel-grid-value" id="cmPanelBaths">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Square Feet</div>
+                <div class="cm-panel-grid-value" id="cmPanelSqft">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Floor</div>
+                <div class="cm-panel-grid-value" id="cmPanelFloor">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Annual Tax</div>
+                <div class="cm-panel-grid-value" id="cmPanelTax">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Last Sale</div>
+                <div class="cm-panel-grid-value" id="cmPanelDate" style="font-size: 15px;">—</div>
+              </div>
+            </div>
+            <button class="cm-panel-cta" onclick="alert('In production: opens offer form with this unit pre-filled')">Make an offer on this unit →</button>
+            <button class="cm-panel-cta cm-panel-cta--alt" onclick="alert('In production: opens Make-Me-Move price-post flow')">Name a price for a unit like this</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="cm-method">
+        <strong>How to read this.</strong> Each square is a real residence at Linea — 119 total, stacked from floor 1 to floor 9. Filled squares have publicly recorded sales; <em>warmer</em> colors indicate higher price-per-square-foot within this building. Hollow dashed squares have never publicly traded — they either sold at original purchase and have stayed with their owner, or the transaction predates what the tax roll captures. The bronze-outlined square (&#x2726;) marks Unit 302, the building's highest-ever recorded transaction at $1.49M. Click any square for full detail and to start an offer — including on units that have never been listed.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const UNITS = [{"unit":"100","floor":1,"beds":null,"baths":null,"sqft":1874,"price":null,"psf":null,"date":null,"tax":17291},{"unit":"101","floor":1,"beds":null,"baths":null,"sqft":1336,"price":null,"psf":null,"date":null,"tax":12559},{"unit":"102","floor":1,"beds":null,"baths":null,"sqft":2147,"price":null,"psf":null,"date":null,"tax":20635},{"unit":"103","floor":1,"beds":null,"baths":null,"sqft":389,"price":null,"psf":null,"date":null,"tax":5069},{"unit":"200","floor":2,"beds":2,"baths":2,"sqft":884,"price":1132000,"psf":1281,"date":"2021-10-18","tax":14366},{"unit":"201","floor":2,"beds":2,"baths":2,"sqft":1225,"price":1225000,"psf":1000,"date":"2026-02-06","tax":18280},{"unit":"202","floor":2,"beds":1,"baths":1,"sqft":778,"price":732000,"psf":941,"date":"2025-07-01","tax":12165},{"unit":"203","floor":2,"beds":null,"baths":2,"sqft":null,"price":618000,"psf":null,"date":"2014-01-08","tax":9820},{"unit":"204","floor":2,"beds":1,"baths":1,"sqft":652,"price":798000,"psf":1224,"date":"2022-04-19","tax":10863},{"unit":"205","floor":2,"beds":1,"baths":1,"sqft":640,"price":410000,"psf":641,"date":"2016-02-08","tax":9090},{"unit":"206","floor":2,"beds":1,"baths":1,"sqft":null,"price":770000,"psf":null,"date":"2018-02-12","tax":9043},{"unit":"207","floor":2,"beds":1,"baths":1,"sqft":657,"price":710000,"psf":1081,"date":"2016-11-22","tax":10593},{"unit":"208","floor":2,"beds":1,"baths":1,"sqft":725,"price":744000,"psf":1026,"date":"2014-01-08","tax":11555},{"unit":"209","floor":2,"beds":1,"baths":1,"sqft":721,"price":849000,"psf":1178,"date":"2021-10-04","tax":11507},{"unit":"210","floor":2,"beds":1,"baths":1,"sqft":639,"price":569500,"psf":891,"date":"2014-01-08","tax":9078},{"unit":"211","floor":2,"beds":1,"baths":1,"sqft":836,"price":719000,"psf":860,"date":"2014-01-08","tax":11078},{"unit":"212","floor":2,"beds":2,"baths":1,"sqft":876,"price":875000,"psf":999,"date":"2017-04-04","tax":12871},{"unit":"213","floor":2,"beds":1,"baths":1,"sqft":642,"price":634000,"psf":988,"date":"2014-01-08","tax":9956},{"unit":"214","floor":2,"beds":1,"baths":1,"sqft":453,"price":479000,"psf":1057,"date":"2014-01-08","tax":7780},{"unit":"300","floor":3,"beds":2,"baths":2,"sqft":1098,"price":1099000,"psf":1001,"date":"2014-01-08","tax":16808},{"unit":"301","floor":3,"beds":2,"baths":2,"sqft":884,"price":1129000,"psf":1277,"date":"2014-01-08","tax":17230},{"unit":"302","floor":3,"beds":2,"baths":2,"sqft":1223,"price":1490000,"psf":1218,"date":"2014-10-10","tax":15689},{"unit":"303","floor":3,"beds":1,"baths":1,"sqft":700,"price":735000,"psf":1050,"date":"2022-08-08","tax":9894},{"unit":"304","floor":3,"beds":1,"baths":1,"sqft":633,"price":643500,"psf":1017,"date":"2014-01-08","tax":9597},{"unit":"305","floor":3,"beds":1,"baths":1,"sqft":652,"price":726000,"psf":1113,"date":"2014-01-08","tax":11373},{"unit":"306","floor":3,"beds":1,"baths":1,"sqft":640,"price":825000,"psf":1289,"date":"2021-09-13","tax":11118},{"unit":"307","floor":3,"beds":1,"baths":1,"sqft":643,"price":792000,"psf":1232,"date":"2018-10-11","tax":11296},{"unit":"308","floor":3,"beds":1,"baths":1,"sqft":657,"price":845000,"psf":1286,"date":"2016-01-28","tax":9292},{"unit":"309","floor":3,"beds":1,"baths":1,"sqft":725,"price":775000,"psf":1069,"date":"2017-06-06","tax":11489},{"unit":"310","floor":3,"beds":1,"baths":1,"sqft":721,"price":715000,"psf":992,"date":"2022-08-25","tax":9649},{"unit":"311","floor":3,"beds":1,"baths":1,"sqft":639,"price":805000,"psf":1260,"date":"2017-05-10","tax":8995},{"unit":"312","floor":3,"beds":2,"baths":2,"sqft":836,"price":749000,"psf":896,"date":"2014-01-08","tax":11422},{"unit":"313","floor":3,"beds":2,"baths":1,"sqft":876,"price":1050000,"psf":1199,"date":"2022-03-15","tax":13260},{"unit":"314","floor":3,"beds":1,"baths":1,"sqft":642,"price":715000,"psf":1114,"date":"2016-09-09","tax":10661},{"unit":"315","floor":3,"beds":1,"baths":1,"sqft":453,"price":689000,"psf":1521,"date":"2018-04-17","tax":10107},{"unit":"400","floor":4,"beds":2,"baths":1,"sqft":881,"price":950000,"psf":1078,"date":"2022-01-05","tax":11872},{"unit":"401","floor":4,"beds":2,"baths":1,"sqft":789,"price":870000,"psf":1103,"date":"2022-02-03","tax":11775},{"unit":"402","floor":4,"beds":1,"baths":1,"sqft":605,"price":653000,"psf":1079,"date":"2014-01-08","tax":10312},{"unit":"403","floor":4,"beds":1,"baths":1,"sqft":600,"price":643000,"psf":1072,"date":"2014-01-08","tax":10162},{"unit":"404","floor":4,"beds":2,"baths":2,"sqft":884,"price":655000,"psf":741,"date":"2014-01-08","tax":10275},{"unit":"405","floor":4,"beds":2,"baths":2,"sqft":1019,"price":1395000,"psf":1369,"date":"2014-01-08","tax":14222},{"unit":"406","floor":4,"beds":1,"baths":1,"sqft":778,"price":829000,"psf":1066,"date":"2014-11-05","tax":12638},{"unit":"407","floor":4,"beds":1,"baths":1,"sqft":634,"price":657500,"psf":1037,"date":"2014-01-08","tax":10375},{"unit":"408","floor":4,"beds":1,"baths":1,"sqft":652,"price":676100,"psf":1037,"date":"2014-01-08","tax":9682},{"unit":"409","floor":4,"beds":1,"baths":1,"sqft":640,"price":834000,"psf":1303,"date":"2021-11-10","tax":9007},{"unit":"410","floor":4,"beds":1,"baths":1,"sqft":641,"price":721500,"psf":1126,"date":"2025-11-18","tax":10953},{"unit":"411","floor":4,"beds":1,"baths":1,"sqft":657,"price":698000,"psf":1062,"date":"2014-01-08","tax":10967},{"unit":"412","floor":4,"beds":1,"baths":1,"sqft":766,"price":801000,"psf":1046,"date":"2014-01-08","tax":12467},{"unit":"413","floor":4,"beds":2,"baths":2,"sqft":920,"price":999000,"psf":1086,"date":"2014-01-08","tax":15347},{"unit":"414","floor":4,"beds":2,"baths":1,"sqft":1102,"price":925000,"psf":839,"date":"2025-06-20","tax":14345},{"unit":"415","floor":4,"beds":2,"baths":2,"sqft":963,"price":859000,"psf":892,"date":"2025-05-20","tax":14685},{"unit":"416","floor":4,"beds":1,"baths":1,"sqft":616,"price":745000,"psf":1209,"date":"2017-03-24","tax":10988},{"unit":"500","floor":5,"beds":2,"baths":1,"sqft":881,"price":880441,"psf":999,"date":"2014-01-08","tax":13622},{"unit":"501","floor":5,"beds":2,"baths":1,"sqft":786,"price":839000,"psf":1067,"date":"2014-01-08","tax":12781},{"unit":"502","floor":5,"beds":1,"baths":1,"sqft":605,"price":653000,"psf":1079,"date":"2014-01-08","tax":10312},{"unit":"503","floor":5,"beds":1,"baths":1,"sqft":600,"price":655000,"psf":1092,"date":"2014-01-08","tax":10340},{"unit":"504","floor":5,"beds":1,"baths":1,"sqft":544,"price":815000,"psf":1498,"date":"2021-08-03","tax":8410},{"unit":"505","floor":5,"beds":2,"baths":2,"sqft":1025,"price":1175000,"psf":1146,"date":"2025-08-26","tax":17456},{"unit":"506","floor":5,"beds":1,"baths":1,"sqft":788,"price":861000,"psf":1093,"date":"2014-01-08","tax":10719},{"unit":"507","floor":5,"beds":1,"baths":1,"sqft":636,"price":805000,"psf":1266,"date":"2018-06-07","tax":9480},{"unit":"508","floor":5,"beds":1,"baths":1,"sqft":652,"price":689500,"psf":1058,"date":"2014-01-08","tax":10837},{"unit":"509","floor":5,"beds":1,"baths":1,"sqft":659,"price":676500,"psf":1027,"date":"2014-01-08","tax":10661},{"unit":"510","floor":5,"beds":1,"baths":1,"sqft":643,"price":688000,"psf":1070,"date":"2014-01-08","tax":10820},{"unit":"511","floor":5,"beds":1,"baths":1,"sqft":658,"price":665000,"psf":1011,"date":"2014-01-08","tax":10402},{"unit":"512","floor":5,"beds":1,"baths":1,"sqft":768,"price":844000,"psf":1099,"date":"2020-11-05","tax":11576},{"unit":"513","floor":5,"beds":2,"baths":2,"sqft":924,"price":1120000,"psf":1212,"date":"2014-01-08","tax":12360},{"unit":"514","floor":5,"beds":2,"baths":1,"sqft":1105,"price":1081000,"psf":978,"date":"2014-01-08","tax":16547},{"unit":"515","floor":5,"beds":2,"baths":2,"sqft":963,"price":1130000,"psf":1173,"date":"2016-03-07","tax":12799},{"unit":"516","floor":5,"beds":1,"baths":1,"sqft":616,"price":665500,"psf":1080,"date":"2014-01-08","tax":10493},{"unit":"600","floor":6,"beds":2,"baths":1,"sqft":881,"price":889000,"psf":1009,"date":"2014-01-08","tax":13744},{"unit":"601","floor":6,"beds":2,"baths":1,"sqft":787,"price":899000,"psf":1142,"date":"2014-12-30","tax":13634},{"unit":"602","floor":6,"beds":1,"baths":1,"sqft":606,"price":654000,"psf":1079,"date":"2014-01-08","tax":10326},{"unit":"603","floor":6,"beds":1,"baths":1,"sqft":600,"price":665000,"psf":1108,"date":"2014-01-08","tax":10485},{"unit":"604","floor":6,"beds":1,"baths":1,"sqft":544,"price":685000,"psf":1259,"date":"2022-09-26","tax":8327},{"unit":"605","floor":6,"beds":2,"baths":2,"sqft":1150,"price":1300000,"psf":1130,"date":"2022-03-07","tax":17194},{"unit":"606","floor":6,"beds":1,"baths":1,"sqft":710,"price":849000,"psf":1196,"date":"2018-01-17","tax":12276},{"unit":"607","floor":6,"beds":2,"baths":2,"sqft":958,"price":1280000,"psf":1336,"date":"2016-12-05","tax":12657},{"unit":"608","floor":6,"beds":2,"baths":2,"sqft":969,"price":1080000,"psf":1115,"date":"2014-01-08","tax":12859},{"unit":"609","floor":6,"beds":2,"baths":2,"sqft":990,"price":995000,"psf":1005,"date":"2023-02-02","tax":13111},{"unit":"610","floor":6,"beds":2,"baths":2,"sqft":1034,"price":1117000,"psf":1080,"date":"2025-02-27","tax":14081},{"unit":"611","floor":6,"beds":2,"baths":2,"sqft":982,"price":1155000,"psf":1176,"date":"2014-01-08","tax":13002},{"unit":"612","floor":6,"beds":2,"baths":1,"sqft":1107,"price":1130000,"psf":1021,"date":"2021-01-12","tax":15341},{"unit":"613","floor":6,"beds":2,"baths":2,"sqft":null,"price":790000,"psf":null,"date":"2025-06-12","tax":12799},{"unit":"614","floor":6,"beds":1,"baths":1,"sqft":616,"price":670000,"psf":1088,"date":"2014-01-08","tax":10559},{"unit":"700","floor":7,"beds":2,"baths":1,"sqft":881,"price":916500,"psf":1040,"date":"2026-01-07","tax":13889},{"unit":"701","floor":7,"beds":2,"baths":1,"sqft":884,"price":876000,"psf":991,"date":"2014-01-08","tax":13561},{"unit":"702","floor":7,"beds":2,"baths":1,"sqft":606,"price":661000,"psf":1091,"date":"2014-01-08","tax":9648},{"unit":"703","floor":7,"beds":1,"baths":1,"sqft":600,"price":666000,"psf":1110,"date":"2014-01-08","tax":10417},{"unit":"704","floor":7,"beds":1,"baths":1,"sqft":884,"price":655000,"psf":741,"date":"2014-01-08","tax":10357},{"unit":"705","floor":7,"beds":2,"baths":2,"sqft":1152,"price":1195000,"psf":1037,"date":"2024-10-23","tax":20547},{"unit":"706","floor":7,"beds":1,"baths":1,"sqft":793,"price":900000,"psf":1135,"date":"2014-01-08","tax":11500},{"unit":"707","floor":7,"beds":2,"baths":2,"sqft":962,"price":1140000,"psf":1185,"date":"2022-05-17","tax":14893},{"unit":"708","floor":7,"beds":2,"baths":2,"sqft":884,"price":1121000,"psf":1268,"date":"2014-01-08","tax":11813},{"unit":"709","floor":7,"beds":2,"baths":2,"sqft":884,"price":1151000,"psf":1302,"date":"2022-06-30","tax":15024},{"unit":"710","floor":7,"beds":2,"baths":2,"sqft":884,"price":1220500,"psf":1381,"date":"2014-01-08","tax":18553},{"unit":"711","floor":7,"beds":2,"baths":2,"sqft":982,"price":1155000,"psf":1176,"date":"2014-01-08","tax":13699},{"unit":"712","floor":7,"beds":2,"baths":1,"sqft":1107,"price":1267000,"psf":1145,"date":"2014-01-08","tax":15256},{"unit":"713","floor":7,"beds":2,"baths":2,"sqft":963,"price":1035000,"psf":1075,"date":"2014-01-08","tax":12717},{"unit":"714","floor":7,"beds":1,"baths":1,"sqft":614,"price":690000,"psf":1124,"date":"2022-10-28","tax":9269},{"unit":"800","floor":8,"beds":2,"baths":2,"sqft":884,"price":950000,"psf":1075,"date":"2014-01-08","tax":14282},{"unit":"801","floor":8,"beds":2,"baths":2,"sqft":884,"price":886000,"psf":1002,"date":"2014-01-08","tax":11896},{"unit":"802","floor":8,"beds":2,"baths":2,"sqft":884,"price":null,"psf":null,"date":null,"tax":11590},{"unit":"803","floor":8,"beds":1,"baths":1,"sqft":601,"price":720000,"psf":1198,"date":"2014-01-08","tax":11728},{"unit":"804","floor":8,"beds":2,"baths":2,"sqft":884,"price":733000,"psf":829,"date":"2014-01-08","tax":11405},{"unit":"805","floor":8,"beds":2,"baths":2,"sqft":884,"price":1300000,"psf":1471,"date":"2025-09-25","tax":21157},{"unit":"806","floor":8,"beds":null,"baths":2,"sqft":884,"price":1200000,"psf":1357,"date":"2017-12-26","tax":14009},{"unit":"807","floor":8,"beds":2,"baths":2,"sqft":884,"price":1160000,"psf":1312,"date":"2014-01-08","tax":17679},{"unit":"808","floor":8,"beds":2,"baths":2,"sqft":884,"price":989000,"psf":1119,"date":"2022-12-12","tax":12948},{"unit":"809","floor":8,"beds":2,"baths":2,"sqft":884,"price":1010000,"psf":1143,"date":"2023-01-27","tax":12510},{"unit":"810","floor":8,"beds":2,"baths":2,"sqft":884,"price":1380000,"psf":1561,"date":"2014-05-28","tax":20786},{"unit":"811","floor":8,"beds":2,"baths":2,"sqft":884,"price":1205000,"psf":1363,"date":"2014-01-08","tax":11813},{"unit":"812","floor":8,"beds":2,"baths":2,"sqft":884,"price":1325000,"psf":1499,"date":"2014-01-08","tax":19988},{"unit":"813","floor":8,"beds":2,"baths":2,"sqft":884,"price":1090000,"psf":1233,"date":"2014-01-08","tax":11896},{"unit":"814","floor":8,"beds":1,"baths":1,"sqft":616,"price":675000,"psf":1096,"date":"2020-12-07","tax":8826},{"unit":"900","floor":9,"beds":2,"baths":1,"sqft":884,"price":1220500,"psf":1381,"date":"2022-02-17","tax":11813},{"unit":"901","floor":9,"beds":2,"baths":1,"sqft":977,"price":1195000,"psf":1223,"date":"2014-01-08","tax":13723},{"unit":"902","floor":9,"beds":2,"baths":2,"sqft":884,"price":1225000,"psf":1386,"date":"2022-02-03","tax":16236},{"unit":"903","floor":9,"beds":2,"baths":2,"sqft":884,"price":1470000,"psf":1663,"date":"2014-01-08","tax":20979},{"unit":"904","floor":9,"beds":2,"baths":2,"sqft":1015,"price":1260000,"psf":1241,"date":"2014-01-08","tax":14175}];
+const MEDIAN_PSF = 1099;
+
+const fmt = {
+  money: n => n ? '$' + n.toLocaleString() : '—',
+  money_short: n => {
+    if (!n) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + n;
+  },
+  date_long: s => {
+    if (!s) return '—';
+    const d = new Date(s);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  },
+  sqft: n => n ? n.toLocaleString() + ' sf' : '—',
+};
+
+const panelEmpty = document.getElementById('cmPanelEmpty');
+const panelBody = document.getElementById('cmPanelBody');
+
+function showUnit(g) {
+  document.querySelectorAll('.cm-unit-g.is-selected').forEach(n => n.classList.remove('is-selected'));
+  g.classList.add('is-selected');
+
+  const d = g.dataset;
+  const isSold = d.sold === '1';
+  const isTop = d.top === '1';
+
+  panelEmpty.style.display = 'none';
+  panelBody.style.display = 'block';
+
+  document.getElementById('cmPanelUnit').textContent = d.unit;
+  document.getElementById('cmPanelBeds').textContent = d.beds || '—';
+  document.getElementById('cmPanelBaths').textContent = d.baths || '—';
+  document.getElementById('cmPanelSqft').textContent = fmt.sqft(d.sqft);
+  document.getElementById('cmPanelFloor').textContent = d.floor || '—';
+  document.getElementById('cmPanelTax').textContent = d.tax ? fmt.money(+d.tax) : '—';
+  document.getElementById('cmPanelDate').textContent = fmt.date_long(d.date);
+
+  const sub = [d.beds ? d.beds + 'BR' : '', d.baths ? d.baths + 'BA' : '', fmt.sqft(d.sqft)].filter(Boolean).join(' · ');
+  document.getElementById('cmPanelSub').textContent = sub;
+
+  if (isSold) {
+    document.getElementById('cmPanelSaleBlock').style.display = 'block';
+    document.getElementById('cmPanelNoSale').style.display = 'none';
+    document.getElementById('cmPanelStatus').textContent = isTop ? 'Building All-Time High' : 'Last Recorded Sale';
+    document.getElementById('cmPanelPrice').textContent = fmt.money_short(+d.price);
+    document.getElementById('cmPanelPSF').textContent = d.psf ? '$' + (+d.psf).toLocaleString() + '/sf' : '';
+  } else {
+    document.getElementById('cmPanelSaleBlock').style.display = 'none';
+    document.getElementById('cmPanelNoSale').style.display = 'block';
+    document.getElementById('cmPanelStatus').textContent = 'No Public Record';
+  }
+
+  // Orientation panel — only active when building has orientation data
+  const orientEl = document.getElementById('cmPanelOrient');
+  if (orientEl) {
+    const facing = d.facing || '';
+    const view = d.view || '';
+    if (facing) {
+      orientEl.style.display = 'block';
+      document.getElementById('cmPanelFacing').textContent = facing + '-facing';
+      document.getElementById('cmPanelView').textContent = view || 'View data not yet recorded';
+      // Highlight this position on the floor plate
+      document.querySelectorAll('.cm-plate-unit').forEach(p => p.classList.remove('is-active'));
+      const pos = d.pos;
+      const plateUnit = document.querySelector(`.cm-plate-unit[data-pos="${pos}"]`);
+      if (plateUnit) plateUnit.classList.add('is-active');
+    } else {
+      // No orientation data for this unit position — hide the panel
+      orientEl.style.display = 'none';
+    }
+  }
+}
+
+document.querySelectorAll('.cm-unit-g').forEach(g => {
+  g.addEventListener('click', () => showUnit(g));
+});
+
+document.querySelectorAll('.cm-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const group = chip.dataset.filter ? 'filter' : 'beds';
+    document.querySelectorAll(`.cm-chip[data-${group}]`).forEach(c => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+    applyFilters();
+  });
+});
+
+function applyFilters() {
+  const activeFilter = document.querySelector('.cm-chip[data-filter].is-active')?.dataset.filter;
+  const activeBeds = document.querySelector('.cm-chip[data-beds].is-active')?.dataset.beds;
+
+  document.querySelectorAll('.cm-unit-g').forEach(g => {
+    const d = g.dataset;
+    let show = true;
+    if (activeFilter === 'sold' && d.sold !== '1') show = false;
+    if (activeFilter === 'unsold' && d.sold === '1') show = false;
+    if (activeBeds) {
+      const beds = +d.beds;
+      if (activeBeds === '4') show = show && beds >= 4;
+      else show = show && beds === +activeBeds;
+    }
+    g.style.opacity = show ? '' : '0.15';
+  });
+}
+
+// ─── PAN / ZOOM ─────────────────────────────────────────────────────────
+(function() {
+  const viewport = document.getElementById('cmViewport');
+  const stage    = document.getElementById('cmStage');
+  const readout  = document.getElementById('cmZoomReadout');
+  if (!viewport || !stage) return;
+
+  const MIN_SCALE = 0.6;
+  const MAX_SCALE = 4.0;
+  const STEP = 1.25;
+  let scale = 1;
+  let tx = 0, ty = 0;
+
+  function applyTransform(animate = true) {
+    stage.classList.toggle('is-dragging', !animate);
+    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    readout.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function zoomAt(clientX, clientY, nextScale) {
+    nextScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
+    const rect = viewport.getBoundingClientRect();
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+    // Adjust translation so the point under cursor stays in place
+    const k = nextScale / scale;
+    tx = px - (px - tx) * k;
+    ty = py - (py - ty) * k;
+    scale = nextScale;
+    applyTransform();
+  }
+
+  function reset() {
+    scale = 1; tx = 0; ty = 0;
+    applyTransform();
+  }
+
+  // Button controls
+  document.querySelectorAll('.cm-zoom-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rect = viewport.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const action = btn.dataset.zoom;
+      if (action === 'in')  zoomAt(cx, cy, scale * STEP);
+      if (action === 'out') zoomAt(cx, cy, scale / STEP);
+      if (action === 'reset') reset();
+    });
+  });
+
+  // Wheel zoom
+  viewport.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) < 1) return;
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 1/1.1 : 1.1;
+    zoomAt(e.clientX, e.clientY, scale * factor);
+  }, { passive: false });
+
+  // Double-click reset
+  viewport.addEventListener('dblclick', e => {
+    // Don't reset when clicking a unit
+    if (e.target.closest('.cm-unit-g')) return;
+    reset();
+  });
+
+  // Mouse drag to pan
+  let dragStart = null;
+  viewport.addEventListener('mousedown', e => {
+    // Don't start drag when clicking a unit
+    if (e.target.closest('.cm-unit-g')) return;
+    dragStart = { x: e.clientX - tx, y: e.clientY - ty };
+    viewport.classList.add('is-grabbing');
+    stage.classList.add('is-dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragStart) return;
+    tx = e.clientX - dragStart.x;
+    ty = e.clientY - dragStart.y;
+    applyTransform(false);
+  });
+  window.addEventListener('mouseup', () => {
+    dragStart = null;
+    viewport.classList.remove('is-grabbing');
+    stage.classList.remove('is-dragging');
+  });
+
+  // Touch: 1-finger pan, 2-finger pinch zoom
+  let touchState = null;
+  function touchDist(t) {
+    const dx = t[0].clientX - t[1].clientX;
+    const dy = t[0].clientY - t[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+  function touchMid(t) {
+    return {
+      x: (t[0].clientX + t[1].clientX) / 2,
+      y: (t[0].clientY + t[1].clientY) / 2,
+    };
+  }
+
+  viewport.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      if (e.target.closest('.cm-unit-g')) return;  // let tap through
+      touchState = { mode: 'pan', x: e.touches[0].clientX - tx, y: e.touches[0].clientY - ty };
+    } else if (e.touches.length === 2) {
+      const d = touchDist(e.touches);
+      touchState = { mode: 'pinch', startDist: d, startScale: scale, mid: touchMid(e.touches) };
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchmove', e => {
+    if (!touchState) return;
+    if (touchState.mode === 'pan' && e.touches.length === 1) {
+      tx = e.touches[0].clientX - touchState.x;
+      ty = e.touches[0].clientY - touchState.y;
+      applyTransform(false);
+      e.preventDefault();
+    } else if (touchState.mode === 'pinch' && e.touches.length === 2) {
+      const d = touchDist(e.touches);
+      const mid = touchMid(e.touches);
+      const nextScale = touchState.startScale * (d / touchState.startDist);
+      zoomAt(mid.x, mid.y, nextScale);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchend', () => {
+    touchState = null;
+  });
+
+  // Disable image drag ghosting inside the stage
+  stage.addEventListener('dragstart', e => e.preventDefault());
+})();
+</script>
+</body>
+</html>

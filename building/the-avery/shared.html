@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Avery · Shared by Tim McMullen · Condo Market SF</title>
+<meta name="description" content="The Avery at 488 Folsom Street — a full dossier of pricing, units, and comps, shared privately.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cm-navy:       #1a1f2e;
+  --cm-navy-deep:  #0f131d;
+  --cm-periwinkle: #9fb4d8;
+  --cm-peri-dim:   #6a7fa3;
+  --cm-peri-cool:  #4a5a75;
+  --cm-ivory:      #e8e3d8;
+  --cm-ivory-dim:  rgba(232, 227, 216, 0.64);
+  --cm-ivory-faint:rgba(232, 227, 216, 0.28);
+  --cm-rule:       rgba(232, 227, 216, 0.14);
+  --cm-accent:     #d4a574;
+  --cm-accent-glow:rgba(212, 165, 116, 0.18);
+  --cm-gain:       #8fb97a;
+  --cm-loss:       #c97865;
+  --cm-ff-display: 'Playfair Display', Georgia, serif;
+  --cm-ff-body:    'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --cm-ff-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --cm-page-max:   1280px;
+  --cm-gutter:     clamp(20px, 4vw, 56px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cm-navy-deep);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-body);
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; }
+.cm-wrap { max-width: var(--cm-page-max); margin: 0 auto; padding: 0 var(--cm-gutter); }
+img { max-width: 100%; display: block; }
+
+/* ============================================================
+   SHARE BANNER — at the very top, identifies the sharer
+   ============================================================ */
+.cm-share-banner {
+  background: linear-gradient(135deg, var(--cm-accent) 0%, #b89169 100%);
+  color: var(--cm-navy);
+  padding: 14px 0;
+  position: relative;
+  z-index: 10;
+}
+.cm-share-banner-wrap {
+  max-width: var(--cm-page-max);
+  margin: 0 auto;
+  padding: 0 var(--cm-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.cm-share-attribution {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--cm-ff-body);
+  font-size: 14px;
+}
+.cm-share-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--cm-navy);
+  color: var(--cm-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cm-ff-display);
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.cm-share-text {
+  line-height: 1.35;
+}
+.cm-share-text strong { font-weight: 600; }
+.cm-share-text small {
+  display: block;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+.cm-share-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cm-navy);
+  color: var(--cm-ivory);
+  padding: 10px 20px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.cm-share-action:hover { background: var(--cm-navy-deep); }
+.cm-share-action::after { content: '→'; }
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+.cm-masthead { border-bottom: 1px solid var(--cm-rule); padding: 22px 0; }
+.cm-masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.cm-wordmark {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--cm-ivory);
+  text-decoration: none;
+}
+.cm-wordmark em { color: var(--cm-periwinkle); }
+.cm-masthead-meta {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cm-ivory-dim);
+  display: flex;
+  gap: 20px;
+}
+.cm-masthead-meta .cm-dot { color: var(--cm-accent); }
+
+/* ============================================================
+   HERO — split layout with editorial image right
+   ============================================================ */
+.cm-hero {
+  padding: 72px 0 56px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 72px;
+  align-items: center;
+}
+.cm-hero-text { }
+.cm-issue {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 32px;
+}
+.cm-issue-divider {
+  display: inline-block;
+  width: 36px;
+  height: 1px;
+  background: var(--cm-periwinkle);
+  margin: 0 12px 3px;
+  vertical-align: middle;
+}
+.cm-title {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(54px, 8vw, 118px);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--cm-ivory);
+  margin-bottom: 22px;
+}
+.cm-title em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-hero-subtitle {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: clamp(18px, 2vw, 24px);
+  color: var(--cm-ivory-dim);
+  max-width: 520px;
+  margin-bottom: 36px;
+  line-height: 1.4;
+}
+.cm-hero-subtitle strong { color: var(--cm-ivory); font-weight: 500; font-style: normal; }
+.cm-hero-dek {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--cm-ivory-dim);
+  max-width: 500px;
+}
+.cm-hero-image {
+  position: relative;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+.cm-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) contrast(1.02);
+}
+.cm-hero-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(15,19,29,0.35) 100%);
+  pointer-events: none;
+}
+.cm-hero-caption {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-ivory-dim);
+  z-index: 2;
+}
+@media (max-width: 860px) {
+  .cm-hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 0 40px; }
+  .cm-hero-image { aspect-ratio: 3/2; order: -1; }
+}
+
+/* ============================================================
+   DOSSIER STRIP
+   ============================================================ */
+.cm-dossier {
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  padding: 28px 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+}
+.cm-dossier-cell { padding: 0 24px; border-left: 1px solid var(--cm-rule); }
+.cm-dossier-cell:first-child { border-left: none; padding-left: 0; }
+.cm-dossier-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-bottom: 10px;
+}
+.cm-dossier-value {
+  font-family: var(--cm-ff-display);
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--cm-ivory);
+}
+.cm-dossier-unit {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  margin-left: 4px;
+  vertical-align: 0.3em;
+}
+@media (max-width: 900px) {
+  .cm-dossier { grid-template-columns: repeat(3, 1fr); gap: 24px 0; }
+  .cm-dossier-cell:nth-child(4) { border-left: none; padding-left: 0; }
+}
+@media (max-width: 600px) {
+  .cm-dossier { grid-template-columns: repeat(2, 1fr); }
+  .cm-dossier-cell { border-left: none; padding: 0; }
+}
+
+/* ============================================================
+   GENERIC SECTION SCAFFOLD
+   ============================================================ */
+.cm-section { padding: 88px 0; border-top: 1px solid var(--cm-rule); }
+.cm-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 56px;
+  flex-wrap: wrap;
+}
+.cm-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cm-kicker::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--cm-periwinkle);
+  display: inline-block;
+}
+.cm-heading {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--cm-ivory);
+  max-width: 780px;
+}
+.cm-heading em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-pull {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--cm-ivory-dim);
+  max-width: 380px;
+  text-align: right;
+  line-height: 1.5;
+}
+@media (max-width: 720px) { .cm-pull { text-align: left; font-size: 17px; } }
+
+/* ============================================================
+   FULL-BLEED IMAGE BAND (section transitions)
+   ============================================================ */
+.cm-band {
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16/7;
+}
+.cm-band img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) brightness(0.95);
+}
+.cm-band::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15,19,29,0.15) 0%, rgba(15,19,29,0.5) 100%);
+}
+.cm-band-caption {
+  position: absolute;
+  bottom: 24px;
+  left: var(--cm-gutter);
+  right: var(--cm-gutter);
+  z-index: 2;
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: clamp(18px, 2.5vw, 28px);
+  color: var(--cm-ivory);
+  max-width: 620px;
+  line-height: 1.3;
+}
+.cm-band-caption small {
+  display: block;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-ivory-dim);
+  margin-top: 14px;
+  font-style: normal;
+}
+
+/* ============================================================
+   PRICING SECTION
+   ============================================================ */
+.cm-pricing-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 72px;
+  align-items: start;
+}
+@media (max-width: 900px) { .cm-pricing-grid { grid-template-columns: 1fr; gap: 56px; } }
+.cm-big-number {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(88px, 14vw, 180px);
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+  color: var(--cm-ivory);
+}
+.cm-big-number em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-big-caption {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-ivory-dim);
+  margin-top: 24px;
+  line-height: 1.8;
+}
+.cm-big-caption strong { color: var(--cm-ivory); font-weight: 500; }
+.cm-psf-table { font-family: var(--cm-ff-mono); font-size: 13px; }
+.cm-psf-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--cm-rule);
+  align-items: baseline;
+  gap: 20px;
+}
+.cm-psf-row:first-child { border-top: 1px solid var(--cm-rule); }
+.cm-psf-label { color: var(--cm-ivory-dim); letter-spacing: 0.04em; font-size: 11px; text-transform: uppercase; }
+.cm-psf-value { font-family: var(--cm-ff-display); font-size: 22px; color: var(--cm-ivory); }
+.cm-delta-down { color: var(--cm-loss); font-size: 11px !important; font-family: var(--cm-ff-mono) !important; }
+
+/* Comp chart */
+.cm-comp { margin-top: 24px; font-family: var(--cm-ff-mono); }
+.cm-comp-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 80px;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  border-bottom: 1px solid var(--cm-rule);
+}
+.cm-comp-row:last-child { border-bottom: none; }
+.cm-comp-row--active { color: var(--cm-ivory); }
+.cm-comp-row--active .cm-comp-name { color: var(--cm-periwinkle); font-weight: 500; }
+.cm-comp-name { font-family: var(--cm-ff-body); font-size: 14px; color: var(--cm-ivory); }
+.cm-comp-bar {
+  background: linear-gradient(90deg, var(--cm-peri-dim), var(--cm-periwinkle));
+  height: 6px;
+  border-radius: 1px;
+}
+.cm-comp-row--active .cm-comp-bar {
+  background: linear-gradient(90deg, var(--cm-accent), #e8c19d);
+  height: 10px;
+}
+.cm-comp-psf { text-align: right; font-family: var(--cm-ff-mono); font-size: 13px; color: var(--cm-ivory); font-weight: 500; }
+.cm-comp-row--active .cm-comp-psf { color: var(--cm-accent); }
+@media (max-width: 720px) {
+  .cm-comp-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 4px 12px; padding: 12px 0; }
+  .cm-comp-bar { grid-column: 1 / span 2; }
+}
+
+/* ============================================================
+   BEDROOM CARDS
+   ============================================================ */
+.cm-br-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+}
+.cm-br-card {
+  padding: 48px 32px;
+  border-left: 1px solid var(--cm-rule);
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
+}
+.cm-br-card:first-child { border-left: none; }
+.cm-br-tier {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 40px;
+}
+.cm-br-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-bottom: 8px;
+}
+.cm-br-top {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(42px, 4.8vw, 68px);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  color: var(--cm-ivory);
+  margin-bottom: 4px;
+}
+.cm-br-top em { color: var(--cm-accent); font-style: italic; }
+.cm-br-unit {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 32px;
+}
+.cm-br-details {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 16px;
+  font-family: var(--cm-ff-mono);
+}
+.cm-br-detail-label {
+  color: var(--cm-peri-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.cm-br-detail-value {
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-display);
+  font-size: 20px;
+}
+@media (max-width: 1020px) {
+  .cm-br-grid { grid-template-columns: repeat(2, 1fr); }
+  .cm-br-card:nth-child(3) { border-left: none; border-top: 1px solid var(--cm-rule); }
+}
+@media (max-width: 560px) {
+  .cm-br-grid { grid-template-columns: 1fr; }
+  .cm-br-card { border-left: none; border-top: 1px solid var(--cm-rule); }
+  .cm-br-card:first-child { border-top: none; }
+}
+
+/* Penthouse block */
+.cm-penthouse {
+  margin-top: 72px;
+  padding: 56px;
+  background: linear-gradient(145deg, rgba(159,180,216,0.05), rgba(212,165,116,0.04));
+  border: 1px solid var(--cm-rule);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+  position: relative;
+}
+.cm-penthouse::before {
+  content: 'PENTHOUSE';
+  position: absolute;
+  top: -8px; left: 32px;
+  background: var(--cm-navy-deep);
+  padding: 0 12px;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--cm-accent);
+}
+.cm-penthouse-stat {
+  font-family: var(--cm-ff-display);
+  font-size: clamp(48px, 6vw, 84px);
+  line-height: 0.95;
+  color: var(--cm-ivory);
+  margin-bottom: 16px;
+}
+.cm-penthouse-stat em { color: var(--cm-accent); font-style: italic; }
+.cm-penthouse-caption {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  line-height: 1.5;
+  font-size: 17px;
+}
+@media (max-width: 800px) {
+  .cm-penthouse { grid-template-columns: 1fr; gap: 32px; padding: 40px 28px; }
+}
+
+/* ============================================================
+   ACTIVITY + IMAGE SIDE-BY-SIDE
+   ============================================================ */
+.cm-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+@media (max-width: 900px) { .cm-split { grid-template-columns: 1fr; gap: 32px; } }
+.cm-split-image {
+  aspect-ratio: 4/5;
+  overflow: hidden;
+}
+.cm-split-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.9) brightness(0.95);
+}
+.cm-activity-list { }
+.cm-activity-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--cm-rule);
+  gap: 24px;
+}
+.cm-activity-row:first-child { border-top: 1px solid var(--cm-rule); }
+.cm-activity-row-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+}
+.cm-activity-row-note {
+  font-family: var(--cm-ff-body);
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  margin-top: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cm-activity-row-value {
+  font-family: var(--cm-ff-display);
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1;
+  color: var(--cm-ivory);
+}
+.cm-activity-row-value small {
+  font-family: var(--cm-ff-mono);
+  font-size: 13px;
+  color: var(--cm-ivory-dim);
+  margin-left: 3px;
+}
+
+/* ============================================================
+   AMENITIES WITH PHOTOS
+   ============================================================ */
+.cm-amen-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px 48px;
+}
+@media (max-width: 740px) { .cm-amen-grid { grid-template-columns: 1fr; gap: 28px; } }
+.cm-amen-item {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.cm-amen-thumb {
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  background: rgba(159,180,216,0.08);
+}
+.cm-amen-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.88) brightness(0.92);
+}
+.cm-amen-body { }
+.cm-amen-num {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--cm-peri-dim);
+  margin-bottom: 8px;
+}
+.cm-amen-title {
+  font-family: var(--cm-ff-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cm-ivory);
+  margin-bottom: 8px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.cm-amen-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--cm-ivory-dim);
+}
+@media (max-width: 440px) {
+  .cm-amen-item { grid-template-columns: 1fr; }
+  .cm-amen-thumb { aspect-ratio: 16/9; }
+}
+
+/* ============================================================
+   UNIT TABLE
+   ============================================================ */
+.cm-table-wrap {
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  overflow-x: auto;
+}
+table.cm-units {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+}
+.cm-units thead th {
+  text-align: left;
+  padding: 16px 12px;
+  color: var(--cm-peri-dim);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 10px;
+  border-bottom: 1px solid var(--cm-rule);
+  background: rgba(159,180,216,0.03);
+  white-space: nowrap;
+}
+.cm-units thead th.num { text-align: right; }
+.cm-units tbody td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(232,227,216,0.06);
+  color: var(--cm-ivory);
+  white-space: nowrap;
+}
+.cm-units tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cm-units tbody td.muted { color: var(--cm-ivory-dim); }
+.cm-units tbody tr:hover { background: rgba(159,180,216,0.04); }
+.cm-units .cm-unit-id { font-family: var(--cm-ff-display); font-size: 15px; }
+.cm-table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0 0;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.cm-table-expand {
+  background: none;
+  border: 1px solid var(--cm-rule);
+  color: var(--cm-ivory);
+  padding: 12px 22px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.cm-table-expand:hover { border-color: var(--cm-periwinkle); color: var(--cm-periwinkle); }
+
+/* ============================================================
+   OFFER CTA (flipped ivory-on-navy)
+   ============================================================ */
+.cm-offer {
+  background: var(--cm-ivory);
+  color: var(--cm-navy);
+  margin: 0 calc(var(--cm-gutter) * -1);
+  padding: 96px var(--cm-gutter);
+}
+.cm-offer-wrap { max-width: var(--cm-page-max); margin: 0 auto; }
+.cm-offer-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-navy);
+  opacity: 0.6;
+  margin-bottom: 40px;
+}
+.cm-offer-headline {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(42px, 5.6vw, 76px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--cm-navy);
+  max-width: 880px;
+  margin-bottom: 72px;
+}
+.cm-offer-headline em { color: var(--cm-navy); font-style: italic; font-weight: 500; }
+.cm-offer-grid { display: grid; grid-template-columns: 1fr 1fr; }
+@media (max-width: 800px) { .cm-offer-grid { grid-template-columns: 1fr; } }
+.cm-offer-card {
+  padding: 48px 40px 48px 40px;
+  border-left: 1px solid rgba(26,31,46,0.12);
+  display: flex;
+  flex-direction: column;
+}
+.cm-offer-card:first-child { border-left: none; padding-left: 0; padding-right: 48px; }
+@media (max-width: 800px) {
+  .cm-offer-card { padding: 32px 0; border-left: none; border-top: 1px solid rgba(26,31,46,0.12); }
+  .cm-offer-card:first-child { border-top: none; padding-top: 0; }
+}
+.cm-offer-num {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--cm-navy);
+  opacity: 0.5;
+  margin-bottom: 20px;
+}
+.cm-offer-title {
+  font-family: var(--cm-ff-display);
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--cm-navy);
+  margin-bottom: 20px;
+  line-height: 1.15;
+}
+.cm-offer-title em { font-style: italic; color: var(--cm-navy); }
+.cm-offer-copy {
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(26,31,46,0.72);
+  margin-bottom: 36px;
+  flex-grow: 1;
+}
+.cm-cta {
+  display: inline-block;
+  padding: 18px 32px;
+  background: var(--cm-navy);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  transition: all 200ms ease;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.cm-cta:hover { background: var(--cm-periwinkle); color: var(--cm-navy); }
+.cm-cta--alt { background: transparent; color: var(--cm-navy); border: 1px solid var(--cm-navy); }
+.cm-cta--alt:hover { background: var(--cm-navy); color: var(--cm-ivory); }
+
+/* ============================================================
+   NEARBY BUILDINGS (the viral hook)
+   ============================================================ */
+.cm-nearby {
+  padding: 96px 0 140px;
+  border-top: 1px solid var(--cm-rule);
+  background: var(--cm-navy-deep);
+}
+.cm-nb-head {
+  margin-bottom: 48px;
+}
+.cm-nb-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.cm-nb-intro {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 640px;
+}
+.cm-nb-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+@media (max-width: 1100px) { .cm-nb-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 840px) { .cm-nb-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .cm-nb-grid { grid-template-columns: 1fr; } }
+
+.cm-nb-card {
+  background: transparent;
+  border: 1px solid var(--cm-rule);
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: all 250ms ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.cm-nb-card:hover {
+  border-color: var(--cm-accent);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+.cm-nb-card:hover .cm-nb-image img { transform: scale(1.04); filter: saturate(1) brightness(0.82); }
+.cm-nb-image {
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, rgba(159,180,216,0.1), rgba(74,90,117,0.15));
+}
+.cm-nb-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.82) brightness(0.72);
+  transition: all 350ms ease;
+}
+.cm-nb-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15,19,29,0.25), rgba(15,19,29,0.55));
+  pointer-events: none;
+}
+.cm-nb-image--placeholder {
+  background: linear-gradient(135deg, rgba(159,180,216,0.12), rgba(74,90,117,0.2));
+  position: relative;
+}
+.cm-nb-image--placeholder::before {
+  content: '◳';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cm-peri-cool);
+  font-size: 40px;
+  opacity: 0.4;
+}
+.cm-nb-body {
+  padding: 20px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.cm-nb-distance {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-accent);
+  margin-bottom: 4px;
+}
+.cm-nb-name {
+  font-family: var(--cm-ff-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cm-ivory);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.cm-nb-meta {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+.cm-nb-psf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px solid var(--cm-rule);
+  margin-bottom: 14px;
+  position: relative;
+}
+.cm-nb-psf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 45%, rgba(15,19,29,0.88) 90%);
+  pointer-events: none;
+}
+.cm-nb-psf-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+}
+.cm-nb-psf-value {
+  font-family: var(--cm-ff-display);
+  font-size: 20px;
+  color: var(--cm-ivory);
+  filter: blur(2.5px);
+  opacity: 0.6;
+}
+.cm-nb-psf-value small { font-family: var(--cm-ff-mono); font-size: 10px; color: var(--cm-ivory-dim); margin-left: 2px; }
+.cm-nb-lock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cm-accent);
+  padding-top: 4px;
+}
+.cm-nb-lock-icon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cm-accent);
+  box-shadow: 0 0 0 3px var(--cm-accent-glow);
+  display: inline-block;
+}
+
+/* ============================================================
+   PERSISTENT FLOATING CTA
+   ============================================================ */
+.cm-floating {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(15,19,29,0.95) 40%);
+  padding: 48px 0 24px;
+  z-index: 20;
+  pointer-events: none;
+  transform: translateY(100%);
+  transition: transform 400ms ease;
+}
+.cm-floating.is-visible { transform: translateY(0); }
+.cm-floating-inner {
+  max-width: var(--cm-page-max);
+  margin: 0 auto;
+  padding: 0 var(--cm-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  pointer-events: all;
+  flex-wrap: wrap;
+}
+.cm-floating-text {
+  font-family: var(--cm-ff-display);
+  font-size: 18px;
+  color: var(--cm-ivory);
+}
+.cm-floating-text em { color: var(--cm-accent); font-style: italic; }
+.cm-floating-text small {
+  display: block;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-top: 2px;
+}
+.cm-floating-cta {
+  padding: 14px 26px;
+  background: var(--cm-accent);
+  color: var(--cm-navy);
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 180ms ease;
+}
+.cm-floating-cta:hover { background: #e8c19d; }
+
+/* ============================================================
+   SIGNUP MODAL
+   ============================================================ */
+.cm-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,19,29,0.85);
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(6px);
+}
+.cm-modal.is-open { display: flex; }
+.cm-modal-inner {
+  background: var(--cm-ivory);
+  color: var(--cm-navy);
+  max-width: 480px;
+  width: 100%;
+  padding: 48px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.cm-modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--cm-navy);
+  opacity: 0.5;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+  padding: 0;
+}
+.cm-modal-close:hover { opacity: 1; }
+.cm-modal-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-navy);
+  opacity: 0.55;
+  margin-bottom: 16px;
+}
+.cm-modal-title {
+  font-family: var(--cm-ff-display);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--cm-navy);
+  margin-bottom: 12px;
+}
+.cm-modal-title em { font-style: italic; font-weight: 500; }
+.cm-modal-sub {
+  font-size: 14px;
+  color: rgba(26,31,46,0.72);
+  line-height: 1.55;
+  margin-bottom: 32px;
+}
+.cm-modal-sub strong { color: var(--cm-navy); }
+.cm-modal-form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.cm-modal-input {
+  padding: 16px 18px;
+  border: 1px solid rgba(26,31,46,0.2);
+  font-family: var(--cm-ff-body);
+  font-size: 15px;
+  color: var(--cm-navy);
+  background: transparent;
+  width: 100%;
+}
+.cm-modal-input:focus { outline: none; border-color: var(--cm-navy); }
+.cm-modal-primary {
+  padding: 16px 24px;
+  background: var(--cm-navy);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 180ms ease;
+}
+.cm-modal-primary:hover { background: var(--cm-accent); color: var(--cm-navy); }
+.cm-modal-divider {
+  text-align: center;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(26,31,46,0.4);
+  margin: 8px 0;
+  position: relative;
+}
+.cm-modal-divider::before, .cm-modal-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 42%;
+  height: 1px;
+  background: rgba(26,31,46,0.15);
+}
+.cm-modal-divider::before { left: 0; }
+.cm-modal-divider::after  { right: 0; }
+.cm-modal-oauth {
+  padding: 14px 18px;
+  background: transparent;
+  border: 1px solid rgba(26,31,46,0.3);
+  font-family: var(--cm-ff-body);
+  font-size: 14px;
+  color: var(--cm-navy);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 180ms ease;
+  width: 100%;
+}
+.cm-modal-oauth:hover { background: var(--cm-navy); color: var(--cm-ivory); border-color: var(--cm-navy); }
+.cm-modal-credit {
+  margin-top: 24px;
+  padding: 14px 16px;
+  background: rgba(212,165,116,0.12);
+  border-left: 2px solid var(--cm-accent);
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(26,31,46,0.75);
+}
+.cm-modal-credit strong { color: var(--cm-navy); }
+.cm-modal-fineprint {
+  margin-top: 20px;
+  font-size: 11px;
+  color: rgba(26,31,46,0.5);
+  line-height: 1.5;
+}
+
+/* Footer */
+.cm-footer {
+  padding: 48px 0 72px;
+  border-top: 1px solid var(--cm-rule);
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--cm-ivory-dim);
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.cm-footer a { color: var(--cm-periwinkle); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- SHARE BANNER -->
+<div class="cm-share-banner">
+  <div class="cm-share-banner-wrap">
+    <div class="cm-share-attribution">
+      <div class="cm-share-avatar">T</div>
+      <div class="cm-share-text">
+        <span><strong>Tim McMullen</strong> shared this dossier with you</span>
+        <small>Principal · McMullen Properties · DRE 02016832</small>
+      </div>
+    </div>
+    <button class="cm-share-action" data-signup-trigger="banner">Unlock 70 more buildings</button>
+  </div>
+</div>
+
+<main>
+  <!-- MASTHEAD -->
+  <header class="cm-masthead">
+    <div class="cm-wrap">
+      <div class="cm-masthead-row">
+        <a href="/" class="cm-wordmark">Condo <em>Market</em> SF</a>
+        <div class="cm-masthead-meta">
+          <span>Building Dossier</span>
+          <span class="cm-dot">●</span>
+          <span>Shared Link · Read-Only Preview</span>
+          <span class="cm-dot">●</span>
+          <span>San Francisco</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO with integrated image -->
+  <section class="cm-hero cm-wrap">
+    <div class="cm-hero-text">
+      <div class="cm-issue">
+        South Beach <span class="cm-issue-divider"></span> 488 Folsom Street <span class="cm-issue-divider"></span> 94105
+      </div>
+      <h1 class="cm-title">The <em>Avery</em></h1>
+      <p class="cm-hero-subtitle">
+        Fifty-six stories above Folsom, with <strong>118 residences</strong> — of which <strong>84 have traded</strong> since the doors opened in 2019.
+      </p>
+      <p class="cm-hero-dek">
+        A dossier compiled from public records and the San Francisco tax roll. Prices reflect recorded transactions; psf figures reflect transacted price over building square footage. Owner names withheld; comparisons draw from 40 indexed buildings across the city.
+      </p>
+    </div>
+    <figure class="cm-hero-image">
+      <img src="assets/the-avery/hero.webp" alt="The Avery at 488 Folsom Street, San Francisco — dusk exterior showing the tower in the skyline" />
+      <figcaption class="cm-hero-caption">488 Folsom at Dusk · Transbay / South Beach</figcaption>
+    </figure>
+  </section>
+
+  <!-- DOSSIER STRIP -->
+  <div class="cm-wrap">
+    <div class="cm-dossier">
+      <div class="cm-dossier-cell">
+        <div class="cm-dossier-label">Year Built</div>
+        <div class="cm-dossier-value">2018</div>
+      </div>
+      <div class="cm-dossier-cell">
+        <div class="cm-dossier-label">Stories</div>
+        <div class="cm-dossier-value">56</div>
+      </div>
+      <div class="cm-dossier-cell">
+        <div class="cm-dossier-label">Total Units</div>
+        <div class="cm-dossier-value">118</div>
+      </div>
+      <div class="cm-dossier-cell">
+        <div class="cm-dossier-label">Ever Traded</div>
+        <div class="cm-dossier-value">84<span class="cm-dossier-unit">/118</span></div>
+      </div>
+      <div class="cm-dossier-cell">
+        <div class="cm-dossier-label">Last Sale</div>
+        <div class="cm-dossier-value" style="font-size: 22px;">2026-03</div>
+      </div>
+      <div class="cm-dossier-cell">
+        <div class="cm-dossier-label">Tenure (med.)</div>
+        <div class="cm-dossier-value">4.4<span class="cm-dossier-unit">yrs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICING + COMP CHART -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">The Price Question</div>
+          <h2 class="cm-heading">What a square foot of <em>The Avery</em> actually costs.</h2>
+        </div>
+        <div class="cm-pull">Within South Beach, only 181 Fremont commands a higher transacted price per foot.</div>
+      </div>
+      <div class="cm-pricing-grid">
+        <div>
+          <div class="cm-big-number">$<em>1,513</em></div>
+          <div class="cm-big-caption">
+            Median price per square foot · trailing 36 months<br>
+            <strong>28.9% above</strong> South Beach median · <strong>31.8% above</strong> citywide median<br>
+            Based on 31 recorded sales · ranked 2 of 9 buildings in the neighborhood
+          </div>
+        </div>
+        <div>
+          <div class="cm-psf-table">
+            <div class="cm-psf-row"><div class="cm-psf-label">All-time median psf</div><div class="cm-psf-value">$1,792</div></div>
+            <div class="cm-psf-row"><div class="cm-psf-label">Trailing 60-month median</div><div class="cm-psf-value">$1,695</div></div>
+            <div class="cm-psf-row"><div class="cm-psf-label">Trailing 36-month median</div><div class="cm-psf-value">$1,513</div></div>
+            <div class="cm-psf-row"><div class="cm-psf-label">Trailing 12-month median</div><div class="cm-psf-value">$1,448</div></div>
+            <div class="cm-psf-row"><div class="cm-psf-label">Median transaction</div><div class="cm-psf-value">$2,890,000</div></div>
+            <div class="cm-psf-row"><div class="cm-psf-label">Transaction range</div><div class="cm-psf-value" style="font-size: 15px;">$41K – $11.15M</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comp chart -->
+      <div class="cm-comp" style="margin-top: 72px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px;">
+          <div class="cm-kicker" style="margin: 0;">South Beach · PSF ranking</div>
+          <div style="font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); letter-spacing: 0.08em; text-transform: uppercase;">Trailing 36 months</div>
+        </div>
+        <div class="cm-comp-row"><span class="cm-comp-name">181 Fremont</span><span class="cm-comp-bar" style="width: 100%;"></span><span class="cm-comp-psf">$1,838</span></div>
+        <div class="cm-comp-row cm-comp-row--active"><span class="cm-comp-name">The Avery</span><span class="cm-comp-bar" style="width: 82.3%;"></span><span class="cm-comp-psf">$1,513</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">MIRA</span><span class="cm-comp-bar" style="width: 71.8%;"></span><span class="cm-comp-psf">$1,320</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">The Harrison</span><span class="cm-comp-bar" style="width: 66.2%;"></span><span class="cm-comp-psf">$1,216</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">One Rincon Hill</span><span class="cm-comp-bar" style="width: 63.9%;"></span><span class="cm-comp-psf">$1,174</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">The Brannan</span><span class="cm-comp-bar" style="width: 62.1%;"></span><span class="cm-comp-psf">$1,141</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">LUMINA</span><span class="cm-comp-bar" style="width: 58.9%;"></span><span class="cm-comp-psf">$1,082</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">170 Off Third</span><span class="cm-comp-bar" style="width: 52.1%;"></span><span class="cm-comp-psf">$957</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">200 Brannan Lofts</span><span class="cm-comp-bar" style="width: 49.4%;"></span><span class="cm-comp-psf">$908</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL-BLEED IMAGE BAND — section transition -->
+  <figure class="cm-band">
+    <img src="assets/the-avery/gallery-03.webp" alt="The Avery resident lounge with fireplace and artwork" />
+    <figcaption class="cm-band-caption">
+      The resident lounge on the amenity floor — a space the marketing brochures fail to capture.
+      <small>Gallery · Floor 9</small>
+    </figcaption>
+  </figure>
+
+  <!-- TOP SALES BY BEDROOM -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">Top Sales · by Tier</div>
+          <h2 class="cm-heading">The building's <em>high-water marks.</em></h2>
+        </div>
+        <div class="cm-pull">One transaction above eleven million. The rest cluster between $1.4M and $4M.</div>
+      </div>
+      <div class="cm-br-grid">
+        <div class="cm-br-card">
+          <div class="cm-br-tier">One Bedroom · 23 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>2.35</em>M</div>
+          <div class="cm-br-unit">Unit 3606 · 1,116 sq ft · 2019-06</div>
+          <div class="cm-br-details">
+            <div><div class="cm-br-detail-label">Top PSF</div><div class="cm-br-detail-value">$2,106</div></div>
+            <div><div class="cm-br-detail-label">Median PSF</div><div class="cm-br-detail-value">$1,448</div></div>
+            <div><div class="cm-br-detail-label">Median Price</div><div class="cm-br-detail-value">$1.40M</div></div>
+            <div><div class="cm-br-detail-label">Typical Size</div><div class="cm-br-detail-value">921 sf</div></div>
+          </div>
+        </div>
+        <div class="cm-br-card">
+          <div class="cm-br-tier">Two Bedroom · 49 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>3.75</em>M</div>
+          <div class="cm-br-unit">Unit 5005 · 1,811 sq ft · 2022-02</div>
+          <div class="cm-br-details">
+            <div><div class="cm-br-detail-label">Top PSF</div><div class="cm-br-detail-value">$2,073</div></div>
+            <div><div class="cm-br-detail-label">Median PSF</div><div class="cm-br-detail-value">$1,652</div></div>
+            <div><div class="cm-br-detail-label">Median Price</div><div class="cm-br-detail-value">$2.55M</div></div>
+            <div><div class="cm-br-detail-label">Typical Size</div><div class="cm-br-detail-value">1,652 sf</div></div>
+          </div>
+        </div>
+        <div class="cm-br-card">
+          <div class="cm-br-tier">Three Bedroom · 41 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>11.15</em>M</div>
+          <div class="cm-br-unit">Unit 5402 · 4,312 sq ft · 2021-12</div>
+          <div class="cm-br-details">
+            <div><div class="cm-br-detail-label">Top PSF</div><div class="cm-br-detail-value">$2,586</div></div>
+            <div><div class="cm-br-detail-label">Median PSF</div><div class="cm-br-detail-value">$1,989</div></div>
+            <div><div class="cm-br-detail-label">Median Price</div><div class="cm-br-detail-value">$3.95M</div></div>
+            <div><div class="cm-br-detail-label">Typical Size</div><div class="cm-br-detail-value">2,064 sf</div></div>
+          </div>
+        </div>
+        <div class="cm-br-card">
+          <div class="cm-br-tier">Four Bedroom + · 5 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>8.77</em>M</div>
+          <div class="cm-br-unit">Unit 5301 · 4,176 sq ft · 2020-06</div>
+          <div class="cm-br-details">
+            <div><div class="cm-br-detail-label">Top PSF</div><div class="cm-br-detail-value">$2,100</div></div>
+            <div><div class="cm-br-detail-label">Median PSF</div><div class="cm-br-detail-value">$1,828</div></div>
+            <div><div class="cm-br-detail-label">Median Price</div><div class="cm-br-detail-value">$5.98M</div></div>
+            <div><div class="cm-br-detail-label">Typical Size</div><div class="cm-br-detail-value">4,176 sf</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-penthouse">
+        <div>
+          <div class="cm-penthouse-stat"><em>55 &amp; 56</em></div>
+          <div class="cm-penthouse-caption">
+            The Avery's two penthouse floors hold four residences. None have publicly traded since completion — when one does, it will reset the building's ceiling.
+          </div>
+        </div>
+        <div>
+          <div style="font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 20px;">Current benchmark · Unit 5402, floor 54</div>
+          <div style="font-family: var(--cm-ff-display); font-size: 48px; line-height: 1; color: var(--cm-ivory); margin-bottom: 12px;">$2,586<span style="font-family: var(--cm-ff-mono); font-size: 14px; color: var(--cm-ivory-dim); margin-left: 6px;">/sf</span></div>
+          <div style="font-family: var(--cm-ff-body); font-size: 13px; color: var(--cm-ivory-dim); line-height: 1.6;">The highest psf recorded in the building. An actual penthouse transaction would likely clear this mark.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITY + pool image -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">Activity · Turnover</div>
+          <h2 class="cm-heading">How often residences here <em>change hands.</em></h2>
+        </div>
+      </div>
+      <div class="cm-split">
+        <figure class="cm-split-image">
+          <img src="assets/the-avery/gallery-07.webp" alt="The Avery's 60-foot indoor lap pool with ambient lighting" />
+        </figure>
+        <div class="cm-activity-list">
+          <div class="cm-activity-row">
+            <div>
+              <div class="cm-activity-row-label">Sales · 12 months</div>
+              <div class="cm-activity-row-note">One closing every 3.5 weeks, on average.</div>
+            </div>
+            <div class="cm-activity-row-value">15</div>
+          </div>
+          <div class="cm-activity-row">
+            <div>
+              <div class="cm-activity-row-label">Sales · 36 months</div>
+              <div class="cm-activity-row-note">Roughly a quarter of the building in three years.</div>
+            </div>
+            <div class="cm-activity-row-value">31</div>
+          </div>
+          <div class="cm-activity-row">
+            <div>
+              <div class="cm-activity-row-label">Annualized turnover</div>
+              <div class="cm-activity-row-note">Higher than most of South Beach.</div>
+            </div>
+            <div class="cm-activity-row-value">12.7<small>%</small></div>
+          </div>
+          <div class="cm-activity-row">
+            <div>
+              <div class="cm-activity-row-label">Median tenure</div>
+              <div class="cm-activity-row-note">Time since last recorded sale, per unit.</div>
+            </div>
+            <div class="cm-activity-row-value">4.4<small>yrs</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AMENITIES with photos -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">The Building · as lived in</div>
+          <h2 class="cm-heading">What you get for the <em>price of entry.</em></h2>
+        </div>
+      </div>
+      <div class="cm-amen-grid">
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-05.webp" alt="Fitness center" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">01</div>
+            <div class="cm-amen-title">Equinox-curated fitness</div>
+            <div class="cm-amen-desc">State-of-the-art equipment, programming, and trainer access. The closest thing in the city to a private-floor Equinox.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-07.webp" alt="60-foot indoor lap pool" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">02</div>
+            <div class="cm-amen-title">60-foot lap pool</div>
+            <div class="cm-amen-desc">Indoor pool on the amenity floor. Reservation-free for residents.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-03.webp" alt="Resident lounge and dining" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">03</div>
+            <div class="cm-amen-title">Private dining &amp; lounge</div>
+            <div class="cm-amen-desc">A furnished lounge with an adjacent private dining room for resident-hosted events.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-08.webp" alt="Screening room" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">04</div>
+            <div class="cm-amen-title">Screening room</div>
+            <div class="cm-amen-desc">A dark, theater-seated room with a projection system for private screenings.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-09.webp" alt="Game room" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">05</div>
+            <div class="cm-amen-title">Game room</div>
+            <div class="cm-amen-desc">Pool table, shuffleboard, and casual seating.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-10.webp" alt="Business center and conference room" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">06</div>
+            <div class="cm-amen-title">Business &amp; conference</div>
+            <div class="cm-amen-desc">Workstations and a reservable conference room for residents working from home.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-02.webp" alt="Attended lobby" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">07</div>
+            <div class="cm-amen-title">24-hour attended lobby</div>
+            <div class="cm-amen-desc">Full-time concierge and doorman. Package intake and delivery hand-off.</div>
+          </div>
+        </div>
+        <div class="cm-amen-item">
+          <figure class="cm-amen-thumb"><img src="assets/the-avery/gallery-12.webp" alt="Pet spa" /></figure>
+          <div class="cm-amen-body">
+            <div class="cm-amen-num">08</div>
+            <div class="cm-amen-title">Pet spa</div>
+            <div class="cm-amen-desc">A dedicated pet grooming and bathing room.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UNIT ROSTER (fully unlocked for shared viewers) -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">The Roster · 118 residences</div>
+          <h2 class="cm-heading">Every unit. Every sale. <em>On the record.</em></h2>
+        </div>
+        <div class="cm-pull">Full roster unlocked — you're viewing Tim's shared dossier.</div>
+      </div>
+      <div class="cm-table-wrap">
+        <table class="cm-units">
+          <thead>
+            <tr>
+              <th>Unit</th><th class="num">Floor</th><th class="num">Bed</th><th class="num">Bath</th><th class="num">Sqft</th><th class="num">Last Sale</th><th class="num">Price</th><th class="num">PSF</th><th class="num">Annual Tax</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="cm-unit-id">4205</td><td class="num">42</td><td class="num">2</td><td class="num">2</td><td class="num">1,652</td><td class="num">2026-03</td><td class="num">$2,608,000</td><td class="num">$1,579</td><td class="num muted">$43,742</td></tr>
+            <tr><td class="cm-unit-id">4102</td><td class="num">41</td><td class="num">3</td><td class="num">3</td><td class="num">1,888</td><td class="num">2026-03</td><td class="num">$3,700,000</td><td class="num">$1,960</td><td class="num muted">$49,505</td></tr>
+            <tr><td class="cm-unit-id">4504</td><td class="num">45</td><td class="num">2</td><td class="num">2</td><td class="num">1,549</td><td class="num">2026-02</td><td class="num">$2,625,000</td><td class="num">$1,695</td><td class="num muted">$44,875</td></tr>
+            <tr><td class="cm-unit-id">4505</td><td class="num">45</td><td class="num">2</td><td class="num">2</td><td class="num">1,652</td><td class="num">2026-02</td><td class="num">$2,650,000</td><td class="num">$1,604</td><td class="num muted">$47,610</td></tr>
+            <tr><td class="cm-unit-id">4604</td><td class="num">46</td><td class="num">1</td><td class="num">1</td><td class="num">987</td><td class="num">2026-02</td><td class="num">$1,350,000</td><td class="num">$1,368</td><td class="num muted">$29,723</td></tr>
+            <tr><td class="cm-unit-id">4704</td><td class="num">47</td><td class="num">1</td><td class="num">1</td><td class="num">987</td><td class="num">2026-02</td><td class="num">$1,350,000</td><td class="num">$1,368</td><td class="num muted">$29,723</td></tr>
+            <tr><td class="cm-unit-id">5204</td><td class="num">52</td><td class="num">1</td><td class="num">1</td><td class="num">987</td><td class="num">2026-02</td><td class="num">$1,395,000</td><td class="num">$1,413</td><td class="num muted">$29,723</td></tr>
+            <tr><td class="cm-unit-id">4601</td><td class="num">46</td><td class="num">3</td><td class="num">3</td><td class="num">2,159</td><td class="num">2026-02</td><td class="num">$4,750,000</td><td class="num">$2,200</td><td class="num muted">$66,248</td></tr>
+            <tr><td class="cm-unit-id">4903</td><td class="num">49</td><td class="num">2</td><td class="num">2</td><td class="num">1,832</td><td class="num">2026-02</td><td class="num">$2,750,000</td><td class="num">$1,501</td><td class="num muted">$52,366</td></tr>
+            <tr><td class="cm-unit-id">4904</td><td class="num">49</td><td class="num">1</td><td class="num">1</td><td class="num">987</td><td class="num">2026-02</td><td class="num">$1,350,000</td><td class="num">$1,368</td><td class="num muted">$29,723</td></tr>
+            <tr><td class="cm-unit-id">3503</td><td class="num">35</td><td class="num">1</td><td class="num">1</td><td class="num">913</td><td class="num">2026-01</td><td class="num">$1,300,000</td><td class="num">$1,424</td><td class="num muted">$27,615</td></tr>
+            <tr><td class="cm-unit-id">5004</td><td class="num">50</td><td class="num">1</td><td class="num">1</td><td class="num">987</td><td class="num">2025-11</td><td class="num">$1,325,000</td><td class="num">$1,342</td><td class="num muted">$29,723</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cm-table-footer">
+        <div>Showing 12 of 84 recorded sales · 118 total residences</div>
+        <button class="cm-table-expand" data-signup-trigger="full-roster">See all 84 sales →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- OFFER CTA -->
+  <section>
+    <div class="cm-wrap">
+      <div class="cm-offer">
+        <div class="cm-offer-wrap">
+          <div class="cm-offer-kicker">Two ways to act · No listing required</div>
+          <h2 class="cm-offer-headline">You don't have to wait for a unit to <em>list.</em> You can make the market move.</h2>
+          <div class="cm-offer-grid">
+            <div class="cm-offer-card">
+              <div class="cm-offer-num">01 · Put in an offer</div>
+              <div class="cm-offer-title">Submit a bid on <em>any unit</em> in the building.</div>
+              <div class="cm-offer-copy">Pick a residence — listed, off-market, or one an owner hasn't thought of selling. We forward a written offer directly to the owner of record. If they're interested, you talk. If not, they know you exist.</div>
+              <button class="cm-cta" data-signup-trigger="offer-1">Start an offer</button>
+            </div>
+            <div class="cm-offer-card">
+              <div class="cm-offer-num">02 · Name your price</div>
+              <div class="cm-offer-title">Tell owners <em>what you'd pay</em> and wait for matches.</div>
+              <div class="cm-offer-copy">Set your criteria — bedroom count, budget, floor, views — and post a public "Make Me Move" offer on the building. When an owner's threshold aligns with yours, we connect you both. No agent fees on the buy-side.</div>
+              <button class="cm-cta cm-cta--alt" data-signup-trigger="offer-2">Post a price</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEARBY BUILDINGS — the viral growth engine -->
+  <section class="cm-nearby">
+    <div class="cm-wrap">
+      <div class="cm-nb-head">
+        <div class="cm-nb-head-row">
+          <div>
+            <div class="cm-kicker">Continue the tour</div>
+            <h2 class="cm-heading" style="font-size: clamp(32px, 4vw, 52px);">Twelve towers within <em>walking distance.</em></h2>
+          </div>
+        </div>
+        <p class="cm-nb-intro">
+          Every nearby building has its own dossier — pricing, top sales, full unit roster. Create a free account to unlock them all. Sorted below by physical distance from 488 Folsom.
+        </p>
+      </div>
+      <div class="cm-nb-grid">
+        
+    <button class="cm-nb-card" data-slug="one-rincon-hill" data-name="One Rincon Hill">
+      <div class="cm-nb-image"><img src="assets/one-rincon-hill/hero.webp" alt="One Rincon Hill" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">187m away · next block</div>
+        <div class="cm-nb-name">One Rincon Hill</div>
+        <div class="cm-nb-meta">South Beach · 2008 · 359 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1174<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="the-harrison" data-name="The Harrison">
+      <div class="cm-nb-image"><img src="assets/the-harrison/hero.jpeg" alt="The Harrison" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">2.2 blocks · 263m</div>
+        <div class="cm-nb-name">The Harrison</div>
+        <div class="cm-nb-meta">South Beach · 2005 · 297 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1216<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="lumina" data-name="LUMINA">
+      <div class="cm-nb-image"><img src="assets/lumina/hero.webp" alt="LUMINA" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~2 blocks · 313m</div>
+        <div class="cm-nb-name">LUMINA</div>
+        <div class="cm-nb-meta">South Beach · 2016 · 664 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1082<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="200-brannan" data-name="200 Brannan">
+      <div class="cm-nb-image"><img src="assets/200-brannan/hero.jpeg" alt="200 Brannan" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~3 blocks · 400m</div>
+        <div class="cm-nb-name">200 Brannan</div>
+        <div class="cm-nb-meta">South Beach · 1999 · 193 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$908<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="181-fremont" data-name="181 Fremont">
+      <div class="cm-nb-image"><img src="assets/181-fremont/hero.webp" alt="181 Fremont" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~3 blocks · 416m</div>
+        <div class="cm-nb-name">181 Fremont</div>
+        <div class="cm-nb-meta">South Beach · 2017 · 68 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1838<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="the-brannan" data-name="The Brannan">
+      <div class="cm-nb-image"><img src="assets/the-brannan/hero.jpeg" alt="The Brannan" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~3 blocks · 455m</div>
+        <div class="cm-nb-name">The Brannan</div>
+        <div class="cm-nb-meta">South Beach · 2002 · 336 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1141<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="millennium-tower" data-name="Millennium Tower">
+      <div class="cm-nb-image"><img src="assets/millennium-tower/hero.webp" alt="Millennium Tower" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~4 blocks · 505m</div>
+        <div class="cm-nb-name">Millennium Tower</div>
+        <div class="cm-nb-meta">Yerba Buena · 2009 · 407 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$823<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="st-regis" data-name="St Regis">
+      <div class="cm-nb-image"><img src="assets/st-regis/hero.webp" alt="St Regis" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~4 blocks · 586m</div>
+        <div class="cm-nb-name">St Regis</div>
+        <div class="cm-nb-meta">Yerba Buena · 2005 · 99 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1388<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="170-off-third" data-name="170 Off Third">
+      <div class="cm-nb-image"><img src="assets/170-off-third/hero.jpeg" alt="170 Off Third" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~6 blocks · 826m</div>
+        <div class="cm-nb-name">170 Off Third</div>
+        <div class="cm-nb-meta">South Beach · 2004 · 151 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$957<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="park-terrace" data-name="Park Terrace">
+      <div class="cm-nb-image"><img src="assets/park-terrace/hero.webp" alt="Park Terrace" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~8 blocks · 1046m</div>
+        <div class="cm-nb-name">Park Terrace</div>
+        <div class="cm-nb-meta">Mission Bay · 2005 · 200 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1005<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="235-berry" data-name="235 Berry">
+      <div class="cm-nb-image"><img src="assets/235-berry/hero.jpeg" alt="235 Berry" loading="lazy" /></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~9 blocks · 1080m</div>
+        <div class="cm-nb-name">235 Berry</div>
+        <div class="cm-nb-meta">Mission Bay · 2003 · 99 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">$1030<small>/sf</small></span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+
+    <button class="cm-nb-card" data-slug="325-berry" data-name="325 Berry">
+      <div class="cm-nb-image cm-nb-image--placeholder"></div>
+      <div class="cm-nb-body">
+        <div class="cm-nb-distance">~9 blocks · 1184m</div>
+        <div class="cm-nb-name">325 Berry</div>
+        <div class="cm-nb-meta">Mission Bay · 2005 · 111 units</div>
+        <div class="cm-nb-psf">
+          <span class="cm-nb-psf-label">Median PSF</span>
+          <span class="cm-nb-psf-value">Data pending</span>
+        </div>
+        <div class="cm-nb-lock">
+          <span class="cm-nb-lock-icon">●</span>
+          <span>Unlock with a free account</span>
+        </div>
+      </div>
+    </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="cm-footer">
+    <div class="cm-wrap" style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+      <div>Shared by Tim McMullen · Condo Market SF · April 19, 2026</div>
+      <div><a href="#" data-signup-trigger="footer">Create free account</a> · <a href="/methodology">Methodology</a></div>
+    </div>
+  </footer>
+</main>
+
+<!-- PERSISTENT FLOATING CTA -->
+<div class="cm-floating" id="cmFloat">
+  <div class="cm-floating-inner">
+    <div class="cm-floating-text">
+      <span>See <em>70 more buildings</em> like The Avery.</span>
+      <small>Unlock the full database · Free · Takes 30 seconds</small>
+    </div>
+    <button class="cm-floating-cta" data-signup-trigger="floating">Create free account</button>
+  </div>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div class="cm-modal" id="cmModal">
+  <div class="cm-modal-inner">
+    <button class="cm-modal-close" aria-label="Close" id="cmModalClose">×</button>
+    <div class="cm-modal-kicker" id="cmModalKicker">Continue exploring</div>
+    <h3 class="cm-modal-title" id="cmModalTitle">Unlock the full <em>database.</em></h3>
+    <p class="cm-modal-sub" id="cmModalSub">Free account · 70 San Francisco condo buildings · every unit, every sale, every comp.</p>
+    <form class="cm-modal-form" id="cmModalForm">
+      <input type="email" class="cm-modal-input" placeholder="your email" required>
+      <button type="submit" class="cm-modal-primary">Create free account</button>
+    </form>
+    <div class="cm-modal-divider">or</div>
+    <button class="cm-modal-oauth">Continue with Google</button>
+    <div class="cm-modal-credit">
+      <strong>You were invited by Tim McMullen.</strong> Signing up credits Tim with <strong>20 points</strong> toward a commission discount on his next Condo Market transaction &mdash; at no cost to you. When you refer friends, you earn the same 20 points per signup, up to <strong>100 points = 1% off the total 3% commission</strong> on your own sale or purchase. On a $1M property that's <strong>$10,000 saved.</strong> Condo Market's 3% total splits: 1% HOA credit, 2% platform (with 1% optionally nominated to a buyer's agent).
+    </div>
+    <p class="cm-modal-fineprint">By signing up you agree to our Terms and Privacy Policy. We don't share your data with third parties. No agent will contact you unsolicited.</p>
+  </div>
+</div>
+
+<script>
+(function() {
+  const modal = document.getElementById('cmModal');
+  const modalClose = document.getElementById('cmModalClose');
+  const modalTitle = document.getElementById('cmModalTitle');
+  const modalSub = document.getElementById('cmModalSub');
+  const modalKicker = document.getElementById('cmModalKicker');
+
+  const messages = {
+    'banner':       { kicker: 'Start here', title: 'Unlock 70 more <em>buildings.</em>',           sub: 'Free account · every sale on record · every unit in South Beach and beyond. Refer 5 friends &mdash; save $10,000 on a $1M sale (1% off 3% total commission).' },
+    'floating':     { kicker: 'Continue exploring', title: 'See the full <em>database.</em>',      sub: '70 buildings · 9,000+ units · real pricing data. Free forever, takes 30 seconds.' },
+    'footer':       { kicker: 'One click away', title: 'Create your free <em>account.</em>',       sub: 'Every building on Condo Market, unlocked instantly.' },
+    'offer-1':      { kicker: 'Before you offer', title: 'Save offers to your <em>account.</em>',  sub: 'Creating an account lets us forward offers to owners of record and track responses.' },
+    'offer-2':      { kicker: 'Before you post', title: 'Post prices to your <em>account.</em>',   sub: 'Your "Make Me Move" offers are visible to matching owners anonymously.' },
+    'full-roster':  { kicker: 'Unlock the roster', title: 'See every sale, every unit.',           sub: 'The Avery alone has 84 recorded sales. Free account opens them all.' },
+    'neighbor':     { kicker: 'One neighbor away', title: 'Unlock <em>__NAME__.</em>',             sub: 'Every building on Condo Market has a dossier this detailed. Free account. Takes 30 seconds.' },
+  };
+
+  function openModal(key, nameOverride) {
+    const msg = messages[key] || messages['floating'];
+    modalKicker.textContent = msg.kicker;
+    let title = msg.title;
+    if (nameOverride) title = title.replace('__NAME__', nameOverride);
+    modalTitle.innerHTML = title;
+    modalSub.textContent = msg.sub;
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Wire all trigger buttons
+  document.querySelectorAll('[data-signup-trigger]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      openModal(el.dataset.signupTrigger);
+    });
+  });
+
+  // Nearby-building cards → signup with building name
+  document.querySelectorAll('.cm-nb-card').forEach(card => {
+    card.addEventListener('click', e => {
+      e.preventDefault();
+      openModal('neighbor', card.dataset.name);
+    });
+  });
+
+  document.getElementById('cmModalForm').addEventListener('submit', e => {
+    e.preventDefault();
+    alert('In production: creates account, attributes referral to Tim, unlocks full site.');
+  });
+
+  // Reveal floating CTA after scrolling past the hero
+  const floating = document.getElementById('cmFloat');
+  let lastY = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    const threshold = 800;
+    const nearBottom = (window.innerHeight + y) > (document.body.offsetHeight - 200);
+    if (y > threshold && !nearBottom) floating.classList.add('is-visible');
+    else floating.classList.remove('is-visible');
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>

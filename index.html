@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Condo Market · San Francisco</title>
+  <meta name="description" content="A private exchange for every condo in San Francisco.">
+  <link rel="canonical" href="https://www.sanfranciscocondomarket.com/buildings/">
+  <script>
+    // If this page was hit with a magic-link fragment (e.g. site URL misconfigured
+    // or old emails still pointing at apex), forward to /auth-callback.html so the
+    // token gets processed correctly.
+    (function () {
+      var hash = window.location.hash || '';
+      var search = window.location.search || '';
+      var hasToken = hash.indexOf('access_token=') !== -1
+                  || hash.indexOf('refresh_token=') !== -1
+                  || hash.indexOf('type=magiclink') !== -1
+                  || search.indexOf('error=') !== -1
+                  || search.indexOf('error_code=') !== -1;
+      if (hasToken) {
+        window.location.replace('/auth-callback.html' + search + hash);
+      } else {
+        window.location.replace('/buildings/');
+      }
+    })();
+  </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0; url=/buildings/">
+  </noscript>
+</head>
+<body>
+  <p style="font-family: system-ui, sans-serif; padding: 40px; color: #1a1f2e;">
+    Redirecting to <a href="/buildings/">Condo Market San Francisco</a>…
+  </p>
+</body>
+</html>

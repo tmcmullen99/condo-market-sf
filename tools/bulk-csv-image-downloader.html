@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Condo Market — CSV-based image bulk downloader</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', sans-serif;
+    background: #0a0d12; color: #e8e3d8;
+    margin: 0; padding: 40px 20px; min-height: 100vh;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 36px; margin: 0 0 10px; font-style: italic; color: #9fb4d8; font-weight: 400; }
+  h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; margin: 32px 0 10px; font-weight: 700; }
+  p { line-height: 1.55; margin: 8px 0; color: rgba(232,227,216,.82); }
+  .steps {
+    border-left: 3px solid #9fb4d8; padding: 14px 22px;
+    margin: 22px 0; background: rgba(159,180,216,.05);
+  }
+  .steps ol { margin: 0; padding-left: 22px; }
+  .steps li { margin: 6px 0; }
+  button {
+    background: #9fb4d8; color: #0a0d12; border: 0;
+    padding: 14px 26px; border-radius: 6px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    letter-spacing: .02em; margin: 8px 10px 8px 0;
+  }
+  button:hover { background: #fff; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  input[type="file"] {
+    color: #e8e3d8; font-size: 14px; margin: 10px 0;
+  }
+  .log {
+    background: #0d111a; border: 1px solid rgba(159,180,216,.2);
+    padding: 14px 18px; border-radius: 4px; margin: 16px 0;
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-size: 12px; line-height: 1.5;
+    max-height: 420px; overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .log.empty { color: rgba(232,227,216,.4); }
+  .progress {
+    background: rgba(159,180,216,.12); border-radius: 999px;
+    height: 6px; overflow: hidden; margin: 10px 0;
+  }
+  .progress-fill {
+    height: 100%; background: #9fb4d8; width: 0; transition: width .3s;
+  }
+  code {
+    background: #0d111a; padding: 2px 6px; border-radius: 3px;
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-size: 13px; color: #9fb4d8;
+  }
+  .note {
+    background: rgba(217,164,65,.08);
+    border-left: 3px solid #d9a441;
+    padding: 12px 18px; margin: 20px 0;
+    border-radius: 0 3px 3px 0;
+    font-size: 14px;
+  }
+  .note strong { color: #d9a441; }
+  .summary {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin: 20px 0;
+  }
+  .stat {
+    background: rgba(159,180,216,.05);
+    border: 1px solid rgba(159,180,216,.15);
+    padding: 14px 16px; border-radius: 4px;
+  }
+  .stat-label {
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: #9fb4d8; font-weight: 700; margin: 0 0 6px;
+  }
+  .stat-value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px; font-weight: 700; margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>CSV bulk image downloader</h1>
+  <p>Point this at your Webflow CMS CSV export. It parses the image URLs, downloads them all from Webflow's CDN, and packages a ZIP organized by building slug.</p>
+
+  <div class="note">
+    <strong>Why this works:</strong> Your browser can fetch Webflow CDN images directly (they allow CORS for image assets). No proxy needed. No scraping. Just URL list → download → zip.
+  </div>
+
+  <h2>Steps</h2>
+  <div class="steps">
+    <ol>
+      <li>Click the file picker, select your <code>SF_Condo_Market_-_Buildings_*.csv</code></li>
+      <li>Click <strong>Parse CSV</strong> — shows building count and total images</li>
+      <li>Click <strong>Download all images</strong> — fetches every featured + gallery + floor plan image</li>
+      <li>Click <strong>Build ZIP</strong> — packages everything, triggers download</li>
+      <li>Upload the ZIP to Claude</li>
+    </ol>
+  </div>
+
+  <input type="file" id="fileInput" accept=".csv"/>
+  <br>
+  <button id="parseBtn" disabled>1. Parse CSV</button>
+  <button id="downloadBtn" disabled>2. Download all images</button>
+  <button id="zipBtn" disabled>3. Build ZIP</button>
+
+  <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="summary">
+    <div class="stat"><p class="stat-label">Buildings</p><p class="stat-value" id="statBldgs">0</p></div>
+    <div class="stat"><p class="stat-label">Total images</p><p class="stat-value" id="statTotal">0</p></div>
+    <div class="stat"><p class="stat-label">Downloaded</p><p class="stat-value" id="statDone">0</p></div>
+    <div class="stat"><p class="stat-label">Errors</p><p class="stat-value" id="statErrors">0</p></div>
+  </div>
+
+  <h2>Log</h2>
+  <div class="log empty" id="log">Select your CSV to start…</div>
+
+</div>
+
+<script>
+const log = document.getElementById('log');
+const progressFill = document.getElementById('progressFill');
+const fileInput = document.getElementById('fileInput');
+const parseBtn = document.getElementById('parseBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const zipBtn = document.getElementById('zipBtn');
+const statBldgs = document.getElementById('statBldgs');
+const statTotal = document.getElementById('statTotal');
+const statDone = document.getElementById('statDone');
+const statErrors = document.getElementById('statErrors');
+
+let rows = [];          // parsed CSV rows
+let plan = [];          // { slug, name, kind ('featured'|'gallery'|'floorplan'), url, idx, outName }
+let blobs = new Map();  // url -> Blob
+let errors = 0;
+
+function logLine(msg) {
+  log.classList.remove('empty');
+  log.textContent += msg + '\n';
+  log.scrollTop = log.scrollHeight;
+}
+
+function extFromUrl(url) {
+  const decoded = decodeURIComponent(url.split('?')[0]);
+  const m = decoded.match(/\.([a-z0-9]+)$/i);
+  return m ? '.' + m[1].toLowerCase() : '.jpg';
+}
+
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) parseBtn.disabled = false;
+});
+
+parseBtn.addEventListener('click', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  parseBtn.disabled = true;
+  logLine(`Parsing ${file.name}...`);
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: (result) => {
+      rows = result.data;
+      logLine(`✓ Parsed ${rows.length} rows`);
+      statBldgs.textContent = rows.length;
+
+      // Build the download plan
+      plan = [];
+      for (const row of rows) {
+        const slug = row['Slug'] || '';
+        const name = row['Building name'] || '';
+        if (!slug) continue;
+
+        // Featured image
+        const featured = (row['Featured image'] || '').trim();
+        if (featured) {
+          plan.push({
+            slug, name, kind: 'featured', url: featured, idx: 0,
+            outName: 'hero' + extFromUrl(featured)
+          });
+        }
+
+        // Gallery (semicolon-separated)
+        const gallery = (row['Images'] || '').split(';').map(u => u.trim()).filter(Boolean);
+        gallery.forEach((url, i) => {
+          plan.push({
+            slug, name, kind: 'gallery', url, idx: i,
+            outName: `gallery-${String(i+1).padStart(2,'0')}${extFromUrl(url)}`
+          });
+        });
+
+        // Floor plans (semicolon-separated)
+        const fps = (row['Floor-plans'] || '').split(';').map(u => u.trim()).filter(Boolean);
+        fps.forEach((url, i) => {
+          plan.push({
+            slug, name, kind: 'floorplan', url, idx: i,
+            outName: `floor-plan-${String(i+1).padStart(2,'0')}${extFromUrl(url)}`
+          });
+        });
+      }
+
+      // Dedupe by (slug, url) — same image used for featured+gallery shouldn't download twice
+      const seen = new Set();
+      const unique = [];
+      for (const job of plan) {
+        const key = job.slug + '|' + job.url;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        unique.push(job);
+      }
+      plan = unique;
+
+      logLine(`Total image jobs: ${plan.length}`);
+      statTotal.textContent = plan.length;
+      downloadBtn.disabled = false;
+    },
+    error: (err) => {
+      logLine(`✗ Parse error: ${err.message}`);
+      parseBtn.disabled = false;
+    }
+  });
+});
+
+downloadBtn.addEventListener('click', async () => {
+  downloadBtn.disabled = true;
+  logLine('');
+  logLine('=== DOWNLOADING IMAGES ===');
+  blobs.clear();
+  errors = 0;
+
+  let done = 0;
+  const CONCURRENCY = 6;
+  const queue = [...plan];
+
+  async function worker() {
+    while (queue.length > 0) {
+      const job = queue.shift();
+      if (!job) break;
+      try {
+        const resp = await fetch(job.url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const blob = await resp.blob();
+        blobs.set(job.url, blob);
+      } catch (e) {
+        errors++;
+        logLine(`  ✗ ${job.slug}/${job.outName}: ${e.message}`);
+        statErrors.textContent = errors;
+      }
+      done++;
+      statDone.textContent = done;
+      progressFill.style.width = `${(done / plan.length * 100).toFixed(1)}%`;
+    }
+  }
+
+  const workers = [];
+  for (let i = 0; i < CONCURRENCY; i++) workers.push(worker());
+  await Promise.all(workers);
+
+  logLine('');
+  logLine(`✓ Done. Downloaded ${done - errors} of ${plan.length}. ${errors} errors.`);
+  zipBtn.disabled = false;
+});
+
+zipBtn.addEventListener('click', async () => {
+  zipBtn.disabled = true;
+  logLine('');
+  logLine('Packaging ZIP...');
+
+  const zip = new JSZip();
+
+  // Write a manifest
+  const manifest = {
+    generated: new Date().toISOString(),
+    source: 'Webflow CMS CSV export',
+    rowCount: rows.length,
+    imageCount: plan.length,
+    buildings: [],
+  };
+
+  // Group plan by slug
+  const bySlug = {};
+  for (const job of plan) {
+    if (!bySlug[job.slug]) bySlug[job.slug] = { slug: job.slug, name: job.name, files: [] };
+    bySlug[job.slug].files.push(job);
+  }
+
+  // Write each building folder
+  for (const slug of Object.keys(bySlug)) {
+    const info = bySlug[slug];
+    const folder = zip.folder(slug);
+    const bldg = { slug, name: info.name, featured: null, gallery: [], floorPlans: [] };
+    for (const job of info.files) {
+      const blob = blobs.get(job.url);
+      if (!blob) continue;
+      folder.file(job.outName, blob);
+      if (job.kind === 'featured') bldg.featured = job.outName;
+      else if (job.kind === 'gallery') bldg.gallery.push(job.outName);
+      else if (job.kind === 'floorplan') bldg.floorPlans.push(job.outName);
+    }
+    manifest.buildings.push(bldg);
+  }
+
+  // Include the structured CSV data as JSON (everything except the image URLs)
+  const bldgsJson = rows.map(r => ({
+    name: r['Building name'],
+    slug: r['Slug'],
+    address: r['Address'],
+    postCode: r['Post code'],
+    neighborhood: r['Neighborhood'],
+    startingPrice: r['Starting price'],
+    buildingStories: r['Building stories'],
+    startingPricePerSqft: r['Starting price/sqft'],
+    numberOfUnits: r['Number of units'],
+    builtYear: r['Built year'],
+    bedrooms: r['Bedrooms'],
+    bathrooms: r['Bathrooms'],
+    parking: r['Parking'],
+    description: r['Description'],
+    interiorFeatures: r['Interior Features'],
+    amenities: r['Amenities'],
+    schools: r['Schools'],
+    video: r['Video'],
+    mapLink: r['Map link'],
+    propertyType: r['Property type'],
+    status: r['Status'],
+  }));
+  zip.file('buildings.json', JSON.stringify(bldgsJson, null, 2));
+  zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+  logLine('Generating blob...');
+  const blob = await zip.generateAsync({
+    type: 'blob',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 },
+  });
+  logLine(`ZIP size: ${(blob.size / 1024 / 1024).toFixed(1)} MB`);
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'condo-market-images.zip';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  logLine('✓ ZIP downloaded — upload to Claude.');
+});
+</script>
+
+</body>
+</html>

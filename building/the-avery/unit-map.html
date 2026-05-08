@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=4.0">
+<title>The Avery · Unit Map · Condo Market SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cm-navy:       #1a1f2e;
+  --cm-navy-deep:  #0f131d;
+  --cm-periwinkle: #9fb4d8;
+  --cm-peri-dim:   #6a7fa3;
+  --cm-peri-cool:  #4a5a75;
+  --cm-ivory:      #e8e3d8;
+  --cm-ivory-dim:  rgba(232, 227, 216, 0.64);
+  --cm-rule:       rgba(232, 227, 216, 0.14);
+  --cm-cool:       #5b7294;
+  --cm-warm:       #b89169;
+  --cm-hot:        #d4a574;
+  --cm-accent:     #d4a574;
+  --cm-gain:       #8fb97a;
+  --cm-ff-display: 'Playfair Display', Georgia, serif;
+  --cm-ff-body:    'DM Sans', -apple-system, sans-serif;
+  --cm-ff-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--cm-navy-deep);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-body);
+  font-weight: 300;
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; }
+
+.cm-wrap { max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+/* Masthead */
+.cm-masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+.cm-masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.cm-wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 600; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+.cm-wordmark em { color: var(--cm-periwinkle); }
+.cm-meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; }
+
+/* Hero */
+.cm-hero { padding: 56px 0 32px; }
+.cm-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cm-kicker::before { content:''; width: 24px; height: 1px; background: var(--cm-periwinkle); }
+.cm-hero h1 {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--cm-ivory);
+  margin-bottom: 18px;
+}
+.cm-hero h1 em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-hero-dek {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--cm-ivory-dim);
+  max-width: 620px;
+  line-height: 1.45;
+}
+
+/* Stats strip */
+.cm-statbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  margin-top: 40px;
+}
+.cm-statcell { padding: 22px 20px; border-left: 1px solid var(--cm-rule); }
+.cm-statcell:first-child { border-left: none; padding-left: 0; }
+.cm-statcell-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 8px; }
+.cm-statcell-value { font-family: var(--cm-ff-display); font-size: 30px; line-height: 1; color: var(--cm-ivory); }
+.cm-statcell-value small { font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); margin-left: 4px; }
+@media (max-width: 700px) { .cm-statbar { grid-template-columns: 1fr 1fr; }
+  .cm-statcell:nth-child(3) { border-left: none; padding-left: 0; } }
+
+/* Controls */
+.cm-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 32px 0 24px;
+  flex-wrap: wrap;
+}
+.cm-control-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-right: 6px;
+}
+.cm-chip {
+  background: transparent;
+  border: 1px solid var(--cm-rule);
+  color: var(--cm-ivory);
+  padding: 8px 14px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.cm-chip:hover { border-color: var(--cm-periwinkle); color: var(--cm-periwinkle); }
+.cm-chip.is-active {
+  background: var(--cm-periwinkle);
+  color: var(--cm-navy);
+  border-color: var(--cm-periwinkle);
+}
+
+/* MAIN LAYOUT: tower + panel */
+.cm-explorer {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 60px;
+  padding: 20px 0 80px;
+  border-top: 1px solid var(--cm-rule);
+  padding-top: 40px;
+}
+@media (max-width: 960px) {
+  .cm-explorer { grid-template-columns: 1fr; }
+  .cm-panel { position: static; }
+}
+
+/* Tower SVG */
+.cm-tower-wrap {
+  display: flex;
+  justify-content: center;
+}
+.cm-tower {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+}
+.cm-floor-label {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.cm-cell {
+  stroke: var(--cm-navy-deep);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.cm-cell--cool { fill: var(--cm-cool); fill-opacity: 0.85; }
+.cm-cell--warm { fill: var(--cm-warm); fill-opacity: 0.85; }
+.cm-cell--hot  { fill: var(--cm-hot);  fill-opacity: 0.95; }
+.cm-cell--unsold {
+  fill: transparent;
+  stroke: var(--cm-peri-cool);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+.cm-cell--top {
+  stroke: var(--cm-accent);
+  stroke-width: 1.5;
+}
+.cm-unit-g { transition: transform 200ms ease; transform-origin: center; transform-box: fill-box; }
+.cm-unit-g:hover .cm-cell { stroke: var(--cm-ivory); stroke-width: 1.5; fill-opacity: 1; }
+.cm-unit-g.is-selected .cm-cell { stroke: var(--cm-ivory); stroke-width: 2; fill-opacity: 1; }
+.cm-unit-g.is-dimmed { opacity: 0.18; }
+.cm-cell-label {
+  fill: var(--cm-ivory);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+.cm-unit-g.cm-cell--unsold-group .cm-cell-label { fill: var(--cm-peri-dim); }
+.cm-cell-star {
+  fill: var(--cm-accent);
+  font-size: 9px;
+  font-family: monospace;
+  pointer-events: none;
+}
+
+/* Ground marker */
+.cm-ground { fill: var(--cm-rule); }
+.cm-ground-label { fill: var(--cm-peri-dim); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; }
+
+/* Legend */
+.cm-legend {
+  margin-top: 32px;
+  padding: 20px 0;
+  border-top: 1px solid var(--cm-rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cm-legend-swatch { display: inline-block; width: 14px; height: 14px; vertical-align: -3px; margin-right: 8px; border-radius: 1px; }
+.cm-legend-swatch--cool   { background: var(--cm-cool); }
+.cm-legend-swatch--warm   { background: var(--cm-warm); }
+.cm-legend-swatch--hot    { background: var(--cm-hot); }
+.cm-legend-swatch--unsold { background: transparent; border: 1px dashed var(--cm-peri-cool); }
+.cm-legend-swatch--top    { background: var(--cm-hot); border: 1.5px solid var(--cm-accent); position: relative; }
+.cm-legend-swatch--top::after { content:'✦'; color: var(--cm-navy); font-size: 9px; position: absolute; top: -3px; left: 3px; font-family: monospace; }
+
+/* PANEL (right side) */
+.cm-panel {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding: 28px 28px;
+  background: linear-gradient(155deg, rgba(159,180,216,0.04), rgba(212,165,116,0.03));
+  border: 1px solid var(--cm-rule);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.cm-panel-empty {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.cm-panel-empty::before { content: '→'; color: var(--cm-periwinkle); margin-right: 8px; font-style: normal; }
+.cm-panel-heading {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 12px;
+}
+.cm-panel-unit {
+  font-family: var(--cm-ff-display);
+  font-size: 52px;
+  line-height: 0.9;
+  color: var(--cm-ivory);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.cm-panel-unit em { color: var(--cm-periwinkle); font-style: italic; }
+.cm-panel-sub {
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 28px;
+}
+.cm-panel-price {
+  font-family: var(--cm-ff-display);
+  font-size: 44px;
+  line-height: 0.95;
+  color: var(--cm-ivory);
+  margin-bottom: 6px;
+}
+.cm-panel-price em { color: var(--cm-accent); font-style: italic; }
+.cm-panel-psf {
+  font-family: var(--cm-ff-mono);
+  font-size: 13px;
+  color: var(--cm-ivory-dim);
+  margin-bottom: 28px;
+}
+.cm-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 0;
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  margin-bottom: 28px;
+}
+.cm-panel-grid-cell { }
+.cm-panel-grid-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 6px; }
+.cm-panel-grid-value { font-family: var(--cm-ff-display); font-size: 22px; color: var(--cm-ivory); }
+.cm-panel-empty-sale {
+  padding: 20px 16px;
+  background: rgba(232,227,216,0.03);
+  border-left: 2px solid var(--cm-peri-dim);
+  margin-bottom: 28px;
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cm-panel-cta {
+  display: block;
+  text-align: center;
+  padding: 16px 20px;
+  background: var(--cm-ivory);
+  color: var(--cm-navy);
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: all 180ms ease;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  font-weight: 500;
+}
+.cm-panel-cta:hover { background: var(--cm-periwinkle); color: var(--cm-navy); }
+.cm-panel-cta--alt {
+  background: transparent;
+  border: 1px solid var(--cm-ivory);
+  color: var(--cm-ivory);
+}
+.cm-panel-cta--alt:hover { background: var(--cm-ivory); color: var(--cm-navy); }
+
+/* Method note */
+.cm-method {
+  padding: 48px 0 80px;
+  border-top: 1px solid var(--cm-rule);
+  font-family: var(--cm-ff-body);
+  font-size: 14px;
+  color: var(--cm-ivory-dim);
+  line-height: 1.65;
+  max-width: 720px;
+}
+.cm-method strong { color: var(--cm-ivory); font-weight: 500; }
+.cm-method em { font-style: italic; color: var(--cm-accent); font-family: var(--cm-ff-display); }
+
+
+/* ─── PAN/ZOOM CONTAINER (v29+) ─── */
+.cm-tower-frame {
+  position: relative;
+  background: linear-gradient(180deg, rgba(159,180,216,0.02), rgba(15,19,29,0.15));
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.cm-tower-viewport {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 780px);
+  min-height: 460px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cm-tower-viewport.is-grabbing { cursor: grabbing; }
+.cm-tower-stage {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: transform 120ms cubic-bezier(.2,.6,.2,1);
+}
+.cm-tower-stage.is-dragging { transition: none; }
+.cm-tower-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20px 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+.cm-tower-wrap .cm-tower {
+  max-width: 620px;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+.cm-zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  background: rgba(15,19,29,0.88);
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  backdrop-filter: blur(8px);
+  padding: 3px;
+  align-items: stretch;
+}
+.cm-zoom-btn {
+  background: transparent;
+  color: var(--cm-ivory);
+  border: none;
+  padding: 8px 14px;
+  font-family: var(--cm-ff-mono);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1;
+  min-width: 36px;
+  border-radius: 1px;
+  transition: background 120ms ease;
+}
+.cm-zoom-btn:hover { background: rgba(159,180,216,0.14); }
+.cm-zoom-btn:active { background: rgba(159,180,216,0.22); }
+.cm-zoom-reset {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-left: 1px solid var(--cm-rule);
+  color: var(--cm-periwinkle);
+}
+.cm-zoom-readout {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  padding: 0 10px;
+  align-self: center;
+  min-width: 38px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.cm-zoom-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  color: var(--cm-ivory-dim);
+  opacity: 0.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  background: rgba(15,19,29,0.7);
+  padding: 4px 10px;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+.cm-zoom-hint-mobile { display: none; }
+.cm-zoom-hint-desktop { display: inline; }
+@media (hover: none) and (pointer: coarse) {
+  .cm-zoom-hint-mobile { display: inline; }
+  .cm-zoom-hint-desktop { display: none; }
+}
+
+/* Facing-direction dot on unit cells (when orientation data is present) */
+.cm-cell-facing {
+  fill: var(--cm-accent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.cm-unit-g:hover .cm-cell-facing { opacity: 1; }
+.cm-unit-g.is-selected .cm-cell-facing {
+  opacity: 1;
+  fill: var(--cm-ivory);
+}
+.cm-legend-swatch--facing {
+  background: var(--cm-navy-deep);
+  position: relative;
+  border: 1px solid var(--cm-rule);
+}
+.cm-legend-swatch--facing::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--cm-accent);
+}
+
+/* ─── FLOOR PLATE (orientation map) ─── */
+.cm-panel-orient {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cm-rule);
+}
+.cm-panel-orient-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.cm-panel-orient-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+}
+.cm-panel-orient-facing {
+  font-family: var(--cm-ff-display);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cm-accent);
+  letter-spacing: 0.02em;
+}
+.cm-panel-orient-view {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--cm-ivory);
+  margin-bottom: 20px;
+  line-height: 1.35;
+}
+.cm-plate-wrap {
+  background: rgba(15,19,29,0.4);
+  border: 1px solid var(--cm-rule);
+  border-radius: 2px;
+  padding: 10px;
+}
+.cm-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.cm-plate-outline {
+  fill: none;
+  stroke: var(--cm-peri-cool);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.cm-plate-core {
+  fill: rgba(74,90,117,0.3);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.5;
+}
+.cm-plate-core-label {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+}
+.cm-plate-card {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.cm-plate-compass-bg {
+  fill: rgba(15,19,29,0.85);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.5;
+}
+.cm-plate-compass-n {
+  fill: var(--cm-periwinkle);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 600;
+}
+.cm-plate-compass-tri {
+  fill: var(--cm-accent);
+}
+.cm-plate-compass-arrow {
+  stroke: var(--cm-accent);
+  stroke-width: 0.5;
+}
+.cm-plate-unit-box {
+  fill: rgba(159,180,216,0.08);
+  stroke: var(--cm-peri-cool);
+  stroke-width: 0.6;
+  transition: all 180ms ease;
+}
+.cm-plate-unit-pos {
+  fill: var(--cm-ivory-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+}
+.cm-plate-unit-facing {
+  fill: var(--cm-peri-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+}
+.cm-plate-unit.is-active .cm-plate-unit-box {
+  fill: var(--cm-accent);
+  stroke: var(--cm-accent);
+  stroke-width: 1;
+}
+.cm-plate-unit.is-active .cm-plate-unit-pos,
+.cm-plate-unit.is-active .cm-plate-unit-facing {
+  fill: var(--cm-navy);
+  font-weight: 600;
+}
+.cm-plate-legend {
+  font-family: var(--cm-ff-mono);
+  font-size: 9px;
+  color: var(--cm-ivory-dim);
+  text-align: center;
+  letter-spacing: 0.06em;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+</style>
+  <script type="module" src="/assets/cm-auth-nav.js"></script>
+</head>
+<body>
+<main>
+  <header class="cm-masthead">
+    <div class="cm-wrap">
+      <div class="cm-masthead-row">
+        <a href="/" class="cm-wordmark">Condo <em>Market</em> SF</a>
+        <div class="cm-meta">
+          <span>Unit Map</span>
+          <span>The Avery</span>
+          <span></span>
+        </div>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="margin-left:auto;font-family:var(--cm-ff-body, 'DM Sans', sans-serif);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory,#e8e3d8);border:1px solid var(--cm-rule,rgba(232,227,216,0.22));padding:7px 14px;border-radius:999px;text-decoration:none;transition:border-color 0.15s;">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="cm-hero">
+    <div class="cm-wrap">
+      <div class="cm-kicker">Interactive · Every Unit · Every Sale</div>
+      <h1>Click anywhere on <em>The Avery.</em></h1>
+      <p class="cm-hero-dek">
+        Each square is a residence. Color reflects recorded price per square foot. The bronze-outlined unit is the building's all-time high. Hollow squares have never publicly traded.
+      </p>
+
+      <div class="cm-statbar">
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Total Units</div>
+          <div class="cm-statcell-value">118</div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Ever Sold</div>
+          <div class="cm-statcell-value">83<small>/118</small></div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Never Traded</div>
+          <div class="cm-statcell-value">35</div>
+        </div>
+        <div class="cm-statcell">
+          <div class="cm-statcell-label">Median PSF</div>
+          <div class="cm-statcell-value">$1,795<small>/sf</small></div>
+        </div>
+      </div>
+
+      <div class="cm-controls">
+        <span class="cm-control-label">Show</span>
+        <button class="cm-chip is-active" data-filter="all">All units</button>
+        <button class="cm-chip" data-filter="sold">Sold</button>
+        <button class="cm-chip" data-filter="unsold">Never traded</button>
+        <span class="cm-control-label" style="margin-left: 16px;">Beds</span>
+        <button class="cm-chip" data-beds="1">1BR</button>
+        <button class="cm-chip" data-beds="2">2BR</button>
+        <button class="cm-chip" data-beds="3">3BR</button>
+        <button class="cm-chip" data-beds="4">4BR+</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cm-wrap">
+      <div class="cm-explorer">
+        <div>
+          <!-- PAN/ZOOM CONTAINER -->
+          <div class="cm-tower-frame">
+            <div class="cm-zoom-controls" role="toolbar" aria-label="Zoom controls">
+              <button class="cm-zoom-btn" data-zoom="out" aria-label="Zoom out">−</button>
+              <div class="cm-zoom-readout" id="cmZoomReadout">100%</div>
+              <button class="cm-zoom-btn" data-zoom="in" aria-label="Zoom in">+</button>
+              <button class="cm-zoom-btn cm-zoom-reset" data-zoom="reset" aria-label="Reset view">Reset</button>
+            </div>
+            <div class="cm-tower-viewport" id="cmViewport">
+              <div class="cm-tower-stage" id="cmStage">
+                <div class="cm-tower-wrap">
+                  <svg class="cm-tower" viewBox="0 0 532 792" xmlns="http://www.w3.org/2000/svg">
+                    <text x="88" y="57.0" text-anchor="end" class="cm-floor-label">56</text>
+    <g class="cm-unit-g" data-unit="5601" data-floor="56" data-beds="4" data-baths="5" data-sqft="4170" data-price="" data-psf="" data-date="" data-tax="172103" data-sold="0" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="204.0" y="40" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="56.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="235.5" cy="59.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5602" data-floor="56" data-beds="3" data-baths="3" data-sqft="4312" data-price="" data-psf="" data-date="" data-tax="179520" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="256.0" y="40" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="56.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="280.5" cy="62.4" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="85.0" text-anchor="end" class="cm-floor-label">55</text>
+    <g class="cm-unit-g" data-unit="5501" data-floor="55" data-beds="4" data-baths="5" data-sqft="4176" data-price="" data-psf="" data-date="" data-tax="163296" data-sold="0" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="204.0" y="68" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="84.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="235.5" cy="87.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5502" data-floor="55" data-beds="3" data-baths="3" data-sqft="4312" data-price="" data-psf="" data-date="" data-tax="167693" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="256.0" y="68" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="84.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="280.5" cy="90.4" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="113.0" text-anchor="end" class="cm-floor-label">54</text>
+    <g class="cm-unit-g" data-unit="5401" data-floor="54" data-beds="4" data-baths="5" data-sqft="4176" data-price="" data-psf="" data-date="" data-tax="154426" data-sold="0" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="204.0" y="96" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="112.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="235.5" cy="115.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5402" data-floor="54" data-beds="3" data-baths="3" data-sqft="4312" data-price="11150000" data-psf="2586" data-date="2021-12-13" data-tax="186409" data-sold="1" data-top="1" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="256.0" y="96" width="49" height="25" class="cm-cell cm-cell--hot cm-cell--top" rx="1" /><text x="280.5" y="112.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="280.5" cy="118.4" r="1.6" class="cm-cell-facing" /><text x="301.0" y="103" class="cm-cell-star">✦</text></g>
+    <text x="88" y="141.0" text-anchor="end" class="cm-floor-label">53</text>
+    <g class="cm-unit-g" data-unit="5301" data-floor="53" data-beds="4" data-baths="5" data-sqft="4176" data-price="8770000" data-psf="2100" data-date="2020-06-29" data-tax="157294" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="204.0" y="124" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="228.5" y="140.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="235.5" cy="143.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5302" data-floor="53" data-beds="3" data-baths="3" data-sqft="4312" data-price="41600" data-psf="10" data-date="2020-12-16" data-tax="164884" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="256.0" y="124" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="140.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="280.5" cy="146.4" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="169.0" text-anchor="end" class="cm-floor-label">52</text>
+    <g class="cm-unit-g" data-unit="5201" data-floor="52" data-beds="3" data-baths="3" data-sqft="2159" data-price="5350000" data-psf="2478" data-date="2021-07-09" data-tax="77247" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="152" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="150.5" y="168.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="171.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5202" data-floor="52" data-beds="3" data-baths="3" data-sqft="2064" data-price="" data-psf="" data-date="" data-tax="66188" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="152" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="202.5" y="168.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="174.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5203" data-floor="52" data-beds="2" data-baths="2" data-sqft="1832" data-price="" data-psf="" data-date="" data-tax="73857" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="152" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="254.5" y="168.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="171.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5204" data-floor="52" data-beds="1" data-baths="1" data-sqft="987" data-price="1395000" data-psf="1413" data-date="2026-02-24" data-tax="29723" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="152" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="168.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="157.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5205" data-floor="52" data-beds="2" data-baths="2" data-sqft="1811" data-price="" data-psf="" data-date="" data-tax="60813" data-sold="0" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="152" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="358.5" y="168.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="154.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="197.0" text-anchor="end" class="cm-floor-label">51</text>
+    <g class="cm-unit-g" data-unit="5101" data-floor="51" data-beds="3" data-baths="3" data-sqft="2159" data-price="" data-psf="" data-date="" data-tax="77128" data-sold="0" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="180" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="150.5" y="196.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="199.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5102" data-floor="51" data-beds="3" data-baths="3" data-sqft="2064" data-price="4575000" data-psf="2217" data-date="2021-03-04" data-tax="81233" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="180" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="202.5" y="196.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="202.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5103" data-floor="51" data-beds="2" data-baths="2" data-sqft="1832" data-price="" data-psf="" data-date="" data-tax="70747" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="180" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="254.5" y="196.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="199.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5104" data-floor="51" data-beds="1" data-baths="1" data-sqft="987" data-price="1325000" data-psf="1342" data-date="2025-09-09" data-tax="29723" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="180" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="196.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="185.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5105" data-floor="51" data-beds="2" data-baths="2" data-sqft="1811" data-price="" data-psf="" data-date="" data-tax="60801" data-sold="0" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="180" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="358.5" y="196.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="182.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="225.0" text-anchor="end" class="cm-floor-label">50</text>
+    <g class="cm-unit-g" data-unit="5001" data-floor="50" data-beds="3" data-baths="3" data-sqft="2159" data-price="4675000" data-psf="2165" data-date="2020-09-08" data-tax="75518" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="208" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="150.5" y="224.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="227.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5002" data-floor="50" data-beds="3" data-baths="3" data-sqft="2064" data-price="4500000" data-psf="2180" data-date="2019-12-09" data-tax="80870" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="208" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="202.5" y="224.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="230.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5003" data-floor="50" data-beds="2" data-baths="2" data-sqft="1832" data-price="" data-psf="" data-date="" data-tax="70099" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="208" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="254.5" y="224.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="227.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5004" data-floor="50" data-beds="1" data-baths="1" data-sqft="987" data-price="1325000" data-psf="1342" data-date="2025-11-14" data-tax="29723" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="208" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="224.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="213.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="5005" data-floor="50" data-beds="2" data-baths="2" data-sqft="1811" data-price="3755000" data-psf="2073" data-date="2022-02-03" data-tax="67031" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="208" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="358.5" y="224.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="210.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="253.0" text-anchor="end" class="cm-floor-label">49</text>
+    <g class="cm-unit-g" data-unit="4901" data-floor="49" data-beds="3" data-baths="3" data-sqft="2159" data-price="4625000" data-psf="2142" data-date="2021-04-08" data-tax="76892" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="236" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="150.5" y="252.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="255.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4902" data-floor="49" data-beds="3" data-baths="3" data-sqft="2064" data-price="4375000" data-psf="2120" data-date="2018-02-02" data-tax="78590" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="236" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="202.5" y="252.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="258.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4903" data-floor="49" data-beds="2" data-baths="2" data-sqft="1832" data-price="2750000" data-psf="1501" data-date="2026-02-05" data-tax="52366" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="236" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="254.5" y="252.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="255.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4904" data-floor="49" data-beds="1" data-baths="1" data-sqft="987" data-price="1350000" data-psf="1368" data-date="2026-02-05" data-tax="29723" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="236" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="252.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="241.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4905" data-floor="49" data-beds="2" data-baths="2" data-sqft="1811" data-price="" data-psf="" data-date="" data-tax="51812" data-sold="0" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="236" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="358.5" y="252.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="238.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="281.0" text-anchor="end" class="cm-floor-label">48</text>
+    <g class="cm-unit-g" data-unit="4801" data-floor="48" data-beds="3" data-baths="3" data-sqft="2159" data-price="4600000" data-psf="2131" data-date="2025-03-18" data-tax="78075" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="264" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="150.5" y="280.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="283.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4802" data-floor="48" data-beds="3" data-baths="3" data-sqft="2064" data-price="4325000" data-psf="2095" data-date="2021-03-04" data-tax="78033" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="264" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="202.5" y="280.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="286.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4803" data-floor="48" data-beds="2" data-baths="2" data-sqft="1832" data-price="3400000" data-psf="1856" data-date="2021-04-08" data-tax="63735" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="264" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="254.5" y="280.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="283.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4804" data-floor="48" data-beds="1" data-baths="1" data-sqft="987" data-price="1550000" data-psf="1570" data-date="2023-07-25" data-tax="29960" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="264" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="280.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="269.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4805" data-floor="48" data-beds="2" data-baths="2" data-sqft="1811" data-price="3500000" data-psf="1933" data-date="2021-11-04" data-tax="47626" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="264" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="358.5" y="280.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="266.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="309.0" text-anchor="end" class="cm-floor-label">47</text>
+    <g class="cm-unit-g" data-unit="4701" data-floor="47" data-beds="3" data-baths="3" data-sqft="2159" data-price="4295000" data-psf="1989" data-date="2020-02-27" data-tax="66283" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="292" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="150.5" y="308.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="311.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4702" data-floor="47" data-beds="3" data-baths="3" data-sqft="2064" data-price="4550000" data-psf="2204" data-date="2021-04-08" data-tax="65715" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="292" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="202.5" y="308.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="314.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4703" data-floor="47" data-beds="2" data-baths="2" data-sqft="1832" data-price="" data-psf="" data-date="" data-tax="52366" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="292" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="254.5" y="308.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="311.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4704" data-floor="47" data-beds="1" data-baths="1" data-sqft="987" data-price="1350000" data-psf="1368" data-date="2026-02-24" data-tax="29723" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="292" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="308.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="297.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4705" data-floor="47" data-beds="2" data-baths="2" data-sqft="1811" data-price="3240000" data-psf="1789" data-date="2020-08-05" data-tax="60009" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="292" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="358.5" y="308.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="294.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="337.0" text-anchor="end" class="cm-floor-label">46</text>
+    <g class="cm-unit-g" data-unit="4601" data-floor="46" data-beds="3" data-baths="3" data-sqft="2159" data-price="4750000" data-psf="2200" data-date="2026-02-05" data-tax="66248" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="126.0" y="320" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="150.5" y="336.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="157.5" cy="339.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4602" data-floor="46" data-beds="3" data-baths="3" data-sqft="2064" data-price="4950000" data-psf="2398" data-date="2022-01-04" data-tax="84791" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="178.0" y="320" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="202.5" y="336.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="202.5" cy="342.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4603" data-floor="46" data-beds="2" data-baths="2" data-sqft="1832" data-price="" data-psf="" data-date="" data-tax="52366" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="230.0" y="320" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="254.5" y="336.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="247.5" cy="339.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4604" data-floor="46" data-beds="1" data-baths="1" data-sqft="987" data-price="1350000" data-psf="1368" data-date="2026-02-24" data-tax="29723" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="282.0" y="320" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="306.5" y="336.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="299.5" cy="325.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4605" data-floor="46" data-beds="2" data-baths="2" data-sqft="1811" data-price="" data-psf="" data-date="" data-tax="51812" data-sold="0" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="334.0" y="320" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="358.5" y="336.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="358.5" cy="322.6" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="365.0" text-anchor="end" class="cm-floor-label">45</text>
+    <g class="cm-unit-g" data-unit="4501" data-floor="45" data-beds="3" data-baths="3" data-sqft="1934" data-price="3795000" data-psf="1962" data-date="2025-03-18" data-tax="66171" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="348" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="124.5" y="364.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="367.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4502" data-floor="45" data-beds="3" data-baths="3" data-sqft="1888" data-price="" data-psf="" data-date="" data-tax="53834" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="348" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="176.5" y="364.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="370.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4503" data-floor="45" data-beds="1" data-baths="1" data-sqft="921" data-price="" data-psf="" data-date="" data-tax="27912" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="348" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="364.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="367.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4504" data-floor="45" data-beds="2" data-baths="2" data-sqft="1549" data-price="2625000" data-psf="1695" data-date="2026-02-25" data-tax="44875" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="348" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="280.5" y="364.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="353.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4505" data-floor="45" data-beds="2" data-baths="2" data-sqft="1652" data-price="2650000" data-psf="1604" data-date="2026-02-24" data-tax="47610" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="348" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="332.5" y="364.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="350.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4506" data-floor="45" data-beds="2" data-baths="2" data-sqft="1142" data-price="" data-psf="" data-date="" data-tax="33943" data-sold="0" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="348" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="384.5" y="364.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="353.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="393.0" text-anchor="end" class="cm-floor-label">44</text>
+    <g class="cm-unit-g" data-unit="4401" data-floor="44" data-beds="3" data-baths="3" data-sqft="1934" data-price="3485000" data-psf="1802" data-date="2024-10-10" data-tax="74807" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="376" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="392.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="395.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4402" data-floor="44" data-beds="3" data-baths="3" data-sqft="1888" data-price="4175000" data-psf="2211" data-date="2019-06-13" data-tax="63414" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="376" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="176.5" y="392.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="398.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4403" data-floor="44" data-beds="1" data-baths="1" data-sqft="921" data-price="" data-psf="" data-date="" data-tax="27912" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="376" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="392.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="395.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4404" data-floor="44" data-beds="2" data-baths="2" data-sqft="1549" data-price="" data-psf="" data-date="" data-tax="44875" data-sold="0" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="376" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="392.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="381.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4405" data-floor="44" data-beds="2" data-baths="2" data-sqft="1652" data-price="2500000" data-psf="1513" data-date="2025-09-09" data-tax="47610" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="376" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="332.5" y="392.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="378.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4406" data-floor="44" data-beds="2" data-baths="2" data-sqft="1142" data-price="2050000" data-psf="1795" data-date="2021-11-03" data-tax="33860" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="376" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="384.5" y="392.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="381.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="421.0" text-anchor="end" class="cm-floor-label">43</text>
+    <g class="cm-unit-g" data-unit="4301" data-floor="43" data-beds="3" data-baths="3" data-sqft="1934" data-price="3700000" data-psf="1913" data-date="2021-07-09" data-tax="50619" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="404" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="420.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="423.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4302" data-floor="43" data-beds="3" data-baths="3" data-sqft="1888" data-price="3600000" data-psf="1907" data-date="2024-08-12" data-tax="63378" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="404" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="176.5" y="420.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="426.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4303" data-floor="43" data-beds="1" data-baths="1" data-sqft="921" data-price="" data-psf="" data-date="" data-tax="27912" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="404" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="420.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="423.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4304" data-floor="43" data-beds="2" data-baths="2" data-sqft="1549" data-price="" data-psf="" data-date="" data-tax="44875" data-sold="0" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="404" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="420.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="409.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4305" data-floor="43" data-beds="2" data-baths="2" data-sqft="1652" data-price="2495000" data-psf="1510" data-date="2024-04-16" data-tax="43742" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="404" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="332.5" y="420.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="406.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4306" data-floor="43" data-beds="2" data-baths="2" data-sqft="1142" data-price="1745000" data-psf="1528" data-date="2024-10-10" data-tax="33458" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="404" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="384.5" y="420.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="409.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="449.0" text-anchor="end" class="cm-floor-label">42</text>
+    <g class="cm-unit-g" data-unit="4201" data-floor="42" data-beds="3" data-baths="3" data-sqft="1934" data-price="3630000" data-psf="1877" data-date="2021-04-08" data-tax="67759" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="432" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="448.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="451.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4202" data-floor="42" data-beds="3" data-baths="3" data-sqft="1888" data-price="3427500" data-psf="1815" data-date="2024-07-13" data-tax="61338" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="432" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="176.5" y="448.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="454.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4203" data-floor="42" data-beds="1" data-baths="1" data-sqft="921" data-price="1775000" data-psf="1927" data-date="2022-05-09" data-tax="32840" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="432" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="228.5" y="448.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="451.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4204" data-floor="42" data-beds="2" data-baths="2" data-sqft="1549" data-price="" data-psf="" data-date="" data-tax="44875" data-sold="0" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="432" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="448.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="437.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4205" data-floor="42" data-beds="2" data-baths="2" data-sqft="1652" data-price="2608000" data-psf="1579" data-date="2026-03-25" data-tax="43742" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="432" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="332.5" y="448.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="434.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4206" data-floor="42" data-beds="2" data-baths="2" data-sqft="1142" data-price="1695000" data-psf="1484" data-date="2024-06-28" data-tax="32949" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="432" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="384.5" y="448.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="437.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="477.0" text-anchor="end" class="cm-floor-label">41</text>
+    <g class="cm-unit-g" data-unit="4101" data-floor="41" data-beds="3" data-baths="3" data-sqft="1934" data-price="3400000" data-psf="1758" data-date="2021-04-29" data-tax="50536" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="460" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="476.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="479.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4102" data-floor="41" data-beds="3" data-baths="3" data-sqft="1888" data-price="3700000" data-psf="1960" data-date="2026-03-17" data-tax="49505" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="460" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="176.5" y="476.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="482.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4103" data-floor="41" data-beds="1" data-baths="1" data-sqft="921" data-price="1750000" data-psf="1900" data-date="2018-02-02" data-tax="32526" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="460" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="228.5" y="476.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="479.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4104" data-floor="41" data-beds="2" data-baths="2" data-sqft="1549" data-price="2132500" data-psf="1377" data-date="2025-01-24" data-tax="46128" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="460" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="476.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="465.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4105" data-floor="41" data-beds="2" data-baths="2" data-sqft="1652" data-price="2920000" data-psf="1768" data-date="2021-06-16" data-tax="54868" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="460" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="332.5" y="476.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="462.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4106" data-floor="41" data-beds="2" data-baths="2" data-sqft="1142" data-price="1595000" data-psf="1397" data-date="2024-08-23" data-tax="31766" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="460" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="384.5" y="476.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="465.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="505.0" text-anchor="end" class="cm-floor-label">40</text>
+    <g class="cm-unit-g" data-unit="4001" data-floor="40" data-beds="3" data-baths="3" data-sqft="1934" data-price="3475000" data-psf="1797" data-date="2020-03-16" data-tax="50619" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="488" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="504.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="507.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4002" data-floor="40" data-beds="3" data-baths="3" data-sqft="1888" data-price="3950000" data-psf="2092" data-date="2022-02-03" data-tax="62196" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="488" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="176.5" y="504.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="510.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4003" data-floor="40" data-beds="1" data-baths="1" data-sqft="921" data-price="1630000" data-psf="1770" data-date="2021-07-09" data-tax="22307" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="488" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="228.5" y="504.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="507.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4004" data-floor="40" data-beds="2" data-baths="2" data-sqft="1549" data-price="2625000" data-psf="1695" data-date="2022-03-07" data-tax="50158" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="488" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="280.5" y="504.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="493.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4005" data-floor="40" data-beds="2" data-baths="2" data-sqft="1652" data-price="2885000" data-psf="1746" data-date="2021-04-08" data-tax="55236" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="488" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="332.5" y="504.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="490.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="4006" data-floor="40" data-beds="2" data-baths="2" data-sqft="1142" data-price="1950000" data-psf="1708" data-date="2021-10-06" data-tax="37377" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="488" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="384.5" y="504.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="493.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="533.0" text-anchor="end" class="cm-floor-label">39</text>
+    <g class="cm-unit-g" data-unit="3901" data-floor="39" data-beds="3" data-baths="3" data-sqft="1934" data-price="3680000" data-psf="1903" data-date="2021-08-02" data-tax="67475" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="516" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="532.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="535.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3902" data-floor="39" data-beds="3" data-baths="3" data-sqft="1888" data-price="" data-psf="" data-date="" data-tax="53834" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="516" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="176.5" y="532.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="538.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3903" data-floor="39" data-beds="1" data-baths="1" data-sqft="921" data-price="" data-psf="" data-date="" data-tax="27912" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="516" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="532.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="535.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3904" data-floor="39" data-beds="2" data-baths="2" data-sqft="1549" data-price="" data-psf="" data-date="" data-tax="44875" data-sold="0" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="516" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="280.5" y="532.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="521.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3905" data-floor="39" data-beds="2" data-baths="2" data-sqft="1652" data-price="" data-psf="" data-date="" data-tax="47610" data-sold="0" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="516" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="332.5" y="532.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="518.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3906" data-floor="39" data-beds="2" data-baths="2" data-sqft="1142" data-price="1900000" data-psf="1664" data-date="2022-07-29" data-tax="36281" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="516" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="384.5" y="532.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="521.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="561.0" text-anchor="end" class="cm-floor-label">38</text>
+    <g class="cm-unit-g" data-unit="3801" data-floor="38" data-beds="3" data-baths="3" data-sqft="2195" data-price="4600000" data-psf="2096" data-date="2019-07-23" data-tax="83550" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="544" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="124.5" y="560.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="563.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3802" data-floor="38" data-beds="3" data-baths="3" data-sqft="1901" data-price="3850000" data-psf="2025" data-date="2021-12-13" data-tax="69260" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="544" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="176.5" y="560.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="566.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3803" data-floor="38" data-beds="1" data-baths="1" data-sqft="916" data-price="" data-psf="" data-date="" data-tax="27777" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="544" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="560.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="563.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3804" data-floor="38" data-beds="2" data-baths="2" data-sqft="1544" data-price="2150000" data-psf="1392" data-date="2024-09-26" data-tax="42587" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="544" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="560.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="549.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3805" data-floor="38" data-beds="2" data-baths="2" data-sqft="1673" data-price="3195000" data-psf="1910" data-date="2021-03-21" data-tax="59427" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="544" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="332.5" y="560.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="546.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3806" data-floor="38" data-beds="2" data-baths="2" data-sqft="1249" data-price="2050000" data-psf="1641" data-date="2021-06-16" data-tax="40279" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="544" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="384.5" y="560.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="549.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="589.0" text-anchor="end" class="cm-floor-label">37</text>
+    <g class="cm-unit-g" data-unit="3701" data-floor="37" data-beds="3" data-baths="3" data-sqft="2195" data-price="3800000" data-psf="1731" data-date="2024-02-23" data-tax="69893" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="572" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="588.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="591.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3702" data-floor="37" data-beds="3" data-baths="3" data-sqft="1901" data-price="953500" data-psf="502" data-date="2021-11-24" data-tax="64867" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="572" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="176.5" y="588.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="594.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3703" data-floor="37" data-beds="1" data-baths="1" data-sqft="916" data-price="" data-psf="" data-date="" data-tax="27777" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="572" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="588.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="591.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3704" data-floor="37" data-beds="2" data-baths="2" data-sqft="1544" data-price="2500000" data-psf="1619" data-date="2021-06-16" data-tax="48536" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="572" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="588.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="577.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3705" data-floor="37" data-beds="2" data-baths="2" data-sqft="1673" data-price="2500000" data-psf="1494" data-date="2021-02-23" data-tax="50529" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="572" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="332.5" y="588.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="574.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3706" data-floor="37" data-beds="2" data-baths="2" data-sqft="1249" data-price="2100000" data-psf="1681" data-date="2021-06-16" data-tax="40392" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="572" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="384.5" y="588.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="577.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="617.0" text-anchor="end" class="cm-floor-label">36</text>
+    <g class="cm-unit-g" data-unit="3601" data-floor="36" data-beds="3" data-baths="3" data-sqft="2200" data-price="3950000" data-psf="1795" data-date="2025-01-14" data-tax="77624" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="600" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="124.5" y="616.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="619.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3602" data-floor="36" data-beds="3" data-baths="3" data-sqft="1898" data-price="" data-psf="" data-date="" data-tax="54105" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="600" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="176.5" y="616.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="622.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3603" data-floor="36" data-beds="1" data-baths="1" data-sqft="913" data-price="" data-psf="" data-date="" data-tax="25285" data-sold="0" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="600" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="228.5" y="616.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="619.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3604" data-floor="36" data-beds="2" data-baths="2" data-sqft="1546" data-price="2250000" data-psf="1455" data-date="2020-10-21" data-tax="45984" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="600" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="616.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="605.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3605" data-floor="36" data-beds="2" data-baths="2" data-sqft="1673" data-price="2705000" data-psf="1617" data-date="2020-06-29" data-tax="44260" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="600" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="332.5" y="616.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="602.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3606" data-floor="36" data-beds="1" data-baths="1" data-sqft="1116" data-price="2350000" data-psf="2106" data-date="2019-06-21" data-tax="32745" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="600" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="384.5" y="616.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="605.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="645.0" text-anchor="end" class="cm-floor-label">35</text>
+    <g class="cm-unit-g" data-unit="3501" data-floor="35" data-beds="3" data-baths="3" data-sqft="1892" data-price="3750000" data-psf="1982" data-date="2022-05-28" data-tax="69614" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="628" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="124.5" y="644.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="647.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3502" data-floor="35" data-beds="3" data-baths="3" data-sqft="1898" data-price="3600000" data-psf="1897" data-date="2022-09-30" data-tax="65204" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="628" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="176.5" y="644.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="650.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3503" data-floor="35" data-beds="1" data-baths="1" data-sqft="913" data-price="1300000" data-psf="1424" data-date="2026-01-28" data-tax="27615" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="628" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="228.5" y="644.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="647.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3504" data-floor="35" data-beds="2" data-baths="2" data-sqft="1546" data-price="2200000" data-psf="1423" data-date="2020-09-29" data-tax="45344" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="628" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="280.5" y="644.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="633.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3505" data-floor="35" data-beds="2" data-baths="2" data-sqft="1679" data-price="3140000" data-psf="1870" data-date="2019-06-13" data-tax="59202" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="628" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="332.5" y="644.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="630.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3506" data-floor="35" data-beds="1" data-baths="1" data-sqft="964" data-price="1865000" data-psf="1935" data-date="2019-06-13" data-tax="26570" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="628" width="49" height="25" class="cm-cell cm-cell--hot" rx="1" /><text x="384.5" y="644.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="633.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="673.0" text-anchor="end" class="cm-floor-label">34</text>
+    <g class="cm-unit-g" data-unit="3401" data-floor="34" data-beds="4" data-baths="3" data-sqft="2053" data-price="3195000" data-psf="1556" data-date="2025-02-21" data-tax="60335" data-sold="1" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="100.0" y="656" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="124.5" y="672.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="131.5" cy="675.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3402" data-floor="34" data-beds="3" data-baths="3" data-sqft="1898" data-price="" data-psf="" data-date="" data-tax="54105" data-sold="0" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="152.0" y="656" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="176.5" y="672.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="176.5" cy="678.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3403" data-floor="34" data-beds="1" data-baths="1" data-sqft="915" data-price="1325000" data-psf="1448" data-date="2025-05-29" data-tax="25424" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="204.0" y="656" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="228.5" y="672.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="221.5" cy="675.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3404" data-floor="34" data-beds="2" data-baths="2" data-sqft="1544" data-price="2895000" data-psf="1875" data-date="2019-06-13" data-tax="41014" data-sold="1" data-top="0" data-pos="04" data-facing="NW" data-view="Downtown skyline" data-angle="315"><rect x="256.0" y="656" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="280.5" y="672.5" class="cm-cell-label" text-anchor="middle">04</text><circle cx="273.5" cy="661.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3405" data-floor="34" data-beds="2" data-baths="2" data-sqft="1679" data-price="2800000" data-psf="1668" data-date="2020-01-14" data-tax="54805" data-sold="1" data-top="0" data-pos="05" data-facing="N" data-view="City interior" data-angle="0"><rect x="308.0" y="656" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="332.5" y="672.5" class="cm-cell-label" text-anchor="middle">05</text><circle cx="332.5" cy="658.6" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3406" data-floor="34" data-beds="1" data-baths="1" data-sqft="964" data-price="1850000" data-psf="1919" data-date="2019-06-13" data-tax="26653" data-sold="1" data-top="0" data-pos="06" data-facing="NE" data-view="Bay & Embarcadero" data-angle="45"><rect x="360.0" y="656" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="384.5" y="672.5" class="cm-cell-label" text-anchor="middle">06</text><circle cx="391.5" cy="661.5" r="1.6" class="cm-cell-facing" /></g>
+    <text x="88" y="701.0" text-anchor="end" class="cm-floor-label">33</text>
+    <g class="cm-unit-g" data-unit="3301" data-floor="33" data-beds="1" data-baths="1" data-sqft="915" data-price="" data-psf="" data-date="" data-tax="27754" data-sold="0" data-top="0" data-pos="01" data-facing="SE" data-view="Bay Bridge" data-angle="135"><rect x="178.0" y="684" width="49" height="25" class="cm-cell cm-cell--unsold" rx="1" /><text x="202.5" y="700.5" class="cm-cell-label" text-anchor="middle">01</text><circle cx="209.5" cy="703.5" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3302" data-floor="33" data-beds="2" data-baths="2" data-sqft="1560" data-price="2200000" data-psf="1410" data-date="2023-06-07" data-tax="33051" data-sold="1" data-top="0" data-pos="02" data-facing="S" data-view="Folsom & Bay" data-angle="180"><rect x="230.0" y="684" width="49" height="25" class="cm-cell cm-cell--cool" rx="1" /><text x="254.5" y="700.5" class="cm-cell-label" text-anchor="middle">02</text><circle cx="254.5" cy="706.4" r="1.6" class="cm-cell-facing" /></g>
+    <g class="cm-unit-g" data-unit="3303" data-floor="33" data-beds="2" data-baths="2" data-sqft="1700" data-price="2925000" data-psf="1721" data-date="2021-11-24" data-tax="55522" data-sold="1" data-top="0" data-pos="03" data-facing="SW" data-view="Folsom & Downtown" data-angle="225"><rect x="282.0" y="684" width="49" height="25" class="cm-cell cm-cell--warm" rx="1" /><text x="306.5" y="700.5" class="cm-cell-label" text-anchor="middle">03</text><circle cx="299.5" cy="703.5" r="1.6" class="cm-cell-facing" /></g>
+                    <rect x="100" y="718" width="309" height="3" class="cm-ground"/>
+                    <text x="254.5" y="738" text-anchor="middle" class="cm-ground-label">COMMERCIAL PODIUM · FLOORS 1–32</text><text x="254.5" y="754" text-anchor="middle" class="cm-ground-label" style="font-size: 9px; opacity: 0.6;">(not shown)</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="cm-zoom-hint">
+              <span class="cm-zoom-hint-mobile">Pinch to zoom · Drag to pan</span>
+              <span class="cm-zoom-hint-desktop">Scroll to zoom · Drag to pan · Double-click to reset</span>
+            </div>
+          </div>
+
+          <div class="cm-legend">
+            <span><span class="cm-legend-swatch cm-legend-swatch--cool"></span> Low PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--warm"></span> Mid PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--hot"></span> High PSF range</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--unsold"></span> Never publicly sold</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--top"></span> Building all-time high</span>
+            <span><span class="cm-legend-swatch cm-legend-swatch--facing"></span> Facing direction</span>
+          </div>
+        </div>
+
+        <aside class="cm-panel" id="cmPanel">
+          <div id="cmPanelEmpty" class="cm-panel-empty">
+            Select any unit on the tower to see its full dossier. Hover for quick read-out.
+          </div>
+          <div id="cmPanelBody" style="display: none;">
+            <div class="cm-panel-heading" id="cmPanelStatus">Last Recorded Sale</div>
+            <div class="cm-panel-unit">Unit <em id="cmPanelUnit"></em></div>
+            <div class="cm-panel-sub" id="cmPanelSub"></div>
+            <div id="cmPanelSaleBlock">
+              <div class="cm-panel-price"><em id="cmPanelPrice"></em></div>
+              <div class="cm-panel-psf" id="cmPanelPSF"></div>
+            </div>
+            <div id="cmPanelNoSale" class="cm-panel-empty-sale" style="display: none;">
+              This residence has not publicly traded. The closest comparable transactions in the building are shown in the last-sale data for similar floor plans.
+            </div>
+
+            
+            <!-- ORIENTATION BLOCK (only rendered when orientation data is available) -->
+            <div class="cm-panel-orient" id="cmPanelOrient" style="display: none;">
+              <div class="cm-panel-orient-header">
+                <div class="cm-panel-orient-label">View &amp; Orientation</div>
+                <div class="cm-panel-orient-facing" id="cmPanelFacing">—</div>
+              </div>
+              <div class="cm-panel-orient-view" id="cmPanelView">—</div>
+              <div class="cm-plate-wrap">
+                <svg class="cm-plate" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="22.0" y="22.0" width="156" height="156" rx="3" class="cm-plate-outline" />
+      <rect x="72.0" y="72.0" width="56" height="56" rx="2" class="cm-plate-core" />
+      <text x="100.0" y="103.0" text-anchor="middle" class="cm-plate-core-label">CORE</text>
+      <g class="cm-plate-compass" transform="translate(182,18)">
+        <circle cx="0" cy="0" r="14" class="cm-plate-compass-bg" />
+        <text x="0" y="-6" text-anchor="middle" class="cm-plate-compass-n">N</text>
+        <line x1="0" y1="-2" x2="0" y2="3" class="cm-plate-compass-arrow" />
+        <polygon points="0,-4 -2,0 2,0" class="cm-plate-compass-tri" />
+      </g>
+      <text x="100.0" y="6" text-anchor="middle" class="cm-plate-card">N</text>
+      <text x="194" y="103.0" text-anchor="middle" class="cm-plate-card">E</text>
+      <text x="100.0" y="197" text-anchor="middle" class="cm-plate-card">S</text>
+      <text x="6" y="103.0" text-anchor="middle" class="cm-plate-card">W</text>
+      <g class="cm-plate-unit" data-pos="01" data-view="Bay Bridge"><rect x="115.47665940288704" y="123.47665940288701" width="44" height="28" rx="2" class="cm-plate-unit-box" /><text x="137.47665940288704" y="135.476659402887" text-anchor="middle" class="cm-plate-unit-pos">01</text><text x="137.47665940288704" y="146.476659402887" text-anchor="middle" class="cm-plate-unit-facing">SE</text></g>
+      <g class="cm-plate-unit" data-pos="02" data-view="Folsom & Bay"><rect x="78.0" y="139.0" width="44" height="28" rx="2" class="cm-plate-unit-box" /><text x="100.0" y="151.0" text-anchor="middle" class="cm-plate-unit-pos">02</text><text x="100.0" y="162.0" text-anchor="middle" class="cm-plate-unit-facing">S</text></g>
+      <g class="cm-plate-unit" data-pos="03" data-view="Folsom & Downtown"><rect x="40.523340597112984" y="123.47665940288704" width="44" height="28" rx="2" class="cm-plate-unit-box" /><text x="62.523340597112984" y="135.47665940288704" text-anchor="middle" class="cm-plate-unit-pos">03</text><text x="62.523340597112984" y="146.47665940288704" text-anchor="middle" class="cm-plate-unit-facing">SW</text></g>
+      <g class="cm-plate-unit" data-pos="04" data-view="Downtown skyline"><rect x="40.52334059711297" y="48.52334059711299" width="44" height="28" rx="2" class="cm-plate-unit-box" /><text x="62.52334059711297" y="60.52334059711299" text-anchor="middle" class="cm-plate-unit-pos">04</text><text x="62.52334059711297" y="71.52334059711299" text-anchor="middle" class="cm-plate-unit-facing">NW</text></g>
+      <g class="cm-plate-unit" data-pos="05" data-view="City interior"><rect x="78.0" y="33.0" width="44" height="28" rx="2" class="cm-plate-unit-box" /><text x="100.0" y="45.0" text-anchor="middle" class="cm-plate-unit-pos">05</text><text x="100.0" y="56.0" text-anchor="middle" class="cm-plate-unit-facing">N</text></g>
+      <g class="cm-plate-unit" data-pos="06" data-view="Bay & Embarcadero"><rect x="115.47665940288701" y="48.52334059711298" width="44" height="28" rx="2" class="cm-plate-unit-box" /><text x="137.476659402887" y="60.52334059711298" text-anchor="middle" class="cm-plate-unit-pos">06</text><text x="137.476659402887" y="71.52334059711298" text-anchor="middle" class="cm-plate-unit-facing">NE</text></g>
+      </svg>
+              </div>
+              <div class="cm-plate-legend">Floor plate viewed from above · Your unit's position highlighted</div>
+            </div>
+            
+
+            <div class="cm-panel-grid">
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Bedrooms</div>
+                <div class="cm-panel-grid-value" id="cmPanelBeds">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Bathrooms</div>
+                <div class="cm-panel-grid-value" id="cmPanelBaths">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Square Feet</div>
+                <div class="cm-panel-grid-value" id="cmPanelSqft">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Floor</div>
+                <div class="cm-panel-grid-value" id="cmPanelFloor">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Annual Tax</div>
+                <div class="cm-panel-grid-value" id="cmPanelTax">—</div>
+              </div>
+              <div class="cm-panel-grid-cell">
+                <div class="cm-panel-grid-label">Last Sale</div>
+                <div class="cm-panel-grid-value" id="cmPanelDate" style="font-size: 15px;">—</div>
+              </div>
+            </div>
+            <button class="cm-panel-cta" onclick="alert('In production: opens offer form with this unit pre-filled')">Make an offer on this unit →</button>
+            <button class="cm-panel-cta cm-panel-cta--alt" onclick="alert('In production: opens Make-Me-Move price-post flow')">Name a price for a unit like this</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="cm-method">
+        <strong>How to read this.</strong> Each square is a real residence at The Avery — 118 total, stacked from floor 33 to floor 56. Filled squares have publicly recorded sales; <em>warmer</em> colors indicate higher price-per-square-foot within this building. Hollow dashed squares have never publicly traded — they either sold at original purchase and have stayed with their owner, or the transaction predates what the tax roll captures. The bronze-outlined square (&#x2726;) marks Unit 5402, the building's highest-ever recorded transaction at $11.15M. Click any square for full detail and to start an offer — including on units that have never been listed.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const UNITS = [{"unit":"3301","floor":33,"beds":1,"baths":1,"sqft":915,"price":null,"psf":null,"date":null,"tax":27754},{"unit":"3302","floor":33,"beds":2,"baths":2,"sqft":1560,"price":2200000,"psf":1410,"date":"2023-06-07","tax":33051},{"unit":"3303","floor":33,"beds":2,"baths":2,"sqft":1700,"price":2925000,"psf":1721,"date":"2021-11-24","tax":55522},{"unit":"3401","floor":34,"beds":4,"baths":3,"sqft":2053,"price":3195000,"psf":1556,"date":"2025-02-21","tax":60335},{"unit":"3402","floor":34,"beds":3,"baths":3,"sqft":1898,"price":null,"psf":null,"date":null,"tax":54105},{"unit":"3403","floor":34,"beds":1,"baths":1,"sqft":915,"price":1325000,"psf":1448,"date":"2025-05-29","tax":25424},{"unit":"3404","floor":34,"beds":2,"baths":2,"sqft":1544,"price":2895000,"psf":1875,"date":"2019-06-13","tax":41014},{"unit":"3405","floor":34,"beds":2,"baths":2,"sqft":1679,"price":2800000,"psf":1668,"date":"2020-01-14","tax":54805},{"unit":"3406","floor":34,"beds":1,"baths":1,"sqft":964,"price":1850000,"psf":1919,"date":"2019-06-13","tax":26653},{"unit":"3501","floor":35,"beds":3,"baths":3,"sqft":1892,"price":3750000,"psf":1982,"date":"2022-05-28","tax":69614},{"unit":"3502","floor":35,"beds":3,"baths":3,"sqft":1898,"price":3600000,"psf":1897,"date":"2022-09-30","tax":65204},{"unit":"3503","floor":35,"beds":1,"baths":1,"sqft":913,"price":1300000,"psf":1424,"date":"2026-01-28","tax":27615},{"unit":"3504","floor":35,"beds":2,"baths":2,"sqft":1546,"price":2200000,"psf":1423,"date":"2020-09-29","tax":45344},{"unit":"3505","floor":35,"beds":2,"baths":2,"sqft":1679,"price":3140000,"psf":1870,"date":"2019-06-13","tax":59202},{"unit":"3506","floor":35,"beds":1,"baths":1,"sqft":964,"price":1865000,"psf":1935,"date":"2019-06-13","tax":26570},{"unit":"3601","floor":36,"beds":3,"baths":3,"sqft":2200,"price":3950000,"psf":1795,"date":"2025-01-14","tax":77624},{"unit":"3602","floor":36,"beds":3,"baths":3,"sqft":1898,"price":null,"psf":null,"date":null,"tax":54105},{"unit":"3603","floor":36,"beds":1,"baths":1,"sqft":913,"price":null,"psf":null,"date":null,"tax":25285},{"unit":"3604","floor":36,"beds":2,"baths":2,"sqft":1546,"price":2250000,"psf":1455,"date":"2020-10-21","tax":45984},{"unit":"3605","floor":36,"beds":2,"baths":2,"sqft":1673,"price":2705000,"psf":1617,"date":"2020-06-29","tax":44260},{"unit":"3606","floor":36,"beds":1,"baths":1,"sqft":1116,"price":2350000,"psf":2106,"date":"2019-06-21","tax":32745},{"unit":"3701","floor":37,"beds":3,"baths":3,"sqft":2195,"price":3800000,"psf":1731,"date":"2024-02-23","tax":69893},{"unit":"3702","floor":37,"beds":3,"baths":3,"sqft":1901,"price":953500,"psf":502,"date":"2021-11-24","tax":64867},{"unit":"3703","floor":37,"beds":1,"baths":1,"sqft":916,"price":null,"psf":null,"date":null,"tax":27777},{"unit":"3704","floor":37,"beds":2,"baths":2,"sqft":1544,"price":2500000,"psf":1619,"date":"2021-06-16","tax":48536},{"unit":"3705","floor":37,"beds":2,"baths":2,"sqft":1673,"price":2500000,"psf":1494,"date":"2021-02-23","tax":50529},{"unit":"3706","floor":37,"beds":2,"baths":2,"sqft":1249,"price":2100000,"psf":1681,"date":"2021-06-16","tax":40392},{"unit":"3801","floor":38,"beds":3,"baths":3,"sqft":2195,"price":4600000,"psf":2096,"date":"2019-07-23","tax":83550},{"unit":"3802","floor":38,"beds":3,"baths":3,"sqft":1901,"price":3850000,"psf":2025,"date":"2021-12-13","tax":69260},{"unit":"3803","floor":38,"beds":1,"baths":1,"sqft":916,"price":null,"psf":null,"date":null,"tax":27777},{"unit":"3804","floor":38,"beds":2,"baths":2,"sqft":1544,"price":2150000,"psf":1392,"date":"2024-09-26","tax":42587},{"unit":"3805","floor":38,"beds":2,"baths":2,"sqft":1673,"price":3195000,"psf":1910,"date":"2021-03-21","tax":59427},{"unit":"3806","floor":38,"beds":2,"baths":2,"sqft":1249,"price":2050000,"psf":1641,"date":"2021-06-16","tax":40279},{"unit":"3901","floor":39,"beds":3,"baths":3,"sqft":1934,"price":3680000,"psf":1903,"date":"2021-08-02","tax":67475},{"unit":"3902","floor":39,"beds":3,"baths":3,"sqft":1888,"price":null,"psf":null,"date":null,"tax":53834},{"unit":"3903","floor":39,"beds":1,"baths":1,"sqft":921,"price":null,"psf":null,"date":null,"tax":27912},{"unit":"3904","floor":39,"beds":2,"baths":2,"sqft":1549,"price":null,"psf":null,"date":null,"tax":44875},{"unit":"3905","floor":39,"beds":2,"baths":2,"sqft":1652,"price":null,"psf":null,"date":null,"tax":47610},{"unit":"3906","floor":39,"beds":2,"baths":2,"sqft":1142,"price":1900000,"psf":1664,"date":"2022-07-29","tax":36281},{"unit":"4001","floor":40,"beds":3,"baths":3,"sqft":1934,"price":3475000,"psf":1797,"date":"2020-03-16","tax":50619},{"unit":"4002","floor":40,"beds":3,"baths":3,"sqft":1888,"price":3950000,"psf":2092,"date":"2022-02-03","tax":62196},{"unit":"4003","floor":40,"beds":1,"baths":1,"sqft":921,"price":1630000,"psf":1770,"date":"2021-07-09","tax":22307},{"unit":"4004","floor":40,"beds":2,"baths":2,"sqft":1549,"price":2625000,"psf":1695,"date":"2022-03-07","tax":50158},{"unit":"4005","floor":40,"beds":2,"baths":2,"sqft":1652,"price":2885000,"psf":1746,"date":"2021-04-08","tax":55236},{"unit":"4006","floor":40,"beds":2,"baths":2,"sqft":1142,"price":1950000,"psf":1708,"date":"2021-10-06","tax":37377},{"unit":"4101","floor":41,"beds":3,"baths":3,"sqft":1934,"price":3400000,"psf":1758,"date":"2021-04-29","tax":50536},{"unit":"4102","floor":41,"beds":3,"baths":3,"sqft":1888,"price":3700000,"psf":1960,"date":"2026-03-17","tax":49505},{"unit":"4103","floor":41,"beds":1,"baths":1,"sqft":921,"price":1750000,"psf":1900,"date":"2018-02-02","tax":32526},{"unit":"4104","floor":41,"beds":2,"baths":2,"sqft":1549,"price":2132500,"psf":1377,"date":"2025-01-24","tax":46128},{"unit":"4105","floor":41,"beds":2,"baths":2,"sqft":1652,"price":2920000,"psf":1768,"date":"2021-06-16","tax":54868},{"unit":"4106","floor":41,"beds":2,"baths":2,"sqft":1142,"price":1595000,"psf":1397,"date":"2024-08-23","tax":31766},{"unit":"4201","floor":42,"beds":3,"baths":3,"sqft":1934,"price":3630000,"psf":1877,"date":"2021-04-08","tax":67759},{"unit":"4202","floor":42,"beds":3,"baths":3,"sqft":1888,"price":3427500,"psf":1815,"date":"2024-07-13","tax":61338},{"unit":"4203","floor":42,"beds":1,"baths":1,"sqft":921,"price":1775000,"psf":1927,"date":"2022-05-09","tax":32840},{"unit":"4204","floor":42,"beds":2,"baths":2,"sqft":1549,"price":null,"psf":null,"date":null,"tax":44875},{"unit":"4205","floor":42,"beds":2,"baths":2,"sqft":1652,"price":2608000,"psf":1579,"date":"2026-03-25","tax":43742},{"unit":"4206","floor":42,"beds":2,"baths":2,"sqft":1142,"price":1695000,"psf":1484,"date":"2024-06-28","tax":32949},{"unit":"4301","floor":43,"beds":3,"baths":3,"sqft":1934,"price":3700000,"psf":1913,"date":"2021-07-09","tax":50619},{"unit":"4302","floor":43,"beds":3,"baths":3,"sqft":1888,"price":3600000,"psf":1907,"date":"2024-08-12","tax":63378},{"unit":"4303","floor":43,"beds":1,"baths":1,"sqft":921,"price":null,"psf":null,"date":null,"tax":27912},{"unit":"4304","floor":43,"beds":2,"baths":2,"sqft":1549,"price":null,"psf":null,"date":null,"tax":44875},{"unit":"4305","floor":43,"beds":2,"baths":2,"sqft":1652,"price":2495000,"psf":1510,"date":"2024-04-16","tax":43742},{"unit":"4306","floor":43,"beds":2,"baths":2,"sqft":1142,"price":1745000,"psf":1528,"date":"2024-10-10","tax":33458},{"unit":"4401","floor":44,"beds":3,"baths":3,"sqft":1934,"price":3485000,"psf":1802,"date":"2024-10-10","tax":74807},{"unit":"4402","floor":44,"beds":3,"baths":3,"sqft":1888,"price":4175000,"psf":2211,"date":"2019-06-13","tax":63414},{"unit":"4403","floor":44,"beds":1,"baths":1,"sqft":921,"price":null,"psf":null,"date":null,"tax":27912},{"unit":"4404","floor":44,"beds":2,"baths":2,"sqft":1549,"price":null,"psf":null,"date":null,"tax":44875},{"unit":"4405","floor":44,"beds":2,"baths":2,"sqft":1652,"price":2500000,"psf":1513,"date":"2025-09-09","tax":47610},{"unit":"4406","floor":44,"beds":2,"baths":2,"sqft":1142,"price":2050000,"psf":1795,"date":"2021-11-03","tax":33860},{"unit":"4501","floor":45,"beds":3,"baths":3,"sqft":1934,"price":3795000,"psf":1962,"date":"2025-03-18","tax":66171},{"unit":"4502","floor":45,"beds":3,"baths":3,"sqft":1888,"price":null,"psf":null,"date":null,"tax":53834},{"unit":"4503","floor":45,"beds":1,"baths":1,"sqft":921,"price":null,"psf":null,"date":null,"tax":27912},{"unit":"4504","floor":45,"beds":2,"baths":2,"sqft":1549,"price":2625000,"psf":1695,"date":"2026-02-25","tax":44875},{"unit":"4505","floor":45,"beds":2,"baths":2,"sqft":1652,"price":2650000,"psf":1604,"date":"2026-02-24","tax":47610},{"unit":"4506","floor":45,"beds":2,"baths":2,"sqft":1142,"price":null,"psf":null,"date":null,"tax":33943},{"unit":"4601","floor":46,"beds":3,"baths":3,"sqft":2159,"price":4750000,"psf":2200,"date":"2026-02-05","tax":66248},{"unit":"4602","floor":46,"beds":3,"baths":3,"sqft":2064,"price":4950000,"psf":2398,"date":"2022-01-04","tax":84791},{"unit":"4603","floor":46,"beds":2,"baths":2,"sqft":1832,"price":null,"psf":null,"date":null,"tax":52366},{"unit":"4604","floor":46,"beds":1,"baths":1,"sqft":987,"price":1350000,"psf":1368,"date":"2026-02-24","tax":29723},{"unit":"4605","floor":46,"beds":2,"baths":2,"sqft":1811,"price":null,"psf":null,"date":null,"tax":51812},{"unit":"4701","floor":47,"beds":3,"baths":3,"sqft":2159,"price":4295000,"psf":1989,"date":"2020-02-27","tax":66283},{"unit":"4702","floor":47,"beds":3,"baths":3,"sqft":2064,"price":4550000,"psf":2204,"date":"2021-04-08","tax":65715},{"unit":"4703","floor":47,"beds":2,"baths":2,"sqft":1832,"price":null,"psf":null,"date":null,"tax":52366},{"unit":"4704","floor":47,"beds":1,"baths":1,"sqft":987,"price":1350000,"psf":1368,"date":"2026-02-24","tax":29723},{"unit":"4705","floor":47,"beds":2,"baths":2,"sqft":1811,"price":3240000,"psf":1789,"date":"2020-08-05","tax":60009},{"unit":"4801","floor":48,"beds":3,"baths":3,"sqft":2159,"price":4600000,"psf":2131,"date":"2025-03-18","tax":78075},{"unit":"4802","floor":48,"beds":3,"baths":3,"sqft":2064,"price":4325000,"psf":2095,"date":"2021-03-04","tax":78033},{"unit":"4803","floor":48,"beds":2,"baths":2,"sqft":1832,"price":3400000,"psf":1856,"date":"2021-04-08","tax":63735},{"unit":"4804","floor":48,"beds":1,"baths":1,"sqft":987,"price":1550000,"psf":1570,"date":"2023-07-25","tax":29960},{"unit":"4805","floor":48,"beds":2,"baths":2,"sqft":1811,"price":3500000,"psf":1933,"date":"2021-11-04","tax":47626},{"unit":"4901","floor":49,"beds":3,"baths":3,"sqft":2159,"price":4625000,"psf":2142,"date":"2021-04-08","tax":76892},{"unit":"4902","floor":49,"beds":3,"baths":3,"sqft":2064,"price":4375000,"psf":2120,"date":"2018-02-02","tax":78590},{"unit":"4903","floor":49,"beds":2,"baths":2,"sqft":1832,"price":2750000,"psf":1501,"date":"2026-02-05","tax":52366},{"unit":"4904","floor":49,"beds":1,"baths":1,"sqft":987,"price":1350000,"psf":1368,"date":"2026-02-05","tax":29723},{"unit":"4905","floor":49,"beds":2,"baths":2,"sqft":1811,"price":null,"psf":null,"date":null,"tax":51812},{"unit":"5001","floor":50,"beds":3,"baths":3,"sqft":2159,"price":4675000,"psf":2165,"date":"2020-09-08","tax":75518},{"unit":"5002","floor":50,"beds":3,"baths":3,"sqft":2064,"price":4500000,"psf":2180,"date":"2019-12-09","tax":80870},{"unit":"5003","floor":50,"beds":2,"baths":2,"sqft":1832,"price":null,"psf":null,"date":null,"tax":70099},{"unit":"5004","floor":50,"beds":1,"baths":1,"sqft":987,"price":1325000,"psf":1342,"date":"2025-11-14","tax":29723},{"unit":"5005","floor":50,"beds":2,"baths":2,"sqft":1811,"price":3755000,"psf":2073,"date":"2022-02-03","tax":67031},{"unit":"5101","floor":51,"beds":3,"baths":3,"sqft":2159,"price":null,"psf":null,"date":null,"tax":77128},{"unit":"5102","floor":51,"beds":3,"baths":3,"sqft":2064,"price":4575000,"psf":2217,"date":"2021-03-04","tax":81233},{"unit":"5103","floor":51,"beds":2,"baths":2,"sqft":1832,"price":null,"psf":null,"date":null,"tax":70747},{"unit":"5104","floor":51,"beds":1,"baths":1,"sqft":987,"price":1325000,"psf":1342,"date":"2025-09-09","tax":29723},{"unit":"5105","floor":51,"beds":2,"baths":2,"sqft":1811,"price":null,"psf":null,"date":null,"tax":60801},{"unit":"5201","floor":52,"beds":3,"baths":3,"sqft":2159,"price":5350000,"psf":2478,"date":"2021-07-09","tax":77247},{"unit":"5202","floor":52,"beds":3,"baths":3,"sqft":2064,"price":null,"psf":null,"date":null,"tax":66188},{"unit":"5203","floor":52,"beds":2,"baths":2,"sqft":1832,"price":null,"psf":null,"date":null,"tax":73857},{"unit":"5204","floor":52,"beds":1,"baths":1,"sqft":987,"price":1395000,"psf":1413,"date":"2026-02-24","tax":29723},{"unit":"5205","floor":52,"beds":2,"baths":2,"sqft":1811,"price":null,"psf":null,"date":null,"tax":60813},{"unit":"5301","floor":53,"beds":4,"baths":5,"sqft":4176,"price":8770000,"psf":2100,"date":"2020-06-29","tax":157294},{"unit":"5302","floor":53,"beds":3,"baths":3,"sqft":4312,"price":41600,"psf":10,"date":"2020-12-16","tax":164884},{"unit":"5401","floor":54,"beds":4,"baths":5,"sqft":4176,"price":null,"psf":null,"date":null,"tax":154426},{"unit":"5402","floor":54,"beds":3,"baths":3,"sqft":4312,"price":11150000,"psf":2586,"date":"2021-12-13","tax":186409},{"unit":"5501","floor":55,"beds":4,"baths":5,"sqft":4176,"price":null,"psf":null,"date":null,"tax":163296},{"unit":"5502","floor":55,"beds":3,"baths":3,"sqft":4312,"price":null,"psf":null,"date":null,"tax":167693},{"unit":"5601","floor":56,"beds":4,"baths":5,"sqft":4170,"price":null,"psf":null,"date":null,"tax":172103},{"unit":"5602","floor":56,"beds":3,"baths":3,"sqft":4312,"price":null,"psf":null,"date":null,"tax":179520}];
+const MEDIAN_PSF = 1795;
+
+const fmt = {
+  money: n => n ? '$' + n.toLocaleString() : '—',
+  money_short: n => {
+    if (!n) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + n;
+  },
+  date_long: s => {
+    if (!s) return '—';
+    const d = new Date(s);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  },
+  sqft: n => n ? n.toLocaleString() + ' sf' : '—',
+};
+
+const panelEmpty = document.getElementById('cmPanelEmpty');
+const panelBody = document.getElementById('cmPanelBody');
+
+function showUnit(g) {
+  document.querySelectorAll('.cm-unit-g.is-selected').forEach(n => n.classList.remove('is-selected'));
+  g.classList.add('is-selected');
+
+  const d = g.dataset;
+  const isSold = d.sold === '1';
+  const isTop = d.top === '1';
+
+  panelEmpty.style.display = 'none';
+  panelBody.style.display = 'block';
+
+  document.getElementById('cmPanelUnit').textContent = d.unit;
+  document.getElementById('cmPanelBeds').textContent = d.beds || '—';
+  document.getElementById('cmPanelBaths').textContent = d.baths || '—';
+  document.getElementById('cmPanelSqft').textContent = fmt.sqft(d.sqft);
+  document.getElementById('cmPanelFloor').textContent = d.floor || '—';
+  document.getElementById('cmPanelTax').textContent = d.tax ? fmt.money(+d.tax) : '—';
+  document.getElementById('cmPanelDate').textContent = fmt.date_long(d.date);
+
+  const sub = [d.beds ? d.beds + 'BR' : '', d.baths ? d.baths + 'BA' : '', fmt.sqft(d.sqft)].filter(Boolean).join(' · ');
+  document.getElementById('cmPanelSub').textContent = sub;
+
+  if (isSold) {
+    document.getElementById('cmPanelSaleBlock').style.display = 'block';
+    document.getElementById('cmPanelNoSale').style.display = 'none';
+    document.getElementById('cmPanelStatus').textContent = isTop ? 'Building All-Time High' : 'Last Recorded Sale';
+    document.getElementById('cmPanelPrice').textContent = fmt.money_short(+d.price);
+    document.getElementById('cmPanelPSF').textContent = d.psf ? '$' + (+d.psf).toLocaleString() + '/sf' : '';
+  } else {
+    document.getElementById('cmPanelSaleBlock').style.display = 'none';
+    document.getElementById('cmPanelNoSale').style.display = 'block';
+    document.getElementById('cmPanelStatus').textContent = 'No Public Record';
+  }
+
+  // Orientation panel — only active when building has orientation data
+  const orientEl = document.getElementById('cmPanelOrient');
+  if (orientEl) {
+    const facing = d.facing || '';
+    const view = d.view || '';
+    if (facing) {
+      orientEl.style.display = 'block';
+      document.getElementById('cmPanelFacing').textContent = facing + '-facing';
+      document.getElementById('cmPanelView').textContent = view || 'View data not yet recorded';
+      // Highlight this position on the floor plate
+      document.querySelectorAll('.cm-plate-unit').forEach(p => p.classList.remove('is-active'));
+      const pos = d.pos;
+      const plateUnit = document.querySelector(`.cm-plate-unit[data-pos="${pos}"]`);
+      if (plateUnit) plateUnit.classList.add('is-active');
+    } else {
+      // No orientation data for this unit position — hide the panel
+      orientEl.style.display = 'none';
+    }
+  }
+}
+
+document.querySelectorAll('.cm-unit-g').forEach(g => {
+  g.addEventListener('click', () => showUnit(g));
+});
+
+document.querySelectorAll('.cm-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const group = chip.dataset.filter ? 'filter' : 'beds';
+    document.querySelectorAll(`.cm-chip[data-${group}]`).forEach(c => c.classList.remove('is-active'));
+    chip.classList.add('is-active');
+    applyFilters();
+  });
+});
+
+function applyFilters() {
+  const activeFilter = document.querySelector('.cm-chip[data-filter].is-active')?.dataset.filter;
+  const activeBeds = document.querySelector('.cm-chip[data-beds].is-active')?.dataset.beds;
+
+  document.querySelectorAll('.cm-unit-g').forEach(g => {
+    const d = g.dataset;
+    let show = true;
+    if (activeFilter === 'sold' && d.sold !== '1') show = false;
+    if (activeFilter === 'unsold' && d.sold === '1') show = false;
+    if (activeBeds) {
+      const beds = +d.beds;
+      if (activeBeds === '4') show = show && beds >= 4;
+      else show = show && beds === +activeBeds;
+    }
+    g.style.opacity = show ? '' : '0.15';
+  });
+}
+
+// ─── PAN / ZOOM ─────────────────────────────────────────────────────────
+(function() {
+  const viewport = document.getElementById('cmViewport');
+  const stage    = document.getElementById('cmStage');
+  const readout  = document.getElementById('cmZoomReadout');
+  if (!viewport || !stage) return;
+
+  const MIN_SCALE = 0.6;
+  const MAX_SCALE = 4.0;
+  const STEP = 1.25;
+  let scale = 1;
+  let tx = 0, ty = 0;
+
+  function applyTransform(animate = true) {
+    stage.classList.toggle('is-dragging', !animate);
+    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    readout.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function zoomAt(clientX, clientY, nextScale) {
+    nextScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
+    const rect = viewport.getBoundingClientRect();
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+    // Adjust translation so the point under cursor stays in place
+    const k = nextScale / scale;
+    tx = px - (px - tx) * k;
+    ty = py - (py - ty) * k;
+    scale = nextScale;
+    applyTransform();
+  }
+
+  function reset() {
+    scale = 1; tx = 0; ty = 0;
+    applyTransform();
+  }
+
+  // Button controls
+  document.querySelectorAll('.cm-zoom-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rect = viewport.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const action = btn.dataset.zoom;
+      if (action === 'in')  zoomAt(cx, cy, scale * STEP);
+      if (action === 'out') zoomAt(cx, cy, scale / STEP);
+      if (action === 'reset') reset();
+    });
+  });
+
+  // Wheel zoom
+  viewport.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) < 1) return;
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 1/1.1 : 1.1;
+    zoomAt(e.clientX, e.clientY, scale * factor);
+  }, { passive: false });
+
+  // Double-click reset
+  viewport.addEventListener('dblclick', e => {
+    // Don't reset when clicking a unit
+    if (e.target.closest('.cm-unit-g')) return;
+    reset();
+  });
+
+  // Mouse drag to pan
+  let dragStart = null;
+  viewport.addEventListener('mousedown', e => {
+    // Don't start drag when clicking a unit
+    if (e.target.closest('.cm-unit-g')) return;
+    dragStart = { x: e.clientX - tx, y: e.clientY - ty };
+    viewport.classList.add('is-grabbing');
+    stage.classList.add('is-dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragStart) return;
+    tx = e.clientX - dragStart.x;
+    ty = e.clientY - dragStart.y;
+    applyTransform(false);
+  });
+  window.addEventListener('mouseup', () => {
+    dragStart = null;
+    viewport.classList.remove('is-grabbing');
+    stage.classList.remove('is-dragging');
+  });
+
+  // Touch: 1-finger pan, 2-finger pinch zoom
+  let touchState = null;
+  function touchDist(t) {
+    const dx = t[0].clientX - t[1].clientX;
+    const dy = t[0].clientY - t[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+  function touchMid(t) {
+    return {
+      x: (t[0].clientX + t[1].clientX) / 2,
+      y: (t[0].clientY + t[1].clientY) / 2,
+    };
+  }
+
+  viewport.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      if (e.target.closest('.cm-unit-g')) return;  // let tap through
+      touchState = { mode: 'pan', x: e.touches[0].clientX - tx, y: e.touches[0].clientY - ty };
+    } else if (e.touches.length === 2) {
+      const d = touchDist(e.touches);
+      touchState = { mode: 'pinch', startDist: d, startScale: scale, mid: touchMid(e.touches) };
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchmove', e => {
+    if (!touchState) return;
+    if (touchState.mode === 'pan' && e.touches.length === 1) {
+      tx = e.touches[0].clientX - touchState.x;
+      ty = e.touches[0].clientY - touchState.y;
+      applyTransform(false);
+      e.preventDefault();
+    } else if (touchState.mode === 'pinch' && e.touches.length === 2) {
+      const d = touchDist(e.touches);
+      const mid = touchMid(e.touches);
+      const nextScale = touchState.startScale * (d / touchState.startDist);
+      zoomAt(mid.x, mid.y, nextScale);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  viewport.addEventListener('touchend', () => {
+    touchState = null;
+  });
+
+  // Disable image drag ghosting inside the stage
+  stage.addEventListener('dragstart', e => e.preventDefault());
+})();
+</script>
+</body>
+</html>

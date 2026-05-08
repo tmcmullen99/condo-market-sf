@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Builder Tools — McMullen Properties</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --dark: #0a0d12; --dark-soft: #0d111a; --navy: #1a1f2e;
+    --peri: #9fb4d8; --peri-soft: rgba(159,180,216,.12);
+    --ivory: #e8e3d8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--dark); color: var(--ivory);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 60px 32px 80px; }
+  .header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; padding-bottom: 28px;
+    border-bottom: 1px solid rgba(159,180,216,.15);
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700; font-size: 38px; margin: 0 0 6px;
+    letter-spacing: -.01em;
+  }
+  .header h1 em {
+    font-style: italic; font-weight: 400; color: var(--peri);
+  }
+  .header p {
+    margin: 0; color: rgba(232,227,216,.6); font-size: 14px;
+    font-family: 'Playfair Display', Georgia, serif; font-style: italic;
+  }
+  .header .eyebrow {
+    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--peri); font-weight: 700; margin: 0 0 10px;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: .14em; color: rgba(159,180,216,.7);
+    padding: 4px 10px; border: 1px solid rgba(159,180,216,.2);
+    border-radius: 3px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+  .tile {
+    background: var(--dark-soft);
+    border: 1px solid rgba(159,180,216,.15);
+    border-radius: 4px;
+    padding: 22px 24px 20px;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color .15s, transform .15s;
+  }
+  .tile:hover {
+    border-color: rgba(159,180,216,.5);
+    transform: translateY(-2px);
+  }
+  .tile[data-status="coming-soon"] {
+    opacity: .4; cursor: default; pointer-events: none;
+  }
+  .tile-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .tile-status {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: .14em; text-transform: uppercase; font-weight: 500;
+    padding: 3px 8px; border-radius: 2px;
+  }
+  .tile-status.live {
+    background: rgba(93,126,105,.2); color: #a8c4b0;
+    border: 1px solid rgba(93,126,105,.4);
+  }
+  .tile-status.coming {
+    background: rgba(159,180,216,.08); color: rgba(159,180,216,.6);
+    border: 1px solid rgba(159,180,216,.2);
+  }
+  .tile-icon {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--peri); letter-spacing: .12em;
+  }
+  .tile h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700; font-size: 20px; margin: 4px 0 0;
+    line-height: 1.2;
+  }
+  .tile p {
+    margin: 0; font-size: 13px; line-height: 1.55;
+    color: rgba(232,227,216,.68);
+  }
+  .tile-meta {
+    margin-top: auto; padding-top: 12px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: rgba(159,180,216,.55); letter-spacing: .08em;
+  }
+  .tile-meta .arrow { color: var(--peri); font-size: 12px; }
+  .note {
+    background: rgba(159,180,216,.04);
+    border-left: 3px solid rgba(159,180,216,.4);
+    padding: 14px 20px; margin: 40px 0 0;
+    border-radius: 0 3px 3px 0;
+    font-size: 13px; line-height: 1.6;
+    color: rgba(232,227,216,.7);
+  }
+  .note strong { color: var(--peri); }
+  @media (max-width: 640px) {
+    .wrap { padding: 40px 20px 60px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .header h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="header">
+    <div>
+      <p class="eyebrow">Internal tools</p>
+      <h1>Builder <em>dashboard.</em></h1>
+      <p>A workbench for McMullen Properties utilities and automations.</p>
+    </div>
+    <div class="tag">v0.1</div>
+  </header>
+
+  <div class="grid">
+
+    <a class="tile" href="/tools/bulk-csv-image-downloader.html">
+      <div class="tile-head">
+        <span class="tile-icon">01 · UTILITIES</span>
+        <span class="tile-status live">Live</span>
+      </div>
+      <h2>Bulk CSV Image Downloader</h2>
+      <p>Point at a Webflow CMS export CSV and download every image into a ZIP organized by slug. Bypasses CDN access restrictions by running in the browser.</p>
+      <div class="tile-meta">
+        <span>Browser · no dependencies</span>
+        <span class="arrow">Open →</span>
+      </div>
+    </a>
+
+    <a class="tile" href="https://mcmullen.properties/97-banks-cma" target="_blank">
+      <div class="tile-head">
+        <span class="tile-icon">02 · REAL ESTATE</span>
+        <span class="tile-status live">Live</span>
+      </div>
+      <h2>CMA Generator</h2>
+      <p>Comparative market analysis builder for specific addresses. Deployed on mcmullen.properties Webflow with three-embed architecture.</p>
+      <div class="tile-meta">
+        <span>Example: 97 Banks</span>
+        <span class="arrow">Open →</span>
+      </div>
+    </a>
+
+    <div class="tile" data-status="coming-soon">
+      <div class="tile-head">
+        <span class="tile-icon">03 · HARDSCAPE</span>
+        <span class="tile-status coming">Coming</span>
+      </div>
+      <h2>Pool Estimator</h2>
+      <p>Quick-quote pool deck estimator for Bayside Pavers proposals. Square footage, material swatch, price range.</p>
+      <div class="tile-meta">
+        <span>In development</span>
+        <span class="arrow"></span>
+      </div>
+    </div>
+
+    <div class="tile" data-status="coming-soon">
+      <div class="tile-head">
+        <span class="tile-icon">04 · LEAD GEN</span>
+        <span class="tile-status coming">Coming</span>
+      </div>
+      <h2>Label Sales Agent</h2>
+      <p>Permit-data-driven lead tool. 3–5 pool permits per Bay Area county per month, $1.8M TAM. Copy-to-clipboard only.</p>
+      <div class="tile-meta">
+        <span>Spec + code complete</span>
+        <span class="arrow"></span>
+      </div>
+    </div>
+
+    <div class="tile" data-status="coming-soon">
+      <div class="tile-head">
+        <span class="tile-icon">05 · CONDO MARKET</span>
+        <span class="tile-status coming">Coming</span>
+      </div>
+      <h2>Admin Console</h2>
+      <p>Review incoming offers, manage VIP invites, track referrals. Backs the Condo Market SF buyer/seller exchange.</p>
+      <div class="tile-meta">
+        <span>Auth + SLA email ready</span>
+        <span class="arrow"></span>
+      </div>
+    </div>
+
+    <div class="tile" data-status="coming-soon">
+      <div class="tile-head">
+        <span class="tile-icon">06 · CONDO MARKET</span>
+        <span class="tile-status coming">Coming</span>
+      </div>
+      <h2>User Dashboard</h2>
+      <p>Track submitted offers, referral points, building watchlists. Buyer and owner views.</p>
+      <div class="tile-meta">
+        <span>Schema live</span>
+        <span class="arrow"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>Note:</strong> This page is intentionally unindexed (<code style="background:rgba(10,13,18,.6);padding:1px 5px;border-radius:2px;font-family:monospace;font-size:11px;">noindex,nofollow</code>) and not linked from the public site. Bookmark <code style="background:rgba(10,13,18,.6);padding:1px 5px;border-radius:2px;font-family:monospace;font-size:11px;">/tools/</code> for direct access.
+  </div>
+
+</div>
+
+</body>
+</html>

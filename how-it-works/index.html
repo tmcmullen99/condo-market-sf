@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works · Condo Market SF</title>
+<meta name="description" content="How Condo Market SF works: browse 64 buildings, submit offers on any unit, or name your price as an owner.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --page-max: 1280px;
+    --gutter: clamp(20px, 4vw, 56px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--ff-body); font-weight: 300; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1; mix-blend-mode: overlay; }
+  main { position: relative; z-index: 2; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
+  .wrap-narrow { max-width: 860px; margin: 0 auto; padding: 0 var(--gutter); }
+
+  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+  .wordmark em { color: var(--cm-peri); }
+  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
+  .nav-meta a { color: var(--cm-ivory-dim); }
+  .nav-meta a:hover { color: var(--cm-ivory); }
+  .nav-meta a.active { color: var(--cm-peri); }
+  .signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
+  .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
+
+  .hero { padding: 80px 0 56px; text-align: center; }
+  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 22px; }
+  .hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1.02; letter-spacing: -0.015em; margin-bottom: 20px; }
+  .hero h1 em { font-style: italic; color: var(--cm-peri); }
+  .hero p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 58ch; margin: 0 auto; }
+
+  .tracks { padding: 32px 0 48px; }
+  .track-tabs { display: flex; gap: 0; justify-content: center; border-bottom: 1px solid var(--cm-rule); margin-bottom: 48px; }
+  .track-tab { padding: 18px 36px; background: transparent; border: none; color: var(--cm-ivory-dim); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .track-tab.active { color: var(--cm-peri); border-bottom-color: var(--cm-peri); }
+
+  .steps { display: none; }
+  .steps.active { display: block; }
+  .step { padding: 48px 0; border-bottom: 1px solid var(--cm-rule); display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: start; }
+  @media (max-width: 720px) { .step { grid-template-columns: 1fr; gap: 16px; } }
+  .step:last-child { border-bottom: none; }
+  .step-n { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 56px; color: var(--cm-peri); line-height: 1; min-width: 80px; }
+  .step h3 { font-family: var(--ff-display); font-weight: 500; font-size: 28px; color: var(--cm-ivory); margin-bottom: 14px; line-height: 1.15; }
+  .step h3 em { font-style: italic; color: var(--cm-peri); }
+  .step p { color: var(--cm-ivory); font-size: 17px; margin-bottom: 14px; line-height: 1.65; }
+  .step p:last-child { margin-bottom: 0; }
+  .step .note { color: var(--cm-ivory-dim); font-size: 14px; }
+
+  .cta-section { padding: 72px 0; text-align: center; background: var(--cm-navy); border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); }
+  .cta-section h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(34px, 4vw, 48px); line-height: 1.1; margin-bottom: 16px; }
+  .cta-section h2 em { font-style: italic; color: var(--cm-peri); }
+  .cta-section p { color: var(--cm-ivory-dim); max-width: 54ch; margin: 0 auto 28px; }
+  .btn-p { display: inline-block; background: var(--cm-peri); color: var(--cm-navy); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; margin: 0 6px; }
+  .btn-g { display: inline-block; background: transparent; color: var(--cm-ivory); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; border: 1px solid var(--cm-rule); margin: 0 6px; }
+  .btn-g:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
+  .btn-p:hover { opacity: 0.88; }
+
+  footer { padding: 48px 0 40px; background: var(--cm-navy); color: var(--cm-ivory-dim); font-size: 13px; border-top: 1px solid var(--cm-rule); }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+  footer h5 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory); margin-bottom: 14px; font-weight: 500; }
+  footer ul { list-style: none; }
+  footer li { padding: 4px 0; }
+  .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--cm-rule); font-size: 12px; opacity: 0.7; text-align: center; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <nav class="nav-meta">
+        <a href="/buildings/">Buildings</a>
+        <a href="/intelligence/">Intelligence</a>
+        <a href="/history/">History</a>
+        <a href="/how-it-works/" class="active">How it works</a>
+        <a href="/refer/">Refer</a>
+        <a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-kicker">How it works</div>
+      <h1>Offers, not <em>listings</em>.</h1>
+      <p>Every unit in San Francisco is for sale — for the right price. Condo Market lets buyers submit offers directly to owners, and lets owners name a price without ever listing their home.</p>
+    </div>
+  </section>
+
+  <section class="tracks">
+    <div class="wrap-narrow">
+      <div class="track-tabs">
+        <button class="track-tab active" data-track="buyer">For buyers</button>
+        <button class="track-tab" data-track="owner">For owners</button>
+      </div>
+
+      <div class="steps active" data-track="buyer">
+        <div class="step">
+          <div class="step-n">01.</div>
+          <div>
+            <h3>Browse the <em>64 buildings</em></h3>
+            <p>Every major condo building in San Francisco, mapped and indexed. Filter by neighborhood, price, size, and amenity. Dig into any building's dossier — tax-record sale history, unit counts, price trajectories.</p>
+            <p class="note">No listing status is required — unlisted units are part of the index too.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">02.</div>
+          <div>
+            <h3>Submit an <em>offer</em></h3>
+            <p>Found a unit you want? Name your price and terms. Your offer goes to the owner of record through standard channels — broker of record or direct mail. You control the terms; we handle the delivery.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">03.</div>
+          <div>
+            <h3>Owner responds (or doesn't)</h3>
+            <p>About one in three owners reply. Negotiate directly in your dashboard. If the offer is accepted, we handle the transaction end-to-end: escrow, disclosures, closing.</p>
+            <p class="note">Flat 3% fee on accepted offers. 1% returned to the building's HOA.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">04.</div>
+          <div>
+            <h3>Close on your <em>unit</em></h3>
+            <p>A standard 30-45 day close. Title, escrow, disclosures, and final walkthrough handled by Condo Market and the broker of record. You get the keys.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="steps" data-track="owner">
+        <div class="step">
+          <div class="step-n">01.</div>
+          <div>
+            <h3>Claim your <em>unit</em></h3>
+            <p>Sign in and locate your building. Claim your specific unit in the building's unit map — we verify ownership against the public record.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">02.</div>
+          <div>
+            <h3>Name your price</h3>
+            <p>Set a Make-Me-Move number. Not a listing. Not a promise. Not public. Just the figure you'd actually reconsider for. You can change it anytime.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">03.</div>
+          <div>
+            <h3>We notify you on <em>matching offers</em></h3>
+            <p>We only reach out when a buyer's offer meets or beats your number. No tire-kickers, no lowballs, no marketing nudges. Your unit, your price, your terms.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">04.</div>
+          <div>
+            <h3>Accept, counter, or pass</h3>
+            <p>Review the offer in your dashboard. Negotiate directly with the buyer. If accepted, we route it through escrow and close in 30-45 days. Flat 3% fee. No upfront cost. No exclusivity agreement.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="wrap-narrow">
+      <h2>Ready to <em>begin</em>?</h2>
+      <p>Create a free account. Browse buildings, save your favorites, submit offers, or name your price.</p>
+      <a class="btn-p" href="#signup" data-cm-auth="signup">Create free account →</a>
+      <a class="btn-g" href="/buildings/">Browse buildings first</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
+        <p style="max-width:42ch;">A private exchange for every condo in San Francisco.</p>
+      </div>
+      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/history/">History</a></li><li><a href="/refer/">Refer</a></li></ul></div>
+      <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
+      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
+    </div>
+    <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.track-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.track-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.steps').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelector(`.steps[data-track="${btn.dataset.track}"]`).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

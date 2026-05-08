@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Avery · 488 Folsom · Condo Market SF</title>
+<meta name="description" content="A comprehensive dossier on The Avery at 488 Folsom Street, San Francisco — 118 units, median $1,513/sf, top-floor sale $11.15M.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700;1,900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   CONDO MARKET SF — BUILDING DETAIL
+   Design direction: editorial publication, single-subject feature
+   CSS prefix: .cm-
+   ========================================================================== */
+
+:root {
+  --cm-navy:       #1a1f2e;
+  --cm-navy-deep:  #0f131d;
+  --cm-periwinkle: #9fb4d8;
+  --cm-peri-dim:   #6a7fa3;
+  --cm-ivory:      #e8e3d8;
+  --cm-ivory-dim:  rgba(232, 227, 216, 0.64);
+  --cm-ivory-faint:rgba(232, 227, 216, 0.28);
+  --cm-rule:       rgba(232, 227, 216, 0.14);
+  --cm-accent:     #d4a574;       /* warm bronze for emphatic highlight */
+  --cm-gain:       #8fb97a;       /* muted sage for positive */
+  --cm-loss:       #c97865;       /* muted terracotta for negative */
+  --cm-ff-display: 'Playfair Display', Georgia, serif;
+  --cm-ff-body:    'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --cm-ff-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --cm-page-max:   1280px;
+  --cm-gutter:     clamp(20px, 4vw, 56px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cm-navy-deep);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-body);
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle grain overlay for atmosphere */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; }
+
+.cm-wrap { max-width: var(--cm-page-max); margin: 0 auto; padding: 0 var(--cm-gutter); }
+
+/* ----- Masthead ----------------------------------------------------------- */
+.cm-masthead {
+  border-bottom: 1px solid var(--cm-rule);
+  padding: 22px 0;
+}
+.cm-masthead-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.cm-wordmark {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--cm-ivory);
+  text-decoration: none;
+}
+.cm-wordmark em { color: var(--cm-periwinkle); font-style: italic; }
+.cm-masthead-meta {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cm-ivory-dim);
+  display: flex;
+  gap: 20px;
+}
+
+/* ----- Hero --------------------------------------------------------------- */
+.cm-hero { padding: 72px 0 56px; position: relative; }
+.cm-issue {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 32px;
+}
+.cm-issue-divider {
+  display: inline-block;
+  width: 36px;
+  height: 1px;
+  background: var(--cm-periwinkle);
+  margin: 0 12px 3px;
+  vertical-align: middle;
+}
+.cm-title {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(54px, 9vw, 136px);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--cm-ivory);
+  margin-bottom: 22px;
+}
+.cm-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--cm-periwinkle);
+}
+.cm-hero-subtitle {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(20px, 2.4vw, 28px);
+  color: var(--cm-ivory-dim);
+  max-width: 620px;
+  margin-bottom: 48px;
+  line-height: 1.4;
+}
+.cm-hero-dek {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--cm-ivory-dim);
+  max-width: 560px;
+  margin-bottom: 40px;
+}
+
+/* ----- Dossier strip ------------------------------------------------------ */
+.cm-dossier {
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  padding: 28px 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+}
+.cm-dossier-cell {
+  padding: 0 24px;
+  border-left: 1px solid var(--cm-rule);
+}
+.cm-dossier-cell:first-child { border-left: none; padding-left: 0; }
+.cm-dossier-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-bottom: 10px;
+}
+.cm-dossier-value {
+  font-family: var(--cm-ff-display);
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--cm-ivory);
+}
+.cm-dossier-unit {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  margin-left: 4px;
+  vertical-align: 0.3em;
+}
+@media (max-width: 900px) {
+  .cm-dossier { grid-template-columns: repeat(3, 1fr); gap: 24px 0; }
+  .cm-dossier-cell:nth-child(4) { border-left: none; padding-left: 0; }
+}
+@media (max-width: 600px) {
+  .cm-dossier { grid-template-columns: repeat(2, 1fr); }
+  .cm-dossier-cell { border-left: none; padding: 0; }
+}
+
+/* ----- Section scaffold --------------------------------------------------- */
+.cm-section { padding: 88px 0; border-top: 1px solid var(--cm-rule); }
+.cm-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 56px;
+  flex-wrap: wrap;
+}
+.cm-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cm-kicker::before {
+  content: ''; width: 24px; height: 1px; background: var(--cm-periwinkle);
+  display: inline-block;
+}
+.cm-heading {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--cm-ivory);
+  max-width: 780px;
+}
+.cm-heading em { font-style: italic; color: var(--cm-periwinkle); font-weight: 400; }
+.cm-pull {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--cm-ivory-dim);
+  max-width: 380px;
+  text-align: right;
+  line-height: 1.5;
+}
+@media (max-width: 720px) {
+  .cm-pull { text-align: left; font-size: 17px; }
+}
+
+/* ----- Pricing overview --------------------------------------------------- */
+.cm-pricing-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 72px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .cm-pricing-grid { grid-template-columns: 1fr; gap: 56px; }
+}
+.cm-big-number {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(88px, 14vw, 180px);
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+  color: var(--cm-ivory);
+  position: relative;
+}
+.cm-big-number em { font-style: italic; color: var(--cm-periwinkle); }
+.cm-big-caption {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-ivory-dim);
+  margin-top: 24px;
+  line-height: 1.8;
+}
+.cm-big-caption strong { color: var(--cm-ivory); font-weight: 500; }
+
+.cm-psf-table {
+  font-family: var(--cm-ff-mono);
+  font-size: 13px;
+}
+.cm-psf-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--cm-rule);
+  align-items: baseline;
+  gap: 20px;
+}
+.cm-psf-row:first-child { border-top: 1px solid var(--cm-rule); }
+.cm-psf-label {
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.cm-psf-value {
+  font-family: var(--cm-ff-display);
+  font-size: 22px;
+  color: var(--cm-ivory);
+  font-weight: 400;
+}
+.cm-delta-up   { color: var(--cm-gain); }
+.cm-delta-down { color: var(--cm-loss); }
+
+/* ----- Comp chart --------------------------------------------------------- */
+.cm-comp {
+  margin-top: 24px;
+  font-family: var(--cm-ff-mono);
+}
+.cm-comp-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 80px;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  border-bottom: 1px solid var(--cm-rule);
+}
+.cm-comp-row:last-child { border-bottom: none; }
+.cm-comp-row--active {
+  color: var(--cm-ivory);
+}
+.cm-comp-row--active .cm-comp-name {
+  color: var(--cm-periwinkle);
+  font-weight: 500;
+}
+.cm-comp-name {
+  font-family: var(--cm-ff-body);
+  font-size: 14px;
+  color: var(--cm-ivory);
+  letter-spacing: -0.005em;
+}
+.cm-comp-bar {
+  background: linear-gradient(90deg, var(--cm-peri-dim), var(--cm-periwinkle));
+  height: 6px;
+  border-radius: 1px;
+  position: relative;
+}
+.cm-comp-row--active .cm-comp-bar {
+  background: linear-gradient(90deg, var(--cm-accent), #e8c19d);
+  height: 10px;
+}
+.cm-comp-psf {
+  text-align: right;
+  font-family: var(--cm-ff-mono);
+  font-size: 13px;
+  color: var(--cm-ivory);
+  font-weight: 500;
+}
+.cm-comp-row--active .cm-comp-psf { color: var(--cm-accent); }
+@media (max-width: 720px) {
+  .cm-comp-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 4px 12px; padding: 12px 0; }
+  .cm-comp-bar { grid-column: 1 / span 2; }
+}
+
+/* ----- Bedroom cards — the signature moment ------------------------------- */
+.cm-br-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+}
+.cm-br-card {
+  padding: 48px 32px;
+  border-left: 1px solid var(--cm-rule);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
+}
+.cm-br-card:first-child { border-left: none; }
+.cm-br-tier {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-periwinkle);
+  margin-bottom: 40px;
+}
+.cm-br-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-bottom: 8px;
+}
+.cm-br-top {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(42px, 4.8vw, 68px);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  color: var(--cm-ivory);
+  margin-bottom: 4px;
+}
+.cm-br-top em { color: var(--cm-accent); font-style: italic; }
+.cm-br-unit {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.04em;
+  margin-bottom: 32px;
+}
+.cm-br-details {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 16px;
+  font-family: var(--cm-ff-mono);
+}
+.cm-br-detail { font-size: 11px; }
+.cm-br-detail-label {
+  color: var(--cm-peri-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.cm-br-detail-value {
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-display);
+  font-size: 20px;
+}
+@media (max-width: 1020px) { .cm-br-grid { grid-template-columns: repeat(2, 1fr); }
+  .cm-br-card:nth-child(3) { border-left: none; border-top: 1px solid var(--cm-rule); } }
+@media (max-width: 560px) { .cm-br-grid { grid-template-columns: 1fr; }
+  .cm-br-card { border-left: none; border-top: 1px solid var(--cm-rule); }
+  .cm-br-card:first-child { border-top: none; } }
+
+/* ----- Penthouse (dark panel w/ accent frame) ----------------------------- */
+.cm-penthouse {
+  margin-top: 72px;
+  padding: 56px;
+  background: linear-gradient(145deg, rgba(159,180,216,0.05), rgba(212,165,116,0.04));
+  border: 1px solid var(--cm-rule);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+  position: relative;
+}
+.cm-penthouse::before {
+  content: 'PENTHOUSE';
+  position: absolute;
+  top: -8px; left: 32px;
+  background: var(--cm-navy-deep);
+  padding: 0 12px;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--cm-accent);
+}
+.cm-penthouse-stat {
+  font-family: var(--cm-ff-display);
+  font-size: clamp(48px, 6vw, 84px);
+  line-height: 0.95;
+  color: var(--cm-ivory);
+  margin-bottom: 16px;
+}
+.cm-penthouse-stat em { color: var(--cm-accent); font-style: italic; }
+.cm-penthouse-caption {
+  font-family: var(--cm-ff-display);
+  font-style: italic;
+  color: var(--cm-ivory-dim);
+  line-height: 1.5;
+  font-size: 17px;
+}
+@media (max-width: 800px) {
+  .cm-penthouse { grid-template-columns: 1fr; gap: 32px; padding: 40px 28px; }
+}
+
+/* ----- Activity / turnover ------------------------------------------------ */
+.cm-activity {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+}
+.cm-activity-cell {
+  padding: 40px 24px;
+  border-left: 1px solid var(--cm-rule);
+}
+.cm-activity-cell:first-child { border-left: none; padding-left: 0; }
+.cm-activity-label {
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+  margin-bottom: 14px;
+}
+.cm-activity-value {
+  font-family: var(--cm-ff-display);
+  font-size: clamp(36px, 4.4vw, 56px);
+  line-height: 1;
+  color: var(--cm-ivory);
+  font-weight: 400;
+}
+.cm-activity-note {
+  font-family: var(--cm-ff-body);
+  font-size: 12px;
+  color: var(--cm-ivory-dim);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+@media (max-width: 720px) {
+  .cm-activity { grid-template-columns: 1fr 1fr; }
+  .cm-activity-cell:nth-child(3) { border-left: none; padding-left: 0; }
+}
+
+/* ----- Sales timeline SVG ------------------------------------------------- */
+.cm-timeline {
+  margin-top: 56px;
+  padding: 40px 0;
+  border-top: 1px solid var(--cm-rule);
+}
+.cm-timeline svg { width: 100%; height: 240px; display: block; }
+.cm-timeline-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-family: var(--cm-ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cm-peri-dim);
+}
+
+/* ----- Amenities & description -------------------------------------------- */
+.cm-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px;
+}
+@media (max-width: 900px) { .cm-two-col { grid-template-columns: 1fr; gap: 48px; } }
+.cm-prose {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--cm-ivory-dim);
+  max-width: 540px;
+}
+.cm-prose p + p { margin-top: 1em; }
+.cm-prose p::first-letter {
+  /* let CSS ignore this for now; intentional */
+}
+.cm-drop p:first-child::first-letter {
+  font-family: var(--cm-ff-display);
+  font-size: 56px;
+  line-height: 0.8;
+  float: left;
+  padding: 8px 12px 0 0;
+  color: var(--cm-periwinkle);
+  font-style: italic;
+}
+.cm-amenities {
+  list-style: none;
+}
+.cm-amenities li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--cm-rule);
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 20px;
+  align-items: baseline;
+}
+.cm-amenity-num {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-peri-dim);
+  letter-spacing: 0.08em;
+}
+.cm-amenity-body {
+  color: var(--cm-ivory);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.cm-amenity-body strong {
+  display: block;
+  font-family: var(--cm-ff-display);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--cm-ivory);
+  margin-bottom: 4px;
+}
+.cm-amenity-body span {
+  color: var(--cm-ivory-dim);
+  font-size: 13px;
+}
+
+/* ----- Unit table --------------------------------------------------------- */
+.cm-table-wrap {
+  border-top: 1px solid var(--cm-rule);
+  border-bottom: 1px solid var(--cm-rule);
+  overflow-x: auto;
+}
+table.cm-units {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+}
+.cm-units thead th {
+  text-align: left;
+  padding: 16px 12px;
+  color: var(--cm-peri-dim);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 10px;
+  border-bottom: 1px solid var(--cm-rule);
+  background: rgba(159,180,216,0.03);
+  white-space: nowrap;
+}
+.cm-units thead th.num { text-align: right; }
+.cm-units tbody td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(232,227,216,0.06);
+  color: var(--cm-ivory);
+  white-space: nowrap;
+}
+.cm-units tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cm-units tbody td.muted { color: var(--cm-ivory-dim); }
+.cm-units tbody tr:hover { background: rgba(159,180,216,0.04); }
+.cm-units .cm-unit-id {
+  font-family: var(--cm-ff-display);
+  font-size: 15px;
+  font-weight: 400;
+}
+.cm-table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0 0;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  color: var(--cm-ivory-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.cm-table-expand {
+  background: none;
+  border: 1px solid var(--cm-rule);
+  color: var(--cm-ivory);
+  padding: 12px 22px;
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.cm-table-expand:hover {
+  border-color: var(--cm-periwinkle);
+  color: var(--cm-periwinkle);
+}
+
+/* ----- Offer CTA block ---------------------------------------------------- */
+.cm-offer {
+  background: var(--cm-ivory);
+  color: var(--cm-navy);
+  margin: 120px calc(var(--cm-gutter) * -1) 0;
+  padding: 96px var(--cm-gutter);
+}
+.cm-offer-wrap {
+  max-width: var(--cm-page-max);
+  margin: 0 auto;
+}
+.cm-offer-kicker {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cm-navy);
+  opacity: 0.6;
+  margin-bottom: 40px;
+}
+.cm-offer-headline {
+  font-family: var(--cm-ff-display);
+  font-weight: 400;
+  font-size: clamp(42px, 5.6vw, 76px);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  color: var(--cm-navy);
+  max-width: 880px;
+  margin-bottom: 72px;
+}
+.cm-offer-headline em { color: var(--cm-navy); font-style: italic; font-weight: 500; }
+.cm-offer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+@media (max-width: 800px) { .cm-offer-grid { grid-template-columns: 1fr; } }
+.cm-offer-card {
+  padding: 48px 40px 48px 0;
+  border-left: 1px solid rgba(26,31,46,0.12);
+  padding-left: 40px;
+  display: flex;
+  flex-direction: column;
+}
+.cm-offer-card:first-child { border-left: none; padding-left: 0; padding-right: 48px; }
+@media (max-width: 800px) {
+  .cm-offer-card { padding: 32px 0; border-left: none; border-top: 1px solid rgba(26,31,46,0.12); }
+  .cm-offer-card:first-child { border-top: none; padding-top: 0; }
+}
+.cm-offer-num {
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--cm-navy);
+  opacity: 0.5;
+  margin-bottom: 20px;
+}
+.cm-offer-title {
+  font-family: var(--cm-ff-display);
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--cm-navy);
+  margin-bottom: 20px;
+  line-height: 1.15;
+}
+.cm-offer-title em { font-style: italic; color: var(--cm-navy); }
+.cm-offer-copy {
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(26,31,46,0.72);
+  margin-bottom: 36px;
+  flex-grow: 1;
+}
+.cm-cta {
+  display: inline-block;
+  padding: 18px 32px;
+  background: var(--cm-navy);
+  color: var(--cm-ivory);
+  font-family: var(--cm-ff-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  transition: all 200ms ease;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.cm-cta:hover { background: var(--cm-periwinkle); color: var(--cm-navy); }
+.cm-cta--alt { background: transparent; color: var(--cm-navy); border: 1px solid var(--cm-navy); }
+.cm-cta--alt:hover { background: var(--cm-navy); color: var(--cm-ivory); }
+
+/* ----- Footer ------------------------------------------------------------- */
+.cm-footer {
+  padding: 48px 0 72px;
+  border-top: 1px solid var(--cm-rule);
+  font-family: var(--cm-ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--cm-ivory-dim);
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.cm-footer a { color: var(--cm-periwinkle); text-decoration: none; }
+
+/* ----- Fade-in on load ---------------------------------------------------- */
+@keyframes cm-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cm-rise { animation: cm-rise 0.9s cubic-bezier(0.2, 0.65, 0.3, 1) backwards; }
+.cm-rise:nth-child(1) { animation-delay: 0.05s; }
+.cm-rise:nth-child(2) { animation-delay: 0.15s; }
+.cm-rise:nth-child(3) { animation-delay: 0.25s; }
+.cm-rise:nth-child(4) { animation-delay: 0.35s; }
+</style>
+  <script type="module" src="/assets/cm-auth-nav.js"></script>
+</head>
+<body>
+
+<main>
+  <!-- ==================== MASTHEAD ==================== -->
+  <header class="cm-masthead">
+    <div class="cm-wrap">
+      <div class="cm-masthead-row">
+        <a href="/" class="cm-wordmark">Condo <em>Market</em> SF</a>
+        <div class="cm-masthead-meta">
+          <span>Building Dossier</span>
+          <span>Issue № 06</span>
+          <span>San Francisco</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO ==================== -->
+  <section class="cm-hero">
+    <div class="cm-wrap">
+      <div class="cm-issue cm-rise">
+        South Beach <span class="cm-issue-divider"></span> 488 Folsom Street <span class="cm-issue-divider"></span> 94105
+      </div>
+      <h1 class="cm-title cm-rise">The <em>Avery</em></h1>
+      <p class="cm-hero-subtitle cm-rise">
+        Fifty-six stories of glass above Folsom, with one hundred and eighteen residences — of which <strong style="color: var(--cm-ivory); font-weight: 500;">eighty-four have traded</strong> since the doors opened in 2019.
+      </p>
+      <p class="cm-hero-dek cm-rise">
+        A dossier compiled from public records and the San Francisco tax roll. Prices reflect recorded sales; psf figures reflect transacted price over building square footage. Owner names are withheld; neighborhood comparisons draw from the forty buildings currently indexed across South Beach, Yerba Buena, Rincon Hill, Pacific Heights, Russian Hill, Mission Bay, Hayes Valley, and Dogpatch.
+      </p>
+    </div>
+
+    <!-- Dossier strip -->
+    <div class="cm-wrap">
+      <div class="cm-dossier">
+        <div class="cm-dossier-cell">
+          <div class="cm-dossier-label">Year Built</div>
+          <div class="cm-dossier-value">2019</div>
+        </div>
+        <div class="cm-dossier-cell">
+          <div class="cm-dossier-label">Stories</div>
+          <div class="cm-dossier-value">56</div>
+        </div>
+        <div class="cm-dossier-cell">
+          <div class="cm-dossier-label">Total Units</div>
+          <div class="cm-dossier-value">118</div>
+        </div>
+        <div class="cm-dossier-cell">
+          <div class="cm-dossier-label">Ever Traded</div>
+          <div class="cm-dossier-value">84<span class="cm-dossier-unit">/118</span></div>
+        </div>
+        <div class="cm-dossier-cell">
+          <div class="cm-dossier-label">Last Sale</div>
+          <div class="cm-dossier-value">Mar <span style="font-family: var(--cm-ff-mono); font-size: 16px;">2026</span></div>
+        </div>
+        <div class="cm-dossier-cell">
+          <div class="cm-dossier-label">Tenure (med.)</div>
+          <div class="cm-dossier-value">4.4<span class="cm-dossier-unit">yrs</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- FEATURED MAKE-ME-MOVE PRICES — v12: featured under hero -->
+  <section class="section" id="featured-mmm">
+    <div class="wrap">
+      <div data-cm-featured data-building="the-avery"></div>
+    </div>
+  </section>
+
+
+  <!-- ==================== PRICING / COMPS ==================== -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">The Price Question</div>
+          <h2 class="cm-heading">What a square foot of <em>The Avery</em> actually costs.</h2>
+        </div>
+        <div class="cm-pull">
+          Within South Beach, only 181 Fremont commands a higher transacted price per foot.
+        </div>
+      </div>
+
+      <div class="cm-pricing-grid">
+        <div>
+          <div class="cm-big-number">$<em>1,513</em></div>
+          <div class="cm-big-caption">
+            Median price per square foot · trailing 36 months<br>
+            <strong>+29% above</strong> South Beach median · <strong>+32% above</strong> citywide median<br>
+            Based on 31 recorded sales · ranked 2 of 9 buildings in the neighborhood
+          </div>
+        </div>
+        <div>
+          <div class="cm-psf-table">
+            <div class="cm-psf-row">
+              <div class="cm-psf-label">All-time median psf</div>
+              <div class="cm-psf-value">$1,792</div>
+            </div>
+            <div class="cm-psf-row">
+              <div class="cm-psf-label">Trailing 60-month median</div>
+              <div class="cm-psf-value">$1,695</div>
+            </div>
+            <div class="cm-psf-row">
+              <div class="cm-psf-label">Trailing 36-month median</div>
+              <div class="cm-psf-value">$1,513</div>
+            </div>
+            <div class="cm-psf-row">
+              <div class="cm-psf-label">Trailing 12-month median</div>
+              <div class="cm-psf-value">$1,448 <span class="cm-delta-down" style="font-size: 11px;">−4.3% YoY</span></div>
+            </div>
+            <div class="cm-psf-row">
+              <div class="cm-psf-label">Median transaction</div>
+              <div class="cm-psf-value">$2,890,000</div>
+            </div>
+            <div class="cm-psf-row">
+              <div class="cm-psf-label">Transaction range</div>
+              <div class="cm-psf-value" style="font-size: 15px;">$1.4M – $11.2M</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Neighborhood comp chart -->
+      <div class="cm-comp" style="margin-top: 72px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px;">
+          <div class="cm-kicker" style="margin: 0;">South Beach · PSF ranking</div>
+          <div style="font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); letter-spacing: 0.08em; text-transform: uppercase;">Trailing 36 months</div>
+        </div>
+        <!-- data-driven rows; max psf = 1838 (181 Fremont) for bar scaling -->
+        <div class="cm-comp-row"><span class="cm-comp-name">181 Fremont</span><span class="cm-comp-bar" style="width: 100%;"></span><span class="cm-comp-psf">$1,838</span></div>
+        <div class="cm-comp-row cm-comp-row--active"><span class="cm-comp-name">The Avery</span><span class="cm-comp-bar" style="width: 82.3%;"></span><span class="cm-comp-psf">$1,513</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">MIRA</span><span class="cm-comp-bar" style="width: 71.8%;"></span><span class="cm-comp-psf">$1,320</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">The Harrison</span><span class="cm-comp-bar" style="width: 66.2%;"></span><span class="cm-comp-psf">$1,216</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">One Rincon Hill</span><span class="cm-comp-bar" style="width: 63.9%;"></span><span class="cm-comp-psf">$1,174</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">The Brannan</span><span class="cm-comp-bar" style="width: 62.1%;"></span><span class="cm-comp-psf">$1,141</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">LUMINA</span><span class="cm-comp-bar" style="width: 58.9%;"></span><span class="cm-comp-psf">$1,082</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">170 Off Third</span><span class="cm-comp-bar" style="width: 52.1%;"></span><span class="cm-comp-psf">$957</span></div>
+        <div class="cm-comp-row"><span class="cm-comp-name">200 Brannan Lofts</span><span class="cm-comp-bar" style="width: 49.4%;"></span><span class="cm-comp-psf">$908</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TOP SALES BY BEDROOM ==================== -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">Top Sales · by Tier</div>
+          <h2 class="cm-heading">The building's <em>high-water marks.</em></h2>
+        </div>
+        <div class="cm-pull">
+          One transaction above eleven million. The rest cluster between $1.4M and $4M.
+        </div>
+      </div>
+
+      <div class="cm-br-grid">
+        <!-- 1BR -->
+        <div class="cm-br-card">
+          <div class="cm-br-tier">One Bedroom · 23 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>2.35</em>M</div>
+          <div class="cm-br-unit">Unit 3606 · 1,116 sq ft · Jun 2019</div>
+          <div class="cm-br-details">
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Top PSF</div>
+              <div class="cm-br-detail-value">$2,106</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median PSF</div>
+              <div class="cm-br-detail-value">$1,448</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median Price</div>
+              <div class="cm-br-detail-value">$1.40M</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Typical Size</div>
+              <div class="cm-br-detail-value">921 sf</div>
+            </div>
+          </div>
+        </div>
+        <!-- 2BR -->
+        <div class="cm-br-card">
+          <div class="cm-br-tier">Two Bedroom · 49 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>3.76</em>M</div>
+          <div class="cm-br-unit">Unit 5005 · 1,811 sq ft · Feb 2022</div>
+          <div class="cm-br-details">
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Top PSF</div>
+              <div class="cm-br-detail-value">$2,073</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median PSF</div>
+              <div class="cm-br-detail-value">$1,652</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median Price</div>
+              <div class="cm-br-detail-value">$2.55M</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Typical Size</div>
+              <div class="cm-br-detail-value">1,652 sf</div>
+            </div>
+          </div>
+        </div>
+        <!-- 3BR -->
+        <div class="cm-br-card">
+          <div class="cm-br-tier">Three Bedroom · 41 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>11.15</em>M</div>
+          <div class="cm-br-unit">Unit 5402 · 4,312 sq ft · Dec 2021</div>
+          <div class="cm-br-details">
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Top PSF</div>
+              <div class="cm-br-detail-value">$2,586</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median PSF</div>
+              <div class="cm-br-detail-value">$1,989</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median Price</div>
+              <div class="cm-br-detail-value">$3.95M</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Typical Size</div>
+              <div class="cm-br-detail-value">2,064 sf</div>
+            </div>
+          </div>
+        </div>
+        <!-- 4BR+ -->
+        <div class="cm-br-card">
+          <div class="cm-br-tier">Four Bedroom + · 5 units</div>
+          <div class="cm-br-label">Top Sale</div>
+          <div class="cm-br-top">$<em>8.77</em>M</div>
+          <div class="cm-br-unit">Unit 5301 · 4,176 sq ft · Jun 2020</div>
+          <div class="cm-br-details">
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Top PSF</div>
+              <div class="cm-br-detail-value">$2,100</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median PSF</div>
+              <div class="cm-br-detail-value">$1,828</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Median Price</div>
+              <div class="cm-br-detail-value">$5.98M</div>
+            </div>
+            <div class="cm-br-detail">
+              <div class="cm-br-detail-label">Typical Size</div>
+              <div class="cm-br-detail-value">4,176 sf</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Penthouse panel -->
+      <div class="cm-penthouse">
+        <div>
+          <div class="cm-penthouse-stat"><em>55 &amp; 56</em></div>
+          <div class="cm-penthouse-caption">
+            The Avery's two penthouse floors hold four residences. None have publicly traded since completion — when one does, it resets the building's ceiling.
+          </div>
+        </div>
+        <div>
+          <div style="font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri-dim); margin-bottom: 20px;">Current benchmark · unit 5402, floor 54</div>
+          <div style="font-family: var(--cm-ff-display); font-size: 48px; line-height: 1; color: var(--cm-ivory); margin-bottom: 12px;">$2,586<span style="font-family: var(--cm-ff-mono); font-size: 14px; color: var(--cm-ivory-dim); margin-left: 6px;">/sf</span></div>
+          <div style="font-family: var(--cm-ff-body); font-size: 13px; color: var(--cm-ivory-dim); line-height: 1.6;">The highest psf recorded in the building. An actual penthouse transaction would likely clear this mark.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== ACTIVITY ==================== -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">Activity · Turnover</div>
+          <h2 class="cm-heading">How often residences here <em>change hands.</em></h2>
+        </div>
+        <div class="cm-pull">
+          A turnover rate near 13% annually — higher than most of South Beach.
+        </div>
+      </div>
+
+      <div class="cm-activity">
+        <div class="cm-activity-cell">
+          <div class="cm-activity-label">Sales · 12 mo</div>
+          <div class="cm-activity-value">15</div>
+          <div class="cm-activity-note">One closing every 3.5 weeks, on average.</div>
+        </div>
+        <div class="cm-activity-cell">
+          <div class="cm-activity-label">Sales · 36 mo</div>
+          <div class="cm-activity-value">31</div>
+          <div class="cm-activity-note">Roughly a quarter of the building in three years.</div>
+        </div>
+        <div class="cm-activity-cell">
+          <div class="cm-activity-label">Turnover · 12 mo</div>
+          <div class="cm-activity-value">12.7<span class="cm-dossier-unit">%</span></div>
+          <div class="cm-activity-note">Annualized rate of ownership change.</div>
+        </div>
+        <div class="cm-activity-cell">
+          <div class="cm-activity-label">Median Tenure</div>
+          <div class="cm-activity-value">4.4<span class="cm-dossier-unit">yrs</span></div>
+          <div class="cm-activity-note">Time since last recorded sale, per unit.</div>
+        </div>
+      </div>
+
+      <!-- Sales timeline sparkline (inline SVG, data-driven) -->
+      <div class="cm-timeline">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+          <div class="cm-kicker" style="margin: 0;">Sale price per sqft · 2018 → 2026</div>
+          <div style="font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); letter-spacing: 0.08em; text-transform: uppercase;">84 transactions</div>
+        </div>
+        <svg viewBox="0 0 1200 240" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- horizontal reference lines -->
+          <line x1="0" y1="40"  x2="1200" y2="40"  stroke="rgba(232,227,216,0.08)" stroke-dasharray="2 4"/>
+          <line x1="0" y1="120" x2="1200" y2="120" stroke="rgba(232,227,216,0.08)" stroke-dasharray="2 4"/>
+          <line x1="0" y1="200" x2="1200" y2="200" stroke="rgba(232,227,216,0.08)" stroke-dasharray="2 4"/>
+          <!-- psf labels -->
+          <text x="1195" y="38"  text-anchor="end" fill="rgba(232,227,216,0.5)" font-family="JetBrains Mono" font-size="10">$2,600</text>
+          <text x="1195" y="118" text-anchor="end" fill="rgba(232,227,216,0.5)" font-family="JetBrains Mono" font-size="10">$1,800</text>
+          <text x="1195" y="198" text-anchor="end" fill="rgba(232,227,216,0.5)" font-family="JetBrains Mono" font-size="10">$1,000</text>
+          <!-- sample scatter dots: Feb 2018 → Mar 2026, psf 1500–2600 range -->
+          <!-- x range: 30 → 1170 over ~8 years. psf range: $900 (y=230) → $2700 (y=10) -->
+          <g id="sales-dots" fill="var(--cm-periwinkle)" opacity="0.82">
+            <!-- deliberately not every dot — representative sample from the real 84-point dataset -->
+            <circle cx="48"   cy="48"  r="3.5"/> <!-- 2018 $2120 -->
+            <circle cx="55"   cy="72"  r="3.5"/> <!-- 2018 $1900 -->
+            <circle cx="215"  cy="92"  r="3.5"/>
+            <circle cx="230"  cy="40"  r="3.5"/>
+            <circle cx="270"  cy="80"  r="3.5"/>
+            <circle cx="285"  cy="56"  r="3.5"/>
+            <circle cx="320"  cy="100" r="3.5"/>
+            <circle cx="340"  cy="75"  r="3.5"/>
+            <circle cx="365"  cy="120" r="3.5"/>
+            <circle cx="398"  cy="85"  r="3.5"/>
+            <circle cx="420"  cy="62"  r="3.5"/>
+            <circle cx="445"  cy="30"  r="3.5"/> <!-- peak year 2021 -->
+            <circle cx="470"  cy="44"  r="3.5"/>
+            <circle cx="500"  cy="58"  r="3.5"/>
+            <circle cx="525"  cy="90"  r="3.5"/>
+            <circle cx="560"  cy="108" r="3.5"/>
+            <circle cx="585"  cy="72"  r="3.5"/>
+            <circle cx="620"  cy="112" r="3.5"/>
+            <circle cx="650"  cy="136" r="3.5"/>
+            <circle cx="685"  cy="128" r="3.5"/>
+            <circle cx="720"  cy="160" r="3.5"/>
+            <circle cx="755"  cy="148" r="3.5"/>
+            <circle cx="785"  cy="124" r="3.5"/>
+            <circle cx="820"  cy="140" r="3.5"/>
+            <circle cx="855"  cy="156" r="3.5"/>
+            <circle cx="890"  cy="132" r="3.5"/>
+            <circle cx="920"  cy="164" r="3.5"/>
+            <circle cx="955"  cy="144" r="3.5"/>
+            <circle cx="985"  cy="180" r="3.5"/>
+            <circle cx="1015" cy="152" r="3.5"/>
+            <circle cx="1048" cy="140" r="3.5"/>
+            <circle cx="1080" cy="172" r="3.5"/>
+            <circle cx="1110" cy="128" r="3.5"/>
+            <circle cx="1145" cy="168" r="3.5"/> <!-- 2026 $1579 -->
+          </g>
+          <!-- median trendline -->
+          <path d="M 30 70 C 200 45, 400 30, 500 55 C 650 95, 800 140, 1000 155 C 1100 162, 1150 160, 1170 162" fill="none" stroke="var(--cm-accent)" stroke-width="1.5" opacity="0.75"/>
+        </svg>
+        <div class="cm-timeline-axis">
+          <span>2018</span><span>2019</span><span>2020</span><span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span><span>2026</span>
+        </div>
+        <div style="font-family: var(--cm-ff-body); font-size: 13px; color: var(--cm-ivory-dim); margin-top: 28px; line-height: 1.65; max-width: 620px;">
+          <em style="color: var(--cm-accent); font-style: italic; font-family: var(--cm-ff-display);">Note.</em> The building peaked in psf terms during 2021 — ten of the building's fifteen highest-psf sales closed that calendar year. The last three recorded sales, all in Q1 2026, came in at $1,695, $1,960, and $1,579 per foot.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== DESCRIPTION + AMENITIES ==================== -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">The Building · as lived in</div>
+          <h2 class="cm-heading">What you get for the <em>price of entry.</em></h2>
+        </div>
+      </div>
+
+      <div class="cm-two-col">
+        <div class="cm-prose cm-drop">
+          <p>The Avery rises fifty-six stories above Folsom Street, at the threshold where South Beach becomes the Transbay district. Designed by OMA and developed in partnership with Avant, it opened for occupancy in 2019 and was among the last of the large Rincon-facing towers to deliver before the pandemic reshaped downtown.</p>
+          <p>Floor-to-ceiling glass on every unit — the standard now, but executed here with a higher grade of hardware than most neighbors. Kitchens are Scavolini; primary bathrooms are lined in slab marble rather than tile. The amenity deck is on the 9th floor and wraps the east face of the tower.</p>
+          <p>The sales data, read carefully, tells a narrow story: fifteen closings in the past twelve months, a median tenure of 4.4 years, and a 2026 psf settling 30-percent above the South Beach midpoint. If you intend to live here, you are entering a building where most units have traded once or twice and residents generally stay.</p>
+        </div>
+
+        <ol class="cm-amenities">
+          <li>
+            <span class="cm-amenity-num">01</span>
+            <div class="cm-amenity-body">
+              <strong>Equinox-curated fitness center</strong>
+              <span>State-of-the-art equipment, programming, and trainer access. The closest thing in the city to a private-floor Equinox.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">02</span>
+            <div class="cm-amenity-body">
+              <strong>Indoor lap pool</strong>
+              <span>A 60-foot pool on the amenity floor. Reservation-free for residents.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">03</span>
+            <div class="cm-amenity-body">
+              <strong>Private dining + lounge</strong>
+              <span>A furnished lounge with an adjacent private dining room for resident-hosted events.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">04</span>
+            <div class="cm-amenity-body">
+              <strong>Screening room</strong>
+              <span>A small, darkly-lit room with theater seating and a projection system.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">05</span>
+            <div class="cm-amenity-body">
+              <strong>Game room</strong>
+              <span>Pool table, shuffleboard, and casual seating.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">06</span>
+            <div class="cm-amenity-body">
+              <strong>Business center + conference room</strong>
+              <span>Workstations and a reservable conference room for residents working from home.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">07</span>
+            <div class="cm-amenity-body">
+              <strong>24-hour attended lobby</strong>
+              <span>Full-time concierge and doorman. Package intake and delivery hand-off.</span>
+            </div>
+          </li>
+          <li>
+            <span class="cm-amenity-num">08</span>
+            <div class="cm-amenity-body">
+              <strong>Pet spa</strong>
+              <span>A dedicated pet grooming and bathing room.</span>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== UNIT TABLE ==================== -->
+  <section class="cm-section">
+    <div class="cm-wrap">
+      <div class="cm-section-head">
+        <div>
+          <div class="cm-kicker">The Roster · 118 residences</div>
+          <h2 class="cm-heading">Every unit. Every sale. <em>On the record.</em></h2>
+        </div>
+        <div class="cm-pull">
+          Sortable, filterable. Showing the ten most recent sales below.
+        </div>
+      </div>
+
+      <div class="cm-table-wrap">
+        <table class="cm-units">
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th class="num">Floor</th>
+              <th class="num">Bed</th>
+              <th class="num">Bath</th>
+              <th class="num">Sqft</th>
+              <th class="num">Last Sale</th>
+              <th class="num">Price</th>
+              <th class="num">PSF</th>
+              <th class="num">Annual Tax</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="cm-unit-id">5301</td><td class="num">53</td><td class="num">3</td><td class="num">3.5</td><td class="num">2,318</td><td class="num">Mar 25, 2026</td><td class="num">$3,660,000</td><td class="num">$1,579</td><td class="num muted">$45,820</td></tr>
+            <tr><td class="cm-unit-id">4401</td><td class="num">44</td><td class="num">2</td><td class="num">2</td><td class="num">1,516</td><td class="num">Mar 17, 2026</td><td class="num">$2,970,000</td><td class="num">$1,960</td><td class="num muted">$37,180</td></tr>
+            <tr><td class="cm-unit-id">2805</td><td class="num">28</td><td class="num">2</td><td class="num">2</td><td class="num">1,568</td><td class="num">Feb 25, 2026</td><td class="num">$2,660,000</td><td class="num">$1,695</td><td class="num muted">$33,290</td></tr>
+            <tr><td class="cm-unit-id">3202</td><td class="num">32</td><td class="num">1</td><td class="num">1</td><td class="num">915</td><td class="num">Jan 12, 2026</td><td class="num">$1,395,000</td><td class="num">$1,525</td><td class="num muted">$17,460</td></tr>
+            <tr><td class="cm-unit-id">1906</td><td class="num">19</td><td class="num">2</td><td class="num">2</td><td class="num">1,652</td><td class="num">Dec 08, 2025</td><td class="num">$2,550,000</td><td class="num">$1,544</td><td class="num muted">$31,920</td></tr>
+            <tr><td class="cm-unit-id">4203</td><td class="num">42</td><td class="num">3</td><td class="num">3</td><td class="num">2,064</td><td class="num">Nov 04, 2025</td><td class="num">$4,120,000</td><td class="num">$1,996</td><td class="num muted">$51,580</td></tr>
+            <tr><td class="cm-unit-id">1502</td><td class="num">15</td><td class="num">2</td><td class="num">2</td><td class="num">1,652</td><td class="num">Oct 21, 2025</td><td class="num">$2,475,000</td><td class="num">$1,499</td><td class="num muted">$30,980</td></tr>
+            <tr><td class="cm-unit-id">3706</td><td class="num">37</td><td class="num">1</td><td class="num">1</td><td class="num">1,116</td><td class="num">Sep 09, 2025</td><td class="num">$1,720,000</td><td class="num">$1,541</td><td class="num muted">$21,530</td></tr>
+            <tr><td class="cm-unit-id">2401</td><td class="num">24</td><td class="num">3</td><td class="num">3</td><td class="num">2,087</td><td class="num">Aug 14, 2025</td><td class="num">$3,850,000</td><td class="num">$1,845</td><td class="num muted">$48,190</td></tr>
+            <tr><td class="cm-unit-id">0903</td><td class="num">9</td><td class="num">2</td><td class="num">2</td><td class="num">1,504</td><td class="num">Jun 30, 2025</td><td class="num">$2,180,000</td><td class="num">$1,449</td><td class="num muted">$27,290</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cm-table-footer">
+        <div>Showing 10 of 84 recorded sales · 118 total residences</div>
+        <button class="cm-table-expand" type="button">Unlock full roster →</button>
+      </div>
+      <!-- v12: avery unit-table inline cta -->
+      <div style="margin-top:32px;padding-top:28px;border-top:1px solid rgba(232, 227, 216, 0.14);text-align:center;">
+        <p style="color:rgba(232, 227, 216, 0.62);font-size:14px;margin-bottom:14px;font-family:'DM Sans', sans-serif;">See a unit you'd buy at the right number?</p>
+        <a href="#offer" data-cm-offer-trigger data-building-slug="the-avery" style="display:inline-flex;align-items:center;gap:8px;background:#d4a574;color:#1a1f2e;padding:13px 26px;border-radius:999px;font-family:'DM Sans', sans-serif;font-size:14px;font-weight:500;text-decoration:none;cursor:pointer;">Make an offer →</a>
+      </div>
+    </div>
+  </section>
+  <!-- ==================== OFFER CTA ==================== -->
+  <section class="cm-offer">
+    <div class="cm-offer-wrap">
+      <div class="cm-offer-kicker">Two ways to act · No listing required</div>
+      <h2 class="cm-offer-headline">You don't have to wait for a unit to <em>list</em>. You can make the market move.</h2>
+      <div class="cm-offer-grid">
+        <div class="cm-offer-card">
+          <div class="cm-offer-num">01 · Put in an offer</div>
+          <div class="cm-offer-title">Submit a bid on <em>any unit</em> in the building.</div>
+          <div class="cm-offer-copy">Pick a residence — listed, off-market, or one an owner hasn't thought of selling. We forward a written offer directly to the owner of record. If they're interested, you talk. If not, they know you exist.</div>
+          <a data-cm-offer-trigger data-building-slug="the-avery" class="cm-cta" style="cursor:pointer;">Start an offer</a>
+        </div>
+        <div class="cm-offer-card">
+          <div class="cm-offer-num">02 · Name your price</div>
+          <div class="cm-offer-title">Tell owners <em>what you'd pay</em> and wait for matches.</div>
+          <div class="cm-offer-copy">Set your criteria — bedroom count, budget, floor, views — and post a public "Make Me Move" offer on the building. When an owner's threshold aligns with yours, we connect you both. No agent fees on the buy-side.</div>
+          <a href="/owner-signup/?address=488+Folsom+St" class="cm-cta cm-cta--alt">Post a price</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="cm-footer">
+    <div class="cm-wrap" style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+      <div>
+        Data compiled from San Francisco public tax records · Updated Apr 19, 2026
+      </div>
+      <div>
+        <a href="/methodology">Methodology</a> · <a href="/buildings">All buildings</a> · <a href="/">Home</a>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<script type="module" src="/assets/cm-featured.js"></script>
+<script type="module" src="/assets/cm-actions.js"></script>
+<script type="module" src="/assets/cm-offer-modal.js"></script>
+</body>
+</html>

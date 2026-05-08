@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methodology · Condo Market SF</title>
+<meta name="description" content="How Condo Market SF sources its data: public tax records, MLS signals, and verified off-market intelligence.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-ff-display: 'Playfair Display', Georgia, serif;
+    --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
+    --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--cm-ff-body); font-weight: 300;
+    line-height: 1.65; min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  .wrap-wide { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  main { padding: 72px 0 96px; }
+  .kicker { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 20px; }
+  h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(40px, 5.5vw, 64px); line-height: 1.05; margin-bottom: 32px; }
+  h1 .accent { color: var(--cm-peri); }
+  h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 28px; margin-top: 48px; margin-bottom: 16px; color: var(--cm-ivory); }
+  h2 em { color: var(--cm-peri); }
+  p { color: var(--cm-ivory); font-size: 17px; margin-bottom: 18px; }
+  p.lead { font-size: 20px; color: var(--cm-ivory-dim); margin-bottom: 32px; }
+  .rule { border-top: 1px solid var(--cm-rule); margin: 48px 0 16px; }
+  dl.sources dt { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri); margin-top: 24px; margin-bottom: 6px; }
+  dl.sources dd { color: var(--cm-ivory); font-size: 16px; padding-left: 0; }
+  footer { border-top: 1px solid var(--cm-rule); padding: 32px 0; margin-top: 96px; color: var(--cm-ivory-dim); font-size: 13px; text-align: center; }
+  footer a { color: var(--cm-peri); text-decoration: none; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap-wide">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <div class="meta">
+        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="kicker">Methodology</div>
+    <h1>How we <span class="accent">know what we know.</span></h1>
+
+    <p class="lead">Condo Market SF's data rests on three pillars: public records, MLS signals, and verified owner input. We tell you which is which.</p>
+
+    <h2><em>01.</em> Public tax records</h2>
+    <p>Every unit sale in San Francisco is a matter of public record. We download the Assessor-Recorder's transaction data in bulk — sale prices, sale dates, APNs, legal descriptions, and building square footage — and match each record to the building it belongs to. These are the numbers underneath every "median $/sf" and "last sale" figure on the site.</p>
+    <p>We do <em>not</em> publish current owner names on building pages. Tax records include them, but our judgment is that exposing them publicly is a privacy cost without a benefit to the buyer.</p>
+
+    <h2><em>02.</em> MLS signals</h2>
+    <p>Units actively listed on the San Francisco MLS appear as such, tagged with their list price, days on market, and agent of record. Once a licensed-broker relationship with SFAR is in place, this feed updates nightly. Until then, we rely on public-facing listing aggregators and weekly manual sweeps.</p>
+
+    <h2><em>03.</em> Off-market intelligence</h2>
+    <p>This is where we earn our keep. Unlisted units — owners who'd sell at the right price, who've set a Make-Me-Move figure, or who've received an offer they're considering — exist in every building. We surface them in two ways.</p>
+    <p><strong>Owner-initiated:</strong> a condo owner signs up and names a price. That figure is visible to verified buyers inside a narrow unit-level panel; it is not public.</p>
+    <p><strong>Buyer-initiated:</strong> a buyer submits an offer on any unit, listed or not. We route it to the owner through the standard channels (mail, broker of record) and track the response privately in the buyer's dashboard.</p>
+
+    <h2><em>Why "flat 3%" works</em></h2>
+    <p>The typical 5–6% sell-side commission on a $2M condo is $100–120K split across agents. That's a lot of friction on a transaction where both sides often already know the unit and each other. Our flat 3% covers the transaction work — offer acceptance, escrow, closing, disclosures — and returns 1% to the building's HOA. Owners keep more; the building benefits; buyers know the number.</p>
+
+    <div class="rule"></div>
+
+    <h2>Data sources <em>by record type</em></h2>
+    <dl class="sources">
+      <dt>Sale history</dt>
+      <dd>San Francisco Office of the Assessor-Recorder, bulk downloads. Normalized by APN to the building level.</dd>
+
+      <dt>Building geometry &amp; year</dt>
+      <dd>Assessor records cross-referenced with SF Planning permit history.</dd>
+
+      <dt>Unit counts</dt>
+      <dd>Tax records (preferred) fall back to Webflow CMS-tracked estimates where tax data is incomplete.</dd>
+
+      <dt>Listing status</dt>
+      <dd>Weekly manual sweep of public-facing brokerage sites; nightly MLS feed planned for 2026 Q3.</dd>
+
+      <dt>Make-Me-Move prices</dt>
+      <dd>Owner-submitted, verified by phone or in-person meeting.</dd>
+
+      <dt>Neighborhood boundaries</dt>
+      <dd>SF Planning Department neighborhood map, with a handful of informal adjustments (e.g., our Dogpatch includes the southern Potrero flats).</dd>
+    </dl>
+
+    <div class="rule"></div>
+
+    <p style="color:var(--cm-ivory-dim);font-size:15px;">Questions about a specific figure? Email <a href="mailto:tim@mcmullen.properties" style="color:var(--cm-peri);">tim@mcmullen.properties</a>.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap-wide">
+    <p>Condo Market SF · McMullen Properties · DRE #02016832 · <a href="/buildings/">Return to home</a></p>
+  </div>
+</footer>
+</body>
+</html>
