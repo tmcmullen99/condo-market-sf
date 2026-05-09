@@ -71,7 +71,7 @@
   table.outreach td.col-num { text-align: right; font-family: var(--ff-mono); font-size: 13px; color: var(--cm-ivory); }
   table.outreach td.col-num.is-prize { color: var(--cm-bronze); font-weight: 500; }
   table.outreach td.col-actions { text-align: right; white-space: nowrap; }
-  table.outreach .iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid var(--cm-rule); background: transparent; color: var(--cm-ivory-dim); border-radius: 6px; margin-left: 4px; transition: border-color 0.15s, color 0.15s; }
+  table.outreach .iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid var(--cm-rule); background: transparent; color: var(--cm-ivory-dim); border-radius: 6px; margin-left: 4px; transition: border-color 0.15s, color 0.15s; text-decoration: none; }
   table.outreach .iconbtn:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
   table.outreach .iconbtn.is-pitch:hover { border-color: var(--cm-bronze); color: var(--cm-bronze); }
 
@@ -109,7 +109,18 @@
   .field label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-ivory-dim); }
   .field input, .field select, .field textarea { background: var(--cm-navy); border: 1px solid var(--cm-rule); color: var(--cm-ivory); padding: 9px 12px; border-radius: 6px; font-family: var(--ff-body); font-size: 13px; transition: border-color 0.15s; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--cm-peri); }
-  .field textarea { min-height: 80px; resize: vertical; font-family: var(--ff-body); }
+  .field textarea { min-height: 70px; resize: vertical; font-family: var(--ff-body); }
+
+  /* Inline quick-log form (replaces the broken modal flow) */
+  .quick-log {
+    margin-top: 22px; padding: 18px 20px; border: 1px solid var(--cm-rule);
+    border-radius: 10px; background: rgba(159,180,216,0.04);
+  }
+  .quick-log h4 { margin-bottom: 12px; }
+  .quick-log .field-grid { margin-bottom: 14px; }
+  .quick-log-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-log { background: var(--cm-peri); color: var(--cm-navy); padding: 9px 18px; border-radius: 999px; border: none; font-weight: 500; font-size: 12px; }
+  .btn-log:hover { opacity: 0.88; }
 
   .actions-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
   .action-btn { background: transparent; color: var(--cm-ivory); padding: 9px 16px; border-radius: 999px; border: 1px solid var(--cm-rule); font-size: 12px; font-family: var(--ff-body); transition: border-color 0.15s, color 0.15s; display: inline-flex; align-items: center; gap: 6px; }
@@ -119,7 +130,7 @@
   .save-indicator { font-family: var(--ff-mono); font-size: 10px; color: var(--cm-gain); margin-left: auto; align-self: center; opacity: 0; transition: opacity 0.4s; }
   .save-indicator.is-visible { opacity: 1; }
 
-  .timeline { display: flex; flex-direction: column; gap: 0; max-height: 420px; overflow-y: auto; padding-right: 8px; }
+  .timeline { display: flex; flex-direction: column; gap: 0; max-height: 520px; overflow-y: auto; padding-right: 8px; }
   .timeline::-webkit-scrollbar { width: 6px; }
   .timeline::-webkit-scrollbar-track { background: transparent; }
   .timeline::-webkit-scrollbar-thumb { background: var(--cm-rule); border-radius: 3px; }
@@ -138,7 +149,9 @@
   .timeline-content .body { font-size: 12px; color: var(--cm-ivory-dim); margin-top: 5px; line-height: 1.5; white-space: pre-wrap; }
   .timeline-empty { text-align: center; padding: 32px 12px; color: var(--cm-ivory-faint); font-style: italic; font-family: var(--ff-display); font-size: 14px; }
 
+  /* Email modal (kept — works fine, distinct flow with templates) */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(15,19,29,0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .modal-backdrop[hidden] { display: none !important; }
   .modal { background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 32px; max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto; }
   .modal h3 { font-family: var(--ff-display); font-style: italic; font-size: 26px; font-weight: 500; color: var(--cm-ivory); margin-bottom: 6px; }
   .modal .sub { font-size: 13px; color: var(--cm-ivory-dim); margin-bottom: 22px; }
@@ -158,7 +171,6 @@
   .access-denied { text-align: center; padding: 100px 20px; }
   .access-denied h2 { font-family: var(--ff-display); font-style: italic; font-size: 36px; color: var(--cm-rust); margin-bottom: 14px; }
 
-  /* Toast for surfacing errors */
   .toast { position: fixed; bottom: 24px; right: 24px; max-width: 420px; padding: 16px 20px; border-radius: 10px; font-size: 13px; line-height: 1.5; z-index: 200; box-shadow: 0 12px 36px rgba(0,0,0,0.5); animation: toastIn 0.18s ease-out; }
   .toast.is-error { background: rgba(201,87,66,0.95); color: white; border: 1px solid rgba(255,255,255,0.2); }
   .toast.is-success { background: rgba(143,185,122,0.95); color: var(--cm-navy); border: 1px solid rgba(0,0,0,0.1); }
@@ -191,8 +203,7 @@
     <p class="page-sub">Every San Francisco condo building — sorted by missed HOA revenue. Track each board from prospect to partner.</p>
     <div class="kpis" id="kpis"></div>
     <div class="filters">
-      <div class="filter-group">
-        <label class="filter-lbl" for="f-status">Status</label>
+      <div class="filter-group"><label class="filter-lbl" for="f-status">Status</label>
         <select id="f-status" class="filter-input">
           <option value="all">All</option><option value="active">In pipeline</option><option value="needs_followup">Needs follow-up</option>
           <option value="untouched">Untouched</option><option value="targeted">Targeted</option><option value="emailed">Emailed</option>
@@ -215,6 +226,7 @@
   </div>
 </main>
 
+<!-- Email modal — kept (different flow, has 4 templates with merge variables) -->
 <div class="modal-backdrop" id="email-modal" hidden>
   <div class="modal">
     <h3>Compose email</h3>
@@ -231,24 +243,8 @@
       <div class="field field-full"><label>Body</label><textarea id="email-body" rows="14"></textarea></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-ghost" data-action="close-email">Cancel</button>
-      <button class="btn-primary" data-action="send-email">Open in mail · log as sent</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="event-modal" hidden>
-  <div class="modal" style="max-width: 540px;">
-    <h3 id="event-modal-title">Add note</h3>
-    <p class="sub" id="event-modal-sub">—</p>
-    <div class="field-grid">
-      <div class="field"><label>Date</label><input type="date" id="event-date"></div>
-      <div class="field"><label id="event-subject-lbl">Subject</label><input type="text" id="event-subject" placeholder="e.g. Phone call with Karen"></div>
-      <div class="field field-full"><label>Details</label><textarea id="event-body" rows="6" placeholder="What happened, decisions made, next steps…"></textarea></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" data-action="close-event">Cancel</button>
-      <button class="btn-primary" data-action="save-event">Save to timeline</button>
+      <button class="btn-ghost" id="btn-email-cancel">Cancel</button>
+      <button class="btn-primary" id="btn-email-send">Open in mail · log as sent</button>
     </div>
   </div>
 </div>
@@ -258,7 +254,6 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '/assets/cm-config.js';
 
 const SITE_ORIGIN = window.location.origin;
 
-// ── Toast notifications (surface errors / successes) ───────────────────────
 function toast(msg, kind = 'error', ms = 6000) {
   const t = document.createElement('div');
   t.className = `toast is-${kind}`;
@@ -268,19 +263,15 @@ function toast(msg, kind = 'error', ms = 6000) {
   if (ms) setTimeout(() => t.remove(), ms);
 }
 
-// ── Auth helpers — robust to multiple Supabase token storage formats ──────
 const sb = {
-  url: SUPABASE_URL,
-  key: SUPABASE_ANON_KEY,
+  url: SUPABASE_URL, key: SUPABASE_ANON_KEY,
   _readSession: () => {
     try {
-      // Standard supabase-js v2 key pattern
       const k = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
       if (!k) return null;
       const raw = localStorage.getItem(k);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      // v2 format: top-level has access_token + user. Some custom impls nest under .currentSession.
       if (obj?.access_token && obj?.user) return obj;
       if (obj?.currentSession?.access_token) return obj.currentSession;
       return obj;
@@ -290,33 +281,28 @@ const sb = {
   user: () => sb._readSession()?.user || null,
   headers: (extra = {}) => {
     const t = sb.token();
-    if (!t) console.warn('[auth] no JWT in localStorage — request will be anonymous and likely fail RLS');
     return { apikey: sb.key, Authorization: `Bearer ${t || sb.key}`, 'Content-Type': 'application/json', ...extra };
   }
 };
 
-// ── State ──────────────────────────────────────────────────────────────────
 const state = {
   buildings: [], outreach: new Map(), summary: new Map(), events: new Map(),
   user: null, profile: null, expandedSlug: null,
   filters: { status: 'all', hood: 'all', units: 0, sort: 'missed_hoa' }
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const slugFromHref = (b) => (b.href || '').replace(/^\/building\//, '').replace(/\/$/, '');
 
-// Robust date conversion: accepts "YYYY-MM-DD" from <input type="date"> and
-// returns ISO string for Postgres timestamptz. Throws clear error on bad input.
 function toIsoFromDateInput(dateStr) {
   if (!dateStr || typeof dateStr !== 'string') return new Date().toISOString();
   const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) throw new Error(`Date "${dateStr}" is not in YYYY-MM-DD format`);
+  if (!m) throw new Error(`Date "${dateStr}" is not YYYY-MM-DD`);
   const year = parseInt(m[1], 10);
-  if (year < 1970 || year > 2100) throw new Error(`Year ${year} is out of reasonable range (1970–2100)`);
+  if (year < 1970 || year > 2100) throw new Error(`Year ${year} outside 1970–2100`);
   const d = new Date(`${dateStr}T12:00:00`);
-  if (isNaN(d.getTime())) throw new Error(`Could not parse date "${dateStr}"`);
+  if (isNaN(d.getTime())) throw new Error(`Could not parse "${dateStr}"`);
   return d.toISOString();
 }
 
@@ -327,7 +313,6 @@ const fmt = {
     if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
     return '$' + Math.round(n).toLocaleString();
   },
-  money: (n) => n != null ? '$' + Math.round(n).toLocaleString() : '—',
   date: (s) => s ? new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
   relative: (ts) => {
     if (!ts) return '—';
@@ -368,24 +353,24 @@ const STATUS_OPTIONS = [
   { val: 'declined', lbl: 'Declined' }, { val: 'dormant', lbl: 'Dormant' },
 ];
 
-// ── Init ───────────────────────────────────────────────────────────────────
+const QL_TYPES = [
+  { val: 'note',              lbl: '📝 Note' },
+  { val: 'call_logged',       lbl: '📞 Phone call' },
+  { val: 'meeting_held',      lbl: '🤝 Meeting (held)' },
+  { val: 'meeting_scheduled', lbl: '📅 Meeting (scheduled)' },
+];
+
 async function init() {
   try {
     state.user = sb.user();
     if (!state.user || !state.user.id) {
-      showAccessDenied('Sign in required (no auth session found in localStorage)');
+      showAccessDenied('Sign in required (no auth session in localStorage)');
       return;
     }
     const profileRes = await fetch(`${sb.url}/rest/v1/profiles?id=eq.${state.user.id}&select=role,full_name,email`, { headers: sb.headers() });
-    if (!profileRes.ok) {
-      showAccessDenied(`Profile fetch failed (${profileRes.status})`);
-      return;
-    }
+    if (!profileRes.ok) { showAccessDenied(`Profile fetch failed (${profileRes.status})`); return; }
     const profiles = await profileRes.json();
-    if (!profiles[0] || profiles[0].role !== 'admin') {
-      showAccessDenied('Admin role required');
-      return;
-    }
+    if (!profiles[0] || profiles[0].role !== 'admin') { showAccessDenied('Admin role required'); return; }
     state.profile = profiles[0];
     $('admin-user').textContent = state.profile.full_name || state.profile.email || '—';
 
@@ -549,10 +534,12 @@ function renderDetailPanel(r) {
   const o = r.outreach, s = r.summary;
   const pitchUrl = `${SITE_ORIGIN}/hoa-pitch?slug=${r.slug}`;
   const events = r.events;
+  const today = fmt.todayInputValue();
   return `
     <tr class="detail" data-slug="${esc(r.slug)}"><td colspan="9">
       <div class="detail-panel">
         <div class="detail-section">
+
           <div class="pitch-cta">
             <div class="pitch-cta-left">
               <div class="lbl">HOA Pitch Deck — ${fmt.moneyCompact(s.missed_hoa_10y)} missed</div>
@@ -563,12 +550,14 @@ function renderDetailPanel(r) {
               <a href="${pitchUrl}" target="_blank" rel="noopener" class="btn-pitch">Open ↗</a>
             </div>
           </div>
+
           <h4>Contact</h4>
           <div class="field-grid">
             <div class="field"><label>Name</label><input data-field="contact_name" type="text" value="${esc(o.contact_name || '')}" placeholder="HOA contact name"></div>
             <div class="field"><label>Role</label><input data-field="contact_role" type="text" value="${esc(o.contact_role || '')}" placeholder="e.g. President, Property Manager"></div>
             <div class="field field-full"><label>Email</label><input data-field="contact_email" type="email" value="${esc(o.contact_email || '')}" placeholder="email@example.com"></div>
           </div>
+
           <h4>Pipeline</h4>
           <div class="field-grid">
             <div class="field"><label>Status</label>
@@ -579,22 +568,40 @@ function renderDetailPanel(r) {
             <div class="field"><label>Next action date</label><input data-field="next_action_at" type="date" value="${fmt.dateInputValue(o.next_action_at)}"></div>
             <div class="field field-full"><label>Notes</label><textarea data-field="notes" placeholder="Persistent notes about this building/board…">${esc(o.notes || '')}</textarea></div>
           </div>
+
+          <!-- Inline log form (replaces broken modal flow) -->
+          <div class="quick-log" data-ql-slug="${esc(r.slug)}">
+            <h4>Log a touchpoint</h4>
+            <div class="field-grid">
+              <div class="field"><label>Type</label>
+                <select data-ql="type">
+                  ${QL_TYPES.map(t => `<option value="${t.val}">${t.lbl}</option>`).join('')}
+                </select>
+              </div>
+              <div class="field"><label>Date</label><input type="date" data-ql="date" value="${today}"></div>
+              <div class="field field-full"><label>Subject (optional)</label><input type="text" data-ql="subject" placeholder="e.g. Phone with Karen — discussed timing"></div>
+              <div class="field field-full"><label>Details</label><textarea data-ql="body" rows="3" placeholder="What happened, decisions made, next steps…"></textarea></div>
+            </div>
+            <div class="quick-log-actions">
+              <button class="btn-log" data-ql-submit data-slug="${esc(r.slug)}">+ Add to timeline</button>
+              <span class="save-indicator" data-slug="${esc(r.slug)}">Logged</span>
+            </div>
+          </div>
+
           <div class="actions-row">
-            <button class="action-btn" data-action="compose-email" data-slug="${esc(r.slug)}">✉ Compose email</button>
-            <button class="action-btn" data-action="log-call" data-slug="${esc(r.slug)}">📞 Log call</button>
-            <button class="action-btn" data-action="log-meeting" data-slug="${esc(r.slug)}">📅 Log meeting</button>
-            <button class="action-btn" data-action="add-note" data-slug="${esc(r.slug)}">📝 Add note</button>
-            <button class="action-btn is-won" data-action="mark-won" data-slug="${esc(r.slug)}">✓ Won</button>
-            <button class="action-btn is-declined" data-action="mark-declined" data-slug="${esc(r.slug)}">✗ Declined</button>
-            <span class="save-indicator" data-slug="${esc(r.slug)}">Saved</span>
+            <button class="action-btn" data-act="email" data-slug="${esc(r.slug)}">✉ Compose email</button>
+            <button class="action-btn is-won" data-act="won" data-slug="${esc(r.slug)}">✓ Mark Won</button>
+            <button class="action-btn is-declined" data-act="declined" data-slug="${esc(r.slug)}">✗ Mark Declined</button>
           </div>
         </div>
+
         <div class="detail-section">
           <h4>Timeline · ${events.length} event${events.length === 1 ? '' : 's'}</h4>
           ${events.length === 0
-            ? '<div class="timeline-empty">No touchpoints yet. Compose an email or log a call to begin.</div>'
+            ? '<div class="timeline-empty">No touchpoints yet. Log one with the form on the left.</div>'
             : `<div class="timeline">${events.map(e => renderEvent(e)).join('')}</div>`}
         </div>
+
       </div>
     </td></tr>
   `;
@@ -610,8 +617,8 @@ function renderEvent(e) {
   const ico = iconMap[e.event_type] || { c:'note', s:'•' };
   const titleMap = {
     email_sent: `Email sent · ${e.template_key || 'custom'}`, call_logged: 'Call logged',
-    meeting_scheduled: 'Meeting scheduled', meeting_held: 'Meeting held', note: 'Note added',
-    status_changed: `Status changed · ${e.metadata?.from_status || '?'} → ${e.metadata?.to_status || '?'}`,
+    meeting_scheduled: 'Meeting scheduled', meeting_held: 'Meeting held', note: 'Note',
+    status_changed: `Status: ${e.metadata?.from_status || '?'} → ${e.metadata?.to_status || '?'}`,
     won: 'Marked WON', declined: 'Marked DECLINED', reminder_set: 'Reminder set'
   };
   return `
@@ -634,12 +641,16 @@ function toggleExpand(slug) {
 function wireDetailPanel(slug) {
   const detailRow = $('tbody').querySelector(`tr.detail[data-slug="${slug}"]`);
   if (!detailRow) return;
+
+  // Auto-save fields
   detailRow.querySelectorAll('[data-field]').forEach(el => {
     const evt = (el.tagName === 'SELECT') ? 'change' : 'blur';
-    el.addEventListener(evt, () => saveField(slug, el.dataset.field, el.value, el).catch(err => {
+    el.addEventListener(evt, () => saveField(slug, el.dataset.field, el.value).catch(err => {
       console.error('[saveField]', err); toast(`Save failed: ${err.message || err}`);
     }));
   });
+
+  // Copy buttons
   detailRow.querySelectorAll('[data-copy]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -650,26 +661,54 @@ function wireDetailPanel(slug) {
       } catch {}
     });
   });
-  detailRow.querySelectorAll('[data-action]').forEach(btn => {
+
+  // Inline quick-log submit — reads form values directly from the same panel
+  const qlSubmit = detailRow.querySelector('[data-ql-submit]');
+  if (qlSubmit) {
+    qlSubmit.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const qlSlug = qlSubmit.dataset.slug;
+      const wrap = detailRow.querySelector('.quick-log');
+      const type = wrap.querySelector('[data-ql="type"]').value;
+      const subject = wrap.querySelector('[data-ql="subject"]').value.trim();
+      const body = wrap.querySelector('[data-ql="body"]').value.trim();
+      const dateRaw = wrap.querySelector('[data-ql="date"]').value;
+      console.log('[quick-log] submit', { qlSlug, type, subject, body, dateRaw });
+      if (!subject && !body) { toast('Add a subject or details before logging.'); return; }
+      try {
+        const occurredAt = toIsoFromDateInput(dateRaw);
+        await insertEvent(qlSlug, { event_type: type, subject: subject || null, body: body || null, occurred_at: occurredAt });
+        const cur = state.outreach.get(qlSlug) || { building_slug: qlSlug, status: 'untouched' };
+        await upsertOutreach(qlSlug, { ...cur, last_contacted_at: occurredAt });
+        toast('Logged to timeline.', 'success', 2500);
+        renderKpis();
+        renderTable();
+      } catch (err) {
+        console.error('[quick-log]', err);
+        toast(`Log failed: ${err.message || err}`, 'error', 12000);
+      }
+    });
+  }
+
+  // Action buttons (email / won / declined)
+  detailRow.querySelectorAll('[data-act]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const action = btn.dataset.action;
+      const act = btn.dataset.act;
+      const aSlug = btn.dataset.slug;
       try {
-        if (action === 'compose-email')      openEmailModal(slug);
-        else if (action === 'log-call')      openEventModal(slug, 'call_logged', 'Log a call', 'Topic / call summary');
-        else if (action === 'log-meeting')   openEventModal(slug, 'meeting_held', 'Log a meeting', 'Meeting topic / outcome');
-        else if (action === 'add-note')      openEventModal(slug, 'note', 'Add a note', 'Note title');
-        else if (action === 'mark-won')      await quickStatusChange(slug, 'won', 'Marked as WON');
-        else if (action === 'mark-declined') await quickStatusChange(slug, 'declined', 'Marked as declined');
+        if (act === 'email') openEmailModal(aSlug);
+        else if (act === 'won') await quickStatusChange(aSlug, 'won', 'Marked as WON');
+        else if (act === 'declined') await quickStatusChange(aSlug, 'declined', 'Marked as declined');
       } catch (err) {
-        console.error(`[action ${action}]`, err);
-        toast(`${action} failed: ${err.message || err}`);
+        console.error(`[${act}]`, err);
+        toast(`${act} failed: ${err.message || err}`);
       }
     });
   });
 }
 
-async function saveField(slug, field, value, el) {
+async function saveField(slug, field, value) {
   const current = state.outreach.get(slug) || { building_slug: slug };
   const oldStatus = current.status || 'untouched';
   const patch = { [field]: value === '' ? null : value };
@@ -689,8 +728,6 @@ async function saveField(slug, field, value, el) {
     await insertEvent(slug, { event_type: 'status_changed', metadata: { from_status: oldStatus, to_status: value }, subject: `${oldStatus} → ${value}` });
   }
   if (field === 'next_action_at' && value) {
-    // Validate date range before saving
-    try { toIsoFromDateInput(value); } catch (err) { toast(`Bad date: ${err.message}`); throw err; }
     patch[field] = toIsoFromDateInput(value);
   }
   await upsertOutreach(slug, { ...current, ...patch });
@@ -707,7 +744,7 @@ async function upsertOutreach(slug, row) {
   });
   if (!res.ok) {
     const errText = await res.text().catch(() => 'unknown');
-    throw new Error(`Upsert hoa_outreach failed (${res.status}): ${errText}`);
+    throw new Error(`Upsert hoa_outreach (${res.status}): ${errText}`);
   }
   const json = await res.json();
   const updated = Array.isArray(json) ? json[0] : json;
@@ -716,7 +753,7 @@ async function upsertOutreach(slug, row) {
 }
 
 async function insertEvent(slug, event) {
-  if (!state.user || !state.user.id) throw new Error('Not signed in (no user.id in session)');
+  if (!state.user || !state.user.id) throw new Error('Not signed in');
   const payload = { building_slug: slug, ...event, created_by: state.user.id };
   const res = await fetch(`${sb.url}/rest/v1/hoa_outreach_events`, {
     method: 'POST',
@@ -725,7 +762,7 @@ async function insertEvent(slug, event) {
   });
   if (!res.ok) {
     const errText = await res.text().catch(() => 'unknown');
-    throw new Error(`Insert hoa_outreach_events failed (${res.status}): ${errText}`);
+    throw new Error(`Insert events (${res.status}): ${errText}`);
   }
   const json = await res.json();
   const inserted = Array.isArray(json) ? json[0] : json;
@@ -753,7 +790,7 @@ async function quickStatusChange(slug, newStatus, eventTitle) {
     event_type: newStatus === 'won' ? 'won' : 'declined',
     subject: eventTitle, metadata: { from_status: oldStatus, to_status: newStatus }
   });
-  toast(`${eventTitle} for ${slug}`, 'success', 2500);
+  toast(`${eventTitle}`, 'success', 2500);
   renderKpis(); renderTable();
 }
 
@@ -763,52 +800,12 @@ async function cycleStatus(slug) {
     const idx = STATUS_OPTIONS.findIndex(s => s.val === current.status);
     const nextIdx = (idx + 1) % STATUS_OPTIONS.length;
     const newStatus = STATUS_OPTIONS[nextIdx].val;
-    await saveField(slug, 'status', newStatus, null);
+    await saveField(slug, 'status', newStatus);
     renderKpis(); renderTable();
   } catch (err) { console.error('[cycleStatus]', err); toast(`Status change failed: ${err.message || err}`); }
 }
 
-// ── Generic event modal ────────────────────────────────────────────────────
-let pendingEvent = null;
-function openEventModal(slug, eventType, title, subjectPlaceholder) {
-  const r = state.buildings.find(b => b.slug === slug);
-  pendingEvent = { slug, eventType };
-  $('event-modal-title').textContent = title;
-  $('event-modal-sub').textContent = r ? r.name : slug;
-  $('event-subject-lbl').textContent = subjectPlaceholder.toLowerCase().includes('topic') ? 'Topic' : 'Subject';
-  $('event-subject').placeholder = subjectPlaceholder;
-  $('event-date').value = fmt.todayInputValue();
-  $('event-subject').value = '';
-  $('event-body').value = '';
-  $('event-modal').hidden = false;
-}
-$('event-modal').querySelector('[data-action="close-event"]').addEventListener('click', () => $('event-modal').hidden = true);
-$('event-modal').querySelector('[data-action="save-event"]').addEventListener('click', async () => {
-  console.log('[save-event] click');
-  if (!pendingEvent) { toast('No event in progress — close and reopen the modal.'); return; }
-  const subject = $('event-subject').value.trim();
-  const body = $('event-body').value.trim();
-  const dateRaw = $('event-date').value;
-  console.log('[save-event] values', { slug: pendingEvent.slug, eventType: pendingEvent.eventType, subject, body, dateRaw });
-  if (!subject && !body) { toast('Add at least a subject or details.'); return; }
-  try {
-    const occurredAt = toIsoFromDateInput(dateRaw);
-    await insertEvent(pendingEvent.slug, {
-      event_type: pendingEvent.eventType, subject: subject || null, body: body || null, occurred_at: occurredAt
-    });
-    const cur = state.outreach.get(pendingEvent.slug) || { building_slug: pendingEvent.slug, status: 'untouched' };
-    await upsertOutreach(pendingEvent.slug, { ...cur, last_contacted_at: occurredAt });
-    $('event-modal').hidden = true;
-    pendingEvent = null;
-    toast('Saved to timeline.', 'success', 2500);
-    renderTable();
-  } catch (err) {
-    console.error('[save-event]', err);
-    toast(`Save failed: ${err.message || err}`, 'error', 12000);
-  }
-});
-
-// ── Email composer ─────────────────────────────────────────────────────────
+// ─── Email modal (kept — distinct flow with merge-variable templates) ──────
 const TEMPLATES = {
   cold: {
     subject: 'A partnership that pays {{building_name}} — direct revenue from every sale',
@@ -876,20 +873,6 @@ tim@mcmullen.properties · (415) 691-9272`
   }
 };
 
-let pendingEmail = null;
-function openEmailModal(slug) {
-  const r = state.buildings.find(b => b.slug === slug);
-  if (!r) return;
-  const o = state.outreach.get(slug) || {};
-  const s = state.summary.get(slug) || {};
-  pendingEmail = { slug, building: r, outreach: o, summary: s };
-  $('email-modal-sub').textContent = `${r.name} · ${fmt.moneyCompact(s.missed_hoa_10y)} missed HOA revenue`;
-  $('email-to').value = o.contact_email || '';
-  selectTemplate('cold');
-  document.querySelectorAll('.email-tab').forEach(t => t.classList.toggle('active', t.dataset.tpl === 'cold'));
-  $('email-modal').hidden = false;
-}
-
 function fillVars(text, ctx) {
   return text
     .replace(/\{\{building_name\}\}/g, ctx.building.name || '')
@@ -902,25 +885,45 @@ function fillVars(text, ctx) {
     .replace(/\{\{contact_first_name\}\}/g, (ctx.outreach.contact_name || 'there').split(' ')[0]);
 }
 
-function selectTemplate(tplKey) {
-  if (!pendingEmail) return;
-  pendingEmail.tplKey = tplKey;
-  const tpl = TEMPLATES[tplKey];
-  $('email-subject').value = fillVars(tpl.subject, pendingEmail);
-  $('email-body').value = fillVars(tpl.body, pendingEmail);
+function openEmailModal(slug) {
+  const r = state.buildings.find(b => b.slug === slug);
+  if (!r) { toast(`Building "${slug}" not found in state`); return; }
+  const o = state.outreach.get(slug) || {};
+  const s = state.summary.get(slug) || {};
+  const modal = $('email-modal');
+  modal.dataset.slug = slug;
+  modal.dataset.tplKey = 'cold';
+  $('email-modal-sub').textContent = `${r.name} · ${fmt.moneyCompact(s.missed_hoa_10y)} missed HOA revenue`;
+  $('email-to').value = o.contact_email || '';
+  const ctx = { slug, building: r, outreach: o, summary: s };
+  $('email-subject').value = fillVars(TEMPLATES.cold.subject, ctx);
+  $('email-body').value = fillVars(TEMPLATES.cold.body, ctx);
+  document.querySelectorAll('.email-tab').forEach(t => t.classList.toggle('active', t.dataset.tpl === 'cold'));
+  modal.hidden = false;
 }
 
 document.querySelectorAll('.email-tab').forEach(tab => {
   tab.addEventListener('click', () => {
+    const slug = $('email-modal').dataset.slug;
+    if (!slug) return;
+    const r = state.buildings.find(b => b.slug === slug);
+    const o = state.outreach.get(slug) || {};
+    const s = state.summary.get(slug) || {};
+    const ctx = { slug, building: r, outreach: o, summary: s };
+    const tplKey = tab.dataset.tpl;
+    $('email-modal').dataset.tplKey = tplKey;
     document.querySelectorAll('.email-tab').forEach(t => t.classList.toggle('active', t === tab));
-    selectTemplate(tab.dataset.tpl);
+    $('email-subject').value = fillVars(TEMPLATES[tplKey].subject, ctx);
+    $('email-body').value = fillVars(TEMPLATES[tplKey].body, ctx);
   });
 });
 
-$('email-modal').querySelector('[data-action="close-email"]').addEventListener('click', () => $('email-modal').hidden = true);
-$('email-modal').querySelector('[data-action="send-email"]').addEventListener('click', async () => {
-  console.log('[send-email] click');
-  if (!pendingEmail) { toast('No email in progress.'); return; }
+$('btn-email-cancel').addEventListener('click', () => $('email-modal').hidden = true);
+$('btn-email-send').addEventListener('click', async () => {
+  const modal = $('email-modal');
+  const slug = modal.dataset.slug;
+  const tplKey = modal.dataset.tplKey || 'custom';
+  if (!slug) { toast('No email session — close and click Compose email again.'); return; }
   const to = $('email-to').value.trim();
   const subject = $('email-subject').value;
   const body = $('email-body').value;
@@ -928,14 +931,13 @@ $('email-modal').querySelector('[data-action="send-email"]').addEventListener('c
   try {
     const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailto, '_blank');
-    await insertEvent(pendingEmail.slug, { event_type: 'email_sent', template_key: pendingEmail.tplKey, subject, body });
-    const cur = state.outreach.get(pendingEmail.slug) || { building_slug: pendingEmail.slug, status: 'untouched' };
+    await insertEvent(slug, { event_type: 'email_sent', template_key: tplKey, subject, body });
+    const cur = state.outreach.get(slug) || { building_slug: slug, status: 'untouched' };
     const nowIso = new Date().toISOString();
     const next = new Date(); next.setDate(next.getDate() + 7);
     const newStatus = (cur.status === 'untouched' || cur.status === 'targeted') ? 'emailed' : cur.status;
-    await upsertOutreach(pendingEmail.slug, { ...cur, status: newStatus, last_contacted_at: nowIso, next_action_at: next.toISOString(), contact_email: to });
-    $('email-modal').hidden = true;
-    pendingEmail = null;
+    await upsertOutreach(slug, { ...cur, status: newStatus, last_contacted_at: nowIso, next_action_at: next.toISOString(), contact_email: to });
+    modal.hidden = true;
     toast('Email logged.', 'success', 2500);
     renderKpis(); renderTable();
   } catch (err) {
@@ -944,6 +946,7 @@ $('email-modal').querySelector('[data-action="send-email"]').addEventListener('c
   }
 });
 
+// Top-level icon copy
 document.body.addEventListener('click', async (e) => {
   const btn = e.target.closest('.iconbtn[data-copy]');
   if (!btn) return;
