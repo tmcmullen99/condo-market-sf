@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOA Partnership Proposal · Condo Market</title>
+<meta name="description" content="A partnership that pays your building. Confidential HOA proposal showing exact missed revenue from past sales and projected revenue going forward.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-bronze: #d4a574;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.42);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-rule-soft: rgba(232, 227, 216, 0.08);
+    --cm-rust: #c95742;       /* The "$0 to HOA" red */
+    --cm-rust-soft: rgba(201, 87, 66, 0.12);
+    --cm-gain: #8fb97a;
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --page-max: 1080px;
+    --gutter: clamp(20px, 4vw, 56px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--ff-body); font-weight: 300; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1; mix-blend-mode: overlay;
+  }
+  main { position: relative; z-index: 2; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
+
+  /* Masthead — minimal, document-style */
+  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+  .wordmark em { color: var(--cm-peri); }
+  .masthead-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+
+  /* Hero */
+  .hero { padding: 80px 0 100px; }
+  .hero-eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 22px; }
+  .hero h1 {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(44px, 6vw, 80px); line-height: 1.0; letter-spacing: -0.02em;
+    color: var(--cm-ivory); margin-bottom: 20px; max-width: 18ch;
+  }
+  .hero-sub {
+    font-family: var(--ff-display); font-size: clamp(18px, 2vw, 22px);
+    color: var(--cm-ivory-dim); max-width: 50ch; margin-bottom: 56px;
+    font-style: italic; font-weight: 500;
+  }
+  .hero-contact { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.04em; color: var(--cm-ivory-dim); margin-bottom: 44px; line-height: 1.9; }
+  .hero-contact strong { color: var(--cm-ivory); font-weight: 500; }
+
+  /* The big missed-revenue callout in the hero */
+  .hero-callout {
+    background: linear-gradient(180deg, rgba(201, 87, 66, 0.12) 0%, rgba(201, 87, 66, 0.04) 100%);
+    border: 1px solid rgba(201, 87, 66, 0.32); border-radius: 14px;
+    padding: 44px 36px; text-align: center; margin-bottom: 32px;
+  }
+  .hero-callout-eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-rust); margin-bottom: 18px; }
+  .hero-callout-num {
+    font-family: var(--ff-display); font-weight: 700; font-style: italic;
+    font-size: clamp(64px, 10vw, 128px); line-height: 0.92; letter-spacing: -0.03em;
+    color: var(--cm-ivory); margin-bottom: 14px;
+  }
+  .hero-callout-label { font-family: var(--ff-mono); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .hero-callout-meta { font-size: 14px; color: var(--cm-ivory-dim); margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
+  .confidential { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-faint); }
+
+  /* Section pattern */
+  .section { padding: 88px 0; border-top: 1px solid var(--cm-rule); }
+  .section-eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 14px; }
+  .section-title {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: clamp(30px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.015em;
+    color: var(--cm-ivory); max-width: 26ch; margin-bottom: 56px;
+  }
+  .section-title em { font-style: italic; color: var(--cm-peri); }
+
+  /* Stat cards (used in several sections) */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 36px; }
+  .stat-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 36px 28px; text-align: center; }
+  .stat-card.is-rust { background: var(--cm-rust-soft); border-color: rgba(201, 87, 66, 0.38); }
+  .stat-card-num {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(48px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.02em;
+    color: var(--cm-ivory); margin-bottom: 12px;
+  }
+  .stat-card.is-rust .stat-card-num { color: #fff; }
+  .stat-card-label { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 14px; }
+  .stat-card.is-rust .stat-card-label { color: #ffb6a5; }
+  .stat-card-meta { font-size: 13px; color: var(--cm-ivory-dim); line-height: 1.55; }
+
+  /* Comparison table (Opportunity section) */
+  .comparison {
+    background: rgba(232,227,216,0.02); border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--cm-rule);
+  }
+  .comparison-row {
+    display: grid; grid-template-columns: 1.6fr 1fr 1.6fr;
+    gap: 20px; align-items: center; padding: 20px 28px;
+    border-bottom: 1px solid var(--cm-rule-soft);
+  }
+  .comparison-row:last-child { border-bottom: none; }
+  .comparison-row.is-highlight {
+    background: rgba(159,180,216,0.06);
+    border-left: 3px solid var(--cm-peri);
+  }
+  .comparison-label { font-size: 16px; color: var(--cm-ivory); font-weight: 500; }
+  .comparison-row.is-highlight .comparison-label { font-family: var(--ff-display); font-style: italic; }
+  .comparison-amount {
+    font-family: var(--ff-display); font-style: italic; font-weight: 500;
+    font-size: 22px; color: var(--cm-rust); text-align: center;
+  }
+  .comparison-row.is-highlight .comparison-amount { color: var(--cm-peri); }
+  .comparison-note { font-size: 13px; color: var(--cm-ivory-dim); }
+
+  /* Bar chart frame */
+  .chart-frame {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 12px; padding: 36px;
+  }
+  .chart-row { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: stretch; }
+  @media (min-width: 880px) { .chart-row { grid-template-columns: 2.2fr 1fr; } }
+  .chart-canvas-wrap { position: relative; height: 360px; }
+  .chart-side-stats { display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+  .chart-side-stat { background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; }
+  .chart-side-stat .lbl { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
+  .chart-side-stat .val { font-family: var(--ff-display); font-style: italic; font-size: 28px; color: var(--cm-ivory); line-height: 1; }
+
+  /* Transactions table */
+  .txn-table-frame {
+    background: rgba(159,180,216,0.03); border: 1px solid var(--cm-rule);
+    border-radius: 12px; overflow: hidden;
+  }
+  .txn-table { width: 100%; border-collapse: collapse; font-family: var(--ff-mono); font-size: 13px; }
+  .txn-table thead th {
+    text-align: left; padding: 14px 18px;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cm-ivory-dim); font-weight: 500;
+    border-bottom: 1px solid var(--cm-rule);
+    background: rgba(159,180,216,0.02);
+  }
+  .txn-table thead th.num { text-align: right; }
+  .txn-table tbody td { padding: 13px 18px; border-bottom: 1px solid var(--cm-rule-soft); color: var(--cm-ivory); }
+  .txn-table tbody tr:last-child td { border-bottom: none; }
+  .txn-table .col-unit { font-family: var(--ff-display); font-style: italic; font-size: 16px; }
+  .txn-table .col-num { text-align: right; }
+  .txn-table .col-num.hoa { color: var(--cm-peri); font-weight: 500; }
+  .txn-table .col-date { color: var(--cm-ivory-dim); }
+  .txn-toggle {
+    padding: 18px; text-align: center; border-top: 1px solid var(--cm-rule);
+    background: rgba(159,180,216,0.02);
+  }
+  .txn-toggle button {
+    background: transparent; color: var(--cm-peri); border: 1px solid var(--cm-rule);
+    padding: 10px 22px; border-radius: 999px; cursor: pointer; font-size: 13px;
+    font-family: var(--ff-body); transition: border-color 0.18s;
+  }
+  .txn-toggle button:hover { border-color: var(--cm-peri); }
+  .txn-foot {
+    padding: 24px 28px; background: var(--cm-navy);
+    border-top: 1px solid var(--cm-rule);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-family: var(--ff-mono); font-size: 12px;
+  }
+  .txn-foot strong { color: var(--cm-peri); font-weight: 500; }
+
+  /* Funding section */
+  .funding-card {
+    background: linear-gradient(180deg, rgba(159,180,216,0.06) 0%, rgba(212,165,116,0.04) 100%);
+    border: 1px solid var(--cm-rule); border-radius: 14px; padding: 44px 40px;
+  }
+  .funding-headline {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(26px, 3.4vw, 36px); line-height: 1.18; color: var(--cm-ivory);
+    margin-bottom: 32px; max-width: 28ch;
+  }
+  .funding-headline em { color: var(--cm-bronze); }
+  .funding-list { list-style: none; display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 28px; }
+  @media (min-width: 720px) { .funding-list { grid-template-columns: 1fr 1fr; gap: 14px 32px; } }
+  .funding-item { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--cm-rule-soft); font-size: 15px; }
+  .funding-item .name { color: var(--cm-ivory); }
+  .funding-item .name::before { content: '✓'; color: var(--cm-peri); margin-right: 10px; font-weight: 500; }
+  .funding-item.is-out .name { color: var(--cm-ivory-faint); }
+  .funding-item.is-out .name::before { content: '○'; color: var(--cm-ivory-faint); }
+  .funding-item .cost { font-family: var(--ff-mono); font-size: 13px; color: var(--cm-ivory-dim); white-space: nowrap; }
+  .funding-leftover {
+    margin-top: 28px; padding: 22px 26px;
+    background: var(--cm-navy); border-radius: 10px; border: 1px solid var(--cm-rule);
+  }
+  .funding-leftover-num {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(28px, 3.4vw, 38px); color: var(--cm-bronze); line-height: 1;
+  }
+  .funding-leftover-label { font-size: 14px; color: var(--cm-ivory-dim); margin-top: 8px; }
+
+  /* Going-forward section */
+  .projection-card {
+    margin-top: 32px;
+    background: linear-gradient(180deg, rgba(159,180,216,0.16) 0%, rgba(159,180,216,0.06) 100%);
+    border: 1px solid rgba(159,180,216,0.36);
+    border-radius: 14px; padding: 44px 40px;
+  }
+  .projection-lead { font-size: 17px; color: var(--cm-ivory-dim); margin-bottom: 18px; }
+  .projection-num {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(64px, 9vw, 110px); line-height: 0.94; letter-spacing: -0.025em;
+    color: var(--cm-ivory); margin-bottom: 14px;
+  }
+  .projection-vs { font-family: var(--ff-mono); font-size: 13px; letter-spacing: 0.04em; color: var(--cm-rust); font-style: italic; }
+
+  /* Money flow — 3 cards */
+  .flow-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 720px) { .flow-grid { grid-template-columns: repeat(3, 1fr); } }
+  .flow-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 36px 32px; text-align: center; position: relative; }
+  .flow-card::before { content: ''; display: block; height: 4px; width: 60px; margin: 0 auto 20px; background: var(--cm-peri); border-radius: 2px; }
+  .flow-card.is-platform::before { background: var(--cm-ivory-dim); }
+  .flow-card.is-buyer::before { background: var(--cm-bronze); }
+  .flow-pct { font-family: var(--ff-display); font-weight: 700; font-style: italic; font-size: clamp(72px, 9vw, 104px); line-height: 1; color: var(--cm-ivory); margin-bottom: 16px; }
+  .flow-card.is-buyer .flow-pct { color: var(--cm-ivory-faint); }
+  .flow-pct sup { font-size: 0.45em; vertical-align: super; opacity: 0.85; }
+  .flow-title { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 16px; }
+  .flow-card.is-platform .flow-title { color: var(--cm-ivory-dim); }
+  .flow-card.is-buyer .flow-title { color: var(--cm-bronze); }
+  .flow-body { font-size: 14px; color: var(--cm-ivory); line-height: 1.6; margin-bottom: 14px; }
+  .flow-meta { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-dim); padding-top: 14px; border-top: 1px solid var(--cm-rule); }
+  .flow-foot {
+    margin-top: 24px; padding: 20px 26px;
+    text-align: center; background: rgba(159,180,216,0.06);
+    border-radius: 10px; border: 1px solid var(--cm-rule);
+    font-size: 14px; color: var(--cm-ivory); font-weight: 500;
+  }
+
+  /* Numbered cards (What HOA gets, How it works, The Ask) */
+  .numbered-list { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .numbered-item {
+    display: grid; grid-template-columns: 56px 1fr; gap: 24px; align-items: start;
+    background: rgba(159,180,216,0.03); border: 1px solid var(--cm-rule);
+    border-left: 3px solid var(--cm-peri);
+    border-radius: 8px; padding: 24px 28px;
+  }
+  .numbered-item .num {
+    font-family: var(--ff-display); font-style: italic; font-weight: 500;
+    font-size: 28px; color: var(--cm-peri); line-height: 1;
+  }
+  .numbered-item h3 {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: 22px; line-height: 1.2; color: var(--cm-ivory); margin-bottom: 8px;
+  }
+  .numbered-item p { font-size: 15px; color: var(--cm-ivory-dim); line-height: 1.6; }
+  .numbered-item .badge { display: inline-block; margin-top: 8px; padding: 4px 10px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(143,185,122,0.12); color: var(--cm-gain); border-radius: 4px; }
+
+  /* Closing CTA */
+  .cta {
+    text-align: center; padding: 100px 0 80px;
+    background: linear-gradient(180deg, rgba(159,180,216,0.04) 0%, rgba(212,165,116,0.04) 100%);
+    border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule);
+  }
+  .cta h2 {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: clamp(40px, 6vw, 72px); line-height: 1.05; letter-spacing: -0.02em;
+    color: var(--cm-ivory); max-width: 22ch; margin: 0 auto 14px;
+  }
+  .cta-tag { font-family: var(--ff-display); font-style: italic; font-size: clamp(22px, 2.4vw, 32px); color: var(--cm-peri); margin-bottom: 50px; }
+  .cta-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 40px; }
+  @media (min-width: 720px) { .cta-cards { grid-template-columns: repeat(4, 1fr); } }
+  .cta-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-top: 3px solid var(--cm-peri); border-radius: 8px; padding: 22px 18px; text-align: left; }
+  .cta-card .lbl { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 10px; }
+  .cta-card .v { font-size: 14px; color: var(--cm-ivory); word-break: break-word; }
+  .cta-card .v small { font-size: 11px; color: var(--cm-ivory-dim); display: block; margin-top: 4px; }
+  .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-block; background: var(--cm-peri); color: var(--cm-navy);
+    padding: 16px 32px; border-radius: 999px; font-weight: 500; font-size: 15px;
+    transition: opacity 0.18s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+
+  /* Footer */
+  footer {
+    padding: 36px 0; color: var(--cm-ivory-dim); font-size: 13px;
+  }
+  .footer-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+
+  /* Loading & error */
+  .skeleton { background: linear-gradient(90deg, rgba(159,180,216,0.04) 0%, rgba(159,180,216,0.10) 50%, rgba(159,180,216,0.04) 100%); background-size: 200% 100%; animation: shimmer 1.6s infinite; border-radius: 6px; color: transparent; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .error-state { text-align: center; padding: 120px 0; }
+  .error-state h2 { font-family: var(--ff-display); font-style: italic; font-size: 40px; color: var(--cm-ivory); margin-bottom: 16px; }
+  .error-state p { color: var(--cm-ivory-dim); margin-bottom: 24px; }
+  .btn-secondary { display: inline-block; color: var(--cm-ivory); border: 1px solid var(--cm-rule); padding: 14px 28px; border-radius: 999px; font-size: 14px; transition: border-color 0.18s; }
+  .btn-secondary:hover { border-color: var(--cm-peri); }
+
+  /* Print rules */
+  @media print {
+    body { background: white; color: #1a1f2e; }
+    body::before { display: none; }
+    .masthead, .cta-buttons, .btn-primary, .btn-secondary, .txn-toggle { display: none; }
+    .section, .cta { padding: 32px 0; border-color: rgba(0,0,0,0.12); page-break-inside: avoid; }
+    .hero-callout, .stat-card, .comparison, .chart-frame, .txn-table-frame, .funding-card, .projection-card, .flow-card, .numbered-item, .cta-card, .flow-foot, .funding-leftover {
+      background: white; border-color: rgba(0,0,0,0.12); box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+    }
+    .hero h1, .section-title, .stat-card-num, .funding-headline, .projection-num, .flow-pct, .numbered-item h3, .cta h2, .hero-callout-num { color: #1a1f2e; }
+    .hero h1 em, .section-title em, .funding-headline em, .cta-tag, .stat-card-label, .flow-title { color: #4a6285; }
+    .stat-card.is-rust { background: #fff3f0; border-color: #c95742; }
+    .stat-card.is-rust .stat-card-num { color: #1a1f2e; }
+    .comparison-amount { color: #c95742; }
+    .comparison-row.is-highlight .comparison-amount { color: #4a6285; }
+    .chart-side-stat { background: #f6f4ee; }
+    .funding-leftover-num { color: #b8893f; }
+    .numbered-item { border-left-color: #4a6285; }
+    .numbered-item .num { color: #4a6285; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <span class="masthead-meta">Confidential · HOA Partnership Proposal</span>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+  <section class="hero" id="loading-state">
+    <div class="wrap">
+      <div class="hero-eyebrow skeleton" style="width: 320px; height: 14px;">.</div>
+      <h1 class="skeleton" style="width: 60%; height: 96px;">.</h1>
+    </div>
+  </section>
+
+  <div id="content-root" hidden></div>
+
+  <section class="error-state" id="error-state" hidden>
+    <div class="wrap">
+      <h2>Briefing not available</h2>
+      <p id="error-message">No data found for this building.</p>
+      <a href="/buildings/" class="btn-secondary">Browse all buildings</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span>Source: Santa Clara, San Francisco County Assessor records and recorded transactions for current owners.</span>
+      <span>Generated <span id="gen-date"></span></span>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SCHEDULE_URL } from '/assets/cm-config.js';
+
+const TIM_PHONE = '(415) 691-9272';
+const TIM_EMAIL = 'tim@mcmullen.properties';
+const HOA_RATE = 0.01;
+const PLATFORM_RATE = 0.02;
+
+const params = new URLSearchParams(window.location.search);
+// Read slug from query string first, then fall back to URL path.
+// This way the page works whether _redirects rewrites with a query string,
+// rewrites without one, or whether the file is hit directly with ?slug=.
+function extractSlug() {
+  const fromQuery = (params.get('slug') || '').trim();
+  if (fromQuery) return fromQuery;
+  // Try parsing /building/<slug>/hoa-pitch/ pattern from the original URL
+  const m = window.location.pathname.match(/^\/building\/([^/]+)\/hoa-pitch\/?$/);
+  if (m) return m[1];
+  return '';
+}
+const slug = extractSlug();
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+const fmt = {
+  money:    (n) => n != null ? '$' + Math.round(n).toLocaleString('en-US') : '—',
+  moneyM:   (n) => n != null ? '$' + (n / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M' : '—',
+  moneyK:   (n) => n != null ? '$' + Math.round(n / 1000) + 'K' : '—',
+  moneyCompact: (n) => {
+    if (n == null) return '—';
+    if (n >= 1_000_000) return '$' + (n / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    if (n >= 1000) return '$' + Math.round(n / 1000).toLocaleString() + 'K';
+    return '$' + Math.round(n).toLocaleString();
+  },
+  date:     (s) => {
+    if (!s) return '—';
+    const d = new Date(s + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  },
+  monthYear:(s) => {
+    if (!s) return '—';
+    const d = new Date(s + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  },
+};
+
+$('gen-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+async function init() {
+  if (!slug) return showError('No building specified. Use ?slug=<building> in the URL.');
+  try {
+    const [building, sales] = await Promise.all([fetchBuilding(slug), fetchSales(slug)]);
+    if (!building) return showError(`No building found for slug "${slug}".`);
+    if (!sales || sales.length === 0) return showError(`No sales data on file for ${building.name}.`);
+    render(building, sales);
+  } catch (err) {
+    console.error(err);
+    showError('Could not load briefing data. Please try again or contact ' + TIM_EMAIL + '.');
+  }
+}
+
+async function fetchBuilding(slug) {
+  const res = await fetch('/assets/buildings.json', { cache: 'no-cache' });
+  const buildings = await res.json();
+  return buildings.find(b => (b.href || '').replace(/^\/building\//, '').replace(/\/$/, '') === slug);
+}
+
+async function fetchSales(slug) {
+  const url = `${SUPABASE_URL}/rest/v1/building_sales?building_slug=eq.${encodeURIComponent(slug)}&select=unit_address,unit_label,sale_date,sale_price,sqft,beds,year_built&order=sale_date.desc.nullslast&limit=2000`;
+  const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+  if (!res.ok) throw new Error('Supabase fetch failed: ' + res.status);
+  return await res.json();
+}
+
+function showError(msg) {
+  $('loading-state').hidden = true;
+  $('error-message').textContent = msg;
+  $('error-state').hidden = false;
+}
+
+function median(arr) {
+  if (!arr.length) return null;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[m] : (sorted[m - 1] + sorted[m]) / 2;
+}
+
+function pickFundingItems(missed) {
+  // Standard HOA improvement menu, ordered by investment level.
+  // Items are checked off greedily up to the missed-revenue budget.
+  const menu = [
+    { name: 'New gym equipment',                  cost: 25000 },
+    { name: 'Modernized lobby & hallway lighting',cost: 35000 },
+    { name: 'Smart access control system',        cost: 40000 },
+    { name: 'Common area furniture refresh',      cost: 45000 },
+    { name: 'Hallway carpet & paint refresh',     cost: 60000 },
+    { name: 'Roof waterproofing',                 cost: 85000 },
+    { name: 'Common area renovation',             cost: 100000 },
+    { name: 'Elevator modernization',             cost: 120000 },
+    { name: 'Building exterior repaint',          cost: 180000 },
+    { name: 'Full HVAC system upgrade',           cost: 250000 },
+  ];
+  let spent = 0;
+  const items = menu.map(item => {
+    const fits = (spent + item.cost) <= missed;
+    if (fits) spent += item.cost;
+    return { ...item, fits };
+  });
+  return { items, spent, leftover: missed - spent };
+}
+
+function render(building, sales) {
+  // ── DATA PREP ─────────────────────────────────────────────────────────
+  const totalUnits = sales.length;
+  const inWindow = sales.filter(s =>
+    s.sale_date && s.sale_date >= '2016-01-01' && s.sale_date <= '2025-12-31' &&
+    s.sale_price && s.sale_price >= 100000 && s.sale_price <= 30000000
+  );
+  if (inWindow.length === 0) return showError(`No qualifying sales in the 10-year window for ${building.name}.`);
+
+  const totalVolume     = inWindow.reduce((sum, s) => sum + s.sale_price, 0);
+  const missedHoa       = totalVolume * HOA_RATE;
+  const oldestYear      = Math.min(...inWindow.map(s => parseInt(s.sale_date.slice(0, 4), 10)));
+  const newestYear      = Math.max(...inWindow.map(s => parseInt(s.sale_date.slice(0, 4), 10)));
+  const yearsCovered    = newestYear - oldestYear + 1;
+
+  // Year-by-year HOA revenue
+  const yearMap = {};
+  for (let y = oldestYear; y <= newestYear; y++) yearMap[y] = { volume: 0, count: 0 };
+  inWindow.forEach(s => {
+    const y = parseInt(s.sale_date.slice(0, 4), 10);
+    yearMap[y].volume += s.sale_price;
+    yearMap[y].count++;
+  });
+  Object.values(yearMap).forEach(o => o.hoa = o.volume * HOA_RATE);
+  const sortedYears = Object.keys(yearMap).sort((a, b) => Number(a) - Number(b));
+  const bestYear   = sortedYears.reduce((best, y) => yearMap[y].hoa > yearMap[best].hoa ? y : best, sortedYears[0]);
+  const avgPerYear = missedHoa / yearsCovered;
+
+  // Pricing benchmarks
+  const psfArr = inWindow.filter(s => s.sqft > 0).map(s => s.sale_price / s.sqft).filter(v => v >= 400 && v <= 5000);
+  const medianPsf = median(psfArr);
+  const medianPrice = median(inWindow.map(s => s.sale_price));
+
+  // Recent benchmark sales by bed count (1BR / 2BR — fall back to most-recent if beds missing)
+  const recentByBed = {};
+  inWindow.forEach(s => {
+    if (!s.beds || !s.sqft) return;
+    if (!recentByBed[s.beds] || s.sale_date > recentByBed[s.beds].sale_date) recentByBed[s.beds] = s;
+  });
+  const bench1 = recentByBed[1] || null;
+  const bench2 = recentByBed[2] || null;
+
+  // Going-forward projection
+  const annualSalesRate     = inWindow.length / yearsCovered;
+  const projectedAnnualHoa  = annualSalesRate * (medianPrice || 0) * HOA_RATE;
+  const buildingValueIfSold = totalUnits * (medianPrice || 0);
+  const oneTimeIfAllSold    = buildingValueIfSold * HOA_RATE;
+
+  // Funding picks
+  const funding = pickFundingItems(missedHoa);
+
+  // ── DOCUMENT TITLE ────────────────────────────────────────────────────
+  document.title = `${building.name} — HOA Partnership Proposal · Condo Market`;
+
+  // ── RENDER ────────────────────────────────────────────────────────────
+  const html = `
+    <!-- HERO ─────────────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-eyebrow">Condo Market · HOA Partnership Proposal</div>
+        <h1>A Partnership That <em>Pays Your Building</em>.</h1>
+        <p class="hero-sub">Prepared exclusively for the Board of ${esc(building.name)}${building.hood ? ' · ' + esc(building.hood) : ''}.</p>
+        <div class="hero-contact">
+          <strong>Tim McMullen</strong> · McMullen Properties · DRE #02016832<br>
+          ${TIM_EMAIL} · ${TIM_PHONE}
+        </div>
+        <div class="hero-callout">
+          <div class="hero-callout-eyebrow">In HOA Revenue Never Collected</div>
+          <div class="hero-callout-num">${fmt.moneyCompact(missedHoa)}</div>
+          <div class="hero-callout-label">${inWindow.length} sales · ${oldestYear} to ${newestYear} · ${fmt.moneyCompact(totalVolume)} total volume</div>
+          <div class="hero-callout-meta confidential">Confidential — prepared exclusively for the ${esc(building.name)} HOA Board</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE OPPORTUNITY ─────────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">The Opportunity</div>
+        <h2 class="section-title">${inWindow.length} real transactions. ${fmt.moneyCompact(totalVolume)} in sales. The HOA received <em>$0</em>.</h2>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-card-label">Transactions</div>
+            <div class="stat-card-num">${inWindow.length}</div>
+            <div class="stat-card-meta">Current owners purchased<br>between ${oldestYear} and ${newestYear}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Total Sales Volume</div>
+            <div class="stat-card-num">${fmt.moneyCompact(totalVolume)}</div>
+            <div class="stat-card-meta">Recorded across<br>all ${inWindow.length} closings</div>
+          </div>
+          <div class="stat-card is-rust">
+            <div class="stat-card-label">Revenue to HOA</div>
+            <div class="stat-card-num">$0</div>
+            <div class="stat-card-meta">The building has received<br>zero revenue from any sale</div>
+          </div>
+        </div>
+        <div class="comparison">
+          <div class="comparison-row">
+            <div class="comparison-label">Traditional agent sale</div>
+            <div class="comparison-amount">$0 to HOA</div>
+            <div class="comparison-note">Seller pays 5–6%, HOA receives nothing</div>
+          </div>
+          <div class="comparison-row">
+            <div class="comparison-label">Off-market sale (no platform)</div>
+            <div class="comparison-amount">$0 to HOA</div>
+            <div class="comparison-note">Quiet deals, no visibility, no HOA benefit</div>
+          </div>
+          <div class="comparison-row is-highlight">
+            <div class="comparison-label">Condo Market transaction</div>
+            <div class="comparison-amount">1% to HOA</div>
+            <div class="comparison-note">${fmt.money(medianPrice * HOA_RATE)} avg per closing at median price</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE MISSED REVENUE ──────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">The Missed Revenue</div>
+        <h2 class="section-title">What the HOA <em>would have collected</em>, year by year, since ${oldestYear}.</h2>
+        <div class="chart-frame">
+          <div class="chart-row">
+            <div class="chart-canvas-wrap"><canvas id="missed-chart"></canvas></div>
+            <div class="chart-side-stats">
+              <div class="chart-side-stat">
+                <div class="lbl">Total missed</div>
+                <div class="val">${fmt.moneyCompact(missedHoa)}</div>
+              </div>
+              <div class="chart-side-stat">
+                <div class="lbl">Best year (${bestYear})</div>
+                <div class="val">${fmt.moneyCompact(yearMap[bestYear].hoa)}</div>
+              </div>
+              <div class="chart-side-stat">
+                <div class="lbl">Avg per year</div>
+                <div class="val">${fmt.moneyCompact(avgPerYear)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVERY TRANSACTION ──────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">Every Transaction · ${oldestYear}–${newestYear}</div>
+        <h2 class="section-title">${inWindow.length} sales. <em>Zero dollars</em> to the HOA. Here is what was missed.</h2>
+        <div class="txn-table-frame">
+          <table class="txn-table">
+            <thead><tr>
+              <th>Unit</th><th>Sold</th><th class="num">Price</th><th class="num">HOA 1%</th>
+            </tr></thead>
+            <tbody id="txn-tbody">
+              ${renderTxnRows(inWindow.slice(0, 12))}
+            </tbody>
+          </table>
+          ${inWindow.length > 12 ? `<div class="txn-toggle"><button data-action="toggle-txns" data-state="collapsed">Show all ${inWindow.length} transactions</button></div>` : ''}
+          <div class="txn-foot">
+            <span>TOTAL: <strong>${inWindow.length}</strong> transactions · <strong>${fmt.moneyCompact(totalVolume)}</strong> in sales</span>
+            <span><strong>${fmt.moneyCompact(missedHoa)}</strong> in HOA revenue never collected</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT THIS COULD HAVE FUNDED ────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">What This Could Have Funded</div>
+        <h2 class="section-title">Imagine what <em>${fmt.moneyCompact(missedHoa)}</em> could have built.</h2>
+        <div class="funding-card">
+          <p class="funding-headline">Modern gym. Refreshed lobby. New hallway lighting. Roof repairs. Reserves that <em>increase every owner's property value</em>.</p>
+          <ul class="funding-list">
+            ${funding.items.map(item => `
+              <li class="funding-item ${item.fits ? '' : 'is-out'}">
+                <span class="name">${esc(item.name)}</span>
+                <span class="cost">${fmt.moneyK(item.cost)}</span>
+              </li>
+            `).join('')}
+          </ul>
+          ${funding.leftover > 0 ? `
+            <div class="funding-leftover">
+              <div class="funding-leftover-num">+ ${fmt.moneyCompact(funding.leftover)}</div>
+              <div class="funding-leftover-label">…still left over for reserves and capital improvements after funding everything above.</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </section>
+
+    <!-- GOING FORWARD ──────────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">Going Forward</div>
+        <h2 class="section-title">What the building <em>is worth today</em> — and what the HOA earns every time a unit sells.</h2>
+        <div class="stats-row">
+          ${bench1 ? `
+            <div class="stat-card">
+              <div class="stat-card-label">1BR Benchmark</div>
+              <div class="stat-card-num">$${Math.round(bench1.sale_price/bench1.sqft).toLocaleString()}<small style="font-size:0.5em;font-style:normal;font-weight:400;font-family:var(--ff-mono);color:var(--cm-ivory-dim);"> /sf</small></div>
+              <div class="stat-card-meta">${esc(bench1.unit_label || bench1.unit_address)} · ${fmt.monthYear(bench1.sale_date)}</div>
+            </div>
+          ` : ''}
+          ${bench2 ? `
+            <div class="stat-card">
+              <div class="stat-card-label">2BR Benchmark</div>
+              <div class="stat-card-num">$${Math.round(bench2.sale_price/bench2.sqft).toLocaleString()}<small style="font-size:0.5em;font-style:normal;font-weight:400;font-family:var(--ff-mono);color:var(--cm-ivory-dim);"> /sf</small></div>
+              <div class="stat-card-meta">${esc(bench2.unit_label || bench2.unit_address)} · ${fmt.monthYear(bench2.sale_date)}</div>
+            </div>
+          ` : ''}
+          <div class="stat-card">
+            <div class="stat-card-label">Annual run-rate</div>
+            <div class="stat-card-num">${fmt.moneyCompact(projectedAnnualHoa)}</div>
+            <div class="stat-card-meta">${annualSalesRate.toFixed(1)} sales/yr × median × 1%</div>
+          </div>
+        </div>
+        <div class="projection-card">
+          <p class="projection-lead">If every current owner sold today at market rates:</p>
+          <div class="projection-num">${fmt.moneyCompact(oneTimeIfAllSold)}</div>
+          <p class="projection-vs">would flow to the HOA — vs. $0 today.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW THE MONEY FLOWS ────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">How the Money Flows</div>
+        <h2 class="section-title">3% flat fee. <em>Always</em>. Replaces 5–6% traditional commission entirely.</h2>
+        <div class="flow-grid">
+          <div class="flow-card">
+            <div class="flow-pct">1<sup>%</sup></div>
+            <div class="flow-title">To the HOA</div>
+            <div class="flow-body">Paid directly to building reserves on every closing. Always. Without exception.</div>
+            <div class="flow-meta">${fmt.money(medianPrice * HOA_RATE)} on a ${fmt.moneyCompact(medianPrice)} sale</div>
+          </div>
+          <div class="flow-card is-platform">
+            <div class="flow-pct">2<sup>%</sup></div>
+            <div class="flow-title">Platform Fee</div>
+            <div class="flow-body">Tim McMullen facilitates the full transaction: LOI, C.A.R. contract, close of escrow.</div>
+            <div class="flow-meta">If buyer nominates an agent: split 50:50</div>
+          </div>
+          <div class="flow-card is-buyer">
+            <div class="flow-pct">1<sup>%</sup></div>
+            <div class="flow-title">Buyer Agent</div>
+            <div class="flow-body">If the buyer nominates their own agent, taken from the 2% platform share.</div>
+            <div class="flow-meta">Optional · seller pays nothing more</div>
+          </div>
+        </div>
+        <div class="flow-foot">
+          Total fee always 3%.&nbsp;&nbsp;|&nbsp;&nbsp;HOA always receives 1%.&nbsp;&nbsp;|&nbsp;&nbsp;Seller saves vs. 5–6% traditional.
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT THE HOA GETS ──────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">What the HOA Gets</div>
+        <h2 class="section-title">Three things <em>no other platform</em> offers your building.</h2>
+        <div class="numbered-list">
+          <div class="numbered-item">
+            <div class="num">01</div>
+            <div>
+              <h3>Direct HOA revenue — every closing</h3>
+              <p>1% of every Condo Market transaction goes directly to building reserves. At ${annualSalesRate.toFixed(1)} sales per year and current median pricing, that is approximately <strong>${fmt.moneyCompact(projectedAnnualHoa)} annually</strong> — with zero cost or effort from the HOA.</p>
+              <span class="badge">${fmt.moneyCompact(projectedAnnualHoa)} per year</span>
+            </div>
+          </div>
+          <div class="numbered-item">
+            <div class="num">02</div>
+            <div>
+              <h3>Physical building marketing</h3>
+              <p>Condo Market window vinyl on the front entrance plus A-frame signage on the public sidewalk during peak foot-traffic hours. Installed and managed entirely by McMullen Properties. Design subject to board approval.</p>
+              <span class="badge">Branded presence · zero cost</span>
+            </div>
+          </div>
+          <div class="numbered-item">
+            <div class="num">03</div>
+            <div>
+              <h3>Zero risk and zero exclusivity</h3>
+              <p>Owners sell however they wish. Any agent may represent any buyer. Tim McMullen facilitates Condo Market transactions only. The HOA endorses the platform — not an exclusive arrangement. Revocable by board resolution at any time.</p>
+              <span class="badge">No obligation · revocable any time</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS ───────────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">How It Works</div>
+        <h2 class="section-title">From offer to HOA deposit — <em>Tim handles everything</em>.</h2>
+        <div class="numbered-list">
+          <div class="numbered-item"><div class="num">1</div><div><h3>Buyer submits offer</h3><p>Via the Condo Market platform on any unit — listed or not. Buyer may include their own agent for a 1% referral fee.</p></div></div>
+          <div class="numbered-item"><div class="num">2</div><div><h3>Tim reviews and calls</h3><p>Tim McMullen (DRE #02016832) schedules an offer call with the buyer within 24 hours.</p></div></div>
+          <div class="numbered-item"><div class="num">3</div><div><h3>LOI signed electronically</h3><p>Non-binding Letter of Intent executed on the platform. Tim is authorized to present the offer to the owner.</p></div></div>
+          <div class="numbered-item"><div class="num">4</div><div><h3>Offer delivered to owner</h3><p>Owner receives the offer privately. May accept, negotiate, or decline — entirely their choice. No listing, no open houses.</p></div></div>
+          <div class="numbered-item"><div class="num">5</div><div><h3>C.A.R. purchase agreement & close</h3><p>If accepted, Tim prepares a California Residential Purchase Agreement. The 1% HOA revenue is deposited at close of escrow.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE ASK ───────────────────────────────────────────────────── -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-eyebrow">The Ask</div>
+        <h2 class="section-title">Four things. <em>Zero cost</em> to the HOA.</h2>
+        <div class="numbered-list">
+          <div class="numbered-item"><div class="num">01</div><div><h3>Board resolution</h3><p>A simple board resolution endorsing Condo Market as the preferred off-market platform for ${esc(building.name)}. Non-exclusive. Revocable at any time.</p></div></div>
+          <div class="numbered-item"><div class="num">02</div><div><h3>Window vinyl approval</h3><p>Authorization to install a Condo Market branded vinyl on the main entrance door. Design subject to board approval.</p></div></div>
+          <div class="numbered-item"><div class="num">03</div><div><h3>A-frame signage permit</h3><p>Authorization to place A-frame signage on the public sidewalk adjacent to the building during board-approved peak hours.</p></div></div>
+          <div class="numbered-item"><div class="num">04</div><div><h3>HOA account for revenue</h3><p>HOA bank or escrow account details for 1% revenue disbursement at each closing. Paid directly at close of escrow — no advance required.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSING CTA ───────────────────────────────────────────────── -->
+    <section class="cta">
+      <div class="wrap">
+        <h2>${fmt.moneyCompact(missedHoa)} in HOA revenue<br>never collected.</h2>
+        <p class="cta-tag">Let's start collecting.</p>
+        <div class="cta-cards">
+          <div class="cta-card"><div class="lbl">Email</div><div class="v">${TIM_EMAIL}</div></div>
+          <div class="cta-card"><div class="lbl">Phone</div><div class="v">${TIM_PHONE}</div></div>
+          <div class="cta-card"><div class="lbl">Platform</div><div class="v">Condo Market, LLC<small>A Florida Limited Liability Company</small></div></div>
+          <div class="cta-card"><div class="lbl">License</div><div class="v">CA DRE #02016832<small>McMullen Properties</small></div></div>
+        </div>
+        <div class="cta-buttons">
+          <a href="${SCHEDULE_URL}" class="btn-primary" target="_blank" rel="noopener">Schedule a 30-minute board meeting</a>
+        </div>
+      </div>
+    </section>
+  `;
+
+  $('content-root').innerHTML = html;
+  $('loading-state').hidden = true;
+  $('content-root').hidden = false;
+
+  // ─── Bar chart ────────────────────────────────────────────────────────
+  const ctx = document.getElementById('missed-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sortedYears,
+      datasets: [{
+        data: sortedYears.map(y => Math.round(yearMap[y].hoa)),
+        backgroundColor: '#1a1f2e',
+        borderColor: '#9fb4d8',
+        borderWidth: 1,
+        borderRadius: 3,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'HOA revenue (1% per sale) — $0 actually received', color: 'rgba(232,227,216,0.64)', font: { family: 'JetBrains Mono', size: 11 }, padding: { bottom: 16 } },
+        tooltip: {
+          backgroundColor: '#1a1f2e', titleColor: '#e8e3d8', bodyColor: '#9fb4d8',
+          borderColor: 'rgba(232,227,216,0.14)', borderWidth: 1, padding: 10,
+          titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 13 },
+          callbacks: { label: (c) => '$' + c.parsed.y.toLocaleString() + ' missed' }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: 'rgba(232,227,216,0.64)', font: { family: 'JetBrains Mono', size: 11 } } },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(232,227,216,0.08)' },
+          ticks: { color: 'rgba(232,227,216,0.64)', font: { family: 'JetBrains Mono', size: 10 }, callback: (v) => '$' + (v >= 1000 ? Math.round(v/1000) + 'K' : v) }
+        }
+      }
+    }
+  });
+
+  // ─── Show-all-transactions toggle ──────────────────────────────────────
+  document.querySelectorAll('[data-action="toggle-txns"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tbody = document.getElementById('txn-tbody');
+      const isCollapsed = btn.dataset.state === 'collapsed';
+      tbody.innerHTML = renderTxnRows(isCollapsed ? inWindow : inWindow.slice(0, 12));
+      btn.dataset.state = isCollapsed ? 'expanded' : 'collapsed';
+      btn.textContent = isCollapsed ? 'Show first 12 only' : `Show all ${inWindow.length} transactions`;
+    });
+  });
+}
+
+function renderTxnRows(rows) {
+  return rows.map(r => `
+    <tr>
+      <td class="col-unit">${esc(r.unit_label || r.unit_address || '—')}</td>
+      <td class="col-date">${fmt.monthYear(r.sale_date)}</td>
+      <td class="col-num">${fmt.money(r.sale_price)}</td>
+      <td class="col-num hoa">${fmt.money(r.sale_price * HOA_RATE)}</td>
+    </tr>
+  `).join('');
+}
+
+init();
+</script>
+</body>
+</html>

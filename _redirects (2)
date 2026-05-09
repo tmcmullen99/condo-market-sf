@@ -1,0 +1,9 @@
+# Apex → buildings homepage
+/ /buildings/ 302
+
+# HOA pitch deck — clean per-building URLs serve the dynamic page.
+# The page reads the slug from window.location.pathname directly,
+# so no need to thread it through the rewrite. Status 200 = proxy/rewrite
+# (URL bar stays at /building/<slug>/hoa-pitch/).
+/building/*/hoa-pitch/   /hoa-pitch.html   200
+/building/*/hoa-pitch    /hoa-pitch.html   200
