@@ -300,4 +300,6 @@ if (document.readyState === 'loading') {
 // v21 Watchlist save button — auto-mounts on /building/<slug>/ pages
 if (location.pathname.startsWith('/building/')) {
   import('/assets/cm-watchlist-btn.js').catch(() => {});
+  // v22.5 Sales & pricing section (public + enhanced layers)
+  import('/assets/cm-building-sales.js').catch(() => {});
 }
