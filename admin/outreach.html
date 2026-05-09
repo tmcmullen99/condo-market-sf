@@ -20,29 +20,13 @@
     --ff-display: 'Playfair Display', Georgia, serif;
     --ff-body: 'DM Sans', -apple-system, sans-serif;
     --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
-    --status-untouched: #6e7a8c;
-    --status-targeted: #d4a574;
-    --status-emailed: #9fb4d8;
-    --status-meeting_scheduled: #b39ddb;
-    --status-meeting_held: #7baccc;
-    --status-won: #8fb97a;
-    --status-declined: #c95742;
-    --status-dormant: #555a6a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--cm-navy-deep); color: var(--cm-ivory);
-    font-family: var(--ff-body); font-weight: 300;
-    -webkit-font-smoothing: antialiased; min-height: 100vh;
-  }
+  body { background: var(--cm-navy-deep); color: var(--cm-ivory); font-family: var(--ff-body); font-weight: 300; -webkit-font-smoothing: antialiased; min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; cursor: pointer; }
 
-  /* ── Masthead ───────────────────────────────────── */
-  header.masthead {
-    padding: 18px 32px; border-bottom: 1px solid var(--cm-rule);
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  }
+  header.masthead { padding: 18px 32px; border-bottom: 1px solid var(--cm-rule); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
   .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 20px; }
   .wordmark em { color: var(--cm-peri); }
   .admin-nav { display: flex; gap: 28px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); }
@@ -51,13 +35,11 @@
   .admin-nav a.active { color: var(--cm-peri); border-bottom-color: var(--cm-peri); }
   .admin-user { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-dim); }
 
-  /* ── Page intro ───────────────────────────────────── */
   main { padding: 36px 32px 80px; max-width: 1480px; margin: 0 auto; }
   .page-eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 10px; }
   .page-title { font-family: var(--ff-display); font-size: 38px; font-weight: 500; line-height: 1.15; letter-spacing: -0.015em; color: var(--cm-ivory); margin-bottom: 8px; }
   .page-sub { font-family: var(--ff-display); font-style: italic; font-size: 18px; color: var(--cm-ivory-dim); margin-bottom: 36px; max-width: 60ch; }
 
-  /* ── KPI cards ───────────────────────────────────── */
   .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 32px; }
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
   .kpi { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 22px 24px; }
@@ -66,30 +48,17 @@
   .kpi.is-prize .kpi-num { color: var(--cm-bronze); }
   .kpi-lbl { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); }
 
-  /* ── Filter bar ───────────────────────────────────── */
   .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--cm-rule); }
   .filter-group { display: flex; flex-direction: column; gap: 4px; }
   .filter-lbl { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  select.filter-input, input.filter-input {
-    background: var(--cm-navy); border: 1px solid var(--cm-rule); color: var(--cm-ivory);
-    padding: 8px 12px; border-radius: 6px; font-family: var(--ff-body); font-size: 13px;
-    min-width: 160px; transition: border-color 0.15s;
-  }
+  select.filter-input, input.filter-input { background: var(--cm-navy); border: 1px solid var(--cm-rule); color: var(--cm-ivory); padding: 8px 12px; border-radius: 6px; font-family: var(--ff-body); font-size: 13px; min-width: 160px; transition: border-color 0.15s; }
   select.filter-input:focus, input.filter-input:focus { outline: none; border-color: var(--cm-peri); }
   .filter-spacer { flex: 1; }
   .row-count { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-dim); align-self: end; padding-bottom: 9px; }
 
-  /* ── Buildings table ───────────────────────────────────── */
   .table-wrap { background: rgba(159,180,216,0.02); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; }
   table.outreach { width: 100%; border-collapse: collapse; }
-  table.outreach thead th {
-    text-align: left; padding: 14px 16px;
-    font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--cm-ivory-dim); font-weight: 500;
-    border-bottom: 1px solid var(--cm-rule);
-    background: rgba(159,180,216,0.03);
-    white-space: nowrap;
-  }
+  table.outreach thead th { text-align: left; padding: 14px 16px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500; border-bottom: 1px solid var(--cm-rule); background: rgba(159,180,216,0.03); white-space: nowrap; }
   table.outreach thead th.num { text-align: right; }
   table.outreach tbody tr.row { border-bottom: 1px solid var(--cm-rule-soft); transition: background 0.12s; cursor: pointer; }
   table.outreach tbody tr.row:hover { background: rgba(159,180,216,0.04); }
@@ -102,22 +71,11 @@
   table.outreach td.col-num { text-align: right; font-family: var(--ff-mono); font-size: 13px; color: var(--cm-ivory); }
   table.outreach td.col-num.is-prize { color: var(--cm-bronze); font-weight: 500; }
   table.outreach td.col-actions { text-align: right; white-space: nowrap; }
-  table.outreach .iconbtn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border: 1px solid var(--cm-rule); background: transparent;
-    color: var(--cm-ivory-dim); border-radius: 6px; margin-left: 4px;
-    transition: border-color 0.15s, color 0.15s;
-  }
+  table.outreach .iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid var(--cm-rule); background: transparent; color: var(--cm-ivory-dim); border-radius: 6px; margin-left: 4px; transition: border-color 0.15s, color 0.15s; }
   table.outreach .iconbtn:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
   table.outreach .iconbtn.is-pitch:hover { border-color: var(--cm-bronze); color: var(--cm-bronze); }
 
-  /* ── Status pill ───────────────────────────────────── */
-  .status-pill {
-    display: inline-block; padding: 4px 10px; border-radius: 999px;
-    font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
-    background: var(--cm-rule-soft); color: var(--cm-ivory-dim); border: 1px solid var(--cm-rule);
-    cursor: pointer; transition: opacity 0.15s; font-weight: 500;
-  }
+  .status-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--cm-rule-soft); color: var(--cm-ivory-dim); border: 1px solid var(--cm-rule); cursor: pointer; transition: opacity 0.15s; font-weight: 500; }
   .status-pill:hover { opacity: 0.78; }
   .status-pill[data-status="targeted"] { background: rgba(212,165,116,0.14); color: var(--cm-bronze); border-color: rgba(212,165,116,0.32); }
   .status-pill[data-status="emailed"] { background: rgba(159,180,216,0.14); color: var(--cm-peri); border-color: rgba(159,180,216,0.32); }
@@ -127,92 +85,47 @@
   .status-pill[data-status="declined"] { background: rgba(201,87,66,0.14); color: var(--cm-rust); border-color: rgba(201,87,66,0.32); }
   .status-pill[data-status="dormant"] { opacity: 0.5; }
 
-  .due-pill {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-family: var(--ff-mono); font-size: 10px; color: var(--cm-ivory-dim);
-  }
+  .due-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-family: var(--ff-mono); font-size: 10px; color: var(--cm-ivory-dim); }
   .due-pill.is-overdue { color: var(--cm-rust); background: rgba(201,87,66,0.10); }
   .due-pill.is-today { color: var(--cm-bronze); background: rgba(212,165,116,0.10); }
   .due-pill.is-soon { color: var(--cm-peri); }
 
-  /* ── Detail panel (expanded row) ───────────────────────────────────── */
   tr.detail td { padding: 0; }
-  .detail-panel {
-    padding: 28px 36px 32px; background: rgba(159,180,216,0.03);
-    border-top: 1px solid var(--cm-rule);
-    display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px;
-  }
+  .detail-panel { padding: 28px 36px 32px; background: rgba(159,180,216,0.03); border-top: 1px solid var(--cm-rule); display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; }
   @media (max-width: 980px) { .detail-panel { grid-template-columns: 1fr; } }
-  .detail-section h4 {
-    font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--cm-ivory-dim); margin-bottom: 14px; font-weight: 500;
-  }
-  .pitch-cta {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    background: linear-gradient(135deg, rgba(212,165,116,0.12) 0%, rgba(159,180,216,0.08) 100%);
-    border: 1px solid rgba(212,165,116,0.32); border-radius: 10px;
-    padding: 18px 22px; margin-bottom: 24px;
-  }
+  .detail-section h4 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 14px; font-weight: 500; }
+  .pitch-cta { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: linear-gradient(135deg, rgba(212,165,116,0.12) 0%, rgba(159,180,216,0.08) 100%); border: 1px solid rgba(212,165,116,0.32); border-radius: 10px; padding: 18px 22px; margin-bottom: 24px; }
   .pitch-cta-left .lbl { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 4px; }
   .pitch-cta-left .url { font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory); word-break: break-all; }
   .pitch-cta-right { display: flex; gap: 10px; }
-  .btn-pitch {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--cm-bronze); color: var(--cm-navy); padding: 10px 20px; border-radius: 999px;
-    font-weight: 500; font-size: 13px; border: none;
-  }
+  .btn-pitch { display: inline-flex; align-items: center; gap: 8px; background: var(--cm-bronze); color: var(--cm-navy); padding: 10px 20px; border-radius: 999px; font-weight: 500; font-size: 13px; border: none; }
   .btn-pitch:hover { opacity: 0.88; }
-  .btn-copy {
-    background: transparent; color: var(--cm-ivory); padding: 10px 16px;
-    border-radius: 999px; border: 1px solid var(--cm-rule); font-size: 13px;
-    transition: border-color 0.15s;
-  }
+  .btn-copy { background: transparent; color: var(--cm-ivory); padding: 10px 16px; border-radius: 999px; border: 1px solid var(--cm-rule); font-size: 13px; transition: border-color 0.15s; }
   .btn-copy:hover { border-color: var(--cm-peri); }
 
-  /* Field grid */
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field-full { grid-column: 1 / -1; }
   .field label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .field input, .field select, .field textarea {
-    background: var(--cm-navy); border: 1px solid var(--cm-rule); color: var(--cm-ivory);
-    padding: 9px 12px; border-radius: 6px; font-family: var(--ff-body); font-size: 13px;
-    transition: border-color 0.15s;
-  }
+  .field input, .field select, .field textarea { background: var(--cm-navy); border: 1px solid var(--cm-rule); color: var(--cm-ivory); padding: 9px 12px; border-radius: 6px; font-family: var(--ff-body); font-size: 13px; transition: border-color 0.15s; }
   .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--cm-peri); }
   .field textarea { min-height: 80px; resize: vertical; font-family: var(--ff-body); }
 
-  /* Action buttons row */
   .actions-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
-  .action-btn {
-    background: transparent; color: var(--cm-ivory); padding: 9px 16px; border-radius: 999px;
-    border: 1px solid var(--cm-rule); font-size: 12px; font-family: var(--ff-body);
-    transition: border-color 0.15s, color 0.15s;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
+  .action-btn { background: transparent; color: var(--cm-ivory); padding: 9px 16px; border-radius: 999px; border: 1px solid var(--cm-rule); font-size: 12px; font-family: var(--ff-body); transition: border-color 0.15s, color 0.15s; display: inline-flex; align-items: center; gap: 6px; }
   .action-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
   .action-btn.is-won:hover { border-color: var(--cm-gain); color: var(--cm-gain); }
   .action-btn.is-declined:hover { border-color: var(--cm-rust); color: var(--cm-rust); }
   .save-indicator { font-family: var(--ff-mono); font-size: 10px; color: var(--cm-gain); margin-left: auto; align-self: center; opacity: 0; transition: opacity 0.4s; }
   .save-indicator.is-visible { opacity: 1; }
 
-  /* Timeline */
   .timeline { display: flex; flex-direction: column; gap: 0; max-height: 420px; overflow-y: auto; padding-right: 8px; }
   .timeline::-webkit-scrollbar { width: 6px; }
   .timeline::-webkit-scrollbar-track { background: transparent; }
   .timeline::-webkit-scrollbar-thumb { background: var(--cm-rule); border-radius: 3px; }
-  .timeline-item {
-    display: grid; grid-template-columns: 28px 1fr; gap: 12px;
-    padding: 14px 0; border-bottom: 1px solid var(--cm-rule-soft);
-    align-items: start;
-  }
+  .timeline-item { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--cm-rule-soft); align-items: start; }
   .timeline-item:last-child { border-bottom: none; }
-  .timeline-icon {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(159,180,216,0.10); color: var(--cm-peri);
-    font-size: 13px;
-  }
+  .timeline-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(159,180,216,0.10); color: var(--cm-peri); font-size: 13px; }
   .timeline-icon.email { background: rgba(159,180,216,0.10); color: var(--cm-peri); }
   .timeline-icon.call { background: rgba(212,165,116,0.10); color: var(--cm-bronze); }
   .timeline-icon.meeting { background: rgba(179,157,219,0.10); color: #b39ddb; }
@@ -225,16 +138,8 @@
   .timeline-content .body { font-size: 12px; color: var(--cm-ivory-dim); margin-top: 5px; line-height: 1.5; white-space: pre-wrap; }
   .timeline-empty { text-align: center; padding: 32px 12px; color: var(--cm-ivory-faint); font-style: italic; font-family: var(--ff-display); font-size: 14px; }
 
-  /* ── Modal ───────────────────────────────────── */
-  .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(15,19,29,0.88);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px;
-  }
-  .modal {
-    background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 14px;
-    padding: 32px; max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto;
-  }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15,19,29,0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .modal { background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 32px; max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto; }
   .modal h3 { font-family: var(--ff-display); font-style: italic; font-size: 26px; font-weight: 500; color: var(--cm-ivory); margin-bottom: 6px; }
   .modal .sub { font-size: 13px; color: var(--cm-ivory-dim); margin-bottom: 22px; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--cm-rule); }
@@ -243,21 +148,23 @@
   .btn-ghost { background: transparent; color: var(--cm-ivory); padding: 11px 22px; border-radius: 999px; border: 1px solid var(--cm-rule); font-size: 13px; }
   .btn-ghost:hover { border-color: var(--cm-peri); }
 
-  /* Email tabs */
   .email-tabs { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--cm-rule); }
-  .email-tab {
-    background: transparent; color: var(--cm-ivory-dim); padding: 10px 16px; border: none;
-    font-size: 12px; font-family: var(--ff-mono); letter-spacing: 0.08em; text-transform: uppercase;
-    border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
-  }
+  .email-tab { background: transparent; color: var(--cm-ivory-dim); padding: 10px 16px; border: none; font-size: 12px; font-family: var(--ff-mono); letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
   .email-tab:hover { color: var(--cm-ivory); }
   .email-tab.active { color: var(--cm-peri); border-bottom-color: var(--cm-peri); }
 
-  /* ── States ───────────────────────────────────── */
   .loading-state, .empty-state { text-align: center; padding: 80px 20px; color: var(--cm-ivory-dim); }
   .loading-state h2, .empty-state h2 { font-family: var(--ff-display); font-style: italic; font-size: 28px; color: var(--cm-ivory); margin-bottom: 10px; }
   .access-denied { text-align: center; padding: 100px 20px; }
   .access-denied h2 { font-family: var(--ff-display); font-style: italic; font-size: 36px; color: var(--cm-rust); margin-bottom: 14px; }
+
+  /* Toast for surfacing errors */
+  .toast { position: fixed; bottom: 24px; right: 24px; max-width: 420px; padding: 16px 20px; border-radius: 10px; font-size: 13px; line-height: 1.5; z-index: 200; box-shadow: 0 12px 36px rgba(0,0,0,0.5); animation: toastIn 0.18s ease-out; }
+  .toast.is-error { background: rgba(201,87,66,0.95); color: white; border: 1px solid rgba(255,255,255,0.2); }
+  .toast.is-success { background: rgba(143,185,122,0.95); color: var(--cm-navy); border: 1px solid rgba(0,0,0,0.1); }
+  .toast .close { float: right; cursor: pointer; opacity: 0.7; margin-left: 12px; font-size: 16px; line-height: 1; }
+  .toast .close:hover { opacity: 1; }
+  @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>
 </head>
 <body>
@@ -273,89 +180,41 @@
 </header>
 
 <main>
-  <div id="access-loading" class="loading-state">
-    <h2>Verifying access…</h2>
-  </div>
-
+  <div id="access-loading" class="loading-state"><h2>Verifying access…</h2></div>
   <div id="access-denied" class="access-denied" hidden>
     <h2>Access denied</h2>
     <p>This page requires an admin role. <a href="/" style="color:var(--cm-peri);text-decoration:underline;">Return home</a></p>
   </div>
-
   <div id="content" hidden>
     <div class="page-eyebrow">CRM · HOA Outreach</div>
     <h1 class="page-title">Outreach Pipeline</h1>
     <p class="page-sub">Every San Francisco condo building — sorted by missed HOA revenue. Track each board from prospect to partner.</p>
-
     <div class="kpis" id="kpis"></div>
-
     <div class="filters">
       <div class="filter-group">
         <label class="filter-lbl" for="f-status">Status</label>
         <select id="f-status" class="filter-input">
-          <option value="all">All</option>
-          <option value="active">In pipeline</option>
-          <option value="needs_followup">Needs follow-up</option>
-          <option value="untouched">Untouched</option>
-          <option value="targeted">Targeted</option>
-          <option value="emailed">Emailed</option>
-          <option value="meeting_scheduled">Meeting scheduled</option>
-          <option value="meeting_held">Meeting held</option>
-          <option value="won">Won</option>
-          <option value="declined">Declined</option>
-          <option value="dormant">Dormant</option>
+          <option value="all">All</option><option value="active">In pipeline</option><option value="needs_followup">Needs follow-up</option>
+          <option value="untouched">Untouched</option><option value="targeted">Targeted</option><option value="emailed">Emailed</option>
+          <option value="meeting_scheduled">Meeting scheduled</option><option value="meeting_held">Meeting held</option>
+          <option value="won">Won</option><option value="declined">Declined</option><option value="dormant">Dormant</option>
         </select>
       </div>
-      <div class="filter-group">
-        <label class="filter-lbl" for="f-hood">Neighborhood</label>
-        <select id="f-hood" class="filter-input"><option value="all">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-lbl" for="f-units">Min units</label>
-        <select id="f-units" class="filter-input">
-          <option value="0">All</option>
-          <option value="30">30+</option>
-          <option value="50">50+</option>
-          <option value="100">100+</option>
-          <option value="200">200+</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-lbl" for="f-sort">Sort by</label>
-        <select id="f-sort" class="filter-input">
-          <option value="missed_hoa">Missed HOA (high)</option>
-          <option value="next_action">Next action (soonest)</option>
-          <option value="last_contacted">Last contacted (recent)</option>
-          <option value="sales_10y">Sales count (high)</option>
-          <option value="name">Name (A–Z)</option>
-        </select>
-      </div>
+      <div class="filter-group"><label class="filter-lbl" for="f-hood">Neighborhood</label><select id="f-hood" class="filter-input"><option value="all">All</option></select></div>
+      <div class="filter-group"><label class="filter-lbl" for="f-units">Min units</label><select id="f-units" class="filter-input"><option value="0">All</option><option value="30">30+</option><option value="50">50+</option><option value="100">100+</option><option value="200">200+</option></select></div>
+      <div class="filter-group"><label class="filter-lbl" for="f-sort">Sort by</label><select id="f-sort" class="filter-input"><option value="missed_hoa">Missed HOA (high)</option><option value="next_action">Next action (soonest)</option><option value="last_contacted">Last contacted (recent)</option><option value="sales_10y">Sales count (high)</option><option value="name">Name (A–Z)</option></select></div>
       <div class="filter-spacer"></div>
       <div class="row-count" id="row-count">—</div>
     </div>
-
     <div class="table-wrap">
       <table class="outreach">
-        <thead>
-          <tr>
-            <th style="width: 24%;">Building</th>
-            <th style="width: 14%;">Neighborhood</th>
-            <th class="num" style="width: 7%;">Units</th>
-            <th class="num" style="width: 8%;">10y Sales</th>
-            <th class="num" style="width: 12%;">Missed HOA</th>
-            <th style="width: 12%;">Status</th>
-            <th style="width: 11%;">Last contact</th>
-            <th style="width: 10%;">Next action</th>
-            <th class="num" style="width: 100px;">Actions</th>
-          </tr>
-        </thead>
+        <thead><tr><th style="width: 24%;">Building</th><th style="width: 14%;">Neighborhood</th><th class="num" style="width: 7%;">Units</th><th class="num" style="width: 8%;">10y Sales</th><th class="num" style="width: 12%;">Missed HOA</th><th style="width: 12%;">Status</th><th style="width: 11%;">Last contact</th><th style="width: 10%;">Next action</th><th class="num" style="width: 100px;">Actions</th></tr></thead>
         <tbody id="tbody"><tr><td colspan="9" style="padding: 60px; text-align: center; color: var(--cm-ivory-dim);">Loading buildings…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
-<!-- Email composer modal -->
 <div class="modal-backdrop" id="email-modal" hidden>
   <div class="modal">
     <h3>Compose email</h3>
@@ -367,18 +226,9 @@
       <button class="email-tab" data-tpl="thank_you">Thank you</button>
     </div>
     <div class="field-grid">
-      <div class="field field-full">
-        <label>To</label>
-        <input type="email" id="email-to">
-      </div>
-      <div class="field field-full">
-        <label>Subject</label>
-        <input type="text" id="email-subject">
-      </div>
-      <div class="field field-full">
-        <label>Body</label>
-        <textarea id="email-body" rows="14"></textarea>
-      </div>
+      <div class="field field-full"><label>To</label><input type="email" id="email-to"></div>
+      <div class="field field-full"><label>Subject</label><input type="text" id="email-subject"></div>
+      <div class="field field-full"><label>Body</label><textarea id="email-body" rows="14"></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" data-action="close-email">Cancel</button>
@@ -387,24 +237,14 @@
   </div>
 </div>
 
-<!-- Generic event modal (note / call / meeting) -->
 <div class="modal-backdrop" id="event-modal" hidden>
   <div class="modal" style="max-width: 540px;">
     <h3 id="event-modal-title">Add note</h3>
     <p class="sub" id="event-modal-sub">—</p>
     <div class="field-grid">
-      <div class="field">
-        <label>Date</label>
-        <input type="date" id="event-date">
-      </div>
-      <div class="field">
-        <label id="event-subject-lbl">Subject</label>
-        <input type="text" id="event-subject" placeholder="e.g. Phone call with Karen">
-      </div>
-      <div class="field field-full">
-        <label>Details</label>
-        <textarea id="event-body" rows="6" placeholder="What happened, decisions made, next steps…"></textarea>
-      </div>
+      <div class="field"><label>Date</label><input type="date" id="event-date"></div>
+      <div class="field"><label id="event-subject-lbl">Subject</label><input type="text" id="event-subject" placeholder="e.g. Phone call with Karen"></div>
+      <div class="field field-full"><label>Details</label><textarea id="event-body" rows="6" placeholder="What happened, decisions made, next steps…"></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" data-action="close-event">Cancel</button>
@@ -414,44 +254,51 @@
 </div>
 
 <script type="module">
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SCHEDULE_URL } from '/assets/cm-config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '/assets/cm-config.js';
 
-// ── Site origin for pitch links ────────────────────────────────────────────
 const SITE_ORIGIN = window.location.origin;
 
-// ── Auth check ─────────────────────────────────────────────────────────────
+// ── Toast notifications (surface errors / successes) ───────────────────────
+function toast(msg, kind = 'error', ms = 6000) {
+  const t = document.createElement('div');
+  t.className = `toast is-${kind}`;
+  t.innerHTML = `<span class="close">×</span>${msg}`;
+  t.querySelector('.close').addEventListener('click', () => t.remove());
+  document.body.appendChild(t);
+  if (ms) setTimeout(() => t.remove(), ms);
+}
+
+// ── Auth helpers — robust to multiple Supabase token storage formats ──────
 const sb = {
-  url: SUPABASE_URL, key: SUPABASE_ANON_KEY,
-  token: () => {
+  url: SUPABASE_URL,
+  key: SUPABASE_ANON_KEY,
+  _readSession: () => {
     try {
+      // Standard supabase-js v2 key pattern
       const k = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
       if (!k) return null;
-      const obj = JSON.parse(localStorage.getItem(k));
-      return obj?.access_token || null;
-    } catch { return null; }
+      const raw = localStorage.getItem(k);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      // v2 format: top-level has access_token + user. Some custom impls nest under .currentSession.
+      if (obj?.access_token && obj?.user) return obj;
+      if (obj?.currentSession?.access_token) return obj.currentSession;
+      return obj;
+    } catch (e) { console.error('[auth] session read failed', e); return null; }
   },
-  user: () => {
-    try {
-      const k = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-      if (!k) return null;
-      const obj = JSON.parse(localStorage.getItem(k));
-      return obj?.user || null;
-    } catch { return null; }
-  },
-  headers: () => {
+  token: () => sb._readSession()?.access_token || null,
+  user: () => sb._readSession()?.user || null,
+  headers: (extra = {}) => {
     const t = sb.token();
-    return { apikey: sb.key, Authorization: `Bearer ${t || sb.key}`, 'Content-Type': 'application/json' };
+    if (!t) console.warn('[auth] no JWT in localStorage — request will be anonymous and likely fail RLS');
+    return { apikey: sb.key, Authorization: `Bearer ${t || sb.key}`, 'Content-Type': 'application/json', ...extra };
   }
 };
 
 // ── State ──────────────────────────────────────────────────────────────────
 const state = {
-  buildings: [],         // from buildings.json
-  outreach: new Map(),   // slug -> outreach row
-  summary: new Map(),    // slug -> summary row
-  events: new Map(),     // slug -> array of events
-  user: null, profile: null,
-  expandedSlug: null,
+  buildings: [], outreach: new Map(), summary: new Map(), events: new Map(),
+  user: null, profile: null, expandedSlug: null,
   filters: { status: 'all', hood: 'all', units: 0, sort: 'missed_hoa' }
 };
 
@@ -459,6 +306,20 @@ const state = {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const slugFromHref = (b) => (b.href || '').replace(/^\/building\//, '').replace(/\/$/, '');
+
+// Robust date conversion: accepts "YYYY-MM-DD" from <input type="date"> and
+// returns ISO string for Postgres timestamptz. Throws clear error on bad input.
+function toIsoFromDateInput(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return new Date().toISOString();
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) throw new Error(`Date "${dateStr}" is not in YYYY-MM-DD format`);
+  const year = parseInt(m[1], 10);
+  if (year < 1970 || year > 2100) throw new Error(`Year ${year} is out of reasonable range (1970–2100)`);
+  const d = new Date(`${dateStr}T12:00:00`);
+  if (isNaN(d.getTime())) throw new Error(`Could not parse date "${dateStr}"`);
+  return d.toISOString();
+}
+
 const fmt = {
   moneyCompact: (n) => {
     if (n == null || n === 0) return '$0';
@@ -471,6 +332,7 @@ const fmt = {
   relative: (ts) => {
     if (!ts) return '—';
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
     const days = Math.round((d - new Date()) / 86400000);
     if (days < -90) return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
     if (days < -30) return Math.abs(Math.round(days/7)) + 'w ago';
@@ -485,8 +347,10 @@ const fmt = {
   dateInputValue: (ts) => {
     if (!ts) return '';
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
     return d.toISOString().slice(0, 10);
   },
+  todayInputValue: () => new Date().toISOString().slice(0, 10),
   dueClass: (ts) => {
     if (!ts) return '';
     const days = Math.round((new Date(ts) - new Date()) / 86400000);
@@ -498,77 +362,77 @@ const fmt = {
 };
 
 const STATUS_OPTIONS = [
-  { val: 'untouched',         lbl: 'Untouched' },
-  { val: 'targeted',          lbl: 'Targeted' },
-  { val: 'emailed',           lbl: 'Emailed' },
-  { val: 'meeting_scheduled', lbl: 'Meeting scheduled' },
-  { val: 'meeting_held',      lbl: 'Meeting held' },
-  { val: 'won',               lbl: 'Won · partnership active' },
-  { val: 'declined',          lbl: 'Declined' },
-  { val: 'dormant',           lbl: 'Dormant' },
+  { val: 'untouched', lbl: 'Untouched' }, { val: 'targeted', lbl: 'Targeted' },
+  { val: 'emailed', lbl: 'Emailed' }, { val: 'meeting_scheduled', lbl: 'Meeting scheduled' },
+  { val: 'meeting_held', lbl: 'Meeting held' }, { val: 'won', lbl: 'Won · partnership active' },
+  { val: 'declined', lbl: 'Declined' }, { val: 'dormant', lbl: 'Dormant' },
 ];
 
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
-  // 1. Verify admin access
-  state.user = sb.user();
-  if (!state.user) { showAccessDenied('Sign in required'); return; }
-  const profileRes = await fetch(`${sb.url}/rest/v1/profiles?id=eq.${state.user.id}&select=role,full_name,email`, { headers: sb.headers() });
-  const profiles = await profileRes.json();
-  if (!profiles[0] || profiles[0].role !== 'admin') { showAccessDenied('Admin role required'); return; }
-  state.profile = profiles[0];
-  $('admin-user').textContent = state.profile.full_name || state.profile.email || '—';
+  try {
+    state.user = sb.user();
+    if (!state.user || !state.user.id) {
+      showAccessDenied('Sign in required (no auth session found in localStorage)');
+      return;
+    }
+    const profileRes = await fetch(`${sb.url}/rest/v1/profiles?id=eq.${state.user.id}&select=role,full_name,email`, { headers: sb.headers() });
+    if (!profileRes.ok) {
+      showAccessDenied(`Profile fetch failed (${profileRes.status})`);
+      return;
+    }
+    const profiles = await profileRes.json();
+    if (!profiles[0] || profiles[0].role !== 'admin') {
+      showAccessDenied('Admin role required');
+      return;
+    }
+    state.profile = profiles[0];
+    $('admin-user').textContent = state.profile.full_name || state.profile.email || '—';
 
-  // 2. Fetch all data in parallel
-  const [buildingsRes, outreachRes, summaryRes, eventsRes] = await Promise.all([
-    fetch('/assets/buildings.json', { cache: 'no-cache' }),
-    fetch(`${sb.url}/rest/v1/hoa_outreach?select=*`, { headers: sb.headers() }),
-    fetch(`${sb.url}/rest/v1/hoa_outreach_summary?select=*`, { headers: sb.headers() }),
-    fetch(`${sb.url}/rest/v1/hoa_outreach_events?select=*&order=occurred_at.desc&limit=1000`, { headers: sb.headers() })
-  ]);
-  const buildings = await buildingsRes.json();
-  const outreach = await outreachRes.json();
-  const summary = await summaryRes.json();
-  const events = await eventsRes.json();
+    const [buildingsRes, outreachRes, summaryRes, eventsRes] = await Promise.all([
+      fetch('/assets/buildings.json', { cache: 'no-cache' }),
+      fetch(`${sb.url}/rest/v1/hoa_outreach?select=*`, { headers: sb.headers() }),
+      fetch(`${sb.url}/rest/v1/hoa_outreach_summary?select=*`, { headers: sb.headers() }),
+      fetch(`${sb.url}/rest/v1/hoa_outreach_events?select=*&order=occurred_at.desc&limit=1000`, { headers: sb.headers() })
+    ]);
+    const buildings = await buildingsRes.json();
+    const outreach = outreachRes.ok ? await outreachRes.json() : [];
+    const summary = summaryRes.ok ? await summaryRes.json() : [];
+    const events = eventsRes.ok ? await eventsRes.json() : [];
 
-  // 3. Index data
-  state.buildings = buildings.map(b => ({ ...b, slug: slugFromHref(b) })).filter(b => b.slug);
-  outreach.forEach(o => state.outreach.set(o.building_slug, o));
-  summary.forEach(s => state.summary.set(s.building_slug, s));
-  events.forEach(e => {
-    const arr = state.events.get(e.building_slug) || [];
-    arr.push(e);
-    state.events.set(e.building_slug, arr);
-  });
-
-  // 4. Populate hood filter
-  const hoods = [...new Set(state.buildings.map(b => b.hood).filter(Boolean))].sort();
-  const fHood = $('f-hood');
-  hoods.forEach(h => fHood.insertAdjacentHTML('beforeend', `<option value="${esc(h)}">${esc(h)}</option>`));
-
-  // 5. Wire filters
-  ['f-status', 'f-hood', 'f-units', 'f-sort'].forEach(id => {
-    $(id).addEventListener('change', () => {
-      state.filters = {
-        status: $('f-status').value,
-        hood: $('f-hood').value,
-        units: parseInt($('f-units').value, 10),
-        sort: $('f-sort').value
-      };
-      renderTable();
+    state.buildings = buildings.map(b => ({ ...b, slug: slugFromHref(b) })).filter(b => b.slug);
+    outreach.forEach(o => state.outreach.set(o.building_slug, o));
+    summary.forEach(s => state.summary.set(s.building_slug, s));
+    events.forEach(e => {
+      const arr = state.events.get(e.building_slug) || [];
+      arr.push(e);
+      state.events.set(e.building_slug, arr);
     });
-  });
 
-  // 6. Reveal & render
-  $('access-loading').hidden = true;
-  $('content').hidden = false;
-  renderKpis();
-  renderTable();
+    const hoods = [...new Set(state.buildings.map(b => b.hood).filter(Boolean))].sort();
+    const fHood = $('f-hood');
+    hoods.forEach(h => fHood.insertAdjacentHTML('beforeend', `<option value="${esc(h)}">${esc(h)}</option>`));
 
-  // 7. Wire modal close on backdrop
-  document.querySelectorAll('.modal-backdrop').forEach(m => {
-    m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; });
-  });
+    ['f-status', 'f-hood', 'f-units', 'f-sort'].forEach(id => {
+      $(id).addEventListener('change', () => {
+        state.filters = { status: $('f-status').value, hood: $('f-hood').value, units: parseInt($('f-units').value, 10), sort: $('f-sort').value };
+        renderTable();
+      });
+    });
+
+    $('access-loading').hidden = true;
+    $('content').hidden = false;
+    renderKpis();
+    renderTable();
+
+    document.querySelectorAll('.modal-backdrop').forEach(m => {
+      m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; });
+    });
+  } catch (err) {
+    console.error('[init] failed', err);
+    toast(`Init failed: ${err.message || err}`, 'error', 12000);
+    showAccessDenied(err.message || String(err));
+  }
 }
 
 function showAccessDenied(msg) {
@@ -577,7 +441,6 @@ function showAccessDenied(msg) {
   if (msg) $('access-denied').querySelector('p').textContent = msg;
 }
 
-// ── KPI cards ──────────────────────────────────────────────────────────────
 function renderKpis() {
   const totalBuildings = state.buildings.length;
   const allOutreach = [...state.outreach.values()];
@@ -586,7 +449,6 @@ function renderKpis() {
   const meetingsScheduled = allOutreach.filter(o => o.status === 'meeting_scheduled').length;
   const won = allOutreach.filter(o => o.status === 'won').length;
   const totalMissed = state.buildings.reduce((sum, b) => sum + (state.summary.get(b.slug)?.missed_hoa_10y || 0), 0);
-
   $('kpis').innerHTML = `
     <div class="kpi"><div class="kpi-num">${totalBuildings}</div><div class="kpi-lbl">Buildings tracked</div></div>
     <div class="kpi"><div class="kpi-num">${inPipeline}</div><div class="kpi-lbl">In pipeline</div></div>
@@ -596,7 +458,6 @@ function renderKpis() {
   `;
 }
 
-// ── Table render ───────────────────────────────────────────────────────────
 function getEnrichedRows() {
   return state.buildings.map(b => {
     const o = state.outreach.get(b.slug) || { status: 'untouched', last_contacted_at: null, next_action_at: null, contact_name: '', contact_email: '', contact_role: '', notes: '' };
@@ -612,18 +473,15 @@ function applyFilters(rows) {
     if (f.hood !== 'all' && r.hood !== f.hood) return false;
     if (f.status === 'all') return true;
     if (f.status === 'active') return ['targeted','emailed','meeting_scheduled','meeting_held'].includes(r.outreach.status);
-    if (f.status === 'needs_followup') {
-      return r.outreach.next_action_at && new Date(r.outreach.next_action_at) <= new Date();
-    }
+    if (f.status === 'needs_followup') return r.outreach.next_action_at && new Date(r.outreach.next_action_at) <= new Date();
     return r.outreach.status === f.status;
   });
 }
 
 function applySort(rows) {
-  const s = state.filters.sort;
   const sorters = {
     missed_hoa: (a,b) => (b.summary.missed_hoa_10y||0) - (a.summary.missed_hoa_10y||0),
-    sales_10y: (a,b) => (b.summary.sales_10y||0) - (a.summary.sales_10y||0),
+    sales_10y:  (a,b) => (b.summary.sales_10y||0)  - (a.summary.sales_10y||0),
     name: (a,b) => (a.name||'').localeCompare(b.name||''),
     next_action: (a,b) => {
       const av = a.outreach.next_action_at ? new Date(a.outreach.next_action_at) : new Date('9999-01-01');
@@ -636,7 +494,7 @@ function applySort(rows) {
       return bv - av;
     }
   };
-  return [...rows].sort(sorters[s] || sorters.missed_hoa);
+  return [...rows].sort(sorters[state.filters.sort] || sorters.missed_hoa);
 }
 
 function renderTable() {
@@ -649,21 +507,15 @@ function renderTable() {
     return;
   }
   $('tbody').innerHTML = sorted.map(r => renderRow(r)).join('');
-  // Wire row click
   $('tbody').querySelectorAll('tr.row').forEach(tr => {
     tr.addEventListener('click', (e) => {
       if (e.target.closest('[data-no-expand]')) return;
       toggleExpand(tr.dataset.slug);
     });
   });
-  // Wire status pill cycling (click without expand)
   $('tbody').querySelectorAll('.status-pill').forEach(pill => {
-    pill.addEventListener('click', (e) => {
-      e.stopPropagation();
-      cycleStatus(pill.dataset.slug);
-    });
+    pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(pill.dataset.slug); });
   });
-  // Wire detail-panel interactions for any expanded rows
   if (state.expandedSlug) wireDetailPanel(state.expandedSlug);
 }
 
@@ -672,7 +524,6 @@ function renderRow(r) {
   const o = r.outreach, s = r.summary;
   const dueCls = fmt.dueClass(o.next_action_at);
   const pitchUrl = `${SITE_ORIGIN}/hoa-pitch?slug=${r.slug}`;
-
   return `
     <tr class="row ${isExpanded ? 'is-expanded' : ''}" data-slug="${esc(r.slug)}">
       <td class="col-name"><span class="chev">›</span> ${esc(r.name)}</td>
@@ -692,9 +543,7 @@ function renderRow(r) {
   `;
 }
 
-function statusLabel(status) {
-  return STATUS_OPTIONS.find(s => s.val === status)?.lbl || status;
-}
+function statusLabel(status) { return STATUS_OPTIONS.find(s => s.val === status)?.lbl || status; }
 
 function renderDetailPanel(r) {
   const o = r.outreach, s = r.summary;
@@ -714,14 +563,12 @@ function renderDetailPanel(r) {
               <a href="${pitchUrl}" target="_blank" rel="noopener" class="btn-pitch">Open ↗</a>
             </div>
           </div>
-
           <h4>Contact</h4>
           <div class="field-grid">
             <div class="field"><label>Name</label><input data-field="contact_name" type="text" value="${esc(o.contact_name || '')}" placeholder="HOA contact name"></div>
             <div class="field"><label>Role</label><input data-field="contact_role" type="text" value="${esc(o.contact_role || '')}" placeholder="e.g. President, Property Manager"></div>
             <div class="field field-full"><label>Email</label><input data-field="contact_email" type="email" value="${esc(o.contact_email || '')}" placeholder="email@example.com"></div>
           </div>
-
           <h4>Pipeline</h4>
           <div class="field-grid">
             <div class="field"><label>Status</label>
@@ -732,7 +579,6 @@ function renderDetailPanel(r) {
             <div class="field"><label>Next action date</label><input data-field="next_action_at" type="date" value="${fmt.dateInputValue(o.next_action_at)}"></div>
             <div class="field field-full"><label>Notes</label><textarea data-field="notes" placeholder="Persistent notes about this building/board…">${esc(o.notes || '')}</textarea></div>
           </div>
-
           <div class="actions-row">
             <button class="action-btn" data-action="compose-email" data-slug="${esc(r.slug)}">✉ Compose email</button>
             <button class="action-btn" data-action="log-call" data-slug="${esc(r.slug)}">📞 Log call</button>
@@ -743,7 +589,6 @@ function renderDetailPanel(r) {
             <span class="save-indicator" data-slug="${esc(r.slug)}">Saved</span>
           </div>
         </div>
-
         <div class="detail-section">
           <h4>Timeline · ${events.length} event${events.length === 1 ? '' : 's'}</h4>
           ${events.length === 0
@@ -760,20 +605,14 @@ function renderEvent(e) {
     email_sent: { c:'email', s:'✉' }, call_logged: { c:'call', s:'📞' },
     meeting_scheduled: { c:'meeting', s:'📅' }, meeting_held: { c:'meeting', s:'🤝' },
     note: { c:'note', s:'📝' }, status_changed: { c:'status', s:'⇄' },
-    won: { c:'won', s:'✓' }, declined: { c:'declined', s:'✗' },
-    reminder_set: { c:'note', s:'⏰' }
+    won: { c:'won', s:'✓' }, declined: { c:'declined', s:'✗' }, reminder_set: { c:'note', s:'⏰' }
   };
   const ico = iconMap[e.event_type] || { c:'note', s:'•' };
   const titleMap = {
-    email_sent: `Email sent · ${e.template_key || 'custom'}`,
-    call_logged: 'Call logged',
-    meeting_scheduled: 'Meeting scheduled',
-    meeting_held: 'Meeting held',
-    note: 'Note added',
+    email_sent: `Email sent · ${e.template_key || 'custom'}`, call_logged: 'Call logged',
+    meeting_scheduled: 'Meeting scheduled', meeting_held: 'Meeting held', note: 'Note added',
     status_changed: `Status changed · ${e.metadata?.from_status || '?'} → ${e.metadata?.to_status || '?'}`,
-    won: 'Marked WON',
-    declined: 'Marked DECLINED',
-    reminder_set: 'Reminder set'
+    won: 'Marked WON', declined: 'Marked DECLINED', reminder_set: 'Reminder set'
   };
   return `
     <div class="timeline-item">
@@ -787,58 +626,53 @@ function renderEvent(e) {
   `;
 }
 
-// ── Expand toggle ──────────────────────────────────────────────────────────
 function toggleExpand(slug) {
   state.expandedSlug = (state.expandedSlug === slug) ? null : slug;
   renderTable();
 }
 
-// ── Detail panel wiring ────────────────────────────────────────────────────
 function wireDetailPanel(slug) {
   const detailRow = $('tbody').querySelector(`tr.detail[data-slug="${slug}"]`);
   if (!detailRow) return;
-
-  // Auto-save on field change/blur
   detailRow.querySelectorAll('[data-field]').forEach(el => {
     const evt = (el.tagName === 'SELECT') ? 'change' : 'blur';
-    el.addEventListener(evt, () => saveField(slug, el.dataset.field, el.value, el));
+    el.addEventListener(evt, () => saveField(slug, el.dataset.field, el.value, el).catch(err => {
+      console.error('[saveField]', err); toast(`Save failed: ${err.message || err}`);
+    }));
   });
-
-  // Copy pitch link buttons
   detailRow.querySelectorAll('[data-copy]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       try {
         await navigator.clipboard.writeText(btn.dataset.copy);
-        const orig = btn.textContent;
-        btn.textContent = 'Copied!';
+        const orig = btn.textContent; btn.textContent = 'Copied!';
         setTimeout(() => btn.textContent = orig, 1500);
       } catch {}
     });
   });
-
-  // Action buttons
   detailRow.querySelectorAll('[data-action]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const action = btn.dataset.action;
-      if (action === 'compose-email') openEmailModal(slug);
-      else if (action === 'log-call')   openEventModal(slug, 'call_logged', 'Log a call', 'Topic / call summary');
-      else if (action === 'log-meeting')openEventModal(slug, 'meeting_held', 'Log a meeting', 'Meeting topic / outcome');
-      else if (action === 'add-note')   openEventModal(slug, 'note', 'Add a note', 'Note title');
-      else if (action === 'mark-won')   await quickStatusChange(slug, 'won', 'Marked as WON');
-      else if (action === 'mark-declined') await quickStatusChange(slug, 'declined', 'Marked as declined');
+      try {
+        if (action === 'compose-email')      openEmailModal(slug);
+        else if (action === 'log-call')      openEventModal(slug, 'call_logged', 'Log a call', 'Topic / call summary');
+        else if (action === 'log-meeting')   openEventModal(slug, 'meeting_held', 'Log a meeting', 'Meeting topic / outcome');
+        else if (action === 'add-note')      openEventModal(slug, 'note', 'Add a note', 'Note title');
+        else if (action === 'mark-won')      await quickStatusChange(slug, 'won', 'Marked as WON');
+        else if (action === 'mark-declined') await quickStatusChange(slug, 'declined', 'Marked as declined');
+      } catch (err) {
+        console.error(`[action ${action}]`, err);
+        toast(`${action} failed: ${err.message || err}`);
+      }
     });
   });
 }
 
-// ── Save outreach field ────────────────────────────────────────────────────
 async function saveField(slug, field, value, el) {
   const current = state.outreach.get(slug) || { building_slug: slug };
   const oldStatus = current.status || 'untouched';
   const patch = { [field]: value === '' ? null : value };
-
-  // Apply auto-cadence on status change
   if (field === 'status' && value !== oldStatus) {
     const nowIso = new Date().toISOString();
     if (value === 'emailed') {
@@ -852,44 +686,54 @@ async function saveField(slug, field, value, el) {
     } else if (['won','declined','dormant'].includes(value)) {
       patch.next_action_at = null;
     }
-    // Insert status_changed event
-    await insertEvent(slug, {
-      event_type: 'status_changed',
-      metadata: { from_status: oldStatus, to_status: value },
-      subject: `${oldStatus} → ${value}`
-    });
+    await insertEvent(slug, { event_type: 'status_changed', metadata: { from_status: oldStatus, to_status: value }, subject: `${oldStatus} → ${value}` });
   }
-
+  if (field === 'next_action_at' && value) {
+    // Validate date range before saving
+    try { toIsoFromDateInput(value); } catch (err) { toast(`Bad date: ${err.message}`); throw err; }
+    patch[field] = toIsoFromDateInput(value);
+  }
   await upsertOutreach(slug, { ...current, ...patch });
   showSaved(slug);
 }
 
 async function upsertOutreach(slug, row) {
   const payload = { building_slug: slug, ...row };
-  delete payload.created_at;
-  delete payload.updated_at;
+  delete payload.created_at; delete payload.updated_at;
   const res = await fetch(`${sb.url}/rest/v1/hoa_outreach`, {
     method: 'POST',
-    headers: { ...sb.headers(), Prefer: 'resolution=merge-duplicates,return=representation' },
+    headers: sb.headers({ Prefer: 'resolution=merge-duplicates,return=representation' }),
     body: JSON.stringify(payload)
   });
-  if (!res.ok) { console.error('Upsert failed', await res.text()); alert('Save failed — check console'); return; }
-  const [updated] = await res.json();
-  state.outreach.set(slug, updated);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => 'unknown');
+    throw new Error(`Upsert hoa_outreach failed (${res.status}): ${errText}`);
+  }
+  const json = await res.json();
+  const updated = Array.isArray(json) ? json[0] : json;
+  if (updated) state.outreach.set(slug, updated);
+  return updated;
 }
 
 async function insertEvent(slug, event) {
+  if (!state.user || !state.user.id) throw new Error('Not signed in (no user.id in session)');
   const payload = { building_slug: slug, ...event, created_by: state.user.id };
   const res = await fetch(`${sb.url}/rest/v1/hoa_outreach_events`, {
     method: 'POST',
-    headers: { ...sb.headers(), Prefer: 'return=representation' },
+    headers: sb.headers({ Prefer: 'return=representation' }),
     body: JSON.stringify(payload)
   });
-  if (!res.ok) { console.error('Event insert failed', await res.text()); return null; }
-  const [inserted] = await res.json();
-  const arr = state.events.get(slug) || [];
-  arr.unshift(inserted);
-  state.events.set(slug, arr);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => 'unknown');
+    throw new Error(`Insert hoa_outreach_events failed (${res.status}): ${errText}`);
+  }
+  const json = await res.json();
+  const inserted = Array.isArray(json) ? json[0] : json;
+  if (inserted) {
+    const arr = state.events.get(slug) || [];
+    arr.unshift(inserted);
+    state.events.set(slug, arr);
+  }
   return inserted;
 }
 
@@ -900,7 +744,6 @@ function showSaved(slug) {
   setTimeout(() => ind.classList.remove('is-visible'), 1500);
 }
 
-// ── Quick status changes (won / declined buttons) ──────────────────────────
 async function quickStatusChange(slug, newStatus, eventTitle) {
   const current = state.outreach.get(slug) || { building_slug: slug, status: 'untouched' };
   const oldStatus = current.status;
@@ -908,57 +751,61 @@ async function quickStatusChange(slug, newStatus, eventTitle) {
   await upsertOutreach(slug, { ...current, status: newStatus, last_contacted_at: nowIso, next_action_at: null });
   await insertEvent(slug, {
     event_type: newStatus === 'won' ? 'won' : 'declined',
-    subject: eventTitle,
-    metadata: { from_status: oldStatus, to_status: newStatus }
+    subject: eventTitle, metadata: { from_status: oldStatus, to_status: newStatus }
   });
-  renderKpis();
-  renderTable();
+  toast(`${eventTitle} for ${slug}`, 'success', 2500);
+  renderKpis(); renderTable();
 }
 
-// ── Status pill cycling ────────────────────────────────────────────────────
 async function cycleStatus(slug) {
-  const current = state.outreach.get(slug) || { building_slug: slug, status: 'untouched' };
-  const idx = STATUS_OPTIONS.findIndex(s => s.val === current.status);
-  const nextIdx = (idx + 1) % STATUS_OPTIONS.length;
-  const newStatus = STATUS_OPTIONS[nextIdx].val;
-  await saveField(slug, 'status', newStatus, null);
-  renderKpis();
-  renderTable();
+  try {
+    const current = state.outreach.get(slug) || { building_slug: slug, status: 'untouched' };
+    const idx = STATUS_OPTIONS.findIndex(s => s.val === current.status);
+    const nextIdx = (idx + 1) % STATUS_OPTIONS.length;
+    const newStatus = STATUS_OPTIONS[nextIdx].val;
+    await saveField(slug, 'status', newStatus, null);
+    renderKpis(); renderTable();
+  } catch (err) { console.error('[cycleStatus]', err); toast(`Status change failed: ${err.message || err}`); }
 }
 
-// ── Generic event modal (note / call / meeting) ────────────────────────────
+// ── Generic event modal ────────────────────────────────────────────────────
 let pendingEvent = null;
 function openEventModal(slug, eventType, title, subjectPlaceholder) {
   const r = state.buildings.find(b => b.slug === slug);
   pendingEvent = { slug, eventType };
   $('event-modal-title').textContent = title;
   $('event-modal-sub').textContent = r ? r.name : slug;
-  $('event-subject-lbl').textContent = subjectPlaceholder.includes('topic') ? 'Topic' : 'Subject';
+  $('event-subject-lbl').textContent = subjectPlaceholder.toLowerCase().includes('topic') ? 'Topic' : 'Subject';
   $('event-subject').placeholder = subjectPlaceholder;
-  $('event-date').value = new Date().toISOString().slice(0, 10);
+  $('event-date').value = fmt.todayInputValue();
   $('event-subject').value = '';
   $('event-body').value = '';
   $('event-modal').hidden = false;
 }
-document.querySelector('[data-action="close-event"]').addEventListener('click', () => $('event-modal').hidden = true);
-document.querySelector('[data-action="save-event"]').addEventListener('click', async () => {
-  if (!pendingEvent) return;
+$('event-modal').querySelector('[data-action="close-event"]').addEventListener('click', () => $('event-modal').hidden = true);
+$('event-modal').querySelector('[data-action="save-event"]').addEventListener('click', async () => {
+  console.log('[save-event] click');
+  if (!pendingEvent) { toast('No event in progress — close and reopen the modal.'); return; }
   const subject = $('event-subject').value.trim();
   const body = $('event-body').value.trim();
-  const date = $('event-date').value;
-  if (!subject && !body) { alert('Add at least a subject or details.'); return; }
-  await insertEvent(pendingEvent.slug, {
-    event_type: pendingEvent.eventType,
-    subject: subject || null,
-    body: body || null,
-    occurred_at: date ? new Date(date + 'T12:00:00').toISOString() : new Date().toISOString()
-  });
-  // Update last_contacted_at
-  const cur = state.outreach.get(pendingEvent.slug) || { building_slug: pendingEvent.slug, status: 'untouched' };
-  await upsertOutreach(pendingEvent.slug, { ...cur, last_contacted_at: date ? new Date(date + 'T12:00:00').toISOString() : new Date().toISOString() });
-  $('event-modal').hidden = true;
-  pendingEvent = null;
-  renderTable();
+  const dateRaw = $('event-date').value;
+  console.log('[save-event] values', { slug: pendingEvent.slug, eventType: pendingEvent.eventType, subject, body, dateRaw });
+  if (!subject && !body) { toast('Add at least a subject or details.'); return; }
+  try {
+    const occurredAt = toIsoFromDateInput(dateRaw);
+    await insertEvent(pendingEvent.slug, {
+      event_type: pendingEvent.eventType, subject: subject || null, body: body || null, occurred_at: occurredAt
+    });
+    const cur = state.outreach.get(pendingEvent.slug) || { building_slug: pendingEvent.slug, status: 'untouched' };
+    await upsertOutreach(pendingEvent.slug, { ...cur, last_contacted_at: occurredAt });
+    $('event-modal').hidden = true;
+    pendingEvent = null;
+    toast('Saved to timeline.', 'success', 2500);
+    renderTable();
+  } catch (err) {
+    console.error('[save-event]', err);
+    toast(`Save failed: ${err.message || err}`, 'error', 12000);
+  }
 });
 
 // ── Email composer ─────────────────────────────────────────────────────────
@@ -1069,42 +916,34 @@ document.querySelectorAll('.email-tab').forEach(tab => {
     selectTemplate(tab.dataset.tpl);
   });
 });
-document.querySelector('[data-action="close-email"]').addEventListener('click', () => $('email-modal').hidden = true);
-document.querySelector('[data-action="send-email"]').addEventListener('click', async () => {
-  if (!pendingEmail) return;
+
+$('email-modal').querySelector('[data-action="close-email"]').addEventListener('click', () => $('email-modal').hidden = true);
+$('email-modal').querySelector('[data-action="send-email"]').addEventListener('click', async () => {
+  console.log('[send-email] click');
+  if (!pendingEmail) { toast('No email in progress.'); return; }
   const to = $('email-to').value.trim();
   const subject = $('email-subject').value;
   const body = $('email-body').value;
-  if (!to) { alert('Recipient required.'); return; }
-  // Open mailto
-  const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.open(mailto, '_blank');
-  // Log event
-  await insertEvent(pendingEmail.slug, {
-    event_type: 'email_sent',
-    template_key: pendingEmail.tplKey,
-    subject: subject,
-    body: body
-  });
-  // Update outreach: mark emailed + last_contacted + next_action +7
-  const cur = state.outreach.get(pendingEmail.slug) || { building_slug: pendingEmail.slug, status: 'untouched' };
-  const nowIso = new Date().toISOString();
-  const next = new Date(); next.setDate(next.getDate() + 7);
-  const newStatus = (cur.status === 'untouched' || cur.status === 'targeted') ? 'emailed' : cur.status;
-  await upsertOutreach(pendingEmail.slug, {
-    ...cur,
-    status: newStatus,
-    last_contacted_at: nowIso,
-    next_action_at: next.toISOString(),
-    contact_email: to
-  });
-  $('email-modal').hidden = true;
-  pendingEmail = null;
-  renderKpis();
-  renderTable();
+  if (!to) { toast('Recipient required.'); return; }
+  try {
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailto, '_blank');
+    await insertEvent(pendingEmail.slug, { event_type: 'email_sent', template_key: pendingEmail.tplKey, subject, body });
+    const cur = state.outreach.get(pendingEmail.slug) || { building_slug: pendingEmail.slug, status: 'untouched' };
+    const nowIso = new Date().toISOString();
+    const next = new Date(); next.setDate(next.getDate() + 7);
+    const newStatus = (cur.status === 'untouched' || cur.status === 'targeted') ? 'emailed' : cur.status;
+    await upsertOutreach(pendingEmail.slug, { ...cur, status: newStatus, last_contacted_at: nowIso, next_action_at: next.toISOString(), contact_email: to });
+    $('email-modal').hidden = true;
+    pendingEmail = null;
+    toast('Email logged.', 'success', 2500);
+    renderKpis(); renderTable();
+  } catch (err) {
+    console.error('[send-email]', err);
+    toast(`Email log failed: ${err.message || err}`, 'error', 12000);
+  }
 });
 
-// ── Top-level icon button copy handler ─────────────────────────────────────
 document.body.addEventListener('click', async (e) => {
   const btn = e.target.closest('.iconbtn[data-copy]');
   if (!btn) return;
