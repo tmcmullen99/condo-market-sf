@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market intelligence · Condo Market SF</title>
+<meta name="description" content="Live market intelligence on San Francisco's condo buildings. Price signals, most-traded buildings, neighborhood heat, and more.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-gain: #8fb97a; --cm-loss: #c97865;
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --page-max: 1280px;
+    --gutter: clamp(20px, 4vw, 56px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--ff-body); font-weight: 300; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1; mix-blend-mode: overlay;
+  }
+  main { position: relative; z-index: 2; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
+  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
+  .nav-meta a { color: var(--cm-ivory-dim); transition: color 0.15s; }
+  .nav-meta a:hover { color: var(--cm-ivory); }
+  .nav-meta a.active { color: var(--cm-peri); }
+  .signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
+  .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
+
+  .hero { padding: 80px 0 64px; text-align: center; }
+  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 22px; }
+  .hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(44px, 6.5vw, 80px); line-height: 1.02; letter-spacing: -0.015em; color: var(--cm-ivory); margin-bottom: 20px; }
+  .hero h1 em { font-style: italic; color: var(--cm-peri); }
+  .hero p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto; }
+
+  .section { padding: 72px 0; border-bottom: 1px solid var(--cm-rule); }
+  .section-head { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 16px; }
+  .section-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(30px, 4vw, 44px); line-height: 1.1; color: var(--cm-ivory); }
+  .section-title em { font-style: italic; color: var(--cm-peri); }
+  .section-sub { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+
+  .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+  .rank-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 28px; }
+  .rank-card h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 4px; }
+  .rank-card .sub { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 20px; }
+  .rank-list { list-style: none; }
+  .rank-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--cm-rule); gap: 12px; }
+  .rank-list li:last-child { border-bottom: none; }
+  .rank-n { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-peri); }
+  .rank-name { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); }
+  .rank-name a { text-decoration: none; color: inherit; }
+  .rank-name a:hover { color: var(--cm-peri); }
+  .rank-val { font-family: var(--ff-mono); font-size: 13px; color: var(--cm-peri); }
+
+  /* Enhanced-data toggle */
+  .enhanced-toggle { background: var(--cm-navy); padding: 60px 0; border-bottom: 1px solid var(--cm-rule); }
+  .et-head { text-align: center; margin-bottom: 36px; }
+  .et-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 18px; }
+  .et-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(34px, 4vw, 48px); letter-spacing: -0.015em; line-height: 1.05; color: var(--cm-ivory); margin-bottom: 14px; }
+  .et-title em { font-style: italic; color: var(--cm-peri); }
+  .et-sub { color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto; }
+
+  .mode-tabs { display: inline-flex; margin: 28px auto 0; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; background: var(--cm-navy-deep); }
+  .mode-tab { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 9px 20px; border-radius: 999px; cursor: pointer; background: transparent; border: none; color: var(--cm-ivory-dim); transition: all 0.18s; }
+  .mode-tab.active { background: var(--cm-peri); color: var(--cm-navy); }
+
+  .compare-panels { display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 48px; }
+  @media (min-width: 920px) { .compare-panels { grid-template-columns: 1fr 1fr; } }
+  .compare-panel { background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 32px; position: relative; }
+  .compare-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px; }
+  .compare-label.public { color: var(--cm-ivory-dim); }
+  .compare-label.enhanced { color: var(--cm-peri); }
+  .compare-panel h4 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 16px; }
+  .compare-data { font-family: var(--ff-mono); font-size: 13px; }
+  .compare-data .row { padding: 10px 0; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; }
+  .compare-data .row:last-child { border-bottom: none; }
+  .compare-data .lock { opacity: 0.32; filter: blur(4px); user-select: none; }
+  .compare-data .reveal { color: var(--cm-peri); }
+
+  .enhance-cta { text-align: center; margin-top: 40px; padding: 32px; background: rgba(159,180,216,0.06); border: 1px dashed var(--cm-peri); border-radius: 12px; }
+  .enhance-cta h5 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 10px; }
+  .enhance-cta p { color: var(--cm-ivory-dim); max-width: 48ch; margin: 0 auto 22px; }
+  .btn-p { display: inline-block; background: var(--cm-peri); color: var(--cm-navy); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; }
+  .btn-p:hover { opacity: 0.88; }
+
+  footer { padding: 48px 0 40px; background: var(--cm-navy); color: var(--cm-ivory-dim); font-size: 13px; border-top: 1px solid var(--cm-rule); }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+  footer h5 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory); margin-bottom: 14px; font-weight: 500; }
+  footer ul { list-style: none; }
+  footer li { padding: 4px 0; }
+  .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--cm-rule); font-size: 12px; opacity: 0.7; text-align: center; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <nav class="nav-meta">
+        <a href="/buildings/">Buildings</a>
+        <a href="/intelligence/" class="active">Intelligence</a>
+        <a href="/history/">History</a>
+        <a href="/how-it-works/">How it works</a>
+        <a href="/refer/">Refer</a>
+        <a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-kicker">Market Intelligence</div>
+      <h1>The <em>pulse</em> of the city.</h1>
+      <p>Live signals on San Francisco's 64 tracked condo buildings. Price leaders, most-traded, and the signals buyers and owners need to move with the market.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title"><em>Public</em> signals</h2>
+        <span class="section-sub">Updated hourly</span>
+      </div>
+      <div class="rank-grid" id="rank-grid"></div>
+    </div>
+  </section>
+
+  <section class="enhanced-toggle">
+    <div class="wrap">
+      <div class="et-head">
+        <div class="et-kicker">Members vs. Public</div>
+        <h2 class="et-title">Two <em>data layers</em>.</h2>
+        <p class="et-sub">Everyone sees the public layer. Signed-in members get the enhanced layer — sale-by-sale history, off-market activity, owner tenure patterns, sale-to-list ratios, and more.</p>
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="public">Public data</button>
+          <button class="mode-tab" data-mode="enhanced">Enhanced data</button>
+        </div>
+      </div>
+
+      <div class="compare-panels">
+        <div class="compare-panel">
+          <div class="compare-label public">Public layer</div>
+          <h4>The Crescent · Nob Hill</h4>
+          <div class="compare-data">
+            <div class="row"><span>Median $/sf</span><span>$1,579</span></div>
+            <div class="row"><span>Units tracked</span><span>44</span></div>
+            <div class="row"><span>Built</span><span>2020</span></div>
+            <div class="row"><span>Offers this week</span><span>6</span></div>
+            <div class="row"><span>Last sale</span><span class="lock">lorem ipsum</span></div>
+            <div class="row"><span>Sale-to-list ratio (90d)</span><span class="lock">lorem ipsum</span></div>
+            <div class="row"><span>Owner tenure median</span><span class="lock">lorem ipsum</span></div>
+          </div>
+        </div>
+        <div class="compare-panel">
+          <div class="compare-label enhanced">Enhanced layer</div>
+          <h4>The Crescent · Nob Hill</h4>
+          <div class="compare-data">
+            <div class="row"><span>Median $/sf</span><span class="reveal">$1,579</span></div>
+            <div class="row"><span>Units tracked</span><span class="reveal">44</span></div>
+            <div class="row"><span>Built</span><span class="reveal">2020</span></div>
+            <div class="row"><span>Offers this week</span><span class="reveal">6</span></div>
+            <div class="row"><span>Last sale</span><span class="reveal">$6.0M · Apr 2023 · #PH2</span></div>
+            <div class="row"><span>Sale-to-list ratio (90d)</span><span class="reveal">0.94</span></div>
+            <div class="row"><span>Owner tenure median</span><span class="reveal">3.8 years</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="enhance-cta">
+        <h5>Sign up to <em>unlock</em> the enhanced layer</h5>
+        <p>Free. Everything shown on the right side is available to members for all 64 buildings and 12,400+ tracked units.</p>
+        <a class="btn-p" href="#signup" data-cm-auth="signup">Create a free account →</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
+        <p style="max-width:42ch;">A private exchange for every condo in San Francisco.</p>
+      </div>
+      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/history/">History</a></li><li><a href="/refer/">Refer</a></li></ul></div>
+      <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
+      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
+    </div>
+    <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
+  </div>
+</footer>
+
+<script>
+  // Load buildings.json to populate rank cards
+  fetch('/assets/buildings.json').then(r => r.json()).then(buildings => {
+    const byPsf = [...buildings].sort((a,b) => b.psf - a.psf).slice(0, 5);
+    const byActive = [...buildings].sort((a,b) => (b.recent_sales_10y||0) - (a.recent_sales_10y||0)).slice(0, 5);
+    const newest = [...buildings].sort((a,b) => b.year - a.year).slice(0, 5);
+    const byUnits = [...buildings].sort((a,b) => b.units - a.units).slice(0, 5);
+
+    function card(title, sub, rows, formatVal) {
+      return `
+        <div class="rank-card">
+          <h3>${title}</h3>
+          <div class="sub">${sub}</div>
+          <ul class="rank-list">
+            ${rows.map((b, i) => `
+              <li>
+                <span class="rank-n">0${i+1}</span>
+                <span class="rank-name"><a href="${b.href}/">${b.name}</a></span>
+                <span class="rank-val">${formatVal(b)}</span>
+              </li>`).join('')}
+          </ul>
+        </div>`;
+    }
+
+    document.getElementById('rank-grid').innerHTML = [
+      card('Highest $/sf', 'Most expensive per square foot', byPsf, b => `$${b.psf.toLocaleString()}`),
+      card('Most active', 'By 10-year sales volume', byActive, b => `${b.recent_sales_10y||0} sales`),
+      card('Largest towers', 'By total unit count', byUnits, b => `${b.units} units`),
+      card('Newest', 'By year completed', newest, b => `${b.year}`),
+    ].join('');
+  });
+
+  // Mode tabs toggle
+  document.querySelectorAll('.mode-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+      document.querySelectorAll('.compare-panel').forEach(p => {
+        p.style.opacity = (mode === 'public' && p.querySelector('.compare-label.public')) ||
+                          (mode === 'enhanced' && p.querySelector('.compare-label.enhanced')) ? '1' : '0.35';
+      });
+    });
+  });
+</script>
+</body>
+</html>
