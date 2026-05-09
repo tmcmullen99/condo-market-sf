@@ -1,6 +1,7 @@
 # Apex → buildings homepage
 / /buildings/ 302
 
-# HOA pitch deck — rewrite clean per-building URLs to the dynamic page
-/building/:slug/hoa-pitch/   /hoa-pitch/?slug=:slug   200
-/building/:slug/hoa-pitch    /hoa-pitch/?slug=:slug   200
+# HOA pitch deck — clean per-building URLs serve the dynamic page.
+# The page reads the slug from window.location.pathname directly.
+/building/*/hoa-pitch/   /hoa-pitch.html   200
+/building/*/hoa-pitch    /hoa-pitch.html   200
