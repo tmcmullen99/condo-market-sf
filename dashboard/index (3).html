@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your dashboard · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500;1,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<link rel="stylesheet" href="/assets/cm-dashboard-styles.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <div class="meta">
+        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="loading">Loading your dashboard…</div>
+
+    <div id="signed-out" class="gate" style="display:none;">
+      <h2>Sign in to see your <em style="color:var(--cm-peri);">dashboard</em></h2>
+      <p>Your make-me-move price, offers, watchlist, commission credit, and referral link all live here.</p>
+      <a class="btn btn-s" href="#signin" data-cm-auth="login" style="background:var(--cm-peri);color:var(--cm-navy);border-color:var(--cm-peri);padding:13px 28px;">Sign in or create account</a>
+    </div>
+  </div>
+</main>
+
+<!-- ─── v20 SHELL: sidebar + main, only visible when signed-in ─────────── -->
+<div id="signed-in" class="dash-shell" style="display:none;">
+
+  <aside class="sidebar" id="cm-sidebar" aria-label="Dashboard navigation">
+    <div class="sidebar-header">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <button type="button" class="sidebar-close" id="sidebar-close-btn" aria-label="Close menu">×</button>
+    </div>
+
+    <div class="persona-toggle" role="group" aria-label="Dashboard perspective">
+      <button type="button" data-persona="homeowner">Homeowner</button>
+      <button type="button" data-persona="buyer">Buyer</button>
+    </div>
+
+    <div class="sidebar-profile">
+      <div class="profile-name" id="sb-name">—</div>
+      <div class="profile-email" id="sb-email">—</div>
+    </div>
+
+    <div class="sidebar-progress">
+      <div class="progress-label">
+        <span id="sb-ref-label">0 of 5 referrals</span>
+        <span id="sb-ref-pct">0.0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="sb-ref-fill"></div></div>
+      <div class="progress-meta">Off your eventual commission</div>
+    </div>
+
+    <nav class="sidebar-nav" id="cm-sidebar-nav">
+      <a href="#overview"      data-nav="overview"><span class="nav-icon">◐</span> Overview</a>
+      <a href="#listings"      data-nav="listings"><span class="nav-icon">⌂</span> My Listings</a>
+      <a href="#offers"        data-nav="offers"><span class="nav-icon">◇</span> My Offers <span class="nav-badge" id="sb-badge-offers"></span></a>
+      <a href="#referrals"     data-nav="referrals"><span class="nav-icon">↗</span> Referrals</a>
+      <a href="#notifications" data-nav="notifications"><span class="nav-icon">●</span> Notifications</a>
+      <a href="#settings"      data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" class="btn-link" id="sb-signout">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <button type="button" class="hamburger" id="hamburger-btn" aria-label="Open menu">☰</button>
+      <h2 class="topbar-title" id="dash-view-title">Overview</h2>
+      <div class="topbar-actions">
+        <a class="btn-action is-primary" id="schedule-call-btn" href="mailto:tim@mcmullen.properties?subject=Schedule%20a%20Condo%20Market%20consultation">Schedule a call with Tim</a>
+        <a class="btn-action" href="/buildings/">Browse buildings →</a>
+      </div>
+    </header>
+
+    <!-- ─── View: OVERVIEW ─────────────────────────────────────────────── -->
+    <section class="dash-view" data-view="overview">
+      <h1 class="view-h1">Your <span class="accent">overview</span></h1>
+
+      <!-- Stats row (preserves existing IDs that render() populates) -->
+      <div class="dash-stats-row" id="dash-stats">
+        <div class="stat-card" id="stat-card-listings">
+          <div class="stat-label">My Listings</div>
+          <div class="stat-value" id="stat-listings">0</div>
+          <div class="stat-meta" id="stat-listings-meta">None yet</div>
+        </div>
+        <div class="stat-card" id="stat-card-offers-received">
+          <div class="stat-label">Offers Received</div>
+          <div class="stat-value" id="stat-offers-received">0</div>
+          <div class="stat-meta" id="stat-offers-received-meta">No pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Buildings</div>
+          <div class="stat-value">64</div>
+          <div class="stat-meta">SF condos · <a href="/buildings/" style="color:var(--cm-bronze);">browse →</a></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Referrals</div>
+          <div class="stat-value" id="stat-referrals">0 / 5</div>
+          <div class="stat-meta" id="stat-referrals-meta">For 1% off commission</div>
+        </div>
+      </div>
+
+      <!-- Empty-state next-action callout (shown when nothing to do yet) -->
+      <div class="next-action-card" id="next-action-card" style="display:none;">
+        <div class="label">Next step</div>
+        <h3 id="next-action-title">Set your make-me-move number</h3>
+        <p id="next-action-body">List your unit silently — visible only to verified buyers signed into Condo Market, never on Zillow or MLS.</p>
+        <a href="#listings" class="btn-action is-primary" id="next-action-btn">Create my listing →</a>
+      </div>
+
+      <!-- Activity feed -->
+      <div class="card activity-card">
+        <h2>Recent <em style="color:var(--cm-peri);font-style:italic;">activity</em></h2>
+        <p class="card-intro">A live timeline of your listings and offers across Condo Market.</p>
+        <div id="activity-feed">
+          <div class="empty">
+            <div class="em-title">No activity yet</div>
+            <p>Once you list a unit or submit an offer, the timeline will start filling in here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved Buildings (v22) — populated by renderSavedBuildings(); hidden when empty -->
+      <div class="card saved-buildings-card" id="saved-buildings-card" style="display:none;">
+        <h2>Buildings <em style="color:var(--cm-peri);font-style:italic;">you're watching</em></h2>
+        <p class="card-intro">Your watchlist · click ★ on any building page to add or remove.</p>
+        <div id="saved-buildings-grid" class="saved-buildings-grid"></div>
+      </div>
+    </section>
+
+    <!-- ─── View: LISTINGS ─────────────────────────────────────────────── -->
+    <section class="dash-view" data-view="listings">
+      <h1 class="view-h1">Your <span class="accent">listings</span></h1>
+      <p class="view-intro">Set the price you'd actually take. Visible only to verified buyers signed into Condo Market — never on Zillow, never in MLS, no public sign.</p>
+
+      <div class="card mmm-card">
+        <h2>Your <em>make-me-move</em> number</h2>
+
+        <!-- Confirm state: prefilled from cm_owner_intent localStorage -->
+        <div id="mmm-confirm" style="display:none;">
+          <div class="mmm-confirm-banner">
+            <span class="dot"></span>
+            <span>Saved from your signup. Confirm to make it live for verified buyers on Condo Market.</span>
+          </div>
+          <div class="mmm-confirm-display">
+            <div class="mmm-confirm-addr" id="mmm-confirm-addr">—</div>
+            <div class="mmm-confirm-price" id="mmm-confirm-price">$0</div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-primary" id="mmm-confirm-save">Save my number →</button>
+            <button type="button" class="btn-link" id="mmm-confirm-edit">Edit details first</button>
+            <button type="button" class="btn-link is-danger" id="mmm-confirm-discard">Discard</button>
+          </div>
+          <div id="mmm-confirm-msg"></div>
+        </div>
+
+        <!-- Empty state: no listings, no localStorage intent -->
+        <div id="mmm-empty" style="display:none;">
+          <p class="card-intro">Set the price you'd actually take for your unit. Visible only to verified members signed into Condo Market — never on Zillow, never in MLS, no public sign.</p>
+          <button type="button" class="btn-primary" id="mmm-empty-add">Create my listing →</button>
+        </div>
+
+        <!-- Active state: has at least one listing -->
+        <div id="mmm-active" style="display:none;">
+          <p class="card-intro">Your listings are live for verified buyers signed into Condo Market.</p>
+          <div class="mmm-listings" id="mmm-listings"></div>
+          <button type="button" class="btn-link is-primary" id="mmm-add-another" style="margin-top:8px;">+ Add another listing</button>
+        </div>
+
+        <!-- Wizard mount point — replaces simple form for both create + edit -->
+        <div id="mmm-wizard-mount" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ─── View: OFFERS ───────────────────────────────────────────────── -->
+    <section class="dash-view" data-view="offers">
+      <h1 class="view-h1">Your <span class="accent">offers</span></h1>
+      <p class="view-intro">Letters of Intent flowing both directions — units you've listed, and units you're pursuing.</p>
+
+      <div id="offers-stack">
+        <!-- Offers received on YOUR listings (owner-side) -->
+        <div class="card mmm-card" id="owner-offers-card" style="display:none;margin-bottom:48px;">
+          <div class="card-header-row">
+            <h2>Offers on <em style="font-style:italic;color:var(--cm-peri);">your unit</em></h2>
+            <button type="button" class="btn-link" id="owner-offers-howto">How it works ↗</button>
+          </div>
+          <p class="card-intro" id="owner-offers-intro">Verified buyers have submitted signed Letters of Intent on your unit. Accept, decline, or negotiate on your terms.</p>
+          <div id="owner-offers-list"></div>
+        </div>
+
+        <!-- Offers YOU'VE made (buyer-side) -->
+        <div class="card mmm-card" id="buyer-offers-card" style="margin-bottom:48px;">
+          <h2>Your <em style="font-style:italic;color:var(--cm-peri);">submitted</em> offers</h2>
+          <p class="card-intro">Letters of Intent you've signed and sent. Watch this list for status updates and counters.</p>
+          <div id="buyer-offers-list">
+            <div class="empty">
+              <div class="em-title">No offers yet</div>
+              <p>Once you submit an offer on any building, it'll appear here with status updates.</p>
+              <p style="margin-top:16px;"><a class="btn btn-s" href="/buildings/">Browse buildings →</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── View: REFERRALS ────────────────────────────────────────────── -->
+    <section class="dash-view" data-view="referrals">
+      <h1 class="view-h1">Your <span class="accent">referrals</span></h1>
+      <p class="view-intro">Every neighbor who joins through your link earns you 0.2% off your eventual commission. Up to 1% across five referrals — credit lives forever in your account.</p>
+
+      <div class="calc-block">
+        <div data-cm-referral-calc
+             id="cm-rc-dash"
+             data-property-value="1500000"
+             data-cta-href="#share-link"
+             data-cta-label="Get your share link →"></div>
+      </div>
+
+      <div class="card" id="share-link">
+        <h2>Your <em style="font-style:italic;color:var(--cm-peri);">share</em> link</h2>
+        <p class="card-intro">Send this to friends, neighbors, or anyone in your building. They get a soft landing onto Condo Market; you get credit toward your commission discount.</p>
+        <div class="kv"><span class="k">Code</span><span class="v ref-code" id="f-refcode">—</span></div>
+        <div class="ref-link-box">
+          <code id="f-reflink">—</code>
+          <button class="copy-btn" id="copy-btn">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── View: NOTIFICATIONS ────────────────────────────────────────── -->
+    <section class="dash-view" data-view="notifications">
+      <h1 class="view-h1">Your <span class="accent">notifications</span></h1>
+      <p class="view-intro">In-app notifications are coming soon. For now, you receive every offer event by email — same address as your account.</p>
+
+      <div class="card">
+        <div class="empty">
+          <div class="em-title">Nothing here yet</div>
+          <p>Persistent in-app alerts are on the roadmap. Until then, check your email — every offer, counter, accept, decline, and listing event sends a real-time message to <span id="notif-email" style="color:var(--cm-ivory);">your account</span>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── View: SETTINGS ─────────────────────────────────────────────── -->
+    <section class="dash-view" data-view="settings">
+      <h1 class="view-h1">Your <span class="accent">settings</span></h1>
+      <p class="view-intro">Account details, terms, and how Condo Market works.</p>
+
+      <div class="settings-grid">
+        <div class="card">
+          <h2>Account</h2>
+          <div class="kv"><span class="k">Name</span><span class="v" id="f-name">—</span></div>
+          <div class="kv"><span class="k">Email</span><span class="v" id="f-email">—</span></div>
+          <div class="kv"><span class="k">Referrals</span><span class="v" id="f-referrals">0 of 5</span></div>
+          <div class="kv"><span class="k">Commission credit</span><span class="v accent-v" id="f-credit">0.0%</span></div>
+          <div class="kv"><span class="k">Member since</span><span class="v" id="f-since">—</span></div>
+        </div>
+
+        <div class="card">
+          <h2>Terms &amp; <em style="color:var(--cm-peri);font-style:italic;">how it works</em></h2>
+          <p class="card-intro">A walk-through of the make-me-move model, signed Letters of Intent, and Tim McMullen's role as listing broker for every transaction on the platform.</p>
+          <button type="button" class="btn-link is-primary" id="settings-tos-view">View terms &amp; how it works ↗</button>
+          <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--cm-rule);">
+            <button type="button" class="btn-link is-danger" id="settings-signout">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Calculator widget -->
+<script src="/assets/cm-referral-calc.js"></script>
+
+<script type="module" src="/assets/cm-dashboard-render.js"></script>
+<script type="module" src="/assets/cm-dashboard-shell.js"></script>
+</body>
+</html>
