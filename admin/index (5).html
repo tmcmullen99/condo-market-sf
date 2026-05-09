@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-bronze: #d4a574;
+    --cm-gain: #8fb97a;
+    --cm-amber: #d9a44b;
+    --cm-loss: #c97865;
+    --cm-ff-display: 'Playfair Display', Georgia, serif;
+    --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
+    --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--cm-ff-body); font-weight: 300;
+    line-height: 1.55; min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  .meta .admin-pill { background: var(--cm-peri); color: var(--cm-navy); padding: 4px 10px; border-radius: 4px; font-weight: 500; }
+  main { padding: 56px 0 96px; }
+  h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(36px, 5vw, 52px); line-height: 1.05; margin-bottom: 8px; }
+  h1 .accent { color: var(--cm-peri); }
+  .subtitle { color: var(--cm-ivory-dim); font-size: 15px; margin-bottom: 48px; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 48px; }
+  .metric { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; }
+  .metric-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
+  .metric-val { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 32px; color: var(--cm-ivory); line-height: 1; }
+  .metric-val.peri { color: var(--cm-peri); }
+  .metric-val.bronze { color: var(--cm-bronze); }
+  .metric-val.gain { color: var(--cm-gain); }
+  .metric-val.amber { color: var(--cm-amber); }
+
+  .section { margin-bottom: 48px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 26px; color: var(--cm-ivory); }
+  .section h2 em { color: var(--cm-peri); }
+
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .filter {
+    background: var(--cm-navy); color: var(--cm-ivory);
+    border: 1px solid var(--cm-rule); border-radius: 6px;
+    padding: 7px 12px; font-family: var(--cm-ff-mono);
+    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer;
+  }
+  .filter:focus { outline: none; border-color: var(--cm-peri); }
+
+  .table-host { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; overflow: hidden; }
+  .table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .table th, .table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--cm-rule); }
+  .table th { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500; }
+  .table tbody tr:last-child td { border-bottom: none; }
+  .table td { color: var(--cm-ivory); }
+  .table tr.offer-tr { cursor: pointer; transition: background 150ms ease; }
+  .table tr.offer-tr:hover { background: rgba(159, 180, 216, 0.04); }
+  .table tr.offer-tr.is-expanded { background: rgba(212, 165, 116, 0.04); }
+  .offer-amount-cell {
+    font-family: var(--cm-ff-display); font-style: italic; font-weight: 600;
+    color: var(--cm-bronze); font-size: 16px;
+  }
+  .offer-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px;
+  }
+  .offer-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .offer-status-pending { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
+  .offer-status-pending::before { background: var(--cm-amber); }
+  .offer-status-accepted { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
+  .offer-status-accepted::before { background: var(--cm-gain); }
+  .offer-status-declined { background: rgba(201, 120, 101, 0.12); color: var(--cm-loss); }
+  .offer-status-declined::before { background: var(--cm-loss); }
+  .offer-status-withdrawn, .offer-status-expired { background: rgba(232, 227, 216, 0.08); color: var(--cm-ivory-dim); }
+  .offer-status-withdrawn::before, .offer-status-expired::before { background: var(--cm-ivory-faint); }
+
+  .offer-detail { background: rgba(15, 19, 29, 0.4); }
+  .offer-detail-content {
+    padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  @media (max-width: 720px) { .offer-detail-content { grid-template-columns: 1fr; } }
+  .offer-detail-block .dl-label {
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--cm-peri); margin-bottom: 6px;
+  }
+  .offer-detail-block .dl-value {
+    font-size: 14px; color: var(--cm-ivory); line-height: 1.55; margin-bottom: 14px;
+  }
+  .offer-detail-block .dl-value.italic {
+    font-style: italic;
+    border-left: 2px solid var(--cm-rule);
+    padding-left: 12px; padding-block: 2px;
+    color: var(--cm-ivory-dim);
+  }
+  .offer-detail-actions {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;
+    grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--cm-rule);
+  }
+  .btn-mini {
+    padding: 8px 16px; border-radius: 999px; font-family: var(--cm-ff-body);
+    font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid;
+    transition: all 150ms ease;
+  }
+  .btn-mini-accept { background: var(--cm-gain); color: var(--cm-navy); border-color: var(--cm-gain); }
+  .btn-mini-accept:hover { opacity: 0.85; }
+  .btn-mini-decline { background: transparent; color: var(--cm-loss); border-color: rgba(201, 120, 101, 0.4); }
+  .btn-mini-decline:hover { background: rgba(201, 120, 101, 0.1); }
+  .btn-mini-expire { background: transparent; color: var(--cm-ivory-dim); border-color: var(--cm-rule); }
+  .btn-mini-expire:hover { background: rgba(232, 227, 216, 0.04); color: var(--cm-ivory); }
+
+  .empty-row td {
+    text-align: center; color: var(--cm-ivory-dim); padding: 36px;
+    font-style: italic;
+  }
+
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .tool-card { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 22px 24px; text-decoration: none; color: var(--cm-ivory); transition: all 0.15s; display: block; }
+  .tool-card:hover { border-color: var(--cm-peri); background: rgba(159, 180, 216, 0.08); }
+  .tool-card .t-name { font-family: var(--cm-ff-display); font-style: italic; font-size: 18px; margin-bottom: 4px; }
+  .tool-card .t-desc { color: var(--cm-ivory-dim); font-size: 13px; }
+  .tool-card.coming { opacity: 0.5; pointer-events: none; }
+  .tool-card.coming::after { content: 'Soon'; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri); border: 1px solid var(--cm-peri); padding: 2px 8px; border-radius: 4px; margin-left: 8px; display: inline-block; vertical-align: middle; }
+
+  .gate { text-align: center; padding: 120px 20px; }
+  .gate h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 32px; margin-bottom: 14px; color: var(--cm-ivory); }
+  .gate p { color: var(--cm-ivory-dim); font-size: 16px; max-width: 44ch; margin: 0 auto 28px; }
+  .btn { display: inline-block; padding: 13px 28px; border-radius: 999px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid; transition: all 0.15s; }
+  .btn-p { background: var(--cm-peri); color: var(--cm-navy); border-color: var(--cm-peri); }
+  #loading { text-align: center; padding: 120px 20px; color: var(--cm-ivory-dim); }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <div class="meta">
+        <span class="admin-pill">Admin</span>
+        <a href="/admin/outreach" style="color:var(--cm-ivory-dim);text-decoration:none;">→ Outreach</a>
+        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="loading">Loading admin console…</div>
+
+    <div id="admin-content" style="display:none;">
+      <h1>Admin <span class="accent">console</span></h1>
+      <div class="subtitle">Signed in as <strong id="f-admin-email">—</strong></div>
+
+      <!-- ─── Metrics row ─── -->
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Total offers</div>
+          <div class="metric-val peri" id="f-offer-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Pending</div>
+          <div class="metric-val amber" id="f-pending-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Accepted · 7 days</div>
+          <div class="metric-val gain" id="f-accepted-week">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Total $ volume</div>
+          <div class="metric-val bronze" id="f-volume">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Registered users</div>
+          <div class="metric-val" id="f-user-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">MMM listings</div>
+          <div class="metric-val" id="f-listing-count">—</div>
+        </div>
+      </div>
+
+      <!-- ─── Offers queue ─── -->
+      <div class="section">
+        <div class="section-head">
+          <h2>Offers <em>queue</em></h2>
+          <div class="filters">
+            <select class="filter" id="f-filter-status">
+              <option value="">All statuses</option>
+              <option value="pending" selected>Pending only</option>
+              <option value="accepted">Accepted</option>
+              <option value="declined">Declined</option>
+              <option value="withdrawn">Withdrawn</option>
+              <option value="expired">Expired</option>
+            </select>
+            <select class="filter" id="f-filter-building">
+              <option value="">All buildings</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-host">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>Buyer</th>
+                <th style="text-align:right;">Amount</th>
+                <th>Status</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="offers-tbody">
+              <tr class="empty-row"><td colspan="5">Loading offers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── Recent signups ─── -->
+      <div class="section">
+        <div class="section-head"><h2>Recent <em>signups</em></h2></div>
+        <div class="table-host">
+          <table class="table">
+            <thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Referral code</th><th>Referred by</th></tr></thead>
+            <tbody id="users-tbody">
+              <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── Tools ─── -->
+      <div class="section">
+        <div class="section-head"><h2>Admin <em>tools</em></h2></div>
+        <div class="tools-grid">
+          <a class="tool-card" href="/tools/">
+            <div class="t-name">Bulk CSV Image Downloader</div>
+            <div class="t-desc">Extract building images from a Webflow CMS CSV export.</div>
+          </a>
+          <div class="tool-card coming">
+            <div class="t-name">Invite a VIP</div>
+            <div class="t-desc">Send a dark letter-style invite to a high-value prospect.</div>
+          </div>
+          <div class="tool-card coming">
+            <div class="t-name">Make-Me-Move queue</div>
+            <div class="t-desc">All MMM listings — match with incoming offers.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="not-authorized" class="gate" style="display:none;">
+      <h2>Not <em style="color:var(--cm-peri);">authorized</em></h2>
+      <p>You need to be signed in as an admin to view this page.</p>
+      <a class="btn btn-p" href="/buildings/">Return to home →</a>
+    </div>
+
+    <div id="signed-out" class="gate" style="display:none;">
+      <h2>Sign in to continue</h2>
+      <p>This area is for administrators only.</p>
+      <a class="btn btn-p" href="#signin" data-cm-auth="login">Sign in</a>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { CM, sb } from '/assets/cm-supabase.js';
+
+  let allOffers = [];
+  let listingsById = {};
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+  }
+  function fmtMoney(n) {
+    if (!n) return '$0';
+    return '$' + Math.round(Number(n)).toLocaleString('en-US');
+  }
+  function fmtMoneyShort(n) {
+    n = Number(n);
+    if (n >= 1000000) {
+      const m = n / 1000000;
+      let s = m.toFixed(m >= 10 ? 1 : 2).replace(/\.?0+$/, '');
+      return '$' + s + 'M';
+    }
+    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+  function relativeTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (mins < 1)    return 'just now';
+    if (mins < 60)   return mins + ' min ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)    return hrs + ' hr ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 30)   return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function statusLabel(s) {
+    return ({ pending: 'Pending', accepted: 'Accepted', declined: 'Declined', expired: 'Expired', withdrawn: 'Withdrawn' })[s] || s;
+  }
+  function buildingPretty(slug) {
+    if (!slug) return '—';
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  async function render() {
+    const loading = document.getElementById('loading');
+    const adminContent = document.getElementById('admin-content');
+    const notAuth = document.getElementById('not-authorized');
+    const signedOut = document.getElementById('signed-out');
+
+    const session = await CM.getSession();
+    loading.style.display = 'none';
+
+    if (!session?.user) { signedOut.style.display = 'block'; return; }
+
+    let profile = null;
+    try { profile = await CM.getMyProfile(); } catch (e) {}
+    if (!profile || profile.role !== 'admin') { notAuth.style.display = 'block'; return; }
+
+    adminContent.style.display = 'block';
+    document.getElementById('f-admin-email').textContent = session.user.email;
+
+    await Promise.all([
+      loadCounts(),
+      loadOffers(),
+      loadUsers(),
+    ]);
+  }
+
+  async function loadCounts() {
+    try {
+      const { count: userCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
+      document.getElementById('f-user-count').textContent = userCount ?? '—';
+    } catch (e) {}
+    try {
+      const { count: listingCount } = await sb
+        .from('listings').select('*', { count: 'exact', head: true })
+        .neq('status', 'removed');
+      document.getElementById('f-listing-count').textContent = listingCount ?? '—';
+    } catch (e) {}
+  }
+
+  async function loadOffers() {
+    allOffers = await CM.listAllOffers();
+
+    const lids = [...new Set(allOffers.map(o => o.listing_id).filter(Boolean))];
+    if (lids.length > 0) {
+      try {
+        const { data } = await sb.from('listings')
+          .select('id, address, unit_number, building, price')
+          .in('id', lids);
+        listingsById = {};
+        (data || []).forEach(l => { listingsById[l.id] = l; });
+      } catch (e) {}
+    }
+
+    document.getElementById('f-offer-count').textContent  = allOffers.length;
+    const pending = allOffers.filter(o => o.status === 'pending').length;
+    document.getElementById('f-pending-count').textContent = pending;
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const acceptedThisWeek = allOffers.filter(o =>
+      o.status === 'accepted' && new Date(o.created_at).getTime() >= oneWeekAgo
+    ).length;
+    document.getElementById('f-accepted-week').textContent = acceptedThisWeek;
+    const totalVolume = allOffers.reduce((acc, o) => acc + Number(o.offer_amount || 0), 0);
+    document.getElementById('f-volume').textContent = totalVolume > 0 ? fmtMoneyShort(totalVolume) : '$0';
+
+    const buildingSlugs = [...new Set(allOffers.map(o => o.building_slug).filter(Boolean))].sort();
+    const sel = document.getElementById('f-filter-building');
+    sel.innerHTML = '<option value="">All buildings</option>'
+      + buildingSlugs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(buildingPretty(s))}</option>`).join('');
+
+    renderOffers();
+  }
+
+  function renderOffers() {
+    const tbody = document.getElementById('offers-tbody');
+    const statusFilter = document.getElementById('f-filter-status').value;
+    const buildingFilter = document.getElementById('f-filter-building').value;
+
+    let visible = allOffers;
+    if (statusFilter)   visible = visible.filter(o => o.status === statusFilter);
+    if (buildingFilter) visible = visible.filter(o => o.building_slug === buildingFilter);
+
+    if (visible.length === 0) {
+      const msg = allOffers.length === 0
+        ? 'No offers yet — when buyers submit, they appear here.'
+        : 'No offers match the current filter.';
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${escapeHtml(msg)}</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = visible.map(o => {
+      const lst = listingsById[o.listing_id];
+      const buildingCell = buildingPretty(o.building_slug);
+      const buyerCell = (o.buyer_name ? `<strong>${escapeHtml(o.buyer_name)}</strong><br>` : '')
+        + `<span style="color:var(--cm-ivory-dim);font-size:12px;font-family:var(--cm-ff-mono);">${escapeHtml(o.buyer_email)}</span>`;
+      const listingSub = lst
+        ? `<br><span style="color:var(--cm-ivory-dim);font-size:12px;">${escapeHtml(lst.address || '')}${lst.unit_number ? ' #' + escapeHtml(lst.unit_number) : ''}</span>`
+        : '';
+      const detailListing = lst
+        ? escapeHtml((lst.address || '') + (lst.unit_number ? ' #' + lst.unit_number : ''))
+          + (lst.price ? ` <span style="color:var(--cm-ivory-dim);font-family:var(--cm-ff-mono);font-size:12px;">· MMM ${fmtMoney(lst.price)}</span>` : '')
+        : 'Generic building offer (no specific unit)';
+      const photoUrl = lst && lst.cover_photo_path ? CM.getListingPhotoUrl(lst.cover_photo_path) : null;
+      const photoBlock = photoUrl
+        ? `<div style="margin-bottom:14px;"><img src="${escapeHtml(photoUrl)}" alt="Listing photo" style="width:100%;max-width:240px;border-radius:8px;display:block;"></div>`
+        : '';
+      const messageBlock = o.message
+        ? `<div class="dl-label">Message</div><div class="dl-value italic">${escapeHtml(o.message)}</div>`
+        : `<div class="dl-label">Message</div><div class="dl-value" style="color:var(--cm-ivory-faint);">No message included.</div>`;
+      const actionsBlock = o.status === 'pending'
+        ? `<div class="offer-detail-actions">
+            <button class="btn-mini btn-mini-accept" data-action="accept"  data-id="${escapeHtml(o.id)}">Accept</button>
+            <button class="btn-mini btn-mini-decline" data-action="decline" data-id="${escapeHtml(o.id)}">Decline</button>
+            <button class="btn-mini btn-mini-expire" data-action="expire"  data-id="${escapeHtml(o.id)}">Mark expired</button>
+          </div>`
+        : '';
+      return [
+        `<tr class="offer-tr" data-id="${escapeHtml(o.id)}">`,
+        `  <td><strong>${escapeHtml(buildingCell)}</strong>${listingSub}</td>`,
+        `  <td>${buyerCell}</td>`,
+        `  <td style="text-align:right;"><span class="offer-amount-cell">${fmtMoney(o.offer_amount)}</span></td>`,
+        `  <td><span class="offer-status offer-status-${escapeHtml(o.status)}">${escapeHtml(statusLabel(o.status))}</span></td>`,
+        `  <td style="font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${escapeHtml(relativeTime(o.created_at))}</td>`,
+        `</tr>`,
+        `<tr class="offer-detail" data-detail-for="${escapeHtml(o.id)}" style="display:none;"><td colspan="5">`,
+        `  <div class="offer-detail-content">`,
+        `    <div class="offer-detail-block">`,
+        `      ${photoBlock}`,
+        `      <div class="dl-label">Listing</div>`,
+        `      <div class="dl-value">${detailListing}</div>`,
+        `      <div class="dl-label">Building slug</div>`,
+        `      <div class="dl-value" style="font-family:var(--cm-ff-mono);font-size:13px;">${escapeHtml(o.building_slug || '—')}</div>`,
+        `      <div class="dl-label">Submitted</div>`,
+        `      <div class="dl-value">${escapeHtml(new Date(o.created_at).toLocaleString())}</div>`,
+        `    </div>`,
+        `    <div class="offer-detail-block">`,
+        `      <div class="dl-label">Buyer</div>`,
+        `      <div class="dl-value">${escapeHtml(o.buyer_name || '—')}<br><span style="font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${escapeHtml(o.buyer_email)}</span></div>`,
+        `      ${messageBlock}`,
+        `    </div>`,
+        `    ${actionsBlock}`,
+        `  </div>`,
+        `</td></tr>`,
+      ].join('\n');
+    }).join('\n');
+  }
+
+  async function loadUsers() {
+    try {
+      const { data: users } = await sb
+        .from('profiles')
+        .select('email, full_name, created_at, referral_code, referred_by_code')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      const tbody = document.getElementById('users-tbody');
+      if (users && users.length > 0) {
+        tbody.innerHTML = users.map(u => `
+          <tr>
+            <td style="font-family:var(--cm-ff-mono);font-size:12px;">${escapeHtml(u.email || '—')}</td>
+            <td>${escapeHtml(u.full_name || '—')}</td>
+            <td style="color:var(--cm-ivory-dim);font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+            <td style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(u.referral_code || '—')}</td>
+            <td style="font-family:var(--cm-ff-mono);color:var(--cm-ivory-dim);">${escapeHtml(u.referred_by_code || '—')}</td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No users yet.</td></tr>';
+      }
+    } catch (e) {
+      document.getElementById('users-tbody').innerHTML =
+        '<tr class="empty-row"><td colspan="5">Could not load users.</td></tr>';
+    }
+  }
+
+  // Filter changes re-render
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'f-filter-status' || e.target.id === 'f-filter-building') {
+      renderOffers();
+    }
+  });
+
+  // Click row to expand; click action button to act
+  document.addEventListener('click', async (e) => {
+    const actionBtn = e.target.closest('button[data-action]');
+    if (actionBtn) {
+      const action = actionBtn.dataset.action;
+      const id = actionBtn.dataset.id;
+      if (!['accept','decline','expire'].includes(action) || !id) return;
+      actionBtn.disabled = true;
+      const orig = actionBtn.textContent;
+      actionBtn.textContent = '…';
+      let result;
+      if (action === 'accept')  result = await CM.acceptOffer(id);
+      if (action === 'decline') result = await CM.declineOffer(id);
+      if (action === 'expire')  result = await CM.updateOfferStatus(id, 'expired');
+      actionBtn.disabled = false;
+      actionBtn.textContent = orig;
+      if (result?.error) { alert(action + ' failed: ' + result.error.message); return; }
+      await loadOffers();
+      return;
+    }
+    const row = e.target.closest('tr.offer-tr');
+    if (!row) return;
+    const id = row.dataset.id;
+    const detail = document.querySelector(`tr.offer-detail[data-detail-for="${CSS.escape(id)}"]`);
+    if (!detail) return;
+    const isOpen = detail.style.display !== 'none';
+    detail.style.display = isOpen ? 'none' : 'table-row';
+    row.classList.toggle('is-expanded', !isOpen);
+  });
+
+  window.addEventListener('cm-ready', render);
+  window.addEventListener('cm-auth-change', render);
+</script>
+</body>
+</html>
