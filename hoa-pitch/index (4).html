@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOA Briefing · Condo Market SF</title>
+<meta name="description" content="An independent market briefing for HOA boards in San Francisco — sales cadence, pricing, and the case for a curated marketplace presence.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-bronze: #d4a574;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.42);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-rule-soft: rgba(232, 227, 216, 0.08);
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --page-max: 1080px;
+    --gutter: clamp(20px, 4vw, 56px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--ff-body); font-weight: 300; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1; mix-blend-mode: overlay;
+  }
+  main { position: relative; z-index: 2; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
+
+  /* Minimal masthead — this is a document, not a site page */
+  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+  .wordmark em { color: var(--cm-peri); }
+  .masthead-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+
+  /* Hero */
+  .hero { padding: 96px 0 80px; }
+  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 24px; }
+  .hero h1 {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(48px, 7vw, 96px); line-height: 1.0; letter-spacing: -0.02em;
+    color: var(--cm-ivory); margin-bottom: 24px;
+  }
+  .hero-meta {
+    font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--cm-ivory-dim);
+    display: flex; flex-wrap: wrap; gap: 18px 32px; padding-top: 28px;
+    border-top: 1px solid var(--cm-rule);
+  }
+  .hero-meta .meta-label { color: var(--cm-ivory-faint); margin-right: 8px; }
+  .hero-meta .meta-value { color: var(--cm-ivory); }
+
+  /* Sections */
+  .section { padding: 88px 0; border-top: 1px solid var(--cm-rule); }
+  .section-head { margin-bottom: 48px; }
+  .section-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 14px; }
+  .section-title {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: clamp(34px, 4.5vw, 52px); line-height: 1.1; letter-spacing: -0.015em;
+    color: var(--cm-ivory); max-width: 22ch;
+  }
+  .section-title em { font-style: italic; color: var(--cm-peri); }
+  .section-lede { font-size: 18px; line-height: 1.6; color: var(--cm-ivory-dim); max-width: 56ch; margin-top: 20px; }
+
+  /* Signal section — the killer stat */
+  .signal {
+    padding: 120px 0;
+    background: linear-gradient(180deg, var(--cm-navy-deep) 0%, rgba(159,180,216,0.04) 100%);
+    text-align: center;
+  }
+  .signal-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 24px; }
+  .signal-number {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(120px, 18vw, 240px); line-height: 0.92; letter-spacing: -0.04em;
+    color: var(--cm-peri); margin-bottom: 18px;
+  }
+  .signal-headline {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: clamp(28px, 3.5vw, 42px); line-height: 1.18; letter-spacing: -0.01em;
+    color: var(--cm-ivory); max-width: 22ch; margin: 0 auto 24px;
+  }
+  .signal-sub { font-size: 16px; color: var(--cm-ivory-dim); max-width: 48ch; margin: 0 auto; }
+
+  /* Cadence (bar chart) */
+  .cadence-frame {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 12px; padding: 36px;
+  }
+  .cadence-canvas-wrap { position: relative; height: 320px; margin-bottom: 24px; }
+  .cadence-caption {
+    font-size: 16px; color: var(--cm-ivory-dim); padding-top: 24px;
+    border-top: 1px solid var(--cm-rule); display: flex; flex-wrap: wrap; gap: 16px 40px;
+  }
+  .cadence-caption strong { color: var(--cm-ivory); font-weight: 500; }
+
+  /* Price story stats grid */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 12px; padding: 32px;
+  }
+  .stat-label {
+    font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 16px;
+  }
+  .stat-value {
+    font-family: var(--ff-display); font-weight: 500; font-style: italic;
+    font-size: clamp(36px, 4vw, 48px); line-height: 1; letter-spacing: -0.02em;
+    color: var(--cm-peri);
+  }
+  .stat-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--cm-ivory-dim); margin-top: 12px; text-transform: uppercase; }
+  .citywide-context {
+    padding: 24px 28px; background: rgba(212, 165, 116, 0.06);
+    border-left: 2px solid var(--cm-bronze); border-radius: 4px;
+    font-size: 16px; color: var(--cm-ivory); line-height: 1.55;
+  }
+  .citywide-context em { font-family: var(--ff-display); font-style: italic; color: var(--cm-bronze); }
+
+  /* Recent activity table */
+  .activity-table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--ff-mono); font-size: 13px;
+  }
+  .activity-table thead th {
+    text-align: left; padding: 14px 16px;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cm-ivory-dim); font-weight: 500;
+    border-bottom: 1px solid var(--cm-rule);
+  }
+  .activity-table tbody td {
+    padding: 16px; border-bottom: 1px solid var(--cm-rule-soft); color: var(--cm-ivory);
+  }
+  .activity-table tbody tr:last-child td { border-bottom: none; }
+  .activity-table .col-unit { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); }
+  .activity-table .col-num { text-align: right; color: var(--cm-peri); }
+  .activity-table .col-date { color: var(--cm-ivory-dim); }
+
+  /* Value prop / solution cards */
+  .value-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;
+  }
+  .value-card {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 12px; padding: 36px 32px; position: relative;
+  }
+  .value-num {
+    font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em;
+    color: var(--cm-bronze); margin-bottom: 14px;
+  }
+  .value-card h3 {
+    font-family: var(--ff-display); font-style: italic; font-weight: 500;
+    font-size: 26px; line-height: 1.15; letter-spacing: -0.01em;
+    color: var(--cm-ivory); margin-bottom: 14px;
+  }
+  .value-card p { font-size: 15px; color: var(--cm-ivory-dim); line-height: 1.6; }
+
+  /* Tim bio */
+  .tim-frame {
+    display: grid; grid-template-columns: 1fr; gap: 36px;
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 12px; padding: 44px;
+  }
+  @media (min-width: 740px) { .tim-frame { grid-template-columns: 200px 1fr; align-items: start; } }
+  .tim-portrait {
+    width: 100%; max-width: 200px; aspect-ratio: 1/1;
+    border-radius: 999px; background: var(--cm-navy);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--ff-display); font-style: italic; font-size: 64px;
+    color: var(--cm-peri); border: 1px solid var(--cm-rule);
+  }
+  .tim-bio h3 {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: 32px; line-height: 1.15; color: var(--cm-ivory); margin-bottom: 8px;
+  }
+  .tim-bio .tim-credentials { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 20px; }
+  .tim-bio p { font-size: 16px; color: var(--cm-ivory); line-height: 1.65; margin-bottom: 14px; }
+  .tim-bio p:last-child { margin-bottom: 0; }
+
+  /* CTA */
+  .cta {
+    text-align: center; padding: 100px 0;
+    background: rgba(159,180,216,0.04);
+    border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule);
+  }
+  .cta-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 18px; }
+  .cta h2 {
+    font-family: var(--ff-display); font-weight: 500;
+    font-size: clamp(36px, 5vw, 56px); line-height: 1.1; letter-spacing: -0.015em;
+    color: var(--cm-ivory); max-width: 24ch; margin: 0 auto 22px;
+  }
+  .cta h2 em { font-style: italic; color: var(--cm-peri); }
+  .cta p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto 36px; }
+  .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-block; background: var(--cm-peri); color: var(--cm-navy);
+    padding: 16px 32px; border-radius: 999px; font-weight: 500; font-size: 15px;
+    letter-spacing: 0.01em; transition: opacity 0.18s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary {
+    display: inline-block; color: var(--cm-ivory); border: 1px solid var(--cm-rule);
+    padding: 16px 32px; border-radius: 999px; font-weight: 400; font-size: 15px;
+    transition: border-color 0.18s, color 0.18s;
+  }
+  .btn-secondary:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
+  .cta-fallback {
+    font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em;
+    color: var(--cm-ivory-dim); margin-top: 32px;
+  }
+  .cta-fallback a { color: var(--cm-peri); }
+  .cta-fallback a:hover { color: var(--cm-ivory); }
+
+  /* Footer */
+  footer {
+    padding: 48px 0; color: var(--cm-ivory-dim); font-size: 13px;
+  }
+  .footer-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-row a { color: var(--cm-peri); }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(159,180,216,0.04) 0%, rgba(159,180,216,0.10) 50%, rgba(159,180,216,0.04) 100%);
+    background-size: 200% 100%; animation: shimmer 1.6s infinite;
+    border-radius: 6px; color: transparent;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Error */
+  .error-state {
+    text-align: center; padding: 120px 0;
+  }
+  .error-state h2 { font-family: var(--ff-display); font-style: italic; font-size: 40px; color: var(--cm-ivory); margin-bottom: 16px; }
+  .error-state p { color: var(--cm-ivory-dim); margin-bottom: 24px; }
+
+  /* Print rules — flip to light theme, hide nav/CTAs */
+  @media print {
+    body { background: white; color: #1a1f2e; }
+    body::before { display: none; }
+    .masthead, .cta-buttons, .btn-primary, .btn-secondary { display: none; }
+    .section { padding: 32px 0; border-color: rgba(0,0,0,0.12); page-break-inside: avoid; }
+    .signal { background: white; padding: 48px 0; }
+    .signal-number { color: #1a1f2e; }
+    .stat-card, .value-card, .cadence-frame, .tim-frame, .cta {
+      background: white; border-color: rgba(0,0,0,0.12);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+    }
+    .hero h1, .section-title, .signal-headline, .stat-value, .value-card h3, .tim-bio h3, .cta h2 { color: #1a1f2e; }
+    .hero h1 em, .section-title em, .signal-number, .cta h2 em { color: #1a1f2e; }
+    .stat-value { color: #1a1f2e; }
+    .activity-table .col-num, .citywide-context em, .tim-portrait, .footer-row a, .cta-fallback a { color: #1a1f2e; }
+    .activity-table .col-unit { color: #1a1f2e; }
+    .activity-table .col-date { color: #555; }
+    .tim-portrait { background: #f3f0e9; border-color: rgba(0,0,0,0.12); }
+    .citywide-context { background: #faf6ed; border-left-color: #d4a574; }
+    .citywide-context em { color: #b8893f; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <span class="masthead-meta">An independent briefing</span>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+  <!-- Loading skeleton — shown while data fetches -->
+  <section class="hero" id="loading-state">
+    <div class="wrap">
+      <div class="hero-kicker skeleton" style="width: 320px; height: 14px;">.</div>
+      <h1 class="skeleton" style="width: 60%; height: 96px;">.</h1>
+      <div class="hero-meta skeleton" style="width: 80%; height: 24px;">.</div>
+    </div>
+  </section>
+
+  <!-- Filled in by render() once data loads -->
+  <div id="content-root" hidden></div>
+
+  <!-- Error fallback -->
+  <section class="error-state" id="error-state" hidden>
+    <div class="wrap">
+      <h2>Briefing not available</h2>
+      <p id="error-message">No data found for this building.</p>
+      <a href="/buildings/" class="btn-secondary">Browse all buildings</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span>Data sources: SFAR MLS · CoreLogic · SF Office of the Assessor-Recorder.</span>
+      <span>Generated <span id="gen-date"></span> · <a href="/methodology/">Methodology</a></span>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SCHEDULE_URL } from '/assets/cm-config.js';
+
+// Citywide benchmarks (as of 2026-05) — refresh quarterly via SQL query
+const CITYWIDE = {
+  median_psf: 1295,
+  median_price: 1385000,
+  total_sales_window: 3297,
+};
+
+// Read building slug from URL
+const params = new URLSearchParams(window.location.search);
+const slug = (params.get('slug') || '').trim();
+
+const $ = (id) => document.getElementById(id);
+const fmt = {
+  money: (n) => '$' + Number(n).toLocaleString('en-US'),
+  moneyM: (n) => '$' + (n / 1_000_000).toFixed(1) + 'M',
+  moneyK: (n) => '$' + Math.round(n / 1000) + 'K',
+  pct: (n) => Math.round(n) + '%',
+  date: (s) => {
+    if (!s) return '—';
+    const d = new Date(s + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  },
+  year: (s) => s ? s.slice(0, 4) : '—',
+};
+
+// Set generation date in footer
+$('gen-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+async function init() {
+  if (!slug) return showError('No building specified. Use ?slug=<building> in the URL.');
+  try {
+    // Fetch building metadata + sales data in parallel
+    const [building, sales] = await Promise.all([
+      fetchBuilding(slug),
+      fetchSales(slug),
+    ]);
+    if (!building) return showError(`No building found for slug "${slug}".`);
+    if (!sales || sales.length === 0) return showError(`No sales data on file for ${building.name}.`);
+    render(building, sales);
+  } catch (err) {
+    console.error(err);
+    showError('Could not load briefing data. Please try again or contact tim@mcmullen.properties.');
+  }
+}
+
+async function fetchBuilding(slug) {
+  const res = await fetch('/assets/buildings.json', { cache: 'no-cache' });
+  const buildings = await res.json();
+  return buildings.find(b => (b.href || '').replace(/^\/building\//, '').replace(/\/$/, '') === slug);
+}
+
+async function fetchSales(slug) {
+  const url = `${SUPABASE_URL}/rest/v1/building_sales?building_slug=eq.${encodeURIComponent(slug)}&select=unit_address,unit_label,sale_date,sale_price,sqft,beds,year_built&order=sale_date.desc.nullslast&limit=2000`;
+  const res = await fetch(url, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  if (!res.ok) throw new Error('Supabase fetch failed: ' + res.status);
+  return await res.json();
+}
+
+function showError(msg) {
+  $('loading-state').hidden = true;
+  $('error-message').textContent = msg;
+  $('error-state').hidden = false;
+}
+
+function render(building, sales) {
+  const totalUnits = sales.length;
+  const inWindow = sales.filter(s => s.sale_date && s.sale_date >= '2016-01-01' && s.sale_date <= '2025-12-31');
+  const turnoverPct = totalUnits > 0 ? Math.round((inWindow.length / totalUnits) * 100) : 0;
+
+  // Median sale price + median $/sf in window (with outlier filter)
+  const inRangeSales = inWindow.filter(s => s.sale_price && s.sale_price >= 100000 && s.sale_price <= 30000000);
+  const median = (arr) => {
+    if (!arr.length) return null;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const m = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[m] : (sorted[m - 1] + sorted[m]) / 2;
+  };
+  const medianPrice = median(inRangeSales.map(s => s.sale_price));
+  const psfSales = inRangeSales
+    .filter(s => s.sqft && s.sqft > 0)
+    .map(s => s.sale_price / s.sqft)
+    .filter(v => v >= 400 && v <= 5000);
+  const medianPsf = median(psfSales);
+  const psfDeltaPct = medianPsf ? Math.round(((medianPsf - CITYWIDE.median_psf) / CITYWIDE.median_psf) * 100) : 0;
+
+  // Most recent sale (sane bounds)
+  const recentSale = inRangeSales.find(s => s.sale_date);
+  
+  // Sales per year for chart
+  const yearCounts = {};
+  for (let y = 2016; y <= 2025; y++) yearCounts[y] = 0;
+  inWindow.forEach(s => {
+    const y = parseInt(s.sale_date.slice(0, 4), 10);
+    if (yearCounts[y] !== undefined) yearCounts[y]++;
+  });
+  const avgPerYear = (inWindow.length / 10).toFixed(1);
+  const sales2025 = yearCounts[2025] || 0;
+
+  // Citywide comparison phrasing
+  let citywidePhrase;
+  if (psfDeltaPct >= 5) citywidePhrase = `<em>${Math.abs(psfDeltaPct)}% above</em> the citywide median of $${CITYWIDE.median_psf.toLocaleString()}/sf.`;
+  else if (psfDeltaPct <= -5) citywidePhrase = `<em>${Math.abs(psfDeltaPct)}% below</em> the citywide median of $${CITYWIDE.median_psf.toLocaleString()}/sf.`;
+  else citywidePhrase = `<em>in line with</em> the citywide median of $${CITYWIDE.median_psf.toLocaleString()}/sf.`;
+
+  // Latest sales for the activity table (top 8)
+  const latestForTable = inRangeSales.slice(0, 8);
+
+  // Build the page
+  document.title = `${building.name} HOA Briefing · Condo Market SF`;
+  
+  const html = `
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-kicker">An Independent Market Briefing<br>For the Board of</div>
+        <h1>${building.name}</h1>
+        <div class="hero-meta">
+          <div><span class="meta-label">Address</span><span class="meta-value">${building.street}</span></div>
+          ${building.hood ? `<div><span class="meta-label">Neighborhood</span><span class="meta-value">${building.hood}</span></div>` : ''}
+          <div><span class="meta-label">Units</span><span class="meta-value">${totalUnits}</span></div>
+          ${building.year ? `<div><span class="meta-label">Built</span><span class="meta-value">${building.year}</span></div>` : ''}
+        </div>
+      </div>
+    </section>
+
+    <section class="signal">
+      <div class="wrap">
+        <div class="signal-kicker">The Signal</div>
+        <div class="signal-number">${turnoverPct}%</div>
+        <div class="signal-headline">of your owners purchased their unit within the last ten years.</div>
+        <p class="signal-sub">${inWindow.length.toLocaleString()} of ${totalUnits.toLocaleString()} owners closed between 2016 and 2025. That's a community in motion — and one that deserves a curated marketplace presence.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-kicker">Sales Cadence</div>
+          <h2 class="section-title">How often <em>${building.name}</em> trades.</h2>
+          <p class="section-lede">Annual transaction volume over the last decade. Each bar represents the number of units that changed hands in that year.</p>
+        </div>
+        <div class="cadence-frame">
+          <div class="cadence-canvas-wrap"><canvas id="cadence-chart"></canvas></div>
+          <div class="cadence-caption">
+            <span><strong>${avgPerYear}</strong> sales per year on average.</span>
+            <span><strong>${sales2025}</strong> sales in 2025.</span>
+            <span><strong>${inWindow.length}</strong> total in the 10-year window.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-kicker">Pricing</div>
+          <h2 class="section-title">What units <em>actually sell for</em>.</h2>
+          <p class="section-lede">Drawn from closed sales 2016–2025, with outliers (foreclosures, bulk transfers, BMR transactions) filtered out.</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Median sale price</div>
+            <div class="stat-value">${medianPrice ? fmt.moneyM(medianPrice) : '—'}</div>
+            <div class="stat-meta">${inRangeSales.length} sales · 10-yr window</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Median $/sf</div>
+            <div class="stat-value">${medianPsf ? '$' + Math.round(medianPsf).toLocaleString() : '—'}</div>
+            <div class="stat-meta">${psfSales.length} sales · with sqft</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Most recent sale</div>
+            <div class="stat-value">${recentSale && recentSale.sale_price ? fmt.moneyM(recentSale.sale_price) : '—'}</div>
+            <div class="stat-meta">${recentSale ? fmt.date(recentSale.sale_date) : '—'}</div>
+          </div>
+        </div>
+        ${medianPsf ? `<div class="citywide-context">${building.name} sits ${citywidePhrase}</div>` : ''}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-kicker">Recent Activity</div>
+          <h2 class="section-title">The <em>last eight</em> closings.</h2>
+          <p class="section-lede">Closed sales drawn from public records. Unit numbers shown; owner names omitted out of respect for residents' privacy.</p>
+        </div>
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>Closed</th>
+              <th class="col-num">Price</th>
+              <th class="col-num">$/sf</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${latestForTable.map(s => `
+              <tr>
+                <td class="col-unit">${s.unit_label || s.unit_address}</td>
+                <td class="col-date">${fmt.date(s.sale_date)}</td>
+                <td class="col-num">${s.sale_price ? fmt.money(s.sale_price) : '—'}</td>
+                <td class="col-num">${s.sale_price && s.sqft ? '$' + Math.round(s.sale_price / s.sqft).toLocaleString() : '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-kicker">The Case for a Curated Marketplace</div>
+          <h2 class="section-title">What we <em>offer</em> the residents of ${building.name}.</h2>
+          <p class="section-lede">Condo Market SF is the only platform built around buildings — not listings. When residents come to sell, we bring an audience that already understands what makes ${building.name} different.</p>
+        </div>
+        <div class="value-grid">
+          <div class="value-card">
+            <div class="value-num">01</div>
+            <h3>A page of your own</h3>
+            <p>${building.name} gets a dedicated dossier on Condo Market SF — photography, floorplate diagrams, amenity profile, transaction history. Buyers researching the building find you, not a single MLS listing.</p>
+          </div>
+          <div class="value-card">
+            <div class="value-num">02</div>
+            <h3>Buyers who already know you</h3>
+            <p>Our buyer pool watches ${building.name} specifically. When a unit lists, watchers are notified directly. That's pre-qualified demand — buyers self-select for floor preferences, view orientation, and budget before a tour is ever scheduled.</p>
+          </div>
+          <div class="value-card">
+            <div class="value-num">03</div>
+            <h3>Refunded commissions</h3>
+            <p>Sellers who refer a buyer to Condo Market SF receive up to 1% back on the listing commission at close. The Compass relationship and disclosures stay standard; the savings stay with your residents.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-kicker">Your Contact</div>
+          <h2 class="section-title">An <em>independent</em> agent, on the ground.</h2>
+        </div>
+        <div class="tim-frame">
+          <div class="tim-portrait">TM</div>
+          <div class="tim-bio">
+            <h3>Tim McMullen</h3>
+            <div class="tim-credentials">DRE #02016832 · Compass · McMullen Properties</div>
+            <p>Tim built Condo Market SF as an answer to a question that frustrated him as both an agent and a buyer: <em>why is there no place to research a building, only listings?</em> The platform now tracks 64 condo and co-op buildings across the city, with sales records going back ten years.</p>
+            <p>He works with buyers, sellers, and HOA boards across San Francisco and Silicon Valley. He's based in Campbell with his spouse, a practicing real estate attorney; they cover the full Bay Area together — Tim on the marketplace side, Christy on the legal side when transactions need her.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <div class="cta-kicker">The Next Step</div>
+        <h2>Schedule a <em>30-minute conversation</em> with your board.</h2>
+        <p>No commitment, no preparation needed on your end. Tim will walk through the data above with the board, answer questions, and outline what a partnership would look like for ${building.name}.</p>
+        <div class="cta-buttons">
+          <a href="${SCHEDULE_URL}" class="btn-primary" target="_blank" rel="noopener">Book a board meeting</a>
+          <a href="mailto:tim@mcmullen.properties?subject=${encodeURIComponent(building.name + ' — HOA briefing follow-up')}" class="btn-secondary">Email Tim directly</a>
+        </div>
+        <div class="cta-fallback">Or call <a href="tel:+14155555555">(415) 555-5555</a> · <a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a></div>
+      </div>
+    </section>
+  `;
+
+  const root = $('content-root');
+  root.innerHTML = html;
+  $('loading-state').hidden = true;
+  root.hidden = false;
+
+  // Render the cadence chart
+  const ctx = document.getElementById('cadence-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(yearCounts),
+      datasets: [{
+        data: Object.values(yearCounts),
+        backgroundColor: '#9fb4d8',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#1a1f2e', titleColor: '#e8e3d8', bodyColor: '#9fb4d8',
+        borderColor: 'rgba(232,227,216,0.14)', borderWidth: 1, padding: 12,
+        titleFont: { family: 'JetBrains Mono', size: 11 },
+        bodyFont: { family: 'JetBrains Mono', size: 14 },
+        callbacks: { label: (c) => c.parsed.y + ' sales' }
+      }},
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: 'rgba(232,227,216,0.64)', font: { family: 'JetBrains Mono', size: 11 } }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(232,227,216,0.08)' },
+          ticks: { color: 'rgba(232,227,216,0.64)', font: { family: 'JetBrains Mono', size: 11 }, stepSize: 10 }
+        }
+      }
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>
