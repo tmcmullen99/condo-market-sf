@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOA Outreach · Admin · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-rule-soft: rgba(232, 227, 216, 0.07);
+    --cm-bronze: #d4a574;
+    --cm-gain: #8fb97a;
+    --cm-amber: #d9a44b;
+    --cm-loss: #c97865;
+    --cm-ff-display: 'Playfair Display', Georgia, serif;
+    --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
+    --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--cm-ff-body); font-weight: 300;
+    line-height: 1.55; min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  .admin-pill { background: var(--cm-peri); color: var(--cm-navy); padding: 4px 10px; border-radius: 4px; font-weight: 500; }
+  .meta a { color: var(--cm-ivory-dim); text-decoration: none; }
+  .meta a:hover { color: var(--cm-ivory); }
+
+  main { padding: 56px 0 96px; }
+  h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(36px, 5vw, 52px); line-height: 1.05; margin-bottom: 8px; }
+  h1 .accent { color: var(--cm-peri); }
+  .subtitle { color: var(--cm-ivory-dim); font-size: 15px; margin-bottom: 40px; }
+
+  /* Auth states */
+  #loading, #signed-out, #not-authorized { padding: 80px 0; text-align: center; color: var(--cm-ivory-dim); }
+  #signed-out h2, #not-authorized h2 { font-family: var(--cm-ff-display); font-style: italic; font-size: 32px; color: var(--cm-ivory); margin-bottom: 12px; }
+  .signin-link { display: inline-block; margin-top: 16px; padding: 12px 22px; border: 1px solid var(--cm-rule); border-radius: 999px; color: var(--cm-peri); text-decoration: none; font-size: 13px; }
+  .signin-link:hover { border-color: var(--cm-peri); }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
+  .metric { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; }
+  .metric-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
+  .metric-val { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 36px; color: var(--cm-ivory); line-height: 1; }
+  .metric-val.peri { color: var(--cm-peri); }
+  .metric-val.bronze { color: var(--cm-bronze); }
+  .metric-val.gain { color: var(--cm-gain); }
+
+  /* Toolbar / filters */
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 26px; color: var(--cm-ivory); }
+  .section h2 em { color: var(--cm-peri); }
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .filters label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .filters select, .filters input[type="number"] {
+    background: var(--cm-navy); color: var(--cm-ivory); border: 1px solid var(--cm-rule);
+    padding: 8px 12px; border-radius: 6px; font-family: var(--cm-ff-body); font-size: 13px;
+  }
+  .filters input[type="number"] { width: 70px; }
+
+  /* Table */
+  .table-wrap { background: rgba(159, 180, 216, 0.03); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; }
+  table.outreach-table { width: 100%; border-collapse: collapse; }
+  .outreach-table thead th {
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500;
+    text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--cm-rule); background: rgba(159, 180, 216, 0.02);
+  }
+  .outreach-table tbody td {
+    padding: 14px 16px; border-bottom: 1px solid var(--cm-rule-soft); vertical-align: middle;
+  }
+  .outreach-table tbody tr.building-row { transition: background 0.12s; cursor: default; }
+  .outreach-table tbody tr.building-row:hover { background: rgba(159, 180, 216, 0.04); }
+  .outreach-table tbody tr.is-expanded { background: rgba(159, 180, 216, 0.06); }
+  .outreach-table tbody tr.is-expanded td { border-bottom-color: transparent; }
+  .col-name a { color: var(--cm-ivory); text-decoration: none; font-family: var(--cm-ff-display); font-style: italic; font-size: 17px; }
+  .col-name a:hover { color: var(--cm-peri); }
+  .row-sub { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-faint); margin-top: 2px; }
+  .col-num { font-family: var(--cm-ff-mono); font-size: 13px; color: var(--cm-ivory); white-space: nowrap; }
+  .turnover-cell { color: var(--cm-peri); font-weight: 500; }
+  .col-date { font-family: var(--cm-ff-mono); font-size: 12px; color: var(--cm-ivory-dim); white-space: nowrap; }
+  .empty-row td { text-align: center; padding: 60px 20px; color: var(--cm-ivory-dim); font-style: italic; }
+
+  /* Status pill */
+  .status-pill {
+    display: inline-block; font-family: var(--cm-ff-mono); font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px;
+    border-radius: 999px; cursor: pointer; user-select: none;
+    border: 1px solid var(--cm-rule); transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .status-pill:hover { border-color: var(--cm-peri); }
+  .status-pill.status-untouched { color: var(--cm-ivory-faint); background: transparent; }
+  .status-pill.status-targeted { color: var(--cm-bronze); border-color: rgba(212, 165, 116, 0.4); background: rgba(212, 165, 116, 0.08); }
+  .status-pill.status-emailed { color: var(--cm-peri); border-color: rgba(159, 180, 216, 0.4); background: rgba(159, 180, 216, 0.10); }
+  .status-pill.status-meeting_scheduled { color: var(--cm-peri); border-color: var(--cm-peri); background: rgba(159, 180, 216, 0.15); }
+  .status-pill.status-meeting_held { color: var(--cm-peri); border-color: var(--cm-peri); background: rgba(159, 180, 216, 0.20); }
+  .status-pill.status-won { color: var(--cm-gain); border-color: rgba(143, 185, 122, 0.4); background: rgba(143, 185, 122, 0.10); }
+  .status-pill.status-declined { color: var(--cm-loss); border-color: rgba(201, 120, 101, 0.4); background: rgba(201, 120, 101, 0.08); }
+  .status-pill.status-dormant { color: var(--cm-ivory-faint); background: rgba(232, 227, 216, 0.04); }
+
+  /* Action buttons */
+  .col-actions { white-space: nowrap; text-align: right; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--cm-rule); color: var(--cm-ivory-dim);
+    width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-size: 14px;
+    margin-left: 4px; transition: all 0.12s; padding: 0;
+  }
+  .icon-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri); background: rgba(159, 180, 216, 0.06); }
+
+  /* Detail row */
+  .detail-row td { background: rgba(159, 180, 216, 0.04); padding: 24px 32px !important; border-bottom: 1px solid var(--cm-rule) !important; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+  .detail-grid .detail-notes, .detail-grid .detail-actions { grid-column: 1 / -1; }
+  .detail-grid label { display: block; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 6px; }
+  .detail-grid input, .detail-grid textarea {
+    width: 100%; background: var(--cm-navy); color: var(--cm-ivory);
+    border: 1px solid var(--cm-rule); padding: 10px 12px; border-radius: 6px;
+    font-family: var(--cm-ff-body); font-size: 14px; font-weight: 300;
+  }
+  .detail-grid input:focus, .detail-grid textarea:focus { outline: none; border-color: var(--cm-peri); }
+  .detail-grid textarea { resize: vertical; min-height: 80px; font-family: var(--cm-ff-body); }
+  .detail-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .btn-primary {
+    background: var(--cm-peri); color: var(--cm-navy); border: none;
+    padding: 10px 22px; border-radius: 999px; font-weight: 500; font-size: 13px;
+    cursor: pointer; font-family: var(--cm-ff-body); letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.5; cursor: wait; }
+  .btn-secondary {
+    background: transparent; color: var(--cm-ivory-dim); border: 1px solid var(--cm-rule);
+    padding: 10px 22px; border-radius: 999px; font-size: 13px; cursor: pointer; font-family: var(--cm-ff-body);
+  }
+  .btn-secondary:hover { color: var(--cm-ivory); border-color: var(--cm-peri); }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 19, 29, 0.80); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px; }
+  .modal-backdrop[hidden] { display: none; }
+  .modal {
+    background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 16px;
+    width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto;
+    padding: 36px; position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 18px; right: 18px; background: transparent; border: none;
+    color: var(--cm-ivory-dim); font-size: 24px; cursor: pointer; padding: 4px 12px;
+  }
+  .modal-close:hover { color: var(--cm-ivory); }
+  .modal h3 { font-family: var(--cm-ff-display); font-style: italic; font-size: 28px; color: var(--cm-ivory); margin-bottom: 6px; }
+  .modal-sub { color: var(--cm-ivory-dim); font-size: 14px; margin-bottom: 28px; }
+  .modal-field { margin-bottom: 18px; }
+  .modal-field label { display: block; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 6px; }
+  .modal-field select, .modal-field input, .modal-field textarea {
+    width: 100%; background: var(--cm-navy-deep); color: var(--cm-ivory);
+    border: 1px solid var(--cm-rule); padding: 12px 14px; border-radius: 8px;
+    font-family: var(--cm-ff-body); font-size: 14px; font-weight: 300;
+  }
+  .modal-field textarea { font-family: var(--cm-ff-mono); font-size: 13px; line-height: 1.55; min-height: 280px; resize: vertical; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--cm-navy); border: 1px solid var(--cm-peri); color: var(--cm-ivory);
+    padding: 12px 20px; border-radius: 999px; font-size: 13px; z-index: 200;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); transition: opacity 0.24s;
+  }
+  .toast[hidden] { display: none; }
+  .toast.is-error { border-color: var(--cm-loss); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <div class="meta">
+        <span class="admin-pill">Admin</span>
+        <a href="/admin/">← Admin home</a>
+        <a href="#signin" data-cm-auth="login">Sign in</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="loading">Loading outreach console…</div>
+    <div id="signed-out" style="display:none;">
+      <h2>You need to sign in</h2>
+      <p>This page is for administrators only.</p>
+      <a href="#signin" data-cm-auth="login" class="signin-link">Sign in</a>
+    </div>
+    <div id="not-authorized" style="display:none;">
+      <h2>Not authorized</h2>
+      <p>This page is for administrators only.</p>
+    </div>
+
+    <div id="admin-content" style="display:none;">
+      <h1>HOA <span class="accent">outreach</span></h1>
+      <div class="subtitle">Pipeline and follow-ups for the HOA partnership program. Click a status pill to advance, the action icons to copy a pitch link, compose an email, or edit notes.</div>
+
+      <!-- Metrics row -->
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">In pipeline</div>
+          <div class="metric-val peri" id="m-targeted">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Emailed this month</div>
+          <div class="metric-val" id="m-emailed">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Meetings active</div>
+          <div class="metric-val bronze" id="m-meetings">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Won</div>
+          <div class="metric-val gain" id="m-won">—</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2>Building <em>pipeline</em></h2>
+          <div class="filters">
+            <label>Status</label>
+            <select id="f-status">
+              <option value="all">All</option>
+              <option value="untouched">Untouched</option>
+              <option value="targeted">Targeted</option>
+              <option value="emailed">Emailed</option>
+              <option value="meeting_scheduled">Meeting set</option>
+              <option value="meeting_held">Met</option>
+              <option value="won">Won</option>
+              <option value="declined">Declined</option>
+              <option value="dormant">Dormant</option>
+            </select>
+            <label>Min units</label>
+            <input type="number" id="f-min-units" value="30" step="10" min="0">
+            <label>Hood</label>
+            <select id="f-hood"><option value="all">All</option></select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="outreach-table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>Units</th>
+                <th>Turnover</th>
+                <th>10y sales</th>
+                <th>Status</th>
+                <th>Last contact</th>
+                <th>Next action</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="outreach-tbody">
+              <tr class="empty-row"><td colspan="8">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Email composer modal -->
+<div class="modal-backdrop" id="email-modal" hidden>
+  <div class="modal">
+    <button class="modal-close" data-action="close-modal">×</button>
+    <h3 id="email-modal-title">Compose email</h3>
+    <div class="modal-sub" id="email-modal-sub">—</div>
+    <div class="modal-field">
+      <label>Template</label>
+      <select id="email-template">
+        <option value="cold">Cold outreach</option>
+        <option value="followup_7">Follow-up · 7 days</option>
+        <option value="followup_21">Follow-up · 21 days</option>
+        <option value="thank_you">Post-meeting thank-you</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Subject</label>
+      <input type="text" id="email-subject">
+    </div>
+    <div class="modal-field">
+      <label>Body</label>
+      <textarea id="email-body"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" data-action="copy-body">Copy body</button>
+      <button class="btn-secondary" data-action="copy-subject">Copy subject</button>
+      <button class="btn-primary" data-action="open-mailto">Open in mail · mark sent</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" hidden></div>
+
+<script type="module">
+import { CM, sb } from '/assets/cm-supabase.js';
+
+// ─── Status definitions ────────────────────────────────────────────────────
+const STATUS = {
+  untouched:         { label: 'Untouched' },
+  targeted:          { label: 'Targeted' },
+  emailed:           { label: 'Emailed' },
+  meeting_scheduled: { label: 'Meeting set' },
+  meeting_held:      { label: 'Met' },
+  won:               { label: 'Won' },
+  declined:          { label: 'Declined' },
+  dormant:           { label: 'Dormant' },
+};
+const STATUS_ORDER = ['untouched', 'targeted', 'emailed', 'meeting_scheduled', 'meeting_held', 'won', 'declined', 'dormant'];
+
+// Auto-cadence rules: when status changes, what happens to last_contacted_at and next_action_at
+function cadenceFor(newStatus, current) {
+  const now = new Date().toISOString();
+  const inDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString(); };
+  switch (newStatus) {
+    case 'targeted':          return { last_contacted_at: current.last_contacted_at, next_action_at: inDays(3) };
+    case 'emailed':           return { last_contacted_at: now, next_action_at: inDays(7) };
+    case 'meeting_scheduled': return { last_contacted_at: current.last_contacted_at, next_action_at: null };
+    case 'meeting_held':      return { last_contacted_at: now, next_action_at: inDays(14) };
+    case 'won':
+    case 'declined':
+    case 'dormant':           return { last_contacted_at: current.last_contacted_at, next_action_at: null };
+    default:                  return {};
+  }
+}
+
+// ─── Email templates ───────────────────────────────────────────────────────
+const TEMPLATES = {
+  cold: {
+    subject: 'A market briefing on {{building_name}}',
+    body: `Dear {{contact_first_name}},
+
+I'm Tim McMullen — a Compass agent and the operator of Condo Market SF, an independent platform tracking 63 condo and co-op buildings across the city. I've put together a brief, data-driven look at your building that I think your board will find useful, regardless of any decisions you make about agent partnerships.
+
+The headline finding for {{building_name}}: {{turnover_pct}}% of your owners purchased their unit within the last ten years — {{recent_sales_10y}} sales across {{total_units}} units between 2016 and 2025. That's a community in motion, and the kind of data that doesn't typically reach HOA boards in a useable form.
+
+The full briefing is here:
+
+{{pitch_link}}
+
+If it resonates, I'd welcome the chance to walk through it with the board for 30 minutes. No commitment, no preparation needed on your end.
+
+Best,
+Tim McMullen
+DRE #02016832 · Compass · McMullen Properties`
+  },
+  followup_7: {
+    subject: 're: A market briefing on {{building_name}}',
+    body: `{{contact_first_name}},
+
+Following up on the briefing I sent last week — a quick reminder that the data is here:
+
+{{pitch_link}}
+
+The piece I think tends to land hardest with boards is the sales cadence chart: {{recent_sales_10y}} closings over the decade in {{building_name}}, with a pretty consistent rhythm year over year. It's a useful benchmark to have on hand even if there's no immediate need.
+
+If the timing's wrong for a board conversation, I understand. If it's right, I'm happy to fit your meeting cadence — even a 15-minute slot in an existing agenda works.
+
+Tim`
+  },
+  followup_21: {
+    subject: "I'll be near {{building_name}} this week",
+    body: `{{contact_first_name}},
+
+Quick note — I'll be in your neighborhood this week and would be happy to drop off a printed copy of the briefing for the board if useful. The web version is here for reference:
+
+{{pitch_link}}
+
+If a quick coffee or a 15-minute call works better, my schedule is open most afternoons.
+
+Best,
+Tim`
+  },
+  thank_you: {
+    subject: 'Following up on our conversation about {{building_name}}',
+    body: `{{contact_first_name}},
+
+Thank you for the time today — and please pass along my thanks to the rest of the board. To summarize what we discussed:
+
+— The 10-year picture for {{building_name}}: {{recent_sales_10y}} sales, {{turnover_pct}}% turnover, median $/sf at \${{median_psf}}.
+— {{recent_sale_summary}}
+— Next steps: [edit before sending].
+
+The briefing remains live here for your records:
+
+{{pitch_link}}
+
+I'll follow up by [date]. In the meantime, anything I can dig into for the board, just let me know.
+
+Tim`
+  }
+};
+
+function fillTemplate(tpl, ctx) {
+  return tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => (ctx[k] !== undefined && ctx[k] !== null) ? String(ctx[k]) : '');
+}
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let buildings = [];
+let outreach = {}; // by slug
+const filters = { status: 'all', minUnits: 30, hood: 'all' };
+let currentEmailSlug = null;
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const slugFor = (b) => (b.href || '').replace(/^\/building\//, '').replace(/\/$/, '');
+const fmtDate = (s) => {
+  if (!s) return '—';
+  const d = new Date(s);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+const fmtMoney = (n) => n ? '$' + Number(n).toLocaleString('en-US') : '—';
+const fmtMoneyM = (n) => n ? '$' + (n / 1_000_000).toFixed(1) + 'M' : '—';
+
+function turnoverPct(b) {
+  return b.recent_sales_10y && b.units ? Math.round((b.recent_sales_10y / b.units) * 100) : null;
+}
+
+function ctxForBuilding(b) {
+  const slug = slugFor(b);
+  const o = outreach[slug] || {};
+  const turnover = turnoverPct(b);
+  const firstName = (o.contact_name || '').trim().split(/\s+/)[0] || 'there';
+  const recentSale = (b.last_sale_price && b.last_sale_date)
+    ? `Most recently, a unit sold on ${fmtDate(b.last_sale_date)} at ${fmtMoneyM(b.last_sale_price)}.`
+    : 'Recent sale data not on file.';
+  return {
+    building_name: b.name,
+    turnover_pct: turnover ?? '—',
+    recent_sales_10y: b.recent_sales_10y ?? '—',
+    total_units: b.units,
+    median_psf: b.psf ? b.psf.toLocaleString() : '—',
+    recent_sale_summary: recentSale,
+    pitch_link: `https://www.sanfranciscocondomarket.com/building/${slug}/hoa-pitch/`,
+    contact_first_name: firstName,
+  };
+}
+
+function showToast(msg, isError = false) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('is-error', isError);
+  t.hidden = false;
+  setTimeout(() => { t.hidden = true; }, 2400);
+}
+
+// ─── Auth + initial render ─────────────────────────────────────────────────
+async function render() {
+  const loading = $('loading');
+  const adminContent = $('admin-content');
+  const notAuth = $('not-authorized');
+  const signedOut = $('signed-out');
+
+  const session = await CM.getSession();
+  loading.style.display = 'none';
+
+  if (!session?.user) { signedOut.style.display = 'block'; return; }
+
+  let profile = null;
+  try { profile = await CM.getMyProfile(); } catch (e) {}
+  if (!profile || profile.role !== 'admin') { notAuth.style.display = 'block'; return; }
+
+  adminContent.style.display = 'block';
+  await loadData();
+  populateHoodFilter();
+  renderMetrics();
+  renderTable();
+}
+
+async function loadData() {
+  const [bRes, oRes] = await Promise.all([
+    fetch('/assets/buildings.json', { cache: 'no-cache' }).then(r => r.json()),
+    sb.from('hoa_outreach').select('*'),
+  ]);
+  buildings = bRes;
+  outreach = {};
+  if (oRes.error) { showToast('Could not load outreach data: ' + oRes.error.message, true); return; }
+  for (const row of (oRes.data || [])) outreach[row.building_slug] = row;
+}
+
+function populateHoodFilter() {
+  const hoods = [...new Set(buildings.map(b => b.hood).filter(Boolean))].sort();
+  const sel = $('f-hood');
+  for (const h of hoods) {
+    const opt = document.createElement('option');
+    opt.value = h; opt.textContent = h;
+    sel.appendChild(opt);
+  }
+}
+
+function renderMetrics() {
+  const all = Object.values(outreach);
+  const targeted = all.filter(o => o.status !== 'untouched').length;
+
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const emailedThisMonth = all.filter(o =>
+    ['emailed', 'meeting_scheduled', 'meeting_held', 'won'].includes(o.status) &&
+    o.last_contacted_at && new Date(o.last_contacted_at) >= monthStart
+  ).length;
+
+  const meetings = all.filter(o => o.status === 'meeting_scheduled' || o.status === 'meeting_held').length;
+  const won = all.filter(o => o.status === 'won').length;
+
+  $('m-targeted').textContent = targeted;
+  $('m-emailed').textContent = emailedThisMonth;
+  $('m-meetings').textContent = meetings;
+  $('m-won').textContent = won;
+}
+
+function renderTable() {
+  const tbody = $('outreach-tbody');
+
+  let rows = buildings.filter(b => {
+    if (filters.minUnits > 0 && (b.units || 0) < filters.minUnits) return false;
+    if (filters.hood !== 'all' && b.hood !== filters.hood) return false;
+    if (filters.status !== 'all') {
+      const slug = slugFor(b);
+      const status = outreach[slug]?.status || 'untouched';
+      if (status !== filters.status) return false;
+    }
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    const ta = a.recent_sales_10y && a.units ? a.recent_sales_10y / a.units : 0;
+    const tb = b.recent_sales_10y && b.units ? b.recent_sales_10y / b.units : 0;
+    if (tb !== ta) return tb - ta;
+    return (b.recent_sales_10y || 0) - (a.recent_sales_10y || 0);
+  });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No buildings match these filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(b => {
+    const slug = slugFor(b);
+    const o = outreach[slug] || { status: 'untouched' };
+    const turnover = turnoverPct(b);
+    return `
+      <tr class="building-row" data-slug="${escapeHtml(slug)}">
+        <td class="col-name"><a href="/building/${escapeHtml(slug)}/" target="_blank">${escapeHtml(b.name)}</a><div class="row-sub">${escapeHtml(b.hood || '')}</div></td>
+        <td class="col-num">${b.units ?? '—'}</td>
+        <td class="col-num turnover-cell">${turnover !== null ? turnover + '%' : '—'}</td>
+        <td class="col-num">${b.recent_sales_10y ?? '—'}</td>
+        <td><span class="status-pill status-${o.status}" data-action="cycle-status" title="Click to advance">${STATUS[o.status]?.label || o.status}</span></td>
+        <td class="col-date">${fmtDate(o.last_contacted_at)}</td>
+        <td class="col-date">${fmtDate(o.next_action_at)}</td>
+        <td class="col-actions">
+          <button class="icon-btn" data-action="copy-link" title="Copy pitch link">📋</button>
+          <button class="icon-btn" data-action="email" title="Compose email">✉️</button>
+          <button class="icon-btn" data-action="expand" title="Edit contact + notes">📝</button>
+        </td>
+      </tr>
+      <tr class="detail-row" data-detail-for="${escapeHtml(slug)}" hidden>
+        <td colspan="8">
+          <div class="detail-grid">
+            <div>
+              <label>Contact name</label>
+              <input type="text" data-field="contact_name" value="${escapeHtml(o.contact_name || '')}" placeholder="Jane Smith">
+            </div>
+            <div>
+              <label>Email</label>
+              <input type="email" data-field="contact_email" value="${escapeHtml(o.contact_email || '')}" placeholder="jane@example.com">
+            </div>
+            <div>
+              <label>Role</label>
+              <input type="text" data-field="contact_role" value="${escapeHtml(o.contact_role || '')}" placeholder="HOA President / Property Mgr / etc">
+            </div>
+            <div>
+              <label>Next action date</label>
+              <input type="date" data-field="next_action_at" value="${o.next_action_at ? o.next_action_at.slice(0,10) : ''}">
+            </div>
+            <div class="detail-notes">
+              <label>Notes</label>
+              <textarea data-field="notes" rows="3" placeholder="Free text — meeting scheduled, talking points, follow-up dates...">${escapeHtml(o.notes || '')}</textarea>
+            </div>
+            <div class="detail-actions">
+              <button class="btn-primary" data-action="save-row">Save changes</button>
+              <button class="btn-secondary" data-action="cancel-row">Close</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ─── DB writes ─────────────────────────────────────────────────────────────
+async function upsertOutreach(slug, patch) {
+  const existing = outreach[slug];
+  const payload = { building_slug: slug, ...patch };
+  if (!existing) payload.status = patch.status || 'targeted';
+  const { data, error } = await sb.from('hoa_outreach').upsert(payload, { onConflict: 'building_slug' }).select().single();
+  if (error) {
+    showToast('Save failed: ' + error.message, true);
+    return null;
+  }
+  outreach[slug] = data;
+  return data;
+}
+
+// ─── Event handlers ────────────────────────────────────────────────────────
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'f-status') { filters.status = e.target.value; renderTable(); }
+  else if (e.target.id === 'f-min-units') { filters.minUnits = parseInt(e.target.value, 10) || 0; renderTable(); }
+  else if (e.target.id === 'f-hood') { filters.hood = e.target.value; renderTable(); }
+  else if (e.target.id === 'email-template') { rebuildEmailFromTemplate(); }
+});
+
+document.addEventListener('click', async (e) => {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  const action = target.dataset.action;
+  const row = target.closest('tr.building-row');
+  const slug = row?.dataset.slug;
+
+  // Status pill — cycle through STATUS_ORDER
+  if (action === 'cycle-status' && slug) {
+    const current = outreach[slug] || { status: 'untouched' };
+    const idx = STATUS_ORDER.indexOf(current.status);
+    const newStatus = STATUS_ORDER[(idx + 1) % STATUS_ORDER.length];
+    const cad = cadenceFor(newStatus, current);
+    target.style.opacity = '0.5';
+    await upsertOutreach(slug, { status: newStatus, ...cad });
+    target.style.opacity = '';
+    renderMetrics();
+    renderTable();
+    return;
+  }
+
+  // Copy pitch link
+  if (action === 'copy-link' && slug) {
+    const url = `https://www.sanfranciscocondomarket.com/building/${slug}/hoa-pitch/`;
+    try { await navigator.clipboard.writeText(url); showToast('Pitch link copied'); }
+    catch (err) { showToast('Could not copy', true); }
+    return;
+  }
+
+  // Email composer
+  if (action === 'email' && slug) {
+    openEmailModal(slug);
+    return;
+  }
+
+  // Expand row
+  if (action === 'expand' && slug) {
+    const detail = document.querySelector(`tr.detail-row[data-detail-for="${CSS.escape(slug)}"]`);
+    if (!detail) return;
+    const isOpen = !detail.hidden;
+    detail.hidden = isOpen;
+    row.classList.toggle('is-expanded', !isOpen);
+    return;
+  }
+
+  // Save row from detail editor
+  if (action === 'save-row' && slug) {
+    const detail = document.querySelector(`tr.detail-row[data-detail-for="${CSS.escape(slug)}"]`);
+    const patch = {};
+    detail.querySelectorAll('[data-field]').forEach(input => {
+      const field = input.dataset.field;
+      let val = input.value.trim();
+      if (field === 'next_action_at' && val) val = new Date(val + 'T12:00:00').toISOString();
+      patch[field] = val || null;
+    });
+    target.disabled = true; target.textContent = 'Saving…';
+    await upsertOutreach(slug, patch);
+    target.disabled = false; target.textContent = 'Save changes';
+    renderMetrics();
+    renderTable();
+    showToast('Saved');
+    return;
+  }
+
+  // Cancel/close row
+  if (action === 'cancel-row' && slug) {
+    const detail = document.querySelector(`tr.detail-row[data-detail-for="${CSS.escape(slug)}"]`);
+    detail.hidden = true;
+    row.classList.remove('is-expanded');
+    return;
+  }
+
+  // ─── Email modal actions ─────────
+  if (action === 'close-modal') { $('email-modal').hidden = true; currentEmailSlug = null; return; }
+
+  if (action === 'copy-subject') {
+    try { await navigator.clipboard.writeText($('email-subject').value); showToast('Subject copied'); }
+    catch (err) { showToast('Could not copy', true); }
+    return;
+  }
+
+  if (action === 'copy-body') {
+    try { await navigator.clipboard.writeText($('email-body').value); showToast('Body copied'); }
+    catch (err) { showToast('Could not copy', true); }
+    return;
+  }
+
+  if (action === 'open-mailto') {
+    if (!currentEmailSlug) return;
+    const subject = $('email-subject').value;
+    const body = $('email-body').value;
+    const o = outreach[currentEmailSlug] || {};
+    const to = o.contact_email || '';
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Auto-advance status to 'emailed' (only if not already at a later stage)
+    const current = outreach[currentEmailSlug] || { status: 'untouched' };
+    const earlierStates = ['untouched', 'targeted'];
+    if (earlierStates.includes(current.status)) {
+      const cad = cadenceFor('emailed', current);
+      await upsertOutreach(currentEmailSlug, { status: 'emailed', ...cad });
+      renderMetrics();
+      renderTable();
+    } else {
+      // Already at later state — just bump last_contacted_at
+      await upsertOutreach(currentEmailSlug, { last_contacted_at: new Date().toISOString() });
+      renderMetrics();
+      renderTable();
+    }
+    window.location.href = mailto;
+    $('email-modal').hidden = true;
+    currentEmailSlug = null;
+    showToast('Marked as emailed · opening mail');
+    return;
+  }
+});
+
+function openEmailModal(slug) {
+  const b = buildings.find(x => slugFor(x) === slug);
+  if (!b) { showToast('Building not found', true); return; }
+  currentEmailSlug = slug;
+  $('email-modal-title').textContent = `Email · ${b.name}`;
+  const o = outreach[slug] || {};
+  const to = o.contact_email || '(no contact email — set one in row 📝)';
+  $('email-modal-sub').textContent = `To: ${to}`;
+  $('email-template').value = 'cold';
+  rebuildEmailFromTemplate();
+  $('email-modal').hidden = false;
+}
+
+function rebuildEmailFromTemplate() {
+  if (!currentEmailSlug) return;
+  const b = buildings.find(x => slugFor(x) === currentEmailSlug);
+  if (!b) return;
+  const ctx = ctxForBuilding(b);
+  const tplKey = $('email-template').value;
+  const tpl = TEMPLATES[tplKey];
+  $('email-subject').value = fillTemplate(tpl.subject, ctx);
+  $('email-body').value = fillTemplate(tpl.body, ctx);
+}
+
+window.addEventListener('cm-ready', render);
+window.addEventListener('cm-auth-change', render);
+</script>
+</body>
+</html>
