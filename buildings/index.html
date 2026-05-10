@@ -150,15 +150,14 @@ img { display: block; max-width: 100%; }
   -moz-osx-font-smoothing: grayscale;
   display: flex; flex-direction: column;
 }
-/* Single video background per the VEX spec — no overlay, no veil */
-.cm-hero-video {
+/* Single static SF skyline background image */
+.cm-hero-img {
   position: absolute; inset: 0; z-index: 0;
   width: 100%; height: 100%;
   object-fit: cover;
   pointer-events: none;
+  user-select: none;
 }
-/* Poster image styling: matches video sizing while it loads (or if it fails) */
-.cm-hero-video[poster] { background-color: #0a0d12; }
 
 /* Liquid glass treatment for the stat tag */
 .cm-liquid-glass {
@@ -975,12 +974,13 @@ img { display: block; max-width: 100%; }
 
 <!-- ═══ HERO ═════════════════════════════════════════════════════ -->
 <section class="cm-hero" id="cm-hero">
-  <video class="cm-hero-video"
-         autoplay loop muted playsinline preload="auto"
-         poster="https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69d40b49920c46329c3e6cc4_SF%20skyline%20Condo%20Market%20Image.avif"
-         aria-hidden="true">
-    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4" type="video/mp4">
-  </video>
+  <!-- SF skyline backdrop. To swap to the darker twilight skyline used elsewhere on the site:
+       https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69d40b49920c46329c3e6cc4_SF%20skyline%20Condo%20Market%20Image.avif -->
+  <img class="cm-hero-img"
+       src="https://images.unsplash.com/photo-1753563351975-7304490da3f3?w=2400&q=85&auto=format&fit=crop"
+       alt=""
+       loading="eager"
+       aria-hidden="true">
 
   <div class="cm-hero-inner">
     <div class="cm-hero-main">
