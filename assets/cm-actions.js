@@ -219,3 +219,11 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// Per-building intelligence panel — loaded on the same pages as the action bar.
+// The intel module self-mounts and bails on non-building pages.
+if (getCurrentBuildingSlug()) {
+  import('/assets/cm-building-intel.js').catch((err) => {
+    console.warn('cm-building-intel: load failed', err);
+  });
+}
