@@ -1,7 +1,14 @@
-# Apex → buildings homepage
-/ /buildings/ 302
+# Cloudflare Pages _redirects
+# Pretty-URL routing for building-scoped pages. The 200 status keeps the
+# original URL in the address bar while serving the static HTML — pages
+# themselves extract the slug from window.location.pathname.
 
-# HOA pitch deck — clean per-building URLs serve the dynamic page.
-# The page reads the slug from window.location.pathname directly.
-/building/*/hoa-pitch/   /hoa-pitch.html   200
-/building/*/hoa-pitch    /hoa-pitch.html   200
+/                          /buildings/        302
+
+# HOA pitch deck — board-facing
+/building/*/hoa-pitch/     /hoa-pitch.html    200
+/building/*/hoa-pitch      /hoa-pitch.html    200
+
+# Homeowner petition — owner-facing
+/building/*/petition/      /petition.html     200
+/building/*/petition       /petition.html     200
