@@ -1,11 +1,11 @@
 /* =========================================================================
-   cm-truth-patch.js  v4
+   cm-truth-patch.js  v5
    ---------------------------------------------------------------------------
-   v4 fixes (2026-05-10):
-     - patchTicker forces white-space:nowrap so ticker stays single-line
-     - patchCardYears no longer corrupts dates inside the ticker
-       (skips anchors whose ancestors are already patched, and skips
-        text nodes that look like a "Mon DD, YYYY" date string)
+   v5 fix (2026-05-10):
+     - Ticker now actually scrolls.
+       Injects @keyframes cm-truth-scroll and wraps ticker content in an
+       animated inline-block span. Doubled content + translateX(-50%) =
+       seamless infinite loop. 60s/lap.
    ========================================================================= */
 
 (function () {
@@ -35,7 +35,6 @@
       console.warn.apply(console, args);
     }
   }
-
   function anonHeaders() {
     return { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
   }
@@ -74,6 +73,28 @@
       n = n.parentNode;
     }
     return false;
+  }
+
+  // Inject @keyframes once for the ticker animation
+  function injectStyles() {
+    if (document.getElementById('cm-truth-style')) return;
+    var s = document.createElement('style');
+    s.id = 'cm-truth-style';
+    s.textContent =
+      '@keyframes cm-truth-scroll {' +
+      '  from { transform: translate3d(0, 0, 0); }' +
+      '  to   { transform: translate3d(-50%, 0, 0); }' +
+      '}' +
+      '.cm-truth-track {' +
+      '  display: inline-block;' +
+      '  white-space: nowrap;' +
+      '  animation: cm-truth-scroll 60s linear infinite;' +
+      '  padding-right: 48px;' +
+      '  will-change: transform;' +
+      '}' +
+      '.cm-truth-ticker { overflow: hidden; white-space: nowrap; }' +
+      '.cm-truth-ticker:hover .cm-truth-track { animation-play-state: paused; }';
+    document.head.appendChild(s);
   }
 
   async function fetchBuildingsJson() {
@@ -118,17 +139,14 @@
     items.push('<span><strong>' + fmtInt(agg.total_units || 0) + ' units</strong> tracked across ' + bldCount + ' buildings</span>');
     items.push('<span><strong>Flat 3% fee</strong> \u00b7 1% returned to the HOA</span>');
 
+    // Doubled content lets translateX(-50%) loop seamlessly
     var oneLap = items.join(' \u00b7 ');
-    ticker.innerHTML = oneLap + ' \u00b7 ' + oneLap;
-
-    // FORCE single-line layout — page CSS may rely on white-space:nowrap
-    // somewhere upstream that gets disturbed by innerHTML replacement.
-    ticker.style.whiteSpace = 'nowrap';
+    ticker.classList.add('cm-truth-ticker');
+    ticker.innerHTML = '<span class="cm-truth-track">' + oneLap + ' \u00b7 ' + oneLap + ' \u00b7 </span>';
     ticker.style.overflow = 'hidden';
-    ticker.style.textOverflow = 'clip';
-
+    ticker.style.whiteSpace = 'nowrap';
     ticker.setAttribute('data-cm-truth-patched', '1');
-    log('ticker patched (' + items.length + ' items, single-line forced)');
+    log('ticker patched (' + items.length + ' items, animated 60s loop)');
   }
 
   function patchHeroUnitsCount() {
@@ -215,7 +233,7 @@
       '</div>'
     ].join('');
     panel.setAttribute('data-cm-truth-patched', 'v3');
-    log('two-layer panel: v4 (1100px, bronze gradient, /owner-signup/)');
+    log('two-layer panel: v5 (1100px, bronze gradient, /owner-signup/)');
   }
 
   function patchFabricatedCounters() {
@@ -322,11 +340,8 @@
     if (!Object.keys(CARD_BY_SLUG).length) return;
     var anchors = document.querySelectorAll('a[href*="/building/"]');
     var fixed = 0;
-    // Date-pattern check: skip text that looks like "Mon DD, YYYY" so we
-    // don't corrupt ticker dates.
     var DATE_RX = /[A-Z][a-z]{2,8}\.?\s+\d{1,2},\s+\d{4}/;
     anchors.forEach(function (a) {
-      // SKIP: anchor inside the ticker (or any other already-patched container)
       if (hasPatchedAncestor(a)) return;
       var m = a.getAttribute('href').match(/\/building\/([a-z0-9-]+)/);
       if (!m) return;
@@ -336,7 +351,6 @@
       walkText(a, function (n) {
         var v = n.nodeValue;
         if (!v) return;
-        // SKIP: text node that contains a date-like string.
         if (DATE_RX.test(v)) return;
         var newV = v.replace(/\b(19\d{2}|20[0-2]\d)\b/g, function (yr) {
           if (yr === realYear) return yr;
@@ -374,6 +388,7 @@
 
   function runPatches() {
     PATCH_RUN_COUNT++;
+    injectStyles();
     var patches = [
       ['hero units', patchHeroUnitsCount],
       ['ticker', patchTicker],
@@ -388,7 +403,7 @@
     patches.forEach(function (p) {
       try { p[1](); } catch (e) { err('patch failed:', p[0], e); }
     });
-    log('patches run #' + PATCH_RUN_COUNT + ' (v4)');
+    log('patches run #' + PATCH_RUN_COUNT + ' (v5)');
   }
 
   async function init() {
