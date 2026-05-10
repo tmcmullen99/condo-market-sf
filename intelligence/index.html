@@ -4,18 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Market intelligence · Condo Market SF</title>
-<meta name="description" content="Live market intelligence on San Francisco's condo buildings. Price signals, most-traded buildings, neighborhood heat, and more.">
+<meta name="description" content="Search every San Francisco condo. 5,082 units indexed across 64 buildings. 10 years of sale history, citywide $/sf trend, live activity, and per-unit detail.">
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
   :root {
     --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-peri-dim: rgba(159,180,216,0.22);
     --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
     --cm-rule: rgba(232, 227, 216, 0.14);
-    --cm-gain: #8fb97a; --cm-loss: #c97865;
+    --cm-bronze: #d4a574; --cm-rust: #c95742; --cm-gain: #8fb97a;
     --ff-display: 'Playfair Display', Georgia, serif;
     --ff-body: 'DM Sans', -apple-system, sans-serif;
     --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -36,9 +38,10 @@
   main { position: relative; z-index: 2; }
   a { color: inherit; text-decoration: none; }
   .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
-  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+
+  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); position: relative; z-index: 10; background: var(--cm-navy-deep); }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
   .wordmark em { color: var(--cm-peri); }
   .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
   .nav-meta a { color: var(--cm-ivory-dim); transition: color 0.15s; }
@@ -47,24 +50,171 @@
   .signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
   .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
 
-  .hero { padding: 80px 0 64px; text-align: center; }
-  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 22px; }
-  .hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(44px, 6.5vw, 80px); line-height: 1.02; letter-spacing: -0.015em; color: var(--cm-ivory); margin-bottom: 20px; }
-  .hero h1 em { font-style: italic; color: var(--cm-peri); }
-  .hero p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto; }
+  /* Hero with search */
+  .search-hero { padding: 64px 0 48px; }
+  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 20px; text-align: center; }
+  .hero-h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.015em; text-align: center; margin-bottom: 36px; }
+  .hero-h1 em { font-style: italic; color: var(--cm-peri); }
 
+  .search-shell {
+    position: relative; max-width: 760px; margin: 0 auto 28px;
+  }
+  .search-input {
+    width: 100%; padding: 22px 60px 22px 56px; font-size: 18px;
+    font-family: var(--ff-body); font-weight: 400;
+    background: rgba(159,180,216,0.06); color: var(--cm-ivory);
+    border: 1px solid var(--cm-rule); border-radius: 999px;
+    transition: border-color .15s, background .15s;
+  }
+  .search-input::placeholder { color: var(--cm-ivory-dim); font-weight: 300; }
+  .search-input:focus { outline: none; border-color: var(--cm-peri); background: rgba(159,180,216,0.10); }
+  .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--cm-ivory-dim); pointer-events: none; }
+  .search-status {
+    position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+    font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--cm-ivory-dim);
+  }
+  .search-clear {
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border-radius: 50%; background: var(--cm-rule);
+    color: var(--cm-ivory); border: none; cursor: pointer; font-size: 16px;
+    display: none; align-items: center; justify-content: center;
+  }
+  .search-clear.show { display: flex; }
+
+  /* KPI strip */
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+    background: var(--cm-rule); border: 1px solid var(--cm-rule);
+    border-radius: 12px; overflow: hidden; max-width: 980px; margin: 0 auto;
+  }
+  @media (max-width: 760px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  .kpi-tile {
+    background: var(--cm-navy-deep); padding: 18px 20px; text-align: center;
+  }
+  .kpi-val {
+    font-family: var(--ff-display); font-weight: 500; font-size: 22px;
+    color: var(--cm-ivory); line-height: 1.1; letter-spacing: -0.01em;
+  }
+  .kpi-label {
+    font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 4px;
+  }
+
+  /* Section frame */
   .section { padding: 72px 0; border-bottom: 1px solid var(--cm-rule); }
   .section-head { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 16px; }
-  .section-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(30px, 4vw, 44px); line-height: 1.1; color: var(--cm-ivory); }
+  .section-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; color: var(--cm-ivory); }
   .section-title em { font-style: italic; color: var(--cm-peri); }
   .section-sub { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); }
 
-  .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
-  .rank-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 28px; }
+  /* Search results */
+  .search-results { padding: 48px 0 72px; border-bottom: 1px solid var(--cm-rule); display: none; }
+  .search-results.active { display: block; }
+  .results-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+  .results-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); }
+  .results-title strong { color: var(--cm-peri); font-style: normal; font-weight: 500; }
+  .results-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .result-card {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 10px; padding: 20px 22px; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .result-card:hover { border-color: var(--cm-peri); background: rgba(159,180,216,0.08); }
+  .result-addr { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 18px; color: var(--cm-ivory); margin-bottom: 4px; }
+  .result-addr-unit { color: var(--cm-peri); font-style: normal; font-weight: 400; font-size: 15px; margin-left: 6px; }
+  .result-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 14px; }
+  .result-stats { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory); }
+  .result-stat-label { color: var(--cm-ivory-dim); margin-right: 4px; }
+
+  .results-empty { text-align: center; padding: 40px 20px; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); font-size: 18px; }
+
+  /* Heatmap */
+  .heatmap-shell { position: relative; }
+  .heatmap-toggle {
+    display: inline-flex; margin-bottom: 18px; border: 1px solid var(--cm-rule);
+    border-radius: 999px; padding: 4px; background: var(--cm-navy);
+  }
+  .heatmap-toggle button {
+    font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 8px 16px; border-radius: 999px;
+    background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer;
+    transition: all .15s;
+  }
+  .heatmap-toggle button.on { background: var(--cm-peri); color: var(--cm-navy); }
+  #heatmap {
+    height: 540px; width: 100%; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--cm-rule); background: var(--cm-navy);
+  }
+  .leaflet-container { background: #0f131d !important; font-family: var(--ff-body) !important; }
+  .leaflet-popup-content-wrapper { background: var(--cm-navy) !important; color: var(--cm-ivory) !important; border-radius: 8px !important; border: 1px solid var(--cm-rule); }
+  .leaflet-popup-tip { background: var(--cm-navy) !important; }
+  .leaflet-popup-content { font-family: var(--ff-body); font-size: 13px; margin: 12px 14px !important; }
+  .leaflet-popup-content strong { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 16px; color: var(--cm-ivory); display: block; margin-bottom: 4px; }
+  .leaflet-popup-content .pop-stat { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-peri); margin-top: 6px; }
+  .leaflet-popup-content .pop-link { display: inline-block; margin-top: 8px; padding: 5px 12px; background: var(--cm-peri); color: var(--cm-navy); border-radius: 999px; font-size: 11px; font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .leaflet-control-attribution { background: rgba(15,19,29,0.7) !important; color: var(--cm-ivory-dim) !important; }
+  .leaflet-control-attribution a { color: var(--cm-peri) !important; }
+
+  .heatmap-legend {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    margin-top: 18px; font-family: var(--ff-mono); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim);
+  }
+  .legend-bar {
+    display: inline-block; width: 180px; height: 8px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--cm-peri), var(--cm-bronze), var(--cm-rust));
+  }
+
+  /* Timeline */
+  .timeline-shell {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 12px; padding: 32px;
+  }
+  .timeline-toggle { margin-bottom: 22px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .timeline-period {
+    display: inline-flex; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px;
+  }
+  .timeline-period button {
+    font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 7px 14px; border-radius: 999px;
+    background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer;
+  }
+  .timeline-period button.on { background: var(--cm-peri); color: var(--cm-navy); }
+  .timeline-canvas-wrap { position: relative; height: 320px; }
+  .timeline-bookends {
+    display: flex; justify-content: space-between; margin-top: 18px;
+    padding-top: 18px; border-top: 1px solid var(--cm-rule);
+  }
+  .bookend-date { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 4px; }
+  .bookend-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+  .bookend-r { text-align: right; }
+
+  /* Live activity */
+  .activity-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .activity-card {
+    background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule);
+    border-radius: 10px; padding: 18px 20px;
+    transition: border-color .15s, background .15s; cursor: pointer;
+  }
+  .activity-card:hover { border-color: var(--cm-peri); background: rgba(159,180,216,0.08); }
+  .activity-addr { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 17px; color: var(--cm-ivory); margin-bottom: 4px; }
+  .activity-bldg { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 12px; }
+  .activity-row { display: flex; justify-content: space-between; font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory); padding: 4px 0; }
+  .activity-row span:first-child { color: var(--cm-ivory-dim); }
+  .activity-row span:last-child { color: var(--cm-peri); }
+
+  /* Rankings */
+  .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .rank-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 26px; }
   .rank-card h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 4px; }
-  .rank-card .sub { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 20px; }
+  .rank-card .sub { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 18px; }
   .rank-list { list-style: none; }
-  .rank-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--cm-rule); gap: 12px; }
+  .rank-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--cm-rule); gap: 12px; }
   .rank-list li:last-child { border-bottom: none; }
   .rank-n { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-peri); }
   .rank-name { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); }
@@ -72,37 +222,64 @@
   .rank-name a:hover { color: var(--cm-peri); }
   .rank-val { font-family: var(--ff-mono); font-size: 13px; color: var(--cm-peri); }
 
-  /* Enhanced-data toggle */
-  .enhanced-toggle { background: var(--cm-navy); padding: 60px 0; border-bottom: 1px solid var(--cm-rule); }
-  .et-head { text-align: center; margin-bottom: 36px; }
-  .et-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 18px; }
-  .et-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(34px, 4vw, 48px); letter-spacing: -0.015em; line-height: 1.05; color: var(--cm-ivory); margin-bottom: 14px; }
-  .et-title em { font-style: italic; color: var(--cm-peri); }
-  .et-sub { color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto; }
-
-  .mode-tabs { display: inline-flex; margin: 28px auto 0; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; background: var(--cm-navy-deep); }
-  .mode-tab { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 9px 20px; border-radius: 999px; cursor: pointer; background: transparent; border: none; color: var(--cm-ivory-dim); transition: all 0.18s; }
-  .mode-tab.active { background: var(--cm-peri); color: var(--cm-navy); }
-
-  .compare-panels { display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 48px; }
-  @media (min-width: 920px) { .compare-panels { grid-template-columns: 1fr 1fr; } }
-  .compare-panel { background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 32px; position: relative; }
-  .compare-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px; }
-  .compare-label.public { color: var(--cm-ivory-dim); }
-  .compare-label.enhanced { color: var(--cm-peri); }
-  .compare-panel h4 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 16px; }
-  .compare-data { font-family: var(--ff-mono); font-size: 13px; }
-  .compare-data .row { padding: 10px 0; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; }
-  .compare-data .row:last-child { border-bottom: none; }
-  .compare-data .lock { opacity: 0.32; filter: blur(4px); user-select: none; }
-  .compare-data .reveal { color: var(--cm-peri); }
-
-  .enhance-cta { text-align: center; margin-top: 40px; padding: 32px; background: rgba(159,180,216,0.06); border: 1px dashed var(--cm-peri); border-radius: 12px; }
-  .enhance-cta h5 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 10px; }
-  .enhance-cta p { color: var(--cm-ivory-dim); max-width: 48ch; margin: 0 auto 22px; }
+  /* CTA */
+  .cta-strip { padding: 64px 0; background: var(--cm-navy); text-align: center; }
+  .cta-strip h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); margin-bottom: 14px; color: var(--cm-ivory); }
+  .cta-strip h2 em { font-style: italic; color: var(--cm-peri); }
+  .cta-strip p { color: var(--cm-ivory-dim); max-width: 52ch; margin: 0 auto 26px; }
   .btn-p { display: inline-block; background: var(--cm-peri); color: var(--cm-navy); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; }
   .btn-p:hover { opacity: 0.88; }
 
+  /* Detail drawer */
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(15,19,29,0.6);
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .detail-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(560px, 92vw); background: var(--cm-navy);
+    border-left: 1px solid var(--cm-rule); z-index: 101;
+    transform: translateX(100%); transition: transform .25s ease-out;
+    overflow-y: auto;
+  }
+  .detail-drawer.open { transform: translateX(0); }
+  .drawer-head {
+    padding: 24px 28px; border-bottom: 1px solid var(--cm-rule);
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  }
+  .drawer-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); line-height: 1.2; }
+  .drawer-title-unit { color: var(--cm-peri); }
+  .drawer-bldg { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 6px; }
+  .drawer-close {
+    width: 36px; height: 36px; border-radius: 50%; background: rgba(159,180,216,0.06);
+    border: 1px solid var(--cm-rule); color: var(--cm-ivory); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .drawer-body { padding: 24px 28px; }
+  .drawer-mini-canvas { height: 180px; margin-bottom: 24px; }
+  .drawer-history-table {
+    width: 100%; border-collapse: collapse; font-family: var(--ff-mono); font-size: 12.5px;
+  }
+  .drawer-history-table th {
+    text-align: left; font-family: var(--ff-mono); font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim);
+    padding: 10px 0; border-bottom: 1px solid var(--cm-rule); font-weight: 500;
+  }
+  .drawer-history-table td {
+    padding: 12px 0; border-bottom: 1px solid var(--cm-rule); color: var(--cm-ivory);
+  }
+  .drawer-history-table td:last-child, .drawer-history-table th:last-child { text-align: right; color: var(--cm-peri); }
+  .drawer-loading { text-align: center; padding: 60px 0; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); }
+  .drawer-bldg-link {
+    display: inline-block; margin-top: 20px; padding: 10px 20px;
+    background: rgba(159,180,216,0.06); border: 1px solid var(--cm-rule);
+    border-radius: 999px; font-family: var(--ff-mono); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory);
+  }
+  .drawer-bldg-link:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
+
+  /* Footer */
   footer { padding: 48px 0 40px; background: var(--cm-navy); color: var(--cm-ivory-dim); font-size: 13px; border-top: 1px solid var(--cm-rule); }
   .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
   @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
@@ -110,6 +287,9 @@
   footer ul { list-style: none; }
   footer li { padding: 4px 0; }
   .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--cm-rule); font-size: 12px; opacity: 0.7; text-align: center; }
+
+  .skel { display: inline-block; background: rgba(159,180,216,0.10); border-radius: 4px; height: 1em; min-width: 60px; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 </style>
 </head>
 <body>
@@ -130,73 +310,132 @@
 </header>
 
 <main>
-  <section class="hero">
+  <section class="search-hero">
     <div class="wrap">
       <div class="hero-kicker">Market Intelligence</div>
-      <h1>The <em>pulse</em> of the city.</h1>
-      <p>Live signals on San Francisco's 64 tracked condo buildings. Price leaders, most-traded, and the signals buyers and owners need to move with the market.</p>
+      <h1 class="hero-h1">Search every <em>condo</em>. Every sale. Every owner tenure.</h1>
+      <div class="search-shell">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search 5,082 units, 64 buildings, 15 neighborhoods…">
+        <button id="search-clear" class="search-clear" type="button" aria-label="Clear search">×</button>
+        <span id="search-status" class="search-status"></span>
+      </div>
+      <div class="kpi-strip" id="kpi-strip">
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Median $/sf</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Units indexed</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Sales · 10y</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Volume · 10y</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Latest sale</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="search-results" id="search-results">
+    <div class="wrap">
+      <div class="results-head">
+        <div class="results-title" id="results-title">Results</div>
+        <div class="results-meta" id="results-meta"></div>
+      </div>
+      <div class="results-grid" id="results-grid"></div>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap">
       <div class="section-head">
-        <h2 class="section-title"><em>Public</em> signals</h2>
-        <span class="section-sub">Updated hourly</span>
+        <h2 class="section-title">Where the <em>money</em> lives</h2>
+        <span class="section-sub">Click any building for its full history</span>
+      </div>
+      <div class="heatmap-shell">
+        <div class="heatmap-toggle" id="heatmap-toggle" role="tablist">
+          <button class="on" data-metric="psf">$/sf</button>
+          <button data-metric="volume">Volume</button>
+          <button data-metric="velocity">Velocity</button>
+        </div>
+        <div id="heatmap" aria-label="San Francisco condo buildings heatmap"></div>
+        <div class="heatmap-legend">
+          <span id="legend-low">low</span>
+          <span class="legend-bar" id="legend-bar"></span>
+          <span id="legend-high">high</span>
+          <span style="margin-left: auto;">marker size = sales count</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">How prices have <em>moved</em></h2>
+        <span class="section-sub">Citywide median $/sf, by quarter</span>
+      </div>
+      <div class="timeline-shell">
+        <div class="timeline-toggle">
+          <div class="timeline-period" id="timeline-period">
+            <button data-range="1">1y</button>
+            <button data-range="3">3y</button>
+            <button class="on" data-range="10">10y</button>
+          </div>
+        </div>
+        <div class="timeline-canvas-wrap">
+          <canvas id="timeline-chart"></canvas>
+        </div>
+        <div class="timeline-bookends">
+          <div>
+            <div class="bookend-date" id="bookend-start-date">--</div>
+            <div class="bookend-val" id="bookend-start">--</div>
+          </div>
+          <div class="bookend-r">
+            <div class="bookend-date" id="bookend-end-date">--</div>
+            <div class="bookend-val" id="bookend-end">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">Live <em>activity</em></h2>
+        <span class="section-sub">Most recent recorded sales</span>
+      </div>
+      <div class="activity-grid" id="activity-grid"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">Building <em>rankings</em></h2>
+        <span class="section-sub">Real medians, last 36 months</span>
       </div>
       <div class="rank-grid" id="rank-grid"></div>
     </div>
   </section>
 
-  <section class="enhanced-toggle">
+  <section class="cta-strip">
     <div class="wrap">
-      <div class="et-head">
-        <div class="et-kicker">Members vs. Public</div>
-        <h2 class="et-title">Two <em>data layers</em>.</h2>
-        <p class="et-sub">Everyone sees the public layer. Signed-in members get the enhanced layer — sale-by-sale history, off-market activity, owner tenure patterns, sale-to-list ratios, and more.</p>
-        <div class="mode-tabs">
-          <button class="mode-tab active" data-mode="public">Public data</button>
-          <button class="mode-tab" data-mode="enhanced">Enhanced data</button>
-        </div>
-      </div>
-
-      <div class="compare-panels">
-        <div class="compare-panel">
-          <div class="compare-label public">Public layer</div>
-          <h4>The Crescent · Nob Hill</h4>
-          <div class="compare-data">
-            <div class="row"><span>Median $/sf</span><span>$1,579</span></div>
-            <div class="row"><span>Units tracked</span><span>44</span></div>
-            <div class="row"><span>Built</span><span>2020</span></div>
-            <div class="row"><span>Offers this week</span><span>6</span></div>
-            <div class="row"><span>Last sale</span><span class="lock">lorem ipsum</span></div>
-            <div class="row"><span>Sale-to-list ratio (90d)</span><span class="lock">lorem ipsum</span></div>
-            <div class="row"><span>Owner tenure median</span><span class="lock">lorem ipsum</span></div>
-          </div>
-        </div>
-        <div class="compare-panel">
-          <div class="compare-label enhanced">Enhanced layer</div>
-          <h4>The Crescent · Nob Hill</h4>
-          <div class="compare-data">
-            <div class="row"><span>Median $/sf</span><span class="reveal">$1,579</span></div>
-            <div class="row"><span>Units tracked</span><span class="reveal">44</span></div>
-            <div class="row"><span>Built</span><span class="reveal">2020</span></div>
-            <div class="row"><span>Offers this week</span><span class="reveal">6</span></div>
-            <div class="row"><span>Last sale</span><span class="reveal">$6.0M · Apr 2023 · #PH2</span></div>
-            <div class="row"><span>Sale-to-list ratio (90d)</span><span class="reveal">0.94</span></div>
-            <div class="row"><span>Owner tenure median</span><span class="reveal">3.8 years</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="enhance-cta">
-        <h5>Sign up to <em>unlock</em> the enhanced layer</h5>
-        <p>Free. Everything shown on the right side is available to members for all 64 buildings and 12,400+ tracked units.</p>
-        <a class="btn-p" href="#signup" data-cm-auth="signup">Create a free account →</a>
-      </div>
+      <h2>Want <em>unit-level</em> history?</h2>
+      <p>Free account unlocks per-unit sale history, owner tenure, and offer notifications for any building in San Francisco.</p>
+      <a class="btn-p" href="#signup" data-cm-auth="signup">Create a free account →</a>
     </div>
   </section>
 </main>
+
+<aside class="drawer-backdrop" id="drawer-backdrop"></aside>
+<aside class="detail-drawer" id="detail-drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-title" id="drawer-title">Loading…</div>
+      <div class="drawer-bldg" id="drawer-bldg"></div>
+    </div>
+    <button class="drawer-close" id="drawer-close" aria-label="Close detail panel">×</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <div class="drawer-loading">Loading…</div>
+  </div>
+</aside>
 
 <footer>
   <div class="wrap">
@@ -213,51 +452,559 @@
   </div>
 </footer>
 
-<script>
-  // Load buildings.json to populate rank cards
-  fetch('/assets/buildings.json').then(r => r.json()).then(buildings => {
-    const byPsf = [...buildings].sort((a,b) => b.psf - a.psf).slice(0, 5);
-    const byTraded = [...buildings].sort((a,b) => (b.offers_week||0) - (a.offers_week||0)).slice(0, 5);
-    const newest = [...buildings].sort((a,b) => b.year - a.year).slice(0, 5);
-    const byUnits = [...buildings].sort((a,b) => b.units - a.units).slice(0, 5);
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    function card(title, sub, rows, formatVal) {
-      return `
-        <div class="rank-card">
-          <h3>${title}</h3>
-          <div class="sub">${sub}</div>
-          <ul class="rank-list">
-            ${rows.map((b, i) => `
-              <li>
-                <span class="rank-n">0${i+1}</span>
-                <span class="rank-name"><a href="${b.href}/">${b.name}</a></span>
-                <span class="rank-val">${formatVal(b)}</span>
-              </li>`).join('')}
-          </ul>
-        </div>`;
+<script>
+(() => {
+  'use strict';
+
+  const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+  async function rpc(name, body) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(body || {})
+    });
+    if (!r.ok) throw new Error(`rpc ${name} ${r.status}`);
+    return r.json();
+  }
+
+  const fmtMoney = n => '$' + Math.round(n).toLocaleString();
+  const fmtMoneyShort = n => {
+    if (!n && n !== 0) return '—';
+    if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + Math.round(n/1e3) + 'K';
+    return '$' + n;
+  };
+  const fmtDate = d => {
+    if (!d) return '—';
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  const fmtDateShort = d => {
+    if (!d) return '—';
+    const dt = new Date(d + 'T00:00:00');
+    return (dt.getMonth()+1) + '/' + dt.getDate();
+  };
+  const buildingName = (slug, buildings) => {
+    const b = buildings.find(x => (x.href || '').split('/').pop() === slug);
+    return b ? b.name : slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  // Load buildings.json once and cache
+  let _buildings = null;
+  async function getBuildings() {
+    if (_buildings) return _buildings;
+    const r = await fetch('/assets/buildings.json');
+    _buildings = await r.json();
+    return _buildings;
+  }
+
+  // ───────── KPI strip ─────────
+  async function loadKPIs() {
+    try {
+      const [agg] = await rpc('homepage_aggregates');
+      const tiles = document.querySelectorAll('#kpi-strip .kpi-val');
+      tiles[0].textContent = '$' + agg.median_psf_36mo.toLocaleString();
+      tiles[0].classList.remove('skel');
+      tiles[1].textContent = agg.total_units.toLocaleString();
+      tiles[1].classList.remove('skel');
+      tiles[2].textContent = agg.sales_last_10y.toLocaleString();
+      tiles[2].classList.remove('skel');
+      tiles[3].textContent = fmtMoneyShort(agg.total_volume_10y);
+      tiles[3].classList.remove('skel');
+      tiles[4].textContent = fmtDate(agg.most_recent_sale_date);
+      tiles[4].classList.remove('skel');
+    } catch (e) { console.warn('KPI load failed', e); }
+  }
+
+  // ───────── Search ─────────
+  let searchTimer = null;
+  let searchSeq = 0;
+  const $input = document.getElementById('search-input');
+  const $clear = document.getElementById('search-clear');
+  const $status = document.getElementById('search-status');
+  const $results = document.getElementById('search-results');
+  const $resultsGrid = document.getElementById('results-grid');
+  const $resultsTitle = document.getElementById('results-title');
+  const $resultsMeta = document.getElementById('results-meta');
+
+  $input.addEventListener('input', () => {
+    const q = $input.value.trim();
+    $clear.classList.toggle('show', q.length > 0);
+    if (searchTimer) clearTimeout(searchTimer);
+    if (q.length === 0) {
+      $results.classList.remove('active');
+      $status.textContent = '';
+      return;
+    }
+    if (q.length < 2) {
+      $status.textContent = 'keep typing';
+      return;
+    }
+    $status.textContent = 'searching…';
+    searchTimer = setTimeout(() => doSearch(q), 220);
+  });
+
+  $clear.addEventListener('click', () => {
+    $input.value = '';
+    $clear.classList.remove('show');
+    $results.classList.remove('active');
+    $status.textContent = '';
+    $input.focus();
+  });
+
+  async function doSearch(q) {
+    const seq = ++searchSeq;
+    try {
+      const [rows, buildings] = await Promise.all([
+        rpc('intelligence_search', { q, p_limit: 30 }),
+        getBuildings()
+      ]);
+      if (seq !== searchSeq) return;
+      $resultsTitle.innerHTML = `Results for <strong>"${escapeHtml(q)}"</strong>`;
+      $resultsMeta.textContent = rows.length + (rows.length === 1 ? ' match' : ' matches');
+      $status.textContent = '';
+      if (rows.length === 0) {
+        $resultsGrid.innerHTML = '<div class="results-empty">No matches. Try a partial address or building name.</div>';
+      } else {
+        $resultsGrid.innerHTML = rows.map(r => renderResult(r, buildings)).join('');
+        document.querySelectorAll('.result-card').forEach(card => {
+          card.addEventListener('click', () => {
+            openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
+          });
+        });
+      }
+      $results.classList.add('active');
+    } catch (e) {
+      $status.textContent = 'search failed';
+      console.warn('search failed', e);
+    }
+  }
+
+  function renderResult(r, buildings) {
+    const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
+    return `
+      <div class="result-card" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
+        <div class="result-addr">${escapeHtml(r.unit_address)}${r.unit_label ? ` <span class="result-addr-unit">${escapeHtml(r.unit_label)}</span>` : ''}</div>
+        <div class="result-bldg">${escapeHtml(buildingName(r.building_slug, buildings))}</div>
+        <div class="result-stats">
+          ${r.sale_price ? `<span><span class="result-stat-label">last</span>${fmtMoneyShort(r.sale_price)}</span>` : ''}
+          ${psf ? `<span><span class="result-stat-label">$/sf</span>$${psf.toLocaleString()}</span>` : ''}
+          ${r.sale_date ? `<span><span class="result-stat-label">date</span>${fmtDate(r.sale_date)}</span>` : ''}
+          ${r.sqft ? `<span><span class="result-stat-label">sqft</span>${r.sqft.toLocaleString()}</span>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // ───────── Heatmap ─────────
+  let map = null;
+  let buildingMarkers = [];
+  let buildingCardMap = null;
+  let currentMetric = 'psf';
+  let cachedBuildings = null;
+
+  function colorForMetric(value, min, max) {
+    if (value == null || max <= min) return '#9fb4d8';
+    const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
+    // peri (#9fb4d8) → bronze (#d4a574) → rust (#c95742)
+    if (t < 0.5) {
+      const k = t * 2;
+      return lerpColor([0x9f, 0xb4, 0xd8], [0xd4, 0xa5, 0x74], k);
+    } else {
+      const k = (t - 0.5) * 2;
+      return lerpColor([0xd4, 0xa5, 0x74], [0xc9, 0x57, 0x42], k);
+    }
+  }
+  function lerpColor(a, b, t) {
+    const r = Math.round(a[0] + (b[0] - a[0]) * t);
+    const g = Math.round(a[1] + (b[1] - a[1]) * t);
+    const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  async function initHeatmap() {
+    try {
+      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
+      cachedBuildings = buildings;
+      buildingCardMap = new Map(cards.map(c => [c.building_slug, c]));
+
+      map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true })
+            .setView([37.778, -122.404], 13);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+        subdomains: 'abcd', maxZoom: 19,
+        attribution: '© OpenStreetMap, © CartoDB'
+      }).addTo(map);
+
+      drawMarkers();
+    } catch (e) {
+      console.warn('heatmap init failed', e);
+      document.getElementById('heatmap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-style:italic;">Heatmap could not load.</div>';
+    }
+  }
+
+  function drawMarkers() {
+    if (!map || !cachedBuildings) return;
+    buildingMarkers.forEach(m => map.removeLayer(m));
+    buildingMarkers = [];
+
+    // Compute min/max for the active metric
+    const valuesByBldg = new Map();
+    cachedBuildings.forEach(b => {
+      const slug = (b.href || '').split('/').pop();
+      const card = buildingCardMap.get(slug);
+      if (!card) return;
+      let v = null;
+      if (currentMetric === 'psf') v = card.median_psf_36mo;
+      else if (currentMetric === 'volume') v = (card.most_recent_sale_price || 0) * (card.sales_36mo || 0); // rough total
+      else if (currentMetric === 'velocity') v = card.sales_36mo;
+      if (v != null) valuesByBldg.set(slug, v);
+    });
+    const vals = [...valuesByBldg.values()].filter(v => v != null);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+
+    // Update legend labels
+    const legendLow = document.getElementById('legend-low');
+    const legendHigh = document.getElementById('legend-high');
+    if (currentMetric === 'psf') {
+      legendLow.textContent = '$' + Math.round(min).toLocaleString() + '/sf';
+      legendHigh.textContent = '$' + Math.round(max).toLocaleString() + '/sf';
+    } else if (currentMetric === 'volume') {
+      legendLow.textContent = fmtMoneyShort(min);
+      legendHigh.textContent = fmtMoneyShort(max);
+    } else {
+      legendLow.textContent = Math.round(min) + ' sales';
+      legendHigh.textContent = Math.round(max) + ' sales';
     }
 
-    document.getElementById('rank-grid').innerHTML = [
-      card('Highest $/sf', 'Most expensive per square foot', byPsf, b => `$${b.psf.toLocaleString()}`),
-      card('Most traded', 'Offers submitted in last 7 days', byTraded, b => `${b.offers_week||0}/wk`),
-      card('Largest towers', 'By total unit count', byUnits, b => `${b.units} units`),
-      card('Newest', 'By year completed', newest, b => `${b.year}`),
-    ].join('');
-  });
+    cachedBuildings.forEach(b => {
+      const slug = (b.href || '').split('/').pop();
+      const card = buildingCardMap.get(slug);
+      if (!card || !b.lat || !b.lng) return;
+      const v = valuesByBldg.get(slug);
+      const sales = card.sales_36mo || 0;
+      const radius = 6 + Math.sqrt(sales) * 0.9;
+      const color = colorForMetric(v, min, max);
 
-  // Mode tabs toggle
-  document.querySelectorAll('.mode-tab').forEach(btn => {
+      const marker = L.circleMarker([b.lat, b.lng], {
+        radius, fillColor: color, color: '#0f131d',
+        weight: 1, opacity: 1, fillOpacity: 0.85
+      }).addTo(map);
+
+      const psf = card.median_psf_36mo ? '$' + card.median_psf_36mo.toLocaleString() + '/sf' : '—';
+      const lastPrice = card.most_recent_sale_price ? fmtMoneyShort(card.most_recent_sale_price) : '—';
+      const lastDate = card.most_recent_sale_date ? fmtDate(card.most_recent_sale_date) : '—';
+      marker.bindPopup(`
+        <strong>${escapeHtml(b.name)}</strong>
+        <div>${escapeHtml(b.hood || '')} · ${b.units || '?'} units · built ${b.year || '—'}</div>
+        <div class="pop-stat">${psf} · ${sales} sales (3y)</div>
+        <div class="pop-stat">Last sale: ${lastPrice} on ${lastDate}</div>
+        <a class="pop-link" href="${b.href}/">View building →</a>
+      `);
+      buildingMarkers.push(marker);
+    });
+  }
+
+  document.querySelectorAll('#heatmap-toggle button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const mode = btn.dataset.mode;
-      document.querySelectorAll('.compare-panel').forEach(p => {
-        p.style.opacity = (mode === 'public' && p.querySelector('.compare-label.public')) ||
-                          (mode === 'enhanced' && p.querySelector('.compare-label.enhanced')) ? '1' : '0.35';
-      });
+      document.querySelectorAll('#heatmap-toggle button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      currentMetric = btn.dataset.metric;
+      drawMarkers();
     });
   });
+
+  // ───────── Timeline ─────────
+  let timelineChart = null;
+  let allQuarters = [];
+
+  async function initTimeline() {
+    try {
+      allQuarters = await rpc('intelligence_psf_quarterly');
+      drawTimeline(10);
+    } catch (e) {
+      console.warn('timeline failed', e);
+    }
+  }
+
+  function drawTimeline(years) {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - years);
+    const filtered = allQuarters.filter(q => new Date(q.quarter_start + 'T00:00:00') >= cutoff);
+    if (filtered.length === 0) return;
+
+    const labels = filtered.map(q => {
+      const d = new Date(q.quarter_start + 'T00:00:00');
+      const qNum = Math.floor(d.getMonth() / 3) + 1;
+      return `Q${qNum} ${d.getFullYear()}`;
+    });
+    const data = filtered.map(q => q.median_psf);
+
+    const ctx = document.getElementById('timeline-chart');
+    if (timelineChart) timelineChart.destroy();
+    timelineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Median $/sf',
+          data,
+          borderColor: '#9fb4d8',
+          backgroundColor: 'rgba(159,180,216,0.10)',
+          borderWidth: 2,
+          tension: 0.32,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#9fb4d8',
+          pointHoverBorderColor: '#0f131d'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1f2e',
+            borderColor: 'rgba(232,227,216,0.14)', borderWidth: 1,
+            titleColor: '#e8e3d8', bodyColor: '#9fb4d8',
+            titleFont: { family: 'JetBrains Mono', size: 11 },
+            bodyFont: { family: 'JetBrains Mono', size: 13 },
+            padding: 12, displayColors: false,
+            callbacks: {
+              label: ctx => '$' + ctx.parsed.y.toLocaleString() + '/sf'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(232,227,216,0.06)' },
+            ticks: {
+              color: 'rgba(232,227,216,0.50)',
+              font: { family: 'JetBrains Mono', size: 10 },
+              maxRotation: 0, autoSkip: true, autoSkipPadding: 24
+            }
+          },
+          y: {
+            grid: { color: 'rgba(232,227,216,0.06)' },
+            ticks: {
+              color: 'rgba(232,227,216,0.50)',
+              font: { family: 'JetBrains Mono', size: 10 },
+              callback: v => '$' + v.toLocaleString()
+            }
+          }
+        }
+      }
+    });
+
+    // Bookends
+    const first = filtered[0];
+    const last = filtered[filtered.length - 1];
+    document.getElementById('bookend-start-date').textContent = labels[0];
+    document.getElementById('bookend-end-date').textContent = labels[labels.length - 1];
+    document.getElementById('bookend-start').textContent = '$' + first.median_psf.toLocaleString() + '/sf';
+    document.getElementById('bookend-end').textContent = '$' + last.median_psf.toLocaleString() + '/sf';
+  }
+
+  document.querySelectorAll('#timeline-period button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#timeline-period button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      drawTimeline(parseInt(btn.dataset.range, 10));
+    });
+  });
+
+  // ───────── Live activity ─────────
+  async function loadActivity() {
+    try {
+      const [rows, buildings] = await Promise.all([
+        rpc('intelligence_recent_sales', { p_limit: 12 }),
+        getBuildings()
+      ]);
+      const grid = document.getElementById('activity-grid');
+      grid.innerHTML = rows.map(r => {
+        const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
+        return `
+          <div class="activity-card" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
+            <div class="activity-addr">${escapeHtml(r.unit_address)}${r.unit_label ? ` <span style="color:var(--cm-peri)">${escapeHtml(r.unit_label)}</span>` : ''}</div>
+            <div class="activity-bldg">${escapeHtml(buildingName(r.building_slug, buildings))}</div>
+            <div class="activity-row"><span>Price</span><span>${fmtMoneyShort(r.sale_price)}</span></div>
+            <div class="activity-row"><span>Date</span><span>${fmtDate(r.sale_date)}</span></div>
+            ${psf ? `<div class="activity-row"><span>$/sf</span><span>$${psf.toLocaleString()}</span></div>` : ''}
+            ${r.sqft ? `<div class="activity-row"><span>Size</span><span>${r.sqft.toLocaleString()} sf</span></div>` : ''}
+          </div>`;
+      }).join('');
+      grid.querySelectorAll('.activity-card').forEach(card => {
+        card.addEventListener('click', () => {
+          openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
+        });
+      });
+    } catch (e) { console.warn('activity load failed', e); }
+  }
+
+  // ───────── Rankings ─────────
+  async function loadRankings() {
+    try {
+      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
+      const cardBySlug = new Map(cards.map(c => [c.building_slug, c]));
+
+      // Join card data into buildings
+      const enriched = buildings.map(b => {
+        const slug = (b.href || '').split('/').pop();
+        const c = cardBySlug.get(slug) || {};
+        return {
+          ...b, slug,
+          median_psf_36mo: c.median_psf_36mo,
+          sales_36mo: c.sales_36mo,
+          most_recent_sale_date: c.most_recent_sale_date,
+          year_built_mode: c.year_built_mode,
+          unit_count: c.unit_count
+        };
+      }).filter(b => b.slug);
+
+      const byPsf = [...enriched].filter(b => b.median_psf_36mo).sort((a,b) => b.median_psf_36mo - a.median_psf_36mo).slice(0, 5);
+      const byTraded = [...enriched].filter(b => b.sales_36mo != null).sort((a,b) => (b.sales_36mo||0) - (a.sales_36mo||0)).slice(0, 5);
+      const byUnits = [...enriched].filter(b => b.unit_count || b.units).sort((a,b) => (b.unit_count||b.units||0) - (a.unit_count||a.units||0)).slice(0, 5);
+      const newest = [...enriched].filter(b => b.year_built_mode || b.year).sort((a,b) => (b.year_built_mode||b.year||0) - (a.year_built_mode||a.year||0)).slice(0, 5);
+
+      function card(title, sub, rows, formatVal) {
+        return `
+          <div class="rank-card">
+            <h3>${title}</h3>
+            <div class="sub">${sub}</div>
+            <ul class="rank-list">
+              ${rows.map((b, i) => `
+                <li>
+                  <span class="rank-n">0${i+1}</span>
+                  <span class="rank-name"><a href="${b.href}/">${escapeHtml(b.name)}</a></span>
+                  <span class="rank-val">${formatVal(b)}</span>
+                </li>`).join('')}
+            </ul>
+          </div>`;
+      }
+      document.getElementById('rank-grid').innerHTML = [
+        card('Highest $/sf', 'Median, last 36 months', byPsf, b => '$' + b.median_psf_36mo.toLocaleString()),
+        card('Most traded', 'Sales · last 36 months', byTraded, b => (b.sales_36mo||0).toLocaleString()),
+        card('Largest towers', 'By total unit count', byUnits, b => (b.unit_count || b.units || 0).toLocaleString() + ' units'),
+        card('Newest', 'By year completed', newest, b => (b.year_built_mode || b.year || '—'))
+      ].join('');
+    } catch (e) { console.warn('rankings failed', e); }
+  }
+
+  // ───────── Detail drawer ─────────
+  let drawerChart = null;
+  const $drawer = document.getElementById('detail-drawer');
+  const $backdrop = document.getElementById('drawer-backdrop');
+  const $drawerClose = document.getElementById('drawer-close');
+  const $drawerTitle = document.getElementById('drawer-title');
+  const $drawerBldg = document.getElementById('drawer-bldg');
+  const $drawerBody = document.getElementById('drawer-body');
+
+  async function openDrawer(address, label, slug, buildings) {
+    $drawer.classList.add('open');
+    $backdrop.classList.add('open');
+    $drawer.setAttribute('aria-hidden', 'false');
+    $drawerTitle.innerHTML = escapeHtml(address) + (label ? ` <span class="drawer-title-unit">${escapeHtml(label)}</span>` : '');
+    $drawerBldg.textContent = buildingName(slug, buildings);
+    $drawerBody.innerHTML = '<div class="drawer-loading">Loading sale history…</div>';
+
+    try {
+      const rows = await rpc('intelligence_unit_history', { p_address: address, p_label: label || null });
+      if (rows.length === 0) {
+        $drawerBody.innerHTML = '<div class="drawer-loading">No recorded sales for this unit.</div>';
+        return;
+      }
+      const sorted = [...rows].sort((a,b) => new Date(a.sale_date) - new Date(b.sale_date));
+      const tableRows = [...rows].sort((a,b) => new Date(b.sale_date) - new Date(a.sale_date));
+
+      $drawerBody.innerHTML = `
+        <div class="drawer-mini-canvas"><canvas id="drawer-chart"></canvas></div>
+        <table class="drawer-history-table">
+          <thead><tr><th>Date</th><th>Price</th><th>$/sf</th></tr></thead>
+          <tbody>
+            ${tableRows.map(r => {
+              const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
+              return `<tr>
+                <td>${fmtDate(r.sale_date)}</td>
+                <td>${fmtMoneyShort(r.sale_price)}</td>
+                <td>${psf ? '$' + psf.toLocaleString() : '—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        ${sorted[0].sqft ? `<div style="margin-top:18px;font-family:var(--ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${sorted[0].sqft.toLocaleString()} sqft${sorted[0].beds ? ` · ${sorted[0].beds} bed` : ''}${sorted[0].baths_total ? ` · ${sorted[0].baths_total} bath` : ''}</div>` : ''}
+        <a class="drawer-bldg-link" href="/buildings/">View ${escapeHtml(buildingName(slug, buildings))} →</a>
+      `;
+
+      if (sorted.length > 1) {
+        if (drawerChart) drawerChart.destroy();
+        const ctx = document.getElementById('drawer-chart');
+        drawerChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: sorted.map(r => fmtDate(r.sale_date)),
+            datasets: [{
+              label: 'Sale price',
+              data: sorted.map(r => r.sale_price),
+              borderColor: '#9fb4d8',
+              backgroundColor: 'rgba(159,180,216,0.12)',
+              borderWidth: 2, tension: 0.2, fill: true,
+              pointRadius: 4, pointBackgroundColor: '#9fb4d8', pointBorderColor: '#0f131d'
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: {
+              callbacks: { label: c => fmtMoneyShort(c.parsed.y) }
+            } },
+            scales: {
+              x: { ticks: { color: 'rgba(232,227,216,0.50)', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(232,227,216,0.05)' } },
+              y: { ticks: { color: 'rgba(232,227,216,0.50)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtMoneyShort(v) }, grid: { color: 'rgba(232,227,216,0.05)' } }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      $drawerBody.innerHTML = '<div class="drawer-loading">Could not load history.</div>';
+      console.warn('drawer load failed', e);
+    }
+  }
+
+  function closeDrawer() {
+    $drawer.classList.remove('open');
+    $backdrop.classList.remove('open');
+    $drawer.setAttribute('aria-hidden', 'true');
+    if (drawerChart) { drawerChart.destroy(); drawerChart = null; }
+  }
+  $drawerClose.addEventListener('click', closeDrawer);
+  $backdrop.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $drawer.classList.contains('open')) closeDrawer(); });
+
+  // ───────── Helpers ─────────
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  // ───────── Boot ─────────
+  loadKPIs();
+  initHeatmap();
+  initTimeline();
+  loadActivity();
+  loadRankings();
+})();
 </script>
-<script src="/assets/cm-truth-patch.js" defer></script>
 </body>
 </html>
