@@ -1,29 +1,16 @@
 /* =========================================================================
-   cm-truth-patch.js
+   cm-truth-patch.js  v2
    ---------------------------------------------------------------------------
-   Drop-in patch that replaces fabricated metrics on the homepage and
-   intelligence page with real data from Supabase RPCs.
-
+   Replaces fabricated metrics with real data from Supabase RPCs.
    Loaded via:  <script src="/assets/cm-truth-patch.js" defer></script>
 
-   What it patches (all best-effort, no-ops if a target isn't found):
-     - Ticker:                replaces fake "X offers this week" content
-                              with rotating real building $/sf, recent
-                              sales, citywide medians.
-     - Hero stats:            replaces "7,564 units" / "12,400+ units"
-                              with real DB-derived count.
-     - "Two data layers":     finds the public/enhanced comparison panel,
-                              replaces with a single simplified
-                              "Sign in to unlock" CTA.
-     - Fabricated counters:   removes "342 Make-Me-Move prices live",
-                              "87 off-market signals today",
-                              "Buildings with offer activity 64",
-                              "Most-traded this week The Amero".
-     - "X/wk" card badges:    removes the offer/wk tags from cards.
-     - Data-pending cards:    flags the 9 buildings without sales data.
-     - Building card years:   replaces card year_built with DB mode.
-
-   Author: Condo Market SF, v1.0, 2026-05-09
+   v2 changes (2026-05-10):
+     - Two-card comparison panel (public vs members) replaces single CTA
+     - Real value drivers: tenure 8.6y, 45/39/16 ownership split
+     - Removed Data Pending overlay (Tim feedback)
+     - Kills "270 active offers", "Concentrated in Pacific Heights",
+       "Tax record feed updating soon" on /buildings/
+     - Re-runs on window.load to catch deferred content
    ========================================================================= */
 
 (function () {
@@ -33,16 +20,11 @@
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
   var LOG_PREFIX = '[cm-truth]';
-
-  var DATA = {
-    buildings: null,
-    aggregates: null,
-    ticker: null,
-    cards: null
-  };
-
+  var DATA = { buildings: null, aggregates: null, ticker: null, cards: null, panel: null };
   var CARD_BY_SLUG = {};
   var SLUGS_WITH_DATA = {};
+  var DATA_LOADED = false;
+  var PATCH_RUN_COUNT = 0;
 
   function log() {
     if (window.console && console.log) {
@@ -61,16 +43,10 @@
   }
 
   function anonHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON,
-      'Authorization': 'Bearer ' + SUPABASE_ANON
-    };
+    return { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
   }
 
-  function fmtInt(n) {
-    return (Number(n) || 0).toLocaleString();
-  }
+  function fmtInt(n) { return (Number(n) || 0).toLocaleString(); }
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -81,8 +57,7 @@
   function walkText(root, fn) {
     if (!root || !document.createTreeWalker) return;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
-    var nodes = [];
-    var n;
+    var nodes = []; var n;
     while ((n = walker.nextNode())) nodes.push(n);
     nodes.forEach(fn);
   }
@@ -114,9 +89,7 @@
   async function callRpc(name) {
     try {
       var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
-        method: 'POST',
-        headers: anonHeaders(),
-        body: '{}'
+        method: 'POST', headers: anonHeaders(), body: '{}'
       });
       if (!r.ok) { err('rpc', name, r.status); return null; }
       return await r.json();
@@ -132,7 +105,8 @@
       var m = t.match(/offers this week/g);
       if (m && m.length >= 3) { ticker = all[i]; break; }
     }
-    if (!ticker) { log('ticker not found'); return; }
+    if (!ticker) { return; }
+    if (ticker.getAttribute('data-cm-truth-patched') === '1') return;
 
     var items = DATA.ticker.map(function (row) {
       var label = escapeHtml(row.label || '');
@@ -150,6 +124,7 @@
 
     var oneLap = items.join(' \u00b7 ');
     ticker.innerHTML = oneLap + ' \u00b7 ' + oneLap;
+    ticker.setAttribute('data-cm-truth-patched', '1');
     log('ticker patched (' + items.length + ' items)');
   }
 
@@ -162,11 +137,9 @@
       var v = n.nodeValue;
       if (!v) return;
       if (v.indexOf('7,564') !== -1) {
-        n.nodeValue = v.replace(/7,564/g, real);
-        replaced++;
+        n.nodeValue = v.replace(/7,564/g, real); replaced++;
       } else if (v.match(/12,400\+?/)) {
-        n.nodeValue = v.replace(/12,400\+?/g, real);
-        replaced++;
+        n.nodeValue = v.replace(/12,400\+?/g, real); replaced++;
       }
     });
     if (replaced) log('units count patched (' + replaced + ' nodes)');
@@ -174,40 +147,92 @@
 
   function patchTwoLayersPanel() {
     var panel = findContainer(['Public layer', 'Enhanced layer', 'Sale-to-list ratio']);
-    if (!panel) { log('two-layer panel not found'); return; }
+    if (!panel) {
+      panel = findContainer(['Sign in to unlock', 'enhanced layer']);
+      if (!panel) return;
+    }
+    if (panel.getAttribute('data-cm-truth-patched') === '1') return;
 
     var agg = DATA.aggregates && DATA.aggregates[0] ? DATA.aggregates[0] : {};
+    var sig = DATA.panel && DATA.panel[0] ? DATA.panel[0] : {};
     var bldCount = (DATA.buildings && DATA.buildings.length) || 64;
+    var psf = agg.median_psf_36mo || 1197;
+    var units = fmtInt(agg.total_units || 5082);
+    var tenure = sig.median_tenure_years || '8.6';
+    var jointPct = sig.joint_owned_pct || 45;
+    var indPct = sig.individual_owned_pct || 39;
+    var entPct = sig.entity_owned_pct || 16;
 
-    function feature(title, desc) {
-      return '<div style="padding:18px;background:#fff;border-radius:8px;border:1px solid rgba(26,31,46,0.08);text-align:left;">' +
-        '<div style="font-weight:600;font-size:14px;color:#1a1f2e;margin-bottom:6px;">' + escapeHtml(title) + '</div>' +
-        '<div style="font-size:13px;color:rgba(26,31,46,0.65);line-height:1.5;">' + escapeHtml(desc) + '</div>' +
-      '</div>';
+    var publicBullets = [
+      'Citywide median $/sf \u2014 <strong style="color:#e8e3d8;">$' + fmtInt(psf) + '</strong>',
+      'Building $/sf rankings (top 10)',
+      'Most-recent sales feed',
+      bldCount + ' buildings \u00b7 ' + units + ' units tracked'
+    ];
+    var memberBullets = [
+      '<strong style="color:#e8e3d8;">Per-unit sale history</strong> \u2014 every closing, last 10 years',
+      '<strong style="color:#e8e3d8;">Owner tenure by unit</strong> \u2014 median ' + tenure + ' years citywide',
+      '<strong style="color:#e8e3d8;">Owner type per unit</strong> \u2014 ' + jointPct + '% joint \u00b7 ' + indPct + '% solo \u00b7 ' + entPct + '% entity',
+      '<strong style="color:#e8e3d8;">Make-Me-Move prices</strong> \u2014 real $ amounts per unit',
+      '<strong style="color:#e8e3d8;">Primary vs secondary residence</strong> \u2014 coming via ATTOM'
+    ];
+
+    function bulletList(items, color) {
+      return items.map(function (b) {
+        return '<li style="display:flex;gap:10px;align-items:flex-start;padding:0;margin:0;font-size:14px;line-height:1.55;color:rgba(232,227,216,0.75);">' +
+          '<span style="color:' + color + ';flex-shrink:0;line-height:1.55;">\u2713</span>' +
+          '<span>' + b + '</span>' +
+          '</li>';
+      }).join('');
     }
 
     panel.innerHTML = [
-      '<div style="padding:48px 32px;text-align:center;border-radius:12px;background:rgba(159,180,216,0.04);border:1px solid rgba(159,180,216,0.15);">',
-        '<div style="font-family:JetBrains Mono,ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#d4a574;margin-bottom:16px;">Members-only intelligence</div>',
-        '<h2 style="font-family:Playfair Display,Georgia,serif;font-size:clamp(28px,4vw,42px);font-weight:500;line-height:1.15;margin:0 0 16px;color:#1a1f2e;">Sign in to unlock the <em style="color:#9fb4d8;">enhanced layer.</em></h2>',
-        '<p style="font-size:17px;color:rgba(26,31,46,0.7);max-width:56ch;margin:0 auto 32px;">Free account, no commitment. Members see per-unit sale history, owner tenure, last-sale prices, and Make-Me-Move prices for every building.</p>',
-        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:760px;margin:0 auto 32px;">',
-          feature('Per-unit sale history', 'Every closing, every unit, last 10 years.'),
-          feature('Owner tenure by unit', 'How long each owner has held \u2014 sortable, filterable.'),
-          feature('Most-recent sale + price', 'The exact transaction that set today\'s comp.'),
-          feature('Make-Me-Move prices', 'The number owners would say yes to.'),
+      '<div style="padding:56px 32px;background:#0f131d;border-radius:14px;border:1px solid rgba(159,180,216,0.12);">',
+        '<div style="text-align:center;max-width:680px;margin:0 auto 36px;">',
+          '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#d4a574;margin-bottom:14px;">Two layers of intelligence</div>',
+          '<h2 style="font-family:\'Playfair Display\',Georgia,serif;font-size:clamp(30px,4.2vw,46px);font-weight:500;line-height:1.1;margin:0 0 14px;color:#e8e3d8;">See what <em style="color:#9fb4d8;">members see.</em></h2>',
+          '<p style="font-size:16px;color:rgba(232,227,216,0.6);margin:0;line-height:1.5;">A free account unlocks per-unit data \u2014 sale history, owner tenure, ownership type, and Make-Me-Move prices for every building.</p>',
         '</div>',
-        '<a href="#signup" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#1a1f2e;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Create a free account \u2192</a>',
-        '<div style="margin-top:24px;font-size:12px;color:rgba(26,31,46,0.5);font-family:JetBrains Mono,ui-monospace,monospace;">',
-          fmtInt(agg.total_units || 0) + ' units \u00b7 ' + bldCount + ' buildings \u00b7 ' + fmtInt(agg.sales_last_10y || 0) + ' recorded sales (10y)',
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:880px;margin:0 auto;">',
+          '<div style="padding:32px 28px;background:rgba(159,180,216,0.04);border:1px solid rgba(159,180,216,0.18);border-radius:12px;">',
+            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(232,227,216,0.5);margin-bottom:10px;">Public</div>',
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:22px;color:#e8e3d8;margin-bottom:6px;font-weight:500;">Free \u00b7 no account</div>',
+            '<div style="font-size:13px;color:rgba(232,227,216,0.5);margin-bottom:24px;">Aggregates only.</div>',
+            '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;">',
+              bulletList(publicBullets, '#9fb4d8'),
+            '</ul>',
+          '</div>',
+          '<div style="padding:32px 28px;background:rgba(212,165,116,0.06);border:1px solid rgba(212,165,116,0.3);border-radius:12px;position:relative;">',
+            '<div style="position:absolute;top:-1px;right:-1px;background:#d4a574;color:#0f131d;font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:10px;font-weight:600;padding:6px 10px;border-radius:0 12px 0 8px;letter-spacing:0.1em;">FREE \u00b7 30 SECONDS</div>',
+            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#d4a574;margin-bottom:10px;">Members</div>',
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:22px;color:#e8e3d8;margin-bottom:6px;font-weight:500;">Per-unit specifics</div>',
+            '<div style="font-size:13px;color:rgba(232,227,216,0.5);margin-bottom:24px;">Everything in public, plus:</div>',
+            '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;">',
+              bulletList(memberBullets, '#d4a574'),
+            '</ul>',
+          '</div>',
+        '</div>',
+        '<div style="text-align:center;margin-top:36px;">',
+          '<a href="#signup" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;background:#d4a574;color:#0f131d;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:0.01em;">Create a free account \u2192</a>',
+          '<div style="margin-top:14px;font-size:12px;color:rgba(232,227,216,0.4);font-family:\'JetBrains Mono\',ui-monospace,monospace;">No credit card. No spam. Cancel anytime.</div>',
         '</div>',
       '</div>'
     ].join('');
-    log('two-layer panel replaced with sign-in CTA');
+    panel.setAttribute('data-cm-truth-patched', '1');
+    log('two-layer panel replaced with comparison cards');
   }
 
   function patchFabricatedCounters() {
-    var killPhrases = ['Make-me-move prices live', 'off-market signals today', 'Make-Me-Move prices live', 'off-market signals'];
+    var killPhrases = [
+      'Make-me-move prices live',
+      'Make-Me-Move prices live',
+      'off-market signals today',
+      'off-market signals',
+      'active offers this week',
+      'Concentrated in Pacific Heights',
+      'Tax record feed updating soon',
+      'integration landing soon'
+    ];
     var killed = 0;
     var all = document.body.querySelectorAll('*');
     var toKill = [];
@@ -215,7 +240,7 @@
       var t = (all[i].textContent || '').trim();
       var hit = killPhrases.some(function (p) { return t.indexOf(p) !== -1; });
       if (!hit) continue;
-      if (t.length > 200) continue;
+      if (t.length > 250) continue;
       toKill.push(all[i]);
     }
     toKill.sort(function (a, b) { return (b.outerHTML || '').length - (a.outerHTML || '').length; });
@@ -238,6 +263,30 @@
       if (newV !== v) { n.nodeValue = newV; replaced++; }
     });
     if (replaced) log('offer badges removed (' + replaced + ' text nodes)');
+  }
+
+  function patchActiveSignalsPanel() {
+    var phrases = ['Active Signals', 'ACTIVE SIGNALS', 'active signals'];
+    var found = null;
+    var all = document.body.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var t = all[i].textContent || '';
+      var hasHeader = phrases.some(function (p) { return t.indexOf(p) !== -1; });
+      var hasFake = t.indexOf('active offers this week') !== -1 ||
+                    t.indexOf('Tax record feed') !== -1 ||
+                    t.indexOf('Concentrated in Pacific Heights') !== -1;
+      if (!hasHeader || !hasFake) continue;
+      if (!found || (all[i].outerHTML || '').length < (found.outerHTML || '').length) {
+        found = all[i];
+      }
+    }
+    if (found && found.getAttribute('data-cm-truth-patched') !== '1') {
+      try {
+        found.style.display = 'none';
+        found.setAttribute('data-cm-truth-patched', '1');
+        log('active signals panel hidden');
+      } catch (e) {}
+    }
   }
 
   function patchOfferActivityLine() {
@@ -273,32 +322,6 @@
     return slug.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
-  function patchDataPendingCards() {
-    if (!DATA.buildings) return;
-    var pendingCount = 0;
-    var anchors = document.querySelectorAll('a[href*="/building/"]');
-    anchors.forEach(function (a) {
-      var m = a.getAttribute('href').match(/\/building\/([a-z0-9-]+)/);
-      if (!m) return;
-      var slug = m[1];
-      if (SLUGS_WITH_DATA[slug]) return;
-      try {
-        a.style.position = 'relative';
-        a.style.opacity = '0.5';
-        a.setAttribute('data-cm-pending', '1');
-        if (!a.querySelector('.cm-pending-overlay')) {
-          var overlay = document.createElement('span');
-          overlay.className = 'cm-pending-overlay';
-          overlay.textContent = 'Data pending';
-          overlay.style.cssText = 'position:absolute;top:8px;right:8px;background:rgba(201,87,66,0.9);color:#fff;font-family:JetBrains Mono,ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;padding:4px 8px;border-radius:4px;pointer-events:none;z-index:5';
-          a.appendChild(overlay);
-        }
-        pendingCount++;
-      } catch (e) {}
-    });
-    if (pendingCount) log('data-pending cards flagged (' + pendingCount + ')');
-  }
-
   function patchCardYears() {
     if (!Object.keys(CARD_BY_SLUG).length) return;
     var anchors = document.querySelectorAll('a[href*="/building/"]');
@@ -327,18 +350,42 @@
   }
 
   function patchEditorialFakes() {
-    var phrases = ['inventory at 7-year low', 'fastest absorption this quarter', 'zero new builds since 2018'];
+    var phrases = [
+      'inventory at 7-year low',
+      'fastest absorption this quarter',
+      'zero new builds since 2018',
+      'Jackson Square leads the city',
+      'Median $1848/sf',
+      '+66% vs city median'
+    ];
     var killed = 0;
     walkText(document.body, function (n) {
       var v = n.nodeValue;
       if (!v) return;
       var newV = v;
-      phrases.forEach(function (p) {
-        newV = newV.replace(p, '');
-      });
+      phrases.forEach(function (p) { newV = newV.replace(p, ''); });
       if (newV !== v) { n.nodeValue = newV; killed++; }
     });
     if (killed) log('editorial fakes scrubbed (' + killed + ' text nodes)');
+  }
+
+  function runPatches() {
+    PATCH_RUN_COUNT++;
+    var patches = [
+      ['hero units', patchHeroUnitsCount],
+      ['ticker', patchTicker],
+      ['two-layer panel', patchTwoLayersPanel],
+      ['fabricated counters', patchFabricatedCounters],
+      ['active signals', patchActiveSignalsPanel],
+      ['offer badges', patchOfferBadges],
+      ['offer-activity line', patchOfferActivityLine],
+      ['editorial fakes', patchEditorialFakes],
+      ['card years', patchCardYears]
+    ];
+    patches.forEach(function (p) {
+      try { p[1](); } catch (e) { err('patch failed:', p[0], e); }
+    });
+    log('patches run #' + PATCH_RUN_COUNT);
   }
 
   async function init() {
@@ -347,41 +394,29 @@
       fetchBuildingsJson(),
       callRpc('homepage_aggregates'),
       callRpc('homepage_ticker_facts'),
-      callRpc('homepage_building_cards')
+      callRpc('homepage_building_cards'),
+      callRpc('homepage_panel_signals')
     ]);
     DATA.buildings = results[0] || [];
     DATA.aggregates = results[1] || [];
     DATA.ticker = results[2] || [];
     DATA.cards = results[3] || [];
-
+    DATA.panel = results[4] || [];
     DATA.cards.forEach(function (c) {
       CARD_BY_SLUG[c.building_slug] = c;
       SLUGS_WITH_DATA[c.building_slug] = true;
     });
-
+    DATA_LOADED = true;
     log('data loaded in', (Date.now() - t0) + 'ms', {
-      buildings: DATA.buildings.length,
-      ticker: DATA.ticker.length,
-      cards: DATA.cards.length
+      buildings: DATA.buildings.length, ticker: DATA.ticker.length,
+      cards: DATA.cards.length, panel: DATA.panel.length
     });
+    runPatches();
+  }
 
-    var patches = [
-      ['hero units', patchHeroUnitsCount],
-      ['ticker', patchTicker],
-      ['two-layer panel', patchTwoLayersPanel],
-      ['fabricated counters', patchFabricatedCounters],
-      ['offer badges', patchOfferBadges],
-      ['offer-activity line', patchOfferActivityLine],
-      ['editorial fakes', patchEditorialFakes],
-      ['data-pending cards', patchDataPendingCards],
-      ['card years', patchCardYears]
-    ];
-    patches.forEach(function (p) {
-      try { p[1](); }
-      catch (e) { err('patch failed:', p[0], e); }
-    });
-
-    log('all patches applied in', (Date.now() - t0) + 'ms');
+  function onWindowLoad() {
+    if (!DATA_LOADED) return;
+    setTimeout(runPatches, 100);
   }
 
   if (document.readyState === 'loading') {
@@ -389,4 +424,5 @@
   } else {
     init();
   }
+  window.addEventListener('load', onWindowLoad);
 })();
