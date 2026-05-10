@@ -843,26 +843,13 @@
         <div id="mmm-wizard-mount" style="display:none;"></div>
       </div>
     <!--
-  ============================================================
-  DASHBOARD WIDGET v2 · Petition tile (listings-gated)
-  ============================================================
-  Self-contained section. Paste this entire block into your
-  dashboard.html anywhere inside the main content area (the
-  Overview view is the recommended placement so it's visible
-  on first dashboard load).
-
-  - Auto-shows ONE CARD PER BUILDING where the user has at
-    least one active or paused listing (make-me-move OR
-    claim-my-unit). Hidden for users with no listings.
-  - Each card leads with the missed-HOA dollar amount for that
-    building — the same hook used in the cold-launch email and
-    the petition page hero.
-  - Links to /building/<slug>/petition/ — the HOA-revenue-math
-    page for homeowners.
-  - Namespaced CSS (cm-dash-petitions__*); no conflicts with
-    your existing dashboard styles.
-  ============================================================
--->
+<!-- ============================================================
+     DASHBOARD WIDGET v3 · Petition tile (listings-gated)
+     ============================================================
+     Reads auth from `cm-auth-session` (your custom storage key).
+     Fully self-contained — no external constants to keep in sync.
+     Replaces the v2 widget in dashboard/index.html.
+     ============================================================ -->
 <section id="cm-dash-petitions" class="cm-dash-petitions" hidden>
   <header class="cm-dash-petitions__head">
     <span class="cm-dash-petitions__eyebrow">Your buildings · HOA opportunity</span>
@@ -1030,7 +1017,6 @@
   var SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
   var SUPABASE_ANON =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
-  var STORAGE_KEY = 'sb-kfqphwerygccpzntbbif-auth-token';
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -1039,16 +1025,22 @@
   }
 
   function getAccessToken() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (parsed && parsed.access_token) return parsed.access_token;
-      if (parsed && parsed.currentSession && parsed.currentSession.access_token) {
-        return parsed.currentSession.access_token;
-      }
-      return null;
-    } catch (e) { return null; }
+    // Try every storage key + token shape this app might use
+    var keys = ['cm-auth-session', 'sb-kfqphwerygccpzntbbif-auth-token'];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var raw = localStorage.getItem(keys[i]);
+        if (!raw) continue;
+        var parsed;
+        try { parsed = JSON.parse(raw); } catch (e) { parsed = raw; }
+        if (typeof parsed === 'string' && parsed.indexOf('eyJ') === 0) return parsed;
+        if (parsed && parsed.access_token) return parsed.access_token;
+        if (parsed && parsed.currentSession && parsed.currentSession.access_token) return parsed.currentSession.access_token;
+        if (parsed && parsed.session && parsed.session.access_token) return parsed.session.access_token;
+        if (parsed && parsed.token) return parsed.token;
+      } catch (e) {}
+    }
+    return null;
   }
 
   function fmtMoney(n) {
@@ -1064,7 +1056,7 @@
     var list = document.getElementById('cm-dash-petitions-list');
 
     var token = getAccessToken();
-    if (!token) return;
+    if (!token) { console.warn('[cm-dash-petitions] no access token'); return; }
 
     try {
       var rpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/my_petition_status', {
@@ -1081,7 +1073,10 @@
         return;
       }
       var rows = await rpcRes.json();
-      if (!Array.isArray(rows) || rows.length === 0) return;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        console.warn('[cm-dash-petitions] RPC returned empty');
+        return;
+      }
 
       var buildings = [];
       try {
@@ -1115,7 +1110,6 @@
     var signed = !!row.signature_id;
     if (signed) card.className += ' cm-dash-petitions__card--signed';
 
-    // Header
     var header = document.createElement('div');
     header.className = 'cm-dash-petitions__card-header';
     var name = document.createElement('h3');
@@ -1128,7 +1122,6 @@
     header.appendChild(name);
     header.appendChild(units);
 
-    // Stat (the dollar hook)
     var stat = document.createElement('div');
     stat.className = 'cm-dash-petitions__card-stat';
     var statValue = document.createElement('span');
@@ -1142,7 +1135,6 @@
     stat.appendChild(statValue);
     stat.appendChild(statLabel);
 
-    // Footer
     var footer = document.createElement('div');
     footer.className = 'cm-dash-petitions__card-footer';
 
