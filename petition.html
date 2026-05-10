@@ -1,660 +1,963 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Building Petition · Condo Market</title>
-<meta name="description" content="Sign your building's petition to bring Condo Market — turning every future unit sale into HOA revenue for the building you live in.">
-<link rel="icon" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Building petition · Condo Market</title>
+<meta name="description" content="Sign to ask your building's HOA Board to take a meeting with Condo Market." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
-    --cm-bronze: #d4a574; --cm-rust: #c95742; --cm-gain: #8fb97a;
-    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
-    --cm-ivory-faint: rgba(232, 227, 216, 0.42);
-    --cm-rule: rgba(232, 227, 216, 0.14);
-    --cm-rule-soft: rgba(232, 227, 216, 0.08);
-    --ff-display: 'Playfair Display', Georgia, serif;
-    --ff-body: 'DM Sans', -apple-system, sans-serif;
-    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --cm-navy: #1a1f2e;
+    --cm-navy-deep: #0f131d;
+    --cm-peri: #9fb4d8;
+    --cm-bronze: #d4a574;
+    --cm-rust: #c95742;
+    --cm-gain: #8fb97a;
+    --cm-ivory: #e8e3d8;
+    --cm-mute: rgba(232, 227, 216, 0.7);
+    --cm-faint: rgba(232, 227, 216, 0.5);
+    --cm-line: rgba(159, 180, 216, 0.15);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--cm-navy-deep); color: var(--cm-ivory); font-family: var(--ff-body); font-weight: 300; -webkit-font-smoothing: antialiased; min-height: 100vh; line-height: 1.6; }
-  a { color: inherit; text-decoration: none; }
-  button { font-family: inherit; cursor: pointer; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep);
+    color: var(--cm-ivory);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  a { color: var(--cm-peri); }
 
-  /* ── Masthead ───────────────────────────────────────────────────────────── */
-  header.masthead { padding: 18px 32px; border-bottom: 1px solid var(--cm-rule); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 20px; }
-  .wordmark em { color: var(--cm-peri); }
-  .topnav { display: flex; gap: 28px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .topnav a:hover { color: var(--cm-ivory); }
+  /* NAV */
+  .cm-nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(15, 19, 29, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--cm-line);
+    padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cm-nav__brand {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    color: var(--cm-ivory);
+    text-decoration: none;
+    letter-spacing: 0.005em;
+  }
+  .cm-nav__brand em { font-style: italic; color: var(--cm-peri); }
+  .cm-nav__links { display: flex; gap: 24px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .cm-nav__links a { color: var(--cm-mute); text-decoration: none; }
+  .cm-nav__links a:hover { color: var(--cm-ivory); }
 
-  /* ── Layout ─────────────────────────────────────────────────────────────── */
-  main { padding: 48px 32px 80px; max-width: 880px; margin: 0 auto; }
-  section { padding: 48px 0; border-top: 1px solid var(--cm-rule); }
-  section:first-of-type { border-top: none; padding-top: 24px; }
+  /* LAYOUT */
+  main { max-width: 920px; margin: 0 auto; padding: 80px 32px 120px; }
+  section { margin-bottom: 88px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--cm-bronze);
+    display: block;
+    margin-bottom: 14px;
+  }
+  h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    margin: 0;
+    color: var(--cm-ivory);
+    letter-spacing: 0.005em;
+  }
+  h1 { font-size: clamp(36px, 5vw, 56px); line-height: 1.1; margin-bottom: 24px; }
+  h1 .accent { font-style: italic; color: var(--cm-peri); }
+  h2 { font-size: 28px; margin-bottom: 16px; line-height: 1.2; }
+  h3 { font-size: 18px; margin-bottom: 6px; }
+  p { font-size: 16px; color: var(--cm-mute); margin: 0 0 16px; max-width: 64ch; }
+  p strong { color: var(--cm-ivory); font-weight: 500; }
+  .hook { color: var(--cm-rust); font-style: italic; }
 
-  /* ── Hero ───────────────────────────────────────────────────────────────── */
-  .hero .eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 18px; }
-  .hero h1 { font-family: var(--ff-display); font-size: 56px; font-weight: 500; line-height: 1.05; letter-spacing: -0.02em; color: var(--cm-ivory); margin-bottom: 18px; }
-  .hero h1 em { font-style: italic; color: var(--cm-peri); }
-  .hero .hook { font-family: var(--ff-display); font-style: italic; font-size: 28px; line-height: 1.3; color: var(--cm-bronze); margin-bottom: 18px; }
-  .hero .hook .amount { font-style: normal; font-weight: 700; color: var(--cm-rust); }
-  .hero .lede { font-size: 17px; color: var(--cm-ivory-dim); max-width: 60ch; }
+  /* HERO */
+  .hero h1 { max-width: 22ch; }
+  .hero .subhead { font-size: 18px; color: var(--cm-mute); max-width: 56ch; line-height: 1.5; }
+  .hero-stat {
+    margin-top: 36px;
+    padding: 24px 0;
+    border-top: 1px solid var(--cm-line);
+    border-bottom: 1px solid var(--cm-line);
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  }
+  .hero-stat__num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 44px;
+    color: var(--cm-rust);
+    font-weight: 500;
+    line-height: 1;
+  }
+  .hero-stat__lbl { color: var(--cm-mute); font-size: 15px; max-width: 38ch; }
 
-  /* ── Live counter ───────────────────────────────────────────────────────── */
-  .counter { display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap; padding: 36px 0; }
-  .counter .big { font-family: var(--ff-display); font-style: italic; font-size: 96px; font-weight: 500; color: var(--cm-peri); line-height: 1; }
-  .counter .sub { font-family: var(--ff-display); font-size: 20px; color: var(--cm-ivory-dim); max-width: 380px; line-height: 1.4; }
-  .counter .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cm-gain); margin-right: 8px; animation: pulse 2s infinite; vertical-align: middle; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  /* COUNTER */
+  .counter {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 24px;
+    background: rgba(143, 185, 122, 0.06);
+    border: 1px solid rgba(143, 185, 122, 0.2);
+    border-radius: 8px;
+  }
+  .counter-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--cm-gain);
+    box-shadow: 0 0 0 0 rgba(143, 185, 122, 0.6);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(143, 185, 122, 0.6); }
+    70% { box-shadow: 0 0 0 12px rgba(143, 185, 122, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(143, 185, 122, 0); }
+  }
+  .counter-num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 36px; line-height: 1; color: var(--cm-ivory);
+  }
+  .counter-lbl { color: var(--cm-mute); font-size: 14px; }
 
-  /* ── Sign panel (state-dependent) ───────────────────────────────────────── */
-  .sign-panel { background: linear-gradient(135deg, rgba(159,180,216,0.08) 0%, rgba(212,165,116,0.08) 100%); border: 1px solid rgba(159,180,216,0.32); border-radius: 14px; padding: 32px; margin: 24px 0; }
-  .sign-panel.is-signed { background: linear-gradient(135deg, rgba(143,185,122,0.08) 0%, rgba(159,180,216,0.06) 100%); border-color: rgba(143,185,122,0.32); }
-  .sign-panel.is-blocked { background: rgba(201,87,66,0.06); border-color: rgba(201,87,66,0.24); }
-  .sign-panel h3 { font-family: var(--ff-display); font-style: italic; font-size: 26px; font-weight: 500; color: var(--cm-ivory); margin-bottom: 8px; }
-  .sign-panel p { color: var(--cm-ivory-dim); margin-bottom: 16px; font-size: 15px; }
-  .sign-panel p:last-child { margin-bottom: 0; }
+  /* SIGN PANEL */
+  .sign-panel {
+    background: rgba(159, 180, 216, 0.04);
+    border: 1px solid var(--cm-line);
+    border-radius: 12px;
+    padding: 36px 32px;
+  }
+  .sign-panel h2 { margin-bottom: 12px; }
+  .sign-panel .helper { color: var(--cm-mute); font-size: 14px; margin-bottom: 24px; }
+  .sign-panel ul.units { list-style: none; padding: 0; margin: 0 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .sign-panel ul.units li {
+    padding: 14px 16px;
+    background: rgba(15, 19, 29, 0.4);
+    border: 1px solid var(--cm-line);
+    border-radius: 8px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .sign-panel ul.units li:hover { border-color: rgba(212, 165, 116, 0.4); }
+  .sign-panel ul.units li.selected { border-color: var(--cm-bronze); background: rgba(212, 165, 116, 0.06); }
+  .sign-panel ul.units input[type="radio"] { accent-color: var(--cm-bronze); margin: 0; }
+  .sign-panel textarea {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(15, 19, 29, 0.4);
+    border: 1px solid var(--cm-line);
+    border-radius: 8px;
+    color: var(--cm-ivory);
+    font-family: inherit; font-size: 14px; line-height: 1.5;
+    resize: vertical; min-height: 88px;
+    margin-bottom: 16px;
+  }
+  .sign-panel .commitment {
+    padding: 16px 18px;
+    background: rgba(201, 87, 66, 0.05);
+    border: 1px solid rgba(201, 87, 66, 0.2);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--cm-ivory);
+    line-height: 1.5;
+  }
+  .sign-panel .commitment strong { color: var(--cm-rust); font-weight: 500; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 14px 24px;
+    border-radius: 8px;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 15px; font-weight: 600;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+    text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn--primary { background: var(--cm-rust); color: white; }
+  .btn--primary:hover:not(:disabled) { background: #b04935; }
+  .btn--ghost { background: transparent; color: var(--cm-peri); border: 1px solid var(--cm-line); }
+  .btn--ghost:hover { border-color: var(--cm-peri); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
-  .sign-panel .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .sign-panel .field label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .sign-panel .field textarea, .sign-panel .field input { background: var(--cm-navy); border: 1px solid var(--cm-rule); color: var(--cm-ivory); padding: 10px 12px; border-radius: 6px; font-family: var(--ff-body); font-size: 14px; }
-  .sign-panel .field textarea { min-height: 70px; resize: vertical; }
-  .sign-panel .field textarea:focus, .sign-panel .field input:focus { outline: none; border-color: var(--cm-peri); }
+  /* INDEPENDENCE NOTE */
+  .indep {
+    padding: 32px;
+    background: rgba(159, 180, 216, 0.04);
+    border-left: 3px solid var(--cm-peri);
+    border-radius: 0 8px 8px 0;
+  }
+  .indep h2 { margin-bottom: 12px; font-size: 22px; }
 
-  .unit-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-  .unit-option { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: rgba(15,19,29,0.5); border: 1px solid var(--cm-rule); border-radius: 8px; cursor: pointer; transition: border-color 0.15s; }
-  .unit-option:hover { border-color: var(--cm-peri); }
-  .unit-option input[type="radio"] { margin: 0; accent-color: var(--cm-peri); }
-  .unit-option .uo-addr { font-weight: 500; color: var(--cm-ivory); flex: 1; }
-  .unit-option .uo-meta { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-dim); }
+  /* EDUCATION */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px; margin-top: 24px;
+  }
+  .stat-card {
+    padding: 24px;
+    background: rgba(15, 19, 29, 0.4);
+    border: 1px solid var(--cm-line);
+    border-radius: 10px;
+  }
+  .stat-card__num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px; color: var(--cm-bronze);
+    line-height: 1; margin-bottom: 8px;
+  }
+  .stat-card__lbl { color: var(--cm-mute); font-size: 13px; line-height: 1.5; }
+  .funded {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--cm-line);
+  }
+  .funded ul {
+    list-style: none; padding: 0; margin: 16px 0 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px 24px;
+  }
+  .funded li {
+    padding: 8px 0;
+    color: var(--cm-mute); font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .funded li::before {
+    content: '✓'; color: var(--cm-gain); font-weight: 600; flex-shrink: 0;
+  }
 
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 999px; font-family: var(--ff-body); font-size: 14px; font-weight: 500; border: none; transition: opacity 0.15s, border-color 0.15s; cursor: pointer; }
-  .btn-primary { background: var(--cm-peri); color: var(--cm-navy); }
-  .btn-primary:hover:not(:disabled) { opacity: 0.88; }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-ghost { background: transparent; color: var(--cm-ivory); border: 1px solid var(--cm-rule); }
-  .btn-ghost:hover { border-color: var(--cm-peri); }
-  .btn-rust { background: transparent; color: var(--cm-ivory-dim); border: 1px solid var(--cm-rule); font-size: 12px; padding: 8px 16px; }
-  .btn-rust:hover { color: var(--cm-rust); border-color: rgba(201,87,66,0.4); }
+  /* HOW IT WORKS */
+  .steps { display: flex; flex-direction: column; gap: 18px; margin-top: 24px; }
+  .step {
+    display: flex; gap: 20px; align-items: flex-start;
+    padding: 22px 24px;
+    background: rgba(15, 19, 29, 0.4);
+    border: 1px solid var(--cm-line);
+    border-radius: 10px;
+  }
+  .step-num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 14px; color: var(--cm-bronze);
+    flex-shrink: 0; min-width: 24px;
+  }
+  .step-body { flex: 1; }
+  .step-body strong { color: var(--cm-ivory); }
+  .step-body p { margin: 0; font-size: 15px; }
 
-  .signed-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
+  /* NEIGHBORS */
+  .neighbors-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .neighbor-item {
+    padding: 14px 16px;
+    background: rgba(15, 19, 29, 0.3);
+    border: 1px solid var(--cm-line);
+    border-radius: 8px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .neighbor-item__line {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px; color: var(--cm-ivory);
+  }
+  .neighbor-item__line span { color: var(--cm-mute); }
+  .neighbor-item__cmt { font-size: 14px; color: var(--cm-mute); font-style: italic; }
+  .neighbors-empty {
+    padding: 20px; text-align: center; color: var(--cm-faint); font-size: 14px;
+    border: 1px dashed var(--cm-line); border-radius: 8px; margin-top: 20px;
+  }
+  .neighbors-locked {
+    padding: 20px;
+    background: rgba(15, 19, 29, 0.3);
+    border: 1px solid var(--cm-line);
+    border-radius: 8px;
+    color: var(--cm-mute); font-size: 14px;
+    margin-top: 20px;
+  }
 
-  /* ── Education ──────────────────────────────────────────────────────────── */
-  .education h2 { font-family: var(--ff-display); font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.015em; color: var(--cm-ivory); margin-bottom: 8px; }
-  .education h2 em { font-style: italic; color: var(--cm-peri); }
-  .education .kicker { font-family: var(--ff-display); font-style: italic; font-size: 18px; color: var(--cm-ivory-dim); margin-bottom: 32px; max-width: 60ch; }
+  /* FAQ */
+  .faq details {
+    border-bottom: 1px solid var(--cm-line);
+    padding: 20px 0;
+  }
+  .faq details:first-of-type { border-top: 1px solid var(--cm-line); }
+  .faq summary {
+    cursor: pointer; list-style: none;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px; color: var(--cm-ivory);
+    display: flex; justify-content: space-between; align-items: center;
+    padding-right: 24px;
+    position: relative;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after {
+    content: '+'; position: absolute; right: 0;
+    color: var(--cm-bronze); font-size: 22px; line-height: 1;
+    transition: transform 0.2s ease;
+  }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq details p { margin: 12px 0 0; }
 
-  .edu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 36px; }
-  @media (max-width: 760px) { .edu-grid { grid-template-columns: 1fr; } }
-  .edu-card { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 24px; }
-  .edu-card .num { font-family: var(--ff-display); font-style: italic; font-size: 38px; font-weight: 500; color: var(--cm-bronze); line-height: 1; margin-bottom: 8px; }
-  .edu-card .lbl { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 14px; }
-  .edu-card p { font-size: 14px; color: var(--cm-ivory-dim); line-height: 1.55; }
+  /* FOOTER */
+  .cm-footer {
+    border-top: 1px solid var(--cm-line);
+    padding: 32px;
+    color: var(--cm-faint);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .cm-footer p { margin: 0 auto; max-width: 70ch; color: var(--cm-faint); }
 
-  .education h3 { font-family: var(--ff-display); font-style: italic; font-size: 22px; font-weight: 500; color: var(--cm-ivory); margin: 36px 0 16px; }
-  .fund-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 24px; }
-  @media (max-width: 600px) { .fund-list { grid-template-columns: 1fr; } }
-  .fund-list li { padding: 10px 0 10px 24px; position: relative; color: var(--cm-ivory-dim); border-bottom: 1px solid var(--cm-rule-soft); font-size: 14px; }
-  .fund-list li::before { content: '✓'; position: absolute; left: 0; top: 10px; color: var(--cm-gain); font-weight: 600; }
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    padding: 14px 24px;
+    background: var(--cm-navy);
+    border: 1px solid var(--cm-line);
+    border-radius: 8px;
+    color: var(--cm-ivory);
+    font-size: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+  .toast--err { border-color: var(--cm-rust); }
+  .toast--ok { border-color: var(--cm-gain); }
 
-  /* ── Mechanism (3 step) ─────────────────────────────────────────────────── */
-  .mechanism h2 { font-family: var(--ff-display); font-size: 36px; font-weight: 500; line-height: 1.15; color: var(--cm-ivory); margin-bottom: 32px; }
-  .mech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  @media (max-width: 760px) { .mech-grid { grid-template-columns: 1fr; } }
-  .mech-step { background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 24px; }
-  .mech-step .num { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; color: var(--cm-bronze); margin-bottom: 14px; }
-  .mech-step .title { font-family: var(--ff-display); font-style: italic; font-size: 20px; color: var(--cm-ivory); margin-bottom: 8px; line-height: 1.3; }
-  .mech-step p { font-size: 13px; color: var(--cm-ivory-dim); line-height: 1.55; }
+  /* ERROR STATE (building not found) */
+  .err-state {
+    text-align: center; padding: 80px 32px;
+    color: var(--cm-mute);
+  }
+  .err-state h1 { margin-bottom: 12px; }
 
-  /* ── Signers list ───────────────────────────────────────────────────────── */
-  .signers h3 { font-family: var(--ff-display); font-style: italic; font-size: 22px; font-weight: 500; color: var(--cm-ivory); margin-bottom: 6px; }
-  .signers .private-note { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 24px; }
-  .signers-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-  .signer-card { padding: 14px 18px; background: rgba(159,180,216,0.04); border: 1px solid var(--cm-rule); border-radius: 8px; }
-  .signer-card .name { font-weight: 500; color: var(--cm-ivory); margin-bottom: 2px; }
-  .signer-card .meta { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-dim); }
-  .signer-card .comment { font-style: italic; font-size: 13px; color: var(--cm-ivory-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--cm-rule-soft); }
-
-  /* ── FAQ ────────────────────────────────────────────────────────────────── */
-  .faq h2 { font-family: var(--ff-display); font-size: 32px; font-weight: 500; color: var(--cm-ivory); margin-bottom: 24px; }
-  details { border-bottom: 1px solid var(--cm-rule); padding: 16px 0; }
-  details summary { font-family: var(--ff-display); font-size: 17px; color: var(--cm-ivory); cursor: pointer; list-style: none; padding-right: 28px; position: relative; }
-  details summary::after { content: '+'; position: absolute; right: 4px; top: -2px; font-size: 22px; color: var(--cm-peri); transition: transform 0.2s; }
-  details[open] summary::after { transform: rotate(45deg); }
-  details summary::-webkit-details-marker { display: none; }
-  details p { padding: 14px 0 4px; color: var(--cm-ivory-dim); font-size: 14px; line-height: 1.65; }
-
-  /* ── Footer ─────────────────────────────────────────────────────────────── */
-  footer { padding: 32px 0 0; margin-top: 48px; border-top: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 10px; line-height: 1.7; letter-spacing: 0.04em; color: var(--cm-ivory-faint); }
-
-  /* ── States ─────────────────────────────────────────────────────────────── */
-  .loading-state, .error-state { text-align: center; padding: 100px 20px; color: var(--cm-ivory-dim); }
-  .loading-state h2, .error-state h2 { font-family: var(--ff-display); font-style: italic; font-size: 28px; color: var(--cm-ivory); margin-bottom: 10px; }
-
-  /* ── Toast ──────────────────────────────────────────────────────────────── */
-  .toast { position: fixed; bottom: 24px; right: 24px; max-width: 420px; padding: 16px 20px; border-radius: 10px; font-size: 13px; line-height: 1.5; z-index: 200; box-shadow: 0 12px 36px rgba(0,0,0,0.5); animation: toastIn 0.18s ease-out; }
-  .toast.is-error { background: rgba(201,87,66,0.95); color: white; }
-  .toast.is-success { background: rgba(143,185,122,0.95); color: var(--cm-navy); }
-  .toast .close { float: right; cursor: pointer; opacity: 0.7; margin-left: 12px; font-size: 16px; line-height: 1; }
-  @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @media (max-width: 640px) {
+    main { padding: 56px 20px 80px; }
+    section { margin-bottom: 64px; }
+    .sign-panel, .indep, .step, .stat-card { padding: 22px; }
+    .cm-nav { padding: 16px 20px; }
+  }
 </style>
 </head>
 <body>
 
-<header class="masthead">
-  <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
-  <nav class="topnav">
+<header class="cm-nav">
+  <a href="/" class="cm-nav__brand">Condo <em>Market</em> · sf</a>
+  <nav class="cm-nav__links">
     <a href="/buildings/">Buildings</a>
     <a href="/dashboard/">Dashboard</a>
   </nav>
 </header>
 
-<main>
-  <div id="loading-state" class="loading-state"><h2>Loading petition…</h2></div>
-
-  <div id="error-state" class="error-state" hidden>
-    <h2>Building not found</h2>
-    <p>This petition link doesn't match a building we track. <a href="/buildings/" style="color: var(--cm-peri); text-decoration: underline;">Browse all buildings →</a></p>
-  </div>
-
-  <div id="content" hidden>
-
-    <section class="hero">
-      <div class="eyebrow">Building petition</div>
-      <h1 id="building-name">—</h1>
-      <p class="hook"><span class="amount" id="missed-hoa">$0</span> in HOA revenue your building has missed.</p>
-      <p class="lede">Sign to push the <span class="building-name-inline">your building's</span> HOA Board to partner with Condo Market — turning every future unit sale into direct revenue for the building you live in.</p>
-    </section>
-
-    <section class="counter">
-      <div class="big"><span id="sig-count">0</span></div>
-      <div class="sub"><span class="pulse"></span><span id="sig-label">verified signatures from owners</span> at <span class="building-name-inline">your building</span></div>
-    </section>
-
-    <section id="sign-section" style="border: none; padding-top: 0;">
-      <!-- Populated by JS based on auth + verification state -->
-    </section>
-
-    <section class="education">
-      <h2>Why this matters for <em>your</em> unit value</h2>
-      <p class="kicker">A better-funded HOA isn't just nicer. It's worth more — for every owner.</p>
-
-      <div class="edu-grid">
-        <div class="edu-card">
-          <div class="num" id="edu-missed">$0</div>
-          <div class="lbl">Missed · last 10 years</div>
-          <p>HOA revenue that could have flowed directly into reserves, lifting deferred maintenance, common-area upgrades, and your monthly amenity experience.</p>
-        </div>
-        <div class="edu-card">
-          <div class="num" id="edu-sales">0</div>
-          <div class="lbl">Unit sales · last 10 years</div>
-          <p>Every one of those sales paid commissions to a brokerage. None went to the building. Going forward, 1% of every sale could go straight to your HOA.</p>
-        </div>
-        <div class="edu-card">
-          <div class="num">5–10%</div>
-          <div class="lbl">Property value lift</div>
-          <p>Industry data: buildings with strong reserves and clear funding trade at higher $/sqft than poorly-funded peers. A better-funded HOA literally raises every owner's net worth.</p>
-        </div>
-      </div>
-
-      <h3>What this could fund:</h3>
-      <ul class="fund-list">
-        <li>Gym equipment refresh</li>
-        <li>Lobby modernization</li>
-        <li>Hallway carpet replacement</li>
-        <li>Smart-access systems</li>
-        <li>Roof / building envelope reserves</li>
-        <li>Elevator modernization</li>
-        <li>Exterior repaint / facade work</li>
-        <li>HVAC system upgrades</li>
-      </ul>
-    </section>
-
-    <section class="mechanism">
-      <h2>How the partnership works</h2>
-      <div class="mech-grid">
-        <div class="mech-step">
-          <div class="num">01</div>
-          <div class="title">A unit at your building sells.</div>
-          <p>Owner lists. Buyer offers. Sale closes. Standard transaction, no change in process for sellers.</p>
-        </div>
-        <div class="mech-step">
-          <div class="num">02</div>
-          <div class="title">1% goes straight to the HOA.</div>
-          <p>Direct to the building's reserve account. Not a kickback — a structural payment built into the listing agreement at every closing.</p>
-        </div>
-        <div class="mech-step">
-          <div class="num">03</div>
-          <div class="title">Your reserves grow. Your unit appreciates.</div>
-          <p>Better-funded amenities, fewer special assessments, higher property values. Compounding annually as units turn over.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="signers" id="signers-section" hidden>
-      <h3>Your neighbors who've signed</h3>
-      <div class="private-note">— Visible to verified <span class="building-name-inline">building</span> owners only</div>
-      <div class="signers-list" id="signers-list"></div>
-    </section>
-
-    <section class="faq">
-      <h2>FAQ</h2>
-      <details>
-        <summary>Is signing this binding?</summary>
-        <p>No. Signing is a non-binding statement of homeowner support. The petition is delivered to your HOA Board as a representation of homeowner sentiment — they decide whether to engage Condo Market in a formal partnership.</p>
-      </details>
-      <details>
-        <summary>Who sees who signed?</summary>
-        <p>Only verified homeowners of your building can see the list of signers. Aggregate counts ("12 owners have signed") are visible to anyone visiting this page — that's by design, to encourage participation. Your name is never sold or shared with third parties.</p>
-      </details>
-      <details>
-        <summary>How is my ownership verified?</summary>
-        <p>We match your account's full name against public property records (the recorded owner-name on file with the City and County of San Francisco) for units in this building. If your name matches, you're verified instantly. If you bought recently and records haven't updated, contact <a href="mailto:tim@mcmullen.properties" style="color: var(--cm-peri);">tim@mcmullen.properties</a> for manual verification.</p>
-      </details>
-      <details>
-        <summary>Can I revoke my signature?</summary>
-        <p>Yes. Revoke at any time before the petition is formally delivered to your HOA Board, using the "Revoke" button after you've signed.</p>
-      </details>
-      <details>
-        <summary>What's in it for the broker?</summary>
-        <p>Condo Market builds a direct relationship with HOAs in exchange for becoming the building's preferred sales platform. The HOA gets 1% of every sale; the broker (McMullen Properties · DRE #02016832) earns the standard listing commission. Both sides win when the partnership works — and you win when the building you live in is better funded.</p>
-      </details>
-    </section>
-
-    <footer>
-      <p>Condo Market is a marketing platform operated by Tim McMullen (CA DRE #02016832) of McMullen Properties at Compass. Signing this petition is non-binding and does not constitute a real estate transaction. Aggregate signature counts are public; individual signers are visible only to verified homeowners of the same building.</p>
-    </footer>
-
-  </div>
+<main id="cm-main">
+  <!-- Initial loading state — replaced by JS -->
+  <div style="text-align:center; padding:80px 0; color: var(--cm-faint);">Loading…</div>
 </main>
 
-<script type="module">
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '/assets/cm-config.js';
+<footer class="cm-footer">
+  <p>
+    Condo Market is operated by Tim McMullen, a California licensed real estate agent (DRE #02016832) of McMullen Properties at Compass. This page is informational and does not constitute a binding agreement, offer, or solicitation.
+  </p>
+</footer>
 
-const SITE_ORIGIN = window.location.origin;
+<div id="toast" class="toast"></div>
 
-// ── Toast helpers ──────────────────────────────────────────────────────────
-function toast(msg, kind = 'error', ms = 5000) {
-  const t = document.createElement('div');
-  t.className = `toast is-${kind}`;
-  t.innerHTML = `<span class="close">×</span>${msg}`;
-  t.querySelector('.close').addEventListener('click', () => t.remove());
-  document.body.appendChild(t);
-  if (ms) setTimeout(() => t.remove(), ms);
-}
+<script>
+(function() {
+  'use strict';
 
-// ── Supabase auth (read JWT from localStorage; same pattern as other pages) ─
-const sb = {
-  url: SUPABASE_URL, key: SUPABASE_ANON_KEY,
-  _readSession: () => {
-    try {
-      const k = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-      if (!k) return null;
-      const raw = localStorage.getItem(k);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      if (obj?.access_token && obj?.user) return obj;
-      if (obj?.currentSession?.access_token) return obj.currentSession;
-      return obj;
-    } catch { return null; }
-  },
-  token: () => sb._readSession()?.access_token || null,
-  user: () => sb._readSession()?.user || null,
-  headers: (extra = {}) => {
-    const t = sb.token();
-    return { apikey: sb.key, Authorization: `Bearer ${t || sb.key}`, 'Content-Type': 'application/json', ...extra };
+  var SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+  var state = {
+    slug: null,
+    building: null,
+    summary: null,
+    sigCount: 0,
+    matchedUnits: [],
+    selectedUnit: null,
+    mySig: null,
+    accessToken: null,
+    profile: null,
+  };
+
+  function getAccessToken() {
+    var keys = ['cm-auth-session', 'sb-kfqphwerygccpzntbbif-auth-token'];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var raw = localStorage.getItem(keys[i]);
+        if (!raw) continue;
+        var parsed;
+        try { parsed = JSON.parse(raw); } catch (e) { parsed = raw; }
+        if (typeof parsed === 'string' && parsed.indexOf('eyJ') === 0) return parsed;
+        if (parsed && parsed.access_token) return parsed.access_token;
+        if (parsed && parsed.currentSession && parsed.currentSession.access_token) return parsed.currentSession.access_token;
+        if (parsed && parsed.session && parsed.session.access_token) return parsed.session.access_token;
+        if (parsed && parsed.token) return parsed.token;
+      } catch (e) {}
+    }
+    return null;
   }
-};
 
-// ── Slug extraction (defense in depth: query first, then path parsing) ──────
-function extractSlug() {
-  const q = new URLSearchParams(window.location.search);
-  const fromQuery = q.get('slug');
-  if (fromQuery) return fromQuery;
-  const m = window.location.pathname.match(/^\/building\/([^\/]+)\/petition\/?/);
-  if (m) return m[1];
-  return null;
-}
+  function extractSlug() {
+    var qs = new URLSearchParams(window.location.search);
+    var slug = qs.get('slug');
+    if (slug) return slug;
+    var m = window.location.pathname.match(/\/building\/([a-z0-9-]+)\/petition/);
+    if (m) return m[1];
+    return null;
+  }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-const slugFromHref = (b) => (b.href || '').replace(/^\/building\//, '').replace(/\/$/, '');
-
-const fmt = {
-  moneyCompact: (n) => {
-    if (n == null || n === 0) return '$0';
-    if (n >= 1_000_000) return '$' + (n / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  function fmtMoney(n) {
+    n = Number(n) || 0;
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
     if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
-    return '$' + Math.round(n).toLocaleString();
-  },
-  unitLabel: (addr, label) => label || addr,
-  firstName: (full) => (full || '').split(' ')[0] || 'there',
-  date: (s) => s ? new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
-};
-
-// ── State ──────────────────────────────────────────────────────────────────
-const state = {
-  slug: null,
-  building: null,
-  summary: null,        // hoa_outreach_summary row
-  user: null,
-  profile: null,
-  isVerified: false,
-  candidateUnits: [],   // from find_user_units_in_building RPC
-  ownSignature: null,   // user's existing signature, if any
-  allSignatures: [],    // full signature list (only available if user is verified)
-  count: 0
-};
-
-// ── Init ───────────────────────────────────────────────────────────────────
-async function init() {
-  state.slug = extractSlug();
-  if (!state.slug) { showError(); return; }
-
-  // 1. Fetch buildings.json + petition counts (public, no auth needed)
-  const [buildingsRes, countsRes, summaryRes] = await Promise.all([
-    fetch('/assets/buildings.json', { cache: 'no-cache' }),
-    fetch(`${sb.url}/rest/v1/rpc/petition_counts`, { method: 'POST', headers: sb.headers(), body: '{}' }),
-    fetch(`${sb.url}/rest/v1/hoa_outreach_summary?select=*&building_slug=eq.${encodeURIComponent(state.slug)}`, { headers: sb.headers() })
-  ]);
-  const buildings = await buildingsRes.json();
-  state.building = buildings.find(b => slugFromHref(b) === state.slug);
-  if (!state.building) { showError(); return; }
-
-  const counts = countsRes.ok ? await countsRes.json() : [];
-  const myCount = counts.find(c => c.building_slug === state.slug);
-  state.count = myCount?.signature_count || 0;
-
-  const summary = summaryRes.ok ? await summaryRes.json() : [];
-  state.summary = summary[0] || { sales_10y: 0, missed_hoa_10y: 0 };
-
-  // 2. Render shared content (hero, counter, education) — works for anyone
-  renderShared();
-
-  // 3. Auth-dependent state
-  state.user = sb.user();
-  if (state.user && state.user.id) {
-    await loadAuthedState();
+    return '$' + n.toLocaleString();
   }
 
-  // 4. Render sign panel based on state
-  renderSignPanel();
-
-  // 5. If verified, fetch full signer list
-  if (state.isVerified) {
-    await loadSignersList();
+  function toast(msg, kind) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show toast--' + (kind || 'ok');
+    setTimeout(function() { el.className = 'toast'; }, 3500);
   }
 
-  // 6. Reveal page
-  $('loading-state').hidden = true;
-  $('content').hidden = false;
-  document.title = `Petition · ${state.building.name} · Condo Market`;
-}
-
-async function loadAuthedState() {
-  // Profile
-  const profileRes = await fetch(`${sb.url}/rest/v1/profiles?id=eq.${state.user.id}&select=full_name,email`, { headers: sb.headers() });
-  if (profileRes.ok) {
-    const profiles = await profileRes.json();
-    state.profile = profiles[0] || null;
-  }
-  if (!state.profile?.full_name) {
-    state.candidateUnits = [];
-    state.isVerified = false;
-    return;
-  }
-
-  // Candidate units (RPC, only returns matches for THIS user in THIS building)
-  const candidatesRes = await fetch(`${sb.url}/rest/v1/rpc/find_user_units_in_building`, {
-    method: 'POST',
-    headers: sb.headers(),
-    body: JSON.stringify({ p_building_slug: state.slug })
-  });
-  if (candidatesRes.ok) {
-    state.candidateUnits = await candidatesRes.json();
-  }
-  state.isVerified = state.candidateUnits.length > 0;
-
-  // User's own signature (if exists)
-  const ownSigRes = await fetch(`${sb.url}/rest/v1/petition_signatures?signer_user_id=eq.${state.user.id}&building_slug=eq.${encodeURIComponent(state.slug)}&select=*`, { headers: sb.headers() });
-  if (ownSigRes.ok) {
-    const sigs = await ownSigRes.json();
-    state.ownSignature = sigs[0] || null;
-  }
-}
-
-async function loadSignersList() {
-  const res = await fetch(`${sb.url}/rest/v1/petition_signatures?building_slug=eq.${encodeURIComponent(state.slug)}&select=signer_user_id,unit_address,comment,signed_at&order=signed_at.desc`, { headers: sb.headers() });
-  if (!res.ok) return;
-  const sigs = await res.json();
-  state.allSignatures = sigs;
-
-  // Fetch profile names for the signers (RLS lets verified owners read profile names of co-signers)
-  const ids = [...new Set(sigs.map(s => s.signer_user_id))];
-  if (ids.length === 0) { renderSignersList(); return; }
-  const profRes = await fetch(`${sb.url}/rest/v1/profiles?id=in.(${ids.join(',')})&select=id,full_name`, { headers: sb.headers() });
-  const profs = profRes.ok ? await profRes.json() : [];
-  const nameMap = new Map(profs.map(p => [p.id, p.full_name || 'Anonymous']));
-  state.allSignatures = sigs.map(s => ({ ...s, full_name: nameMap.get(s.signer_user_id) || 'Anonymous' }));
-  renderSignersList();
-}
-
-function showError() {
-  $('loading-state').hidden = true;
-  $('error-state').hidden = false;
-}
-
-// ── Render: shared (hero / counter / education / mechanism) ────────────────
-function renderShared() {
-  const b = state.building, s = state.summary;
-  $('building-name').innerHTML = `Sign for <em>${esc(b.name)}</em>`;
-  $('missed-hoa').textContent = fmt.moneyCompact(s.missed_hoa_10y);
-  $('sig-count').textContent = state.count;
-  $('sig-label').textContent = state.count === 1 ? 'verified signature from an owner' : 'verified signatures from owners';
-  $('edu-missed').textContent = fmt.moneyCompact(s.missed_hoa_10y);
-  $('edu-sales').textContent = (s.sales_10y || 0).toLocaleString();
-  document.querySelectorAll('.building-name-inline').forEach(el => el.textContent = b.name);
-}
-
-// ── Render: sign panel (state-dependent) ───────────────────────────────────
-function renderSignPanel() {
-  const sec = $('sign-section');
-
-  // 1. Not signed in
-  if (!state.user) {
-    sec.innerHTML = `
-      <div class="sign-panel">
-        <h3>Sign the petition</h3>
-        <p>Verifying your ownership takes a moment. Sign in to your Condo Market account — we match your name against public property records on file for ${esc(state.building.name)}.</p>
-        <div class="signed-row">
-          <a href="/dashboard/?next=${encodeURIComponent(window.location.pathname + window.location.search)}" class="btn btn-primary">Sign in or create account →</a>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  // 2. Already signed
-  if (state.ownSignature) {
-    const first = fmt.firstName(state.profile?.full_name);
-    sec.innerHTML = `
-      <div class="sign-panel is-signed">
-        <h3>Thank you, ${esc(first)}.</h3>
-        <p>Your signature is on file as a verified owner at ${esc(state.ownSignature.unit_address)}. The more neighbors who sign, the harder this becomes for your HOA Board to ignore.</p>
-        ${state.ownSignature.comment ? `<p style="font-style: italic; color: var(--cm-ivory);">"${esc(state.ownSignature.comment)}"</p>` : ''}
-        <div class="signed-row">
-          <button class="btn btn-primary" id="btn-share">↗ Share with neighbors</button>
-          <button class="btn btn-rust" id="btn-revoke">Revoke signature</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('btn-share').addEventListener('click', shareLink);
-    document.getElementById('btn-revoke').addEventListener('click', revokeSignature);
-    return;
-  }
-
-  // 3. Signed in, no profile name set
-  if (!state.profile?.full_name) {
-    sec.innerHTML = `
-      <div class="sign-panel is-blocked">
-        <h3>Add your full name first</h3>
-        <p>To verify your ownership, we match your name against public property records. Your account doesn't have a name set yet.</p>
-        <div class="signed-row">
-          <a href="/dashboard/?next=${encodeURIComponent(window.location.pathname + window.location.search)}" class="btn btn-primary">Update profile →</a>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  // 4. Signed in but not verified (no matching units)
-  if (!state.isVerified) {
-    sec.innerHTML = `
-      <div class="sign-panel is-blocked">
-        <h3>We couldn't verify your ownership</h3>
-        <p>Your account name (<strong>${esc(state.profile.full_name)}</strong>) didn't match any owner-of-record we have on file for ${esc(state.building.name)}.</p>
-        <p>If you bought recently, public records may not have updated yet. If your name on the deed differs from your account name (e.g. a trust, LLC, or different spelling), email <a href="mailto:tim@mcmullen.properties" style="color: var(--cm-peri);">tim@mcmullen.properties</a> with your unit number — manual verification takes about a day.</p>
-      </div>
-    `;
-    return;
-  }
-
-  // 5. Verified, ready to sign
-  const units = state.candidateUnits;
-  const radios = units.map((u, i) => `
-    <label class="unit-option">
-      <input type="radio" name="unit-pick" value="${i}" ${i === 0 ? 'checked' : ''}>
-      <span class="uo-addr">${esc(u.unit_address)}${u.unit_label ? ' · ' + esc(u.unit_label) : ''}</span>
-      <span class="uo-meta">recorded ${fmt.date(u.sale_date)}</span>
-    </label>
-  `).join('');
-
-  sec.innerHTML = `
-    <div class="sign-panel">
-      <h3>You're verified — sign the petition</h3>
-      <p>We matched your account name to <strong>${esc(units[0].owner_name)}</strong> on file with the City and County of San Francisco. ${units.length > 1 ? 'Confirm which unit is yours:' : 'Your unit:'}</p>
-      <div class="unit-options">${radios}</div>
-      <div class="field">
-        <label for="sig-comment">Optional message to the board</label>
-        <textarea id="sig-comment" placeholder="e.g. I'd love to see our reserves grow — happy to discuss at the next meeting."></textarea>
-      </div>
-      <div class="signed-row">
-        <button class="btn btn-primary" id="btn-sign">Sign the petition</button>
-      </div>
-    </div>
-  `;
-  document.getElementById('btn-sign').addEventListener('click', signPetition);
-}
-
-async function signPetition() {
-  const btn = document.getElementById('btn-sign');
-  btn.disabled = true; btn.textContent = 'Signing…';
-  try {
-    const idx = parseInt(document.querySelector('input[name="unit-pick"]:checked')?.value || '0', 10);
-    const unit = state.candidateUnits[idx];
-    if (!unit) throw new Error('No unit selected');
-    const comment = document.getElementById('sig-comment').value.trim() || null;
-
-    const payload = {
-      building_slug: state.slug,
-      signer_user_id: state.user.id,
-      unit_address: unit.unit_address,
-      matched_owner_name: unit.owner_name,
-      comment
+  function anonHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + SUPABASE_ANON
     };
-    const res = await fetch(`${sb.url}/rest/v1/petition_signatures`, {
-      method: 'POST',
-      headers: sb.headers({ Prefer: 'return=representation' }),
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) {
-      const errText = await res.text().catch(() => 'unknown');
-      throw new Error(`Sign failed (${res.status}): ${errText}`);
+  }
+
+  function authHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + state.accessToken
+    };
+  }
+
+  async function fetchBuildingMeta() {
+    try {
+      var r = await fetch('/assets/buildings.json', { cache: 'no-cache' });
+      if (!r.ok) return null;
+      var all = await r.json();
+      return (all || []).find(function(b) {
+        return b.href && b.href.indexOf('/' + state.slug + '/') !== -1;
+      });
+    } catch (e) { return null; }
+  }
+
+  async function fetchSummary() {
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/public_building_summary', {
+        method: 'POST',
+        headers: anonHeaders(),
+        body: JSON.stringify({ p_building_slug: state.slug })
+      });
+      if (!r.ok) return null;
+      var rows = await r.json();
+      return Array.isArray(rows) && rows[0] ? rows[0] : null;
+    } catch (e) { return null; }
+  }
+
+  async function fetchSigCount() {
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/petition_counts', {
+        method: 'POST', headers: anonHeaders(), body: '{}'
+      });
+      if (!r.ok) return 0;
+      var rows = await r.json();
+      var row = (rows || []).find(function(x) { return x.building_slug === state.slug; });
+      return row ? Number(row.signature_count) || 0 : 0;
+    } catch (e) { return 0; }
+  }
+
+  async function fetchMyProfile() {
+    if (!state.accessToken) return null;
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/profiles?select=id,full_name,email&limit=1', {
+        headers: authHeaders()
+      });
+      if (!r.ok) return null;
+      var rows = await r.json();
+      return rows && rows[0] ? rows[0] : null;
+    } catch (e) { return null; }
+  }
+
+  async function fetchMatchedUnits() {
+    if (!state.accessToken) return [];
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/find_user_units_in_building', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ p_building_slug: state.slug })
+      });
+      if (!r.ok) return [];
+      var rows = await r.json();
+      return Array.isArray(rows) ? rows : [];
+    } catch (e) { return []; }
+  }
+
+  async function fetchMySig() {
+    if (!state.accessToken) return null;
+    try {
+      var r = await fetch(
+        SUPABASE_URL + '/rest/v1/petition_signatures?select=*&building_slug=eq.' +
+        encodeURIComponent(state.slug) + '&limit=1',
+        { headers: authHeaders() }
+      );
+      if (!r.ok) return null;
+      var rows = await r.json();
+      return rows && rows[0] ? rows[0] : null;
+    } catch (e) { return null; }
+  }
+
+  async function fetchNeighbors() {
+    // Verified-only — RLS will return either own row OR all rows if user is verified owner
+    if (!state.accessToken || state.matchedUnits.length === 0) return [];
+    try {
+      var r = await fetch(
+        SUPABASE_URL + '/rest/v1/petition_signatures?select=matched_owner_name,unit_address,comment,signed_at&building_slug=eq.' +
+        encodeURIComponent(state.slug) + '&order=signed_at.desc&limit=50',
+        { headers: authHeaders() }
+      );
+      if (!r.ok) return [];
+      return await r.json();
+    } catch (e) { return []; }
+  }
+
+  function fmtNeighborName(fullName) {
+    if (!fullName) return 'A neighbor';
+    // "MCMULLEN TIM" → "Tim M."
+    var parts = fullName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      var first = parts[1].charAt(0) + parts[1].slice(1).toLowerCase();
+      var lastInit = parts[0].charAt(0).toUpperCase();
+      return first + ' ' + lastInit + '.';
     }
-    const [inserted] = await res.json();
-    state.ownSignature = inserted;
-    state.count += 1;
-    renderShared();
-    renderSignPanel();
-    await loadSignersList();
-    toast('Signature recorded. Thank you.', 'success', 3500);
-  } catch (err) {
-    console.error('[signPetition]', err);
-    toast(err.message || 'Could not sign right now.', 'error', 8000);
-    btn.disabled = false; btn.textContent = 'Sign the petition';
+    return parts[0].charAt(0) + parts[0].slice(1).toLowerCase();
   }
-}
 
-async function revokeSignature() {
-  if (!confirm('Revoke your signature? You can sign again later.')) return;
-  try {
-    const res = await fetch(`${sb.url}/rest/v1/petition_signatures?id=eq.${state.ownSignature.id}`, {
-      method: 'DELETE',
-      headers: sb.headers()
+  // ============ RENDER ============
+
+  function renderHeroAndCounter() {
+    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
+    var missed = state.summary ? fmtMoney(state.summary.missed_hoa_10y) : '$0';
+    var sales = state.summary ? Number(state.summary.sales_10y).toLocaleString() : '0';
+    var sigCount = state.sigCount;
+
+    return [
+      '<section class="hero">',
+        '<span class="eyebrow">Building petition</span>',
+        '<h1>Sign to ask <span class="accent">', escapeHtml(bldName), '</span>\u2019s HOA Board to take a meeting with Condo Market</h1>',
+        '<p class="subhead">Nothing more \u2014 just a meeting. The more owners who sign, the more compelled the board will be to take the conversation.</p>',
+        '<div class="hero-stat">',
+          '<span class="hero-stat__num">', missed, '</span>',
+          '<span class="hero-stat__lbl">in HOA revenue this building has missed over the past 10 years (', sales, ' unit sales). The starting point for the conversation.</span>',
+        '</div>',
+      '</section>',
+      '<section class="counter">',
+        '<span class="counter-dot"></span>',
+        '<span class="counter-num">', sigCount, '</span>',
+        '<span class="counter-lbl">verified ', (sigCount === 1 ? 'owner has' : 'owners have'), ' signed at ', escapeHtml(bldName), '</span>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderSignPanel() {
+    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
+
+    // STATE 1 — already signed
+    if (state.mySig) {
+      return [
+        '<section class="sign-panel">',
+          '<h2>You\u2019ve signed</h2>',
+          '<p class="helper">Thank you. Your name is recorded as supporting the ', escapeHtml(bldName), ' HOA Board taking a meeting with Condo Market.</p>',
+          '<div class="btn-row">',
+            '<button class="btn btn--ghost" id="cm-share-btn">Share with neighbors</button>',
+            '<button class="btn btn--ghost" id="cm-revoke-btn">Revoke my signature</button>',
+          '</div>',
+        '</section>'
+      ].join('');
+    }
+
+    // STATE 2 — not signed in
+    if (!state.accessToken) {
+      return [
+        '<section class="sign-panel">',
+          '<h2>Sign in to sign the petition</h2>',
+          '<p class="helper">Only verified owners at ', escapeHtml(bldName), ' can sign. We verify your name against public records to keep the petition credible.</p>',
+          '<a class="btn btn--primary" href="/auth/?redirect=', encodeURIComponent(window.location.pathname + window.location.search), '">Sign in or create an account</a>',
+        '</section>'
+      ].join('');
+    }
+
+    // STATE 3 — signed in, no profile name
+    if (!state.profile || !state.profile.full_name || !state.profile.full_name.trim()) {
+      return [
+        '<section class="sign-panel">',
+          '<h2>Add your full name to sign</h2>',
+          '<p class="helper">We match your name against public ownership records. Once your profile name is set, refresh this page.</p>',
+          '<a class="btn btn--primary" href="/dashboard/#settings">Update your profile</a>',
+        '</section>'
+      ].join('');
+    }
+
+    // STATE 4 — signed in, no matched units
+    if (state.matchedUnits.length === 0) {
+      return [
+        '<section class="sign-panel">',
+          '<h2>We couldn\u2019t verify your ownership at ', escapeHtml(bldName), '</h2>',
+          '<p class="helper">Your profile name (<strong>', escapeHtml(state.profile.full_name), '</strong>) didn\u2019t match an owner of record at this building. If you do own a unit here, the name on your deed may differ from your profile name. You can update your profile or contact us at tim@mcmullen.properties.</p>',
+          '<a class="btn btn--ghost" href="/dashboard/#settings">Update your profile name</a>',
+        '</section>'
+      ].join('');
+    }
+
+    // STATE 5 — verified, can sign
+    var unitOptions = state.matchedUnits.map(function(u, i) {
+      return [
+        '<li data-idx="', i, '" class="', (i === 0 ? 'selected' : ''), '">',
+          '<input type="radio" name="cm-unit" value="', i, '" ', (i === 0 ? 'checked' : ''), '>',
+          '<span>', escapeHtml(u.unit_address || ''), '</span>',
+        '</li>'
+      ].join('');
+    }).join('');
+
+    state.selectedUnit = state.matchedUnits[0];
+
+    return [
+      '<section class="sign-panel">',
+        '<h2>Sign the petition</h2>',
+        '<p class="helper">Verified owner of record at ', escapeHtml(bldName), '. Select the unit you\u2019re signing for and add an optional note for the board.</p>',
+        (state.matchedUnits.length > 1 ? '<ul class="units">' + unitOptions + '</ul>' : '<ul class="units">' + unitOptions + '</ul>'),
+        '<textarea id="cm-comment" placeholder="Optional: a note to the HOA Board about why you\u2019re signing"></textarea>',
+        '<div class="commitment">',
+          '<strong>What I\u2019m signing.</strong> I support the ', escapeHtml(bldName), ' HOA Board taking a meeting with Condo Market to discuss a potential partnership. Signing is not a vote, a commitment, or an authorization \u2014 it is a request that the board hear the proposal.',
+        '</div>',
+        '<button class="btn btn--primary" id="cm-sign-btn">Sign for ', escapeHtml(bldName), '</button>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderIndependence() {
+    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
+    return [
+      '<section class="indep">',
+        '<h2>Condo Market is already live</h2>',
+        '<p>The platform is operating in San Francisco today. Owners can list units, buyers can browse and make offers, and transactions are happening \u2014 without your HOA\u2019s involvement.</p>',
+        '<p><strong>What this petition does:</strong> tells the ', escapeHtml(bldName), ' HOA Board there\u2019s owner interest in exploring a formal partnership. A partnership would direct 1% of every future unit sale at this building into the HOA\u2019s reserves, at zero cost to homeowners. The board would need to take a meeting first to hear the proposal.</p>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderEducation() {
+    var missed = state.summary ? fmtMoney(state.summary.missed_hoa_10y) : '$0';
+    var sales = state.summary ? Number(state.summary.sales_10y).toLocaleString() : '0';
+    return [
+      '<section class="education">',
+        '<h2>The number, in context</h2>',
+        '<p>Past sales generated zero revenue for your HOA. Going forward, a Condo Market partnership would change that.</p>',
+        '<div class="stats-grid">',
+          '<div class="stat-card">',
+            '<div class="stat-card__num">', missed, '</div>',
+            '<div class="stat-card__lbl">Total HOA revenue your building has missed over the past 10 years</div>',
+          '</div>',
+          '<div class="stat-card">',
+            '<div class="stat-card__num">', sales, '</div>',
+            '<div class="stat-card__lbl">Unit sales that contributed nothing to your reserves</div>',
+          '</div>',
+          '<div class="stat-card">',
+            '<div class="stat-card__num">5\u201310%</div>',
+            '<div class="stat-card__lbl">Higher per-square-foot pricing in well-funded buildings vs comparable buildings with thin reserves</div>',
+          '</div>',
+        '</div>',
+        '<div class="funded">',
+          '<p><strong>What 1% of every future sale could fund</strong> at the HOA Board\u2019s discretion:</p>',
+          '<ul>',
+            '<li>Gym equipment refreshes</li>',
+            '<li>Lobby modernization</li>',
+            '<li>Hallway carpet replacement</li>',
+            '<li>Reserve growth \u00b7 fewer special assessments</li>',
+            '<li>Smart-access systems</li>',
+            '<li>Building envelope work</li>',
+          '</ul>',
+        '</div>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderHowItWorks() {
+    return [
+      '<section class="how">',
+        '<h2>If the board agrees to a partnership</h2>',
+        '<p>This is what would happen after the meeting, only if the board votes to approve.</p>',
+        '<div class="steps">',
+          '<div class="step">',
+            '<span class="step-num">01</span>',
+            '<div class="step-body"><strong>Every future unit sale</strong> through Condo Market generates 1% of the sale price as direct HOA revenue, paid into the building\u2019s reserve account at closing.</div>',
+          '</div>',
+          '<div class="step">',
+            '<span class="step-num">02</span>',
+            '<div class="step-body"><strong>The licensed agent</strong> earns the standard listing commission (paid by the seller, as in any transaction). Homeowners pay nothing extra to participate.</div>',
+          '</div>',
+          '<div class="step">',
+            '<span class="step-num">03</span>',
+            '<div class="step-body"><strong>Reserves grow</strong>. Better-funded buildings trade higher. Every owner benefits from the compounding upside.</div>',
+          '</div>',
+        '</div>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderNeighbors(neighbors) {
+    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
+    if (!state.accessToken || state.matchedUnits.length === 0) {
+      return [
+        '<section>',
+          '<h2>Neighbors who\u2019ve signed</h2>',
+          '<div class="neighbors-locked">Visible to verified ', escapeHtml(bldName), ' owners. Sign in and verify your unit to see who\u2019s already signed.</div>',
+        '</section>'
+      ].join('');
+    }
+    if (!neighbors || neighbors.length === 0) {
+      return [
+        '<section>',
+          '<h2>Neighbors who\u2019ve signed</h2>',
+          '<div class="neighbors-empty">No signatures yet. Be the first.</div>',
+        '</section>'
+      ].join('');
+    }
+    var items = neighbors.map(function(n) {
+      var name = fmtNeighborName(n.matched_owner_name);
+      var unit = n.unit_address ? ' \u00b7 ' + n.unit_address : '';
+      var cmt = n.comment ? '<div class="neighbor-item__cmt">\u201c' + escapeHtml(n.comment) + '\u201d</div>' : '';
+      return [
+        '<div class="neighbor-item">',
+          '<div class="neighbor-item__line">', escapeHtml(name), '<span>', escapeHtml(unit), '</span></div>',
+          cmt,
+        '</div>'
+      ].join('');
+    }).join('');
+    return [
+      '<section>',
+        '<h2>Neighbors who\u2019ve signed</h2>',
+        '<div class="neighbors-list">', items, '</div>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderFaq() {
+    return [
+      '<section class="faq">',
+        '<h2>Common questions</h2>',
+        '<details>',
+          '<summary>What does my signature actually do?</summary>',
+          '<p>It tells your HOA Board that owners want them to take a meeting with Condo Market. Nothing more \u2014 no commitment, no authorization, no vote.</p>',
+        '</details>',
+        '<details>',
+          '<summary>Does signing commit me to anything?</summary>',
+          '<p>No. You\u2019re asking the board to take a meeting, not authorizing a partnership. If the board does eventually agree to a partnership, that decision is theirs to make through normal HOA governance.</p>',
+        '</details>',
+        '<details>',
+          '<summary>Is Condo Market already operating?</summary>',
+          '<p>Yes. The platform is live at sanfranciscocondomarket.com and handling transactions today. This petition is specifically about your building\u2019s HOA exploring a formal partnership \u2014 which would direct 1% of every future sale to the building\u2019s reserves.</p>',
+        '</details>',
+        '<details>',
+          '<summary>How is my ownership verified?</summary>',
+          '<p>Public records. The name on your profile is matched against the owner of record on each unit\u2019s deed. Only verified owners at this specific building can sign.</p>',
+        '</details>',
+        '<details>',
+          '<summary>Can I revoke my signature later?</summary>',
+          '<p>Yes, anytime \u2014 from this page or your dashboard.</p>',
+        '</details>',
+      '</section>'
+    ].join('');
+  }
+
+  function renderError() {
+    return [
+      '<div class="err-state">',
+        '<h1>Building not found</h1>',
+        '<p>This petition link doesn\u2019t match a building we track. <a href="/buildings/">Browse all buildings \u2192</a></p>',
+      '</div>'
+    ].join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
     });
-    if (!res.ok) throw new Error(`Delete failed (${res.status})`);
-    state.ownSignature = null;
-    state.count = Math.max(0, state.count - 1);
-    renderShared();
-    renderSignPanel();
-    await loadSignersList();
-    toast('Signature revoked.', 'success', 2500);
-  } catch (err) {
-    toast(err.message || 'Could not revoke.', 'error', 6000);
   }
-}
 
-async function shareLink() {
-  const url = `${SITE_ORIGIN}/building/${state.slug}/petition/`;
-  try {
+  // ============ ACTIONS ============
+
+  async function handleSign() {
+    if (!state.selectedUnit) { toast('Select a unit first', 'err'); return; }
+    var btn = document.getElementById('cm-sign-btn');
+    btn.disabled = true;
+    var commentEl = document.getElementById('cm-comment');
+    var comment = commentEl && commentEl.value ? commentEl.value.trim().slice(0, 1000) : null;
+
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/petition_signatures', {
+        method: 'POST',
+        headers: Object.assign({}, authHeaders(), { 'Prefer': 'return=representation' }),
+        body: JSON.stringify({
+          building_slug: state.slug,
+          signer_user_id: state.profile.id,
+          unit_address: state.selectedUnit.unit_address,
+          matched_owner_name: state.selectedUnit.matched_owner_name || state.profile.full_name,
+          comment: comment
+        })
+      });
+      if (!r.ok) {
+        var errText = await r.text();
+        console.error('[petition] sign failed', r.status, errText);
+        toast('Could not sign \u2014 please try again or contact support.', 'err');
+        btn.disabled = false;
+        return;
+      }
+      toast('Signed. Thanks for adding your name.', 'ok');
+      await initData();
+      renderAll();
+    } catch (e) {
+      console.error('[petition] sign error', e);
+      toast('Could not sign \u2014 please try again.', 'err');
+      btn.disabled = false;
+    }
+  }
+
+  async function handleRevoke() {
+    if (!confirm('Revoke your signature? You can re-sign anytime.')) return;
+    try {
+      var r = await fetch(
+        SUPABASE_URL + '/rest/v1/petition_signatures?id=eq.' + encodeURIComponent(state.mySig.id),
+        { method: 'DELETE', headers: authHeaders() }
+      );
+      if (!r.ok) {
+        toast('Could not revoke \u2014 please try again.', 'err');
+        return;
+      }
+      toast('Signature revoked.', 'ok');
+      await initData();
+      renderAll();
+    } catch (e) {
+      toast('Could not revoke.', 'err');
+    }
+  }
+
+  function handleShare() {
+    var bldName = state.building && state.building.name ? state.building.name : state.slug;
+    var url = window.location.origin + '/building/' + state.slug + '/petition/?utm_source=share';
+    var text = 'I just signed the petition asking ' + bldName + '\u2019s HOA Board to take a meeting with Condo Market. Add your name: ' + url;
     if (navigator.share) {
-      await navigator.share({ title: `${state.building.name} HOA petition`, url });
+      navigator.share({ title: 'Sign for ' + bldName, text: text, url: url }).catch(function(){});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() { toast('Copied to clipboard.', 'ok'); });
     } else {
-      await navigator.clipboard.writeText(url);
-      toast('Link copied — share with your neighbors.', 'success', 3000);
+      prompt('Copy and share this link:', url);
     }
-  } catch {
-    await navigator.clipboard.writeText(url);
-    toast('Link copied.', 'success', 2500);
   }
-}
 
-// ── Render: signers list (verified-only) ───────────────────────────────────
-function renderSignersList() {
-  const sec = $('signers-section');
-  if (!state.isVerified) { sec.hidden = true; return; }
-  sec.hidden = false;
-  const list = $('signers-list');
-  if (state.allSignatures.length === 0) {
-    list.innerHTML = `<div style="grid-column: 1/-1; padding: 32px; text-align: center; color: var(--cm-ivory-faint); font-style: italic; font-family: var(--ff-display); font-size: 16px;">No signatures yet. Be the first.</div>`;
-    return;
+  function bindUnitPicker() {
+    var lis = document.querySelectorAll('.sign-panel ul.units li');
+    lis.forEach(function(li) {
+      li.addEventListener('click', function() {
+        var idx = parseInt(li.getAttribute('data-idx'), 10);
+        state.selectedUnit = state.matchedUnits[idx];
+        lis.forEach(function(other) { other.classList.remove('selected'); });
+        li.classList.add('selected');
+        var radio = li.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
+    });
   }
-  list.innerHTML = state.allSignatures.map(s => {
-    const first = fmt.firstName(s.full_name);
-    const lastInitial = (s.full_name || '').split(' ').slice(-1)[0]?.[0] || '';
-    return `
-      <div class="signer-card">
-        <div class="name">${esc(first)} ${esc(lastInitial)}.</div>
-        <div class="meta">${esc(s.unit_address)} · signed ${fmt.date(s.signed_at)}</div>
-        ${s.comment ? `<div class="comment">"${esc(s.comment)}"</div>` : ''}
-      </div>
-    `;
-  }).join('');
-}
 
-// ── Boot ───────────────────────────────────────────────────────────────────
-init().catch(err => {
-  console.error('[petition init]', err);
-  toast(`Page failed to load: ${err.message || err}`, 'error', 12000);
-  showError();
-});
+  function bindActions() {
+    var signBtn = document.getElementById('cm-sign-btn');
+    if (signBtn) signBtn.addEventListener('click', handleSign);
+    var revokeBtn = document.getElementById('cm-revoke-btn');
+    if (revokeBtn) revokeBtn.addEventListener('click', handleRevoke);
+    var shareBtn = document.getElementById('cm-share-btn');
+    if (shareBtn) shareBtn.addEventListener('click', handleShare);
+    bindUnitPicker();
+  }
+
+  function renderAll(neighbors) {
+    var main = document.getElementById('cm-main');
+    main.innerHTML =
+      renderHeroAndCounter() +
+      renderSignPanel() +
+      renderIndependence() +
+      renderEducation() +
+      renderHowItWorks() +
+      renderNeighbors(neighbors || []) +
+      renderFaq();
+    bindActions();
+  }
+
+  // ============ INIT ============
+
+  async function initData() {
+    var promises = [
+      fetchSummary(),
+      fetchSigCount(),
+    ];
+    if (state.accessToken) {
+      promises.push(fetchMyProfile());
+      promises.push(fetchMatchedUnits());
+      promises.push(fetchMySig());
+    }
+    var results = await Promise.all(promises);
+    state.summary = results[0];
+    state.sigCount = results[1];
+    if (state.accessToken) {
+      state.profile = results[2];
+      state.matchedUnits = results[3] || [];
+      state.mySig = results[4];
+    }
+  }
+
+  async function init() {
+    state.slug = extractSlug();
+    if (!state.slug) {
+      document.getElementById('cm-main').innerHTML = renderError();
+      return;
+    }
+    state.accessToken = getAccessToken();
+    state.building = await fetchBuildingMeta();
+    if (!state.building) {
+      document.getElementById('cm-main').innerHTML = renderError();
+      return;
+    }
+    document.title = 'Petition \u00b7 ' + state.building.name + ' \u00b7 Condo Market';
+
+    await initData();
+
+    var neighbors = [];
+    if (state.accessToken && state.matchedUnits.length > 0) {
+      neighbors = await fetchNeighbors();
+    }
+    renderAll(neighbors);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
+
 </body>
 </html>
