@@ -842,6 +842,342 @@
         <!-- Wizard mount point — replaces simple form for both create + edit -->
         <div id="mmm-wizard-mount" style="display:none;"></div>
       </div>
+    <!--
+  ============================================================
+  DASHBOARD WIDGET v2 · Petition tile (listings-gated)
+  ============================================================
+  Self-contained section. Paste this entire block into your
+  dashboard.html anywhere inside the main content area (the
+  Overview view is the recommended placement so it's visible
+  on first dashboard load).
+
+  - Auto-shows ONE CARD PER BUILDING where the user has at
+    least one active or paused listing (make-me-move OR
+    claim-my-unit). Hidden for users with no listings.
+  - Each card leads with the missed-HOA dollar amount for that
+    building — the same hook used in the cold-launch email and
+    the petition page hero.
+  - Links to /building/<slug>/petition/ — the HOA-revenue-math
+    page for homeowners.
+  - Namespaced CSS (cm-dash-petitions__*); no conflicts with
+    your existing dashboard styles.
+  ============================================================
+-->
+<section id="cm-dash-petitions" class="cm-dash-petitions" hidden>
+  <header class="cm-dash-petitions__head">
+    <span class="cm-dash-petitions__eyebrow">Your buildings · HOA opportunity</span>
+    <h2 class="cm-dash-petitions__title">Push your HOA Board to capture revenue from every future sale</h2>
+    <p class="cm-dash-petitions__intro">
+      You've claimed units in the buildings below. Sign each petition to push
+      the HOA Board to partner with Condo Market — turning every future unit
+      sale into 1% HOA revenue, at zero cost to homeowners.
+    </p>
+  </header>
+  <div class="cm-dash-petitions__list" id="cm-dash-petitions-list" aria-live="polite"></div>
+</section>
+
+<style>
+  .cm-dash-petitions {
+    margin: 32px 0;
+    padding: 28px 28px 24px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(201, 87, 66, 0.06) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(159, 180, 216, 0.05) 0%, transparent 50%),
+      rgba(15, 19, 29, 0.4);
+    border: 1px solid rgba(201, 87, 66, 0.18);
+    border-radius: 12px;
+  }
+  .cm-dash-petitions__head { margin-bottom: 22px; }
+  .cm-dash-petitions__eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #c95742;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .cm-dash-petitions__title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: #e8e3d8;
+    margin: 0 0 10px;
+    letter-spacing: 0.005em;
+    line-height: 1.2;
+    max-width: 30ch;
+  }
+  .cm-dash-petitions__intro {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 14px;
+    color: rgba(232, 227, 216, 0.7);
+    line-height: 1.55;
+    margin: 0;
+    max-width: 60ch;
+  }
+  .cm-dash-petitions__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+  }
+  .cm-dash-petitions__card {
+    padding: 22px;
+    background: rgba(15, 19, 29, 0.55);
+    border: 1px solid rgba(159, 180, 216, 0.12);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .cm-dash-petitions__card:hover {
+    border-color: rgba(201, 87, 66, 0.4);
+    transform: translateY(-1px);
+  }
+  .cm-dash-petitions__card--signed {
+    border-color: rgba(143, 185, 122, 0.35);
+    background: rgba(143, 185, 122, 0.05);
+  }
+  .cm-dash-petitions__card-header { display: flex; flex-direction: column; gap: 4px; }
+  .cm-dash-petitions__card-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: #e8e3d8;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+  .cm-dash-petitions__card-units {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: rgba(159, 180, 216, 0.75);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+  .cm-dash-petitions__card-stat {
+    padding: 14px 0 4px;
+    border-top: 1px solid rgba(159, 180, 216, 0.1);
+  }
+  .cm-dash-petitions__card-stat-value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: #c95742;
+    display: block;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .cm-dash-petitions__card-stat-label {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 13px;
+    color: rgba(232, 227, 216, 0.7);
+    line-height: 1.4;
+    display: block;
+    margin-top: 8px;
+  }
+  .cm-dash-petitions__card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 4px;
+    flex-wrap: wrap;
+  }
+  .cm-dash-petitions__card-cta {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #c95742;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: gap 0.15s ease;
+  }
+  .cm-dash-petitions__card-cta:hover { gap: 10px; }
+  .cm-dash-petitions__card-signed-badge {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8fb97a;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  .cm-dash-petitions__card-signed-badge::before { content: '✓'; font-size: 14px; }
+  .cm-dash-petitions__card-meta {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: rgba(159, 180, 216, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  @media (max-width: 640px) {
+    .cm-dash-petitions { padding: 22px 18px 18px; }
+    .cm-dash-petitions__title { font-size: 22px; }
+    .cm-dash-petitions__card-stat-value { font-size: 28px; }
+  }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  var SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  var SUPABASE_ANON =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+  var STORAGE_KEY = 'sb-kfqphwerygccpzntbbif-auth-token';
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  function getAccessToken() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.access_token) return parsed.access_token;
+      if (parsed && parsed.currentSession && parsed.currentSession.access_token) {
+        return parsed.currentSession.access_token;
+      }
+      return null;
+    } catch (e) { return null; }
+  }
+
+  function fmtMoney(n) {
+    n = Number(n) || 0;
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
+    return '$' + n.toLocaleString();
+  }
+
+  async function init() {
+    var section = document.getElementById('cm-dash-petitions');
+    if (!section) return;
+    var list = document.getElementById('cm-dash-petitions-list');
+
+    var token = getAccessToken();
+    if (!token) return;
+
+    try {
+      var rpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/my_petition_status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON,
+          Authorization: 'Bearer ' + token
+        },
+        body: '{}'
+      });
+      if (!rpcRes.ok) {
+        console.warn('[cm-dash-petitions] RPC failed', rpcRes.status);
+        return;
+      }
+      var rows = await rpcRes.json();
+      if (!Array.isArray(rows) || rows.length === 0) return;
+
+      var buildings = [];
+      try {
+        var bRes = await fetch('/assets/buildings.json', { cache: 'no-cache' });
+        if (bRes.ok) buildings = await bRes.json();
+      } catch (e) {}
+
+      function nameFor(slug) {
+        var b = (buildings || []).find(function (x) {
+          return x.href && x.href.indexOf('/' + slug + '/') !== -1;
+        });
+        if (b && b.name) return b.name;
+        return slug.split('-').map(function (w) {
+          return w.charAt(0).toUpperCase() + w.slice(1);
+        }).join(' ');
+      }
+
+      list.innerHTML = '';
+      rows.forEach(function (row) {
+        list.appendChild(renderCard(row, nameFor(row.building_slug)));
+      });
+      section.hidden = false;
+    } catch (e) {
+      console.warn('[cm-dash-petitions] init error', e);
+    }
+  }
+
+  function renderCard(row, displayName) {
+    var card = document.createElement('article');
+    card.className = 'cm-dash-petitions__card';
+    var signed = !!row.signature_id;
+    if (signed) card.className += ' cm-dash-petitions__card--signed';
+
+    // Header
+    var header = document.createElement('div');
+    header.className = 'cm-dash-petitions__card-header';
+    var name = document.createElement('h3');
+    name.className = 'cm-dash-petitions__card-name';
+    name.textContent = displayName;
+    var units = document.createElement('p');
+    units.className = 'cm-dash-petitions__card-units';
+    var unitList = (row.units || []).join(' · ');
+    units.textContent = (row.my_units_count > 1 ? 'Your units: ' : 'Your unit: ') + unitList;
+    header.appendChild(name);
+    header.appendChild(units);
+
+    // Stat (the dollar hook)
+    var stat = document.createElement('div');
+    stat.className = 'cm-dash-petitions__card-stat';
+    var statValue = document.createElement('span');
+    statValue.className = 'cm-dash-petitions__card-stat-value';
+    statValue.textContent = fmtMoney(row.missed_hoa_10y);
+    var statLabel = document.createElement('span');
+    statLabel.className = 'cm-dash-petitions__card-stat-label';
+    statLabel.textContent =
+      'in HOA revenue your building has missed over 10 years (' +
+      Number(row.sales_10y).toLocaleString() + ' unit sales)';
+    stat.appendChild(statValue);
+    stat.appendChild(statLabel);
+
+    // Footer
+    var footer = document.createElement('div');
+    footer.className = 'cm-dash-petitions__card-footer';
+
+    if (signed) {
+      var badge = document.createElement('span');
+      badge.className = 'cm-dash-petitions__card-signed-badge';
+      badge.textContent = 'Signed';
+      footer.appendChild(badge);
+    } else {
+      var cta = document.createElement('a');
+      cta.className = 'cm-dash-petitions__card-cta';
+      cta.href = '/building/' + row.building_slug + '/petition/?utm_source=dashboard';
+      cta.innerHTML = 'Sign the petition <span aria-hidden="true">→</span>';
+      footer.appendChild(cta);
+    }
+
+    var meta = document.createElement('span');
+    meta.className = 'cm-dash-petitions__card-meta';
+    var sigCount = Number(row.signature_count) || 0;
+    if (sigCount === 0) {
+      meta.textContent = 'Be the first to sign';
+    } else if (sigCount === 1 && signed) {
+      meta.textContent = 'You signed';
+    } else {
+      meta.textContent = sigCount + (sigCount === 1 ? ' neighbor signed' : ' neighbors signed');
+    }
+    footer.appendChild(meta);
+
+    card.appendChild(header);
+    card.appendChild(stat);
+    card.appendChild(footer);
+    return card;
+  }
+})();
+</script>
     </section>
 
     <!-- ─── View: OFFERS ───────────────────────────────────────────────── -->
