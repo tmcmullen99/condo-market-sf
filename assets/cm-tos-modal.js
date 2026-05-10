@@ -4,17 +4,30 @@
  * Two modes:
  *   - mode: 'accept' — checkbox + Accept button; cannot be dismissed.
  *                      Used at signup and on first dashboard load when
- *                      profile.tos_accepted_at is null.
+ *                      profile.tos_accepted_at is null OR profile.tos_version
+ *                      does not match TOS_VERSION.
  *   - mode: 'info'   — no checkbox; used when the user clicks the
  *                      "How It Works" link to re-read the terms.
  *
  * On accept, calls CM.acceptTos(version) which updates the profile row.
  * After success, calls onAccept callback (or just closes if mode=info).
+ *
+ * v2.0 (2026-05-10): full TOS rewrite for the lead-generation marketplace
+ * positioning. Platform is now explicitly framed as owned/operated by
+ * McMullen Properties (CA DRE #02016832), NOT itself a brokerage. All
+ * Platform interactions are PRESUMPTIVE signals routed through the
+ * designated licensed agent for actual real estate activity. EOI vs LOI
+ * distinction made explicit. Tim's name removed from user-facing
+ * How-It-Works copy (DRE# remains in legal sections only).
+ *
+ * Bumping TOS_VERSION from '1.0' to '2.0' forces all existing users to
+ * re-accept on next dashboard visit — by design.
  */
 
 import { CM } from '/assets/cm-supabase.js';
 
-export const TOS_VERSION = '1.0';
+export const TOS_VERSION = '2.0';
+const TOS_LAST_UPDATED = 'May 10, 2026';
 
 const STYLE_ID = 'cm-tos-styles';
 const STYLE_CSS = `
@@ -198,92 +211,107 @@ function ensureStyles() {
   document.head.appendChild(s);
 }
 
-// ─── Content ────────────────────────────────────────────────────────────────
+// ─── How It Works (user-facing, plain English) ──────────────────────────────
+// Note: Tim's name does NOT appear here per the lead-gen marketplace positioning.
+// The operator (McMullen Properties + DRE#) is disclosed in the Terms below.
 const HOW_IT_WORKS_CONTENT = `
   <div class="cm-tos-section">
     <h3>What you're seeing</h3>
-    <p>A buyer just drafted and signed a <strong>Letter of Intent</strong> (LOI) on your unit. Each LOI includes a specific price, the buyer's verified name and contact, and an optional message with terms or context.</p>
+    <p>A platform member has submitted an <strong>Expression of Interest</strong> on your unit. An Expression of Interest (EOI) is a privately-submitted indication that the member would seriously consider purchasing at a specific price. It includes the member's name, contact, and any context they chose to share.</p>
+    <p>An EOI is <em>not</em> a Letter of Intent. It is not a contract. It is not a binding offer. It is a presumptive signal — and an invitation for a licensed real estate agent to engage with both parties to handle the actual transaction.</p>
   </div>
 
   <div class="cm-tos-section">
-    <h3>The LOI is non-binding</h3>
-    <p>An LOI is <em>not a contract</em>. It's a serious, signed expression of intent — enough to demonstrate that the buyer is real and ready to transact, but flexible enough that either party can walk away before a binding purchase agreement is signed.</p>
-    <p>Think of it as the verified-buyer equivalent of a strong, written first offer.</p>
+    <h3>How Condo Market works</h3>
+    <p>Condo Market is a marketing and lead-generation platform. The Platform itself does not negotiate, draft documents, or facilitate the actual real estate transaction. Every Platform interaction — submitting an EOI, signaling acceptance, signaling counter-interest, signaling pass — is a presumptive signal that the Platform routes to a licensed California real estate agent.</p>
+    <p>The licensed agent then performs all the actual real estate work: contacting the parties, drafting the formal Letter of Intent (LOI), reviewing it with each party, presenting it for signature, and drafting the SFAR Residential Purchase Agreement if the LOI is accepted.</p>
   </div>
 
   <div class="cm-tos-section">
-    <h3>You have three choices</h3>
+    <h3>Your three options — all presumptive</h3>
 
-    <h4>Accept</h4>
-    <p>Agree to the buyer's price and start the formal process. Within 24 hours, Tim McMullen of McMullen Properties at Compass (DRE #02016832) reaches out to coordinate the conversion of the LOI into an <strong>SFAR Residential Purchase Agreement</strong> — the binding contract that legally documents the sale. Standard escrow opens within 3 business days of the RPA being signed.</p>
+    <h4>Express acceptance</h4>
+    <p>Signal that you would proceed with this EOI at the buyer's price. Your assigned licensed agent contacts both you and the buyer to schedule the formal LOI drafting and review meeting. Within 24 hours of your signal, you'll have a call scheduled to walk through the document. If both parties sign the LOI, the agent then drafts the SFAR Residential Purchase Agreement and standard escrow follows.</p>
 
-    <h4>Negotiate</h4>
-    <p>Counter the buyer's price or terms. The buyer receives your counter and can accept, decline, or counter back. Multiple rounds are common.</p>
-    <div class="cm-tos-callout">
-      <strong>Note:</strong> The in-dashboard counter-offer UI is launching shortly. Until then: reply directly to your offer-received email and Tim will relay your counter to the buyer. The same email Cc's Tim by default.
-    </div>
+    <h4>Express counter-interest</h4>
+    <p>Signal that you would accept the deal at a different price. Your assigned agent receives your counter-price and communicates it to the buyer's side through licensed channels. The buyer can then express acceptance, decline, or counter back — all routed through your agent. <strong>Negotiation happens between licensed professionals, not directly between you and the buyer.</strong></p>
 
-    <h4>Decline</h4>
-    <p>Pass on this offer. The buyer is notified and your make-me-move number stays live. Other buyers can still submit LOIs at the same price.</p>
+    <h4>Pass</h4>
+    <p>Signal that you'd like to decline this EOI. The buyer is notified through your agent. Your make-me-move price stays active for any other interested members.</p>
   </div>
 
   <div class="cm-tos-section">
-    <h3>From "yes" to closed</h3>
-    <p>Once a price is agreed upon, the platform's role transitions to introduction and handoff. The licensed agent assigned to the transaction takes over:</p>
+    <h3>From signal to closing</h3>
+    <p>Once both parties have signaled mutual acceptance through the Platform, the licensed agent takes over completely:</p>
     <ol class="step-list">
-      <li>Drafts the SFAR Residential Purchase Agreement (the binding contract).</li>
-      <li>Both parties sign through standard channels (DocuSign or wet ink).</li>
+      <li>Schedules a meeting with each party to review the prospective Letter of Intent.</li>
+      <li>Drafts the actual Letter of Intent (legal document).</li>
+      <li>Both parties sign the LOI through standard channels (DocuSign or wet ink).</li>
+      <li>If the LOI is accepted, the agent drafts the SFAR Residential Purchase Agreement — the binding sale contract.</li>
       <li>Earnest money is wired to escrow per the RPA terms.</li>
       <li>Inspection, financing contingency, and final walkthrough proceed on the standard 30–45 day calendar.</li>
       <li>Final closing — keys exchange, funds disburse, deed records.</li>
     </ol>
+    <p>Throughout this process, Condo Market itself does not draft, sign, or deliver any real estate documents, and does not accept any compensation derived from the transaction.</p>
   </div>
 
   <div class="cm-tos-section">
     <h3>What Condo Market is — and isn't</h3>
     <div class="cm-tos-callout cm-tos-callout-warn">
-      <p style="margin-bottom: 8px;"><strong>Condo Market SF is a marketing and lead-generation platform.</strong> It is not a licensed brokerage, and no real estate transactions occur on the platform itself.</p>
-      <p style="margin-bottom: 0;">All actual transactions are handled by licensed real estate agents. By using this platform, you agree to use the agent designated by the platform — typically Tim McMullen — to handle any transaction that originates here.</p>
+      <p style="margin-bottom: 8px;"><strong>Condo Market SF is a marketing and lead-generation platform owned and operated by McMullen Properties (CA DRE #02016832).</strong> It is not itself a real estate brokerage. The Platform does not perform real estate brokerage activity, does not facilitate real estate transactions on its own, and does not accept compensation derived from real estate transactions.</p>
+      <p style="margin-bottom: 0;">All licensed real estate activity arising from Platform interactions is performed by licensed California real estate agents who acquire qualifying introductions through the Platform's lead-acquisition program. Our designated agents charge a 3% flat commission for Condo Market platform-generated transactions; this commission is paid to the agent, not to the Platform.</p>
     </div>
   </div>
 `;
 
+// ─── Terms of Service (legal language) ──────────────────────────────────────
 const TOS_LEGAL_CONTENT = `
   <div class="cm-tos-tos-content">
     <h3>1. About this platform</h3>
-    <p>Condo Market SF (the "Platform") is a marketing and lead-generation service operated by Tim McMullen ("Operator," CA DRE #02016832) of McMullen Properties at Compass. The Platform connects San Francisco condominium owners with verified prospective buyers who submit non-binding Letters of Intent ("LOIs"). <strong>The Platform is not a real estate brokerage.</strong> No real estate transactions occur on the Platform itself.</p>
+    <p>Condo Market SF (the "Platform") is a marketing and lead-generation service <strong>owned and operated by McMullen Properties</strong> ("Operator," CA DRE #02016832). The Platform connects San Francisco condominium owners with platform members who submit Expressions of Interest (defined below). <strong>The Platform is not a real estate brokerage and does not perform real estate brokerage activity.</strong> All license-required real estate activity arising from Platform interactions is performed by licensed California real estate agents who have acquired the introduction through the Platform's lead-acquisition program.</p>
 
-    <h3>2. Letters of Intent</h3>
-    <p>LOIs submitted through the Platform are non-binding written, signed expressions of intent to purchase. An LOI demonstrates a buyer's serious interest at a specific price but does not constitute a contract or any obligation to transact. Owners may accept, decline, or negotiate any LOI. Acceptance of an LOI is itself non-binding; the parties must subsequently execute a binding purchase agreement (typically the SFAR Residential Purchase Agreement) through licensed agents to consummate a sale.</p>
+    <h3>2. Expressions of Interest are presumptive, not transactional</h3>
+    <p>When a Platform member indicates buying interest in a property by selecting a price and submitting through the Platform's "Express Interest" feature, that submission is an <strong>Expression of Interest</strong> ("EOI"). An EOI is not a Letter of Intent. An EOI is not a contract. An EOI is not a binding offer or a legally enforceable obligation to transact. An EOI is a presumptive signal: it indicates the member would seriously consider purchasing at the stated price and authorizes the Platform to introduce the member to a licensed California real estate agent.</p>
 
-    <h3>3. Required use of platform-provided agent</h3>
-    <p>If an LOI on the Platform results in an agreed-upon price (whether through acceptance or negotiation), <strong>the parties agree to use the licensed real estate agent designated by the Platform</strong> — typically Tim McMullen of McMullen Properties at Compass — to handle the resulting transaction. The Platform's revenue model depends on agent commissions on completed transactions originated here. Users who circumvent this requirement may be liable to the Operator for damages equal to the standard commission that would have been earned (typically 2.5% of sale price).</p>
+    <p>Similarly, owner responses to an EOI — "Express acceptance," "Express counter-interest," or "Pass" — are presumptive signals only. They are not binding acceptances, counter-offers, or rejections. They authorize the Platform's designated agent to communicate the indicated position to the relevant party through licensed channels.</p>
 
-    <h3>4. Contract conversion</h3>
-    <p>Once a buyer and seller agree on price, the designated licensed agent drafts the SFAR Residential Purchase Agreement (RPA) — the binding contract documenting the sale. Both parties sign the RPA through standard channels. Earnest money is deposited in escrow per the RPA terms. The transaction proceeds through standard escrow, inspection, financing, and closing. The Platform itself does not draft, store, or facilitate signatures on the RPA.</p>
+    <p>The Platform itself does not draft, store, sign, deliver, or otherwise facilitate Letters of Intent, Purchase Agreements, or any other documents requiring a California real estate license. All such activity is performed by licensed agents off-platform.</p>
+
+    <h3>3. Required use of designated agent — anti-circumvention</h3>
+    <p>The Platform introduces qualifying members (those who have submitted an EOI, set a make-me-move price, signaled acceptance/counter-interest/pass on an EOI, or otherwise engaged a transactional feature) to a licensed California real estate agent who has acquired the introduction through the Platform's lead-acquisition program. <strong>The current designated agent on all Platform-originated introductions is Tim McMullen, CA DRE #02016832, of McMullen Properties (CA DRE #02016832).</strong></p>
+
+    <p>By using the Platform's transactional features (Express Interest, Make-Me-Move, presumptive responses, or similar), the user agrees that <strong>any real estate transaction substantially originating from a Platform interaction will be coordinated by the licensed agent designated by the Platform.</strong></p>
+
+    <p>Users who circumvent this requirement — by transacting directly with a counterparty introduced through the Platform without using the designated agent — may be liable to McMullen Properties for <strong>liquidated damages equal to 2.5% of the gross transaction price</strong> (the standard commission a designated agent would have earned). This obligation applies to any transaction commenced within <strong>12 months</strong> of the user's last meaningful Platform interaction (an EOI submission, accepted MMM offer, scheduled review meeting, or similar). This provision exists because the Platform invests substantially in identifying, qualifying, and introducing buyers and sellers; that investment is recovered solely through commissions paid by participating agents on completed transactions.</p>
+
+    <h3>4. Transaction conversion happens off-platform</h3>
+    <p>If both parties signal mutual acceptance through the Platform, the licensed agent takes over completely. The agent — not the Platform — drafts the formal Letter of Intent, reviews it with each party, presents it for signature, and (if accepted) drafts the SFAR Residential Purchase Agreement. Earnest money is deposited in escrow per the RPA terms. The transaction proceeds through standard escrow, inspection, financing, and closing. The Platform itself does not handle any of these activities and does not accept any compensation derived from the transaction.</p>
 
     <h3>5. Make-me-move pricing</h3>
-    <p>Owners on the Platform set a "make-me-move number" — the price at which they would genuinely sell. This number is shown only to verified buyers signed into the Platform. It is not a list price, not an MLS listing, and not a public-facing sale. Setting a make-me-move number does not constitute listing the property. The owner may pause, edit, or remove the number at any time.</p>
+    <p>Owners on the Platform may set a "make-me-move number" — the price at which they would seriously consider selling. This number is visible only to platform members signed into the Platform. It is not a list price, not an MLS listing, and not a public-facing sale. Setting a make-me-move number does not constitute listing the property and creates no obligation to sell. The owner may pause, edit, or remove the number at any time. If a Platform member submits an EOI at or near the make-me-move number, the owner is notified by email and may signal acceptance, counter-interest, or pass — all subject to Section 2.</p>
 
-    <h3>6. Verification</h3>
-    <p>Both buyers and sellers undergo basic identity verification. The Platform reserves the right to request additional verification (including agent license verification for buyer's agents) before LOIs are exchanged.</p>
+    <h3>6. Identity verification</h3>
+    <p>Both prospective buyers and sellers undergo basic identity verification through standard account creation. The Platform may request additional verification (proof of funds, agent license confirmation for any participating buyer's agent, etc.) before introductions are made.</p>
 
-    <h3>7. Limitations on Platform liability</h3>
-    <p>The Platform is not liable for: failed transactions, including those that fall through after an LOI is accepted; disputes between buyer and seller; errors in property data, photos, or descriptions provided by owners; or tax, legal, or financial advice. <strong>The Platform does not provide legal, tax, or financial advice.</strong> Users should consult their own attorneys, tax advisors, and financial professionals.</p>
+    <h3>7. Platform compensation model</h3>
+    <p>The Platform's revenue is derived solely from <strong>lead-acquisition fees paid by participating licensed agents</strong> — not from per-transaction commissions or fees derived from real estate transactions. Our designated agents charge a 3% flat commission for Condo Market platform-generated transactions; this commission is paid to the designated agent (currently McMullen Properties, CA DRE #02016832), not to the Platform. The Platform does not collect, hold, or distribute funds related to real estate transactions.</p>
 
-    <h3>8. Privacy</h3>
-    <p>Make-me-move numbers, listings, and offer history are visible only to verified members signed into the Platform. The Platform does not publish, sell, or share this data with third parties except as required by law or as necessary to facilitate a transaction with the designated agent.</p>
+    <h3>8. Limitations on Platform liability</h3>
+    <p>The Platform is not liable for: failed transactions, including those that fall through after both parties signal acceptance; disputes between buyer and seller; errors in property data, photos, or descriptions provided by owners; or tax, legal, or financial advice. <strong>The Platform does not provide legal, tax, or financial advice.</strong> Users should consult their own attorneys, tax advisors, and financial professionals before signing any real estate document.</p>
 
-    <h3>9. Acceptable use</h3>
-    <p>Users agree not to: submit fraudulent LOIs or offers; misrepresent property ownership or buyer financing; use the Platform to circumvent the designated-agent requirement (Section 3); or scrape, redistribute, or resell Platform data.</p>
+    <h3>9. Privacy</h3>
+    <p>Make-me-move numbers, EOIs, and member interactions are visible only to platform members signed into their own dashboard and to the licensed agent designated by the Platform. The Platform does not publish, sell, or share this data with third parties except as required by law or as necessary to facilitate an introduction with the designated agent.</p>
 
-    <h3>10. Changes to these Terms</h3>
+    <h3>10. Acceptable use</h3>
+    <p>Users agree not to: submit fraudulent EOIs or signals; misrepresent property ownership; use the Platform to circumvent the designated-agent requirement (Section 3); or scrape, redistribute, or resell Platform data.</p>
+
+    <h3>11. Changes to these Terms</h3>
     <p>The Platform may update these Terms with reasonable notice. Material changes will require renewed acceptance.</p>
 
-    <h3>11. Contact</h3>
-    <p>Tim McMullen, McMullen Properties at Compass · DRE #02016832 · tim@mcmullen.properties</p>
+    <h3>12. Contact</h3>
+    <p>Operator: McMullen Properties, CA DRE #02016832 · hello@sanfranciscocondomarket.com</p>
 
-    <p style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(232,227,216,0.1); font-size: 11px; color: rgba(232,227,216,0.4); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">Version ${TOS_VERSION} · Last updated ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+    <p style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(232,227,216,0.1); font-size: 11px; color: rgba(232,227,216,0.4); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">Version ${TOS_VERSION} · Last updated ${TOS_LAST_UPDATED}</p>
   </div>
 `;
 
@@ -296,14 +324,14 @@ function renderModal(mode) {
     : `How it <em>works</em>.`;
   const sub = isAccept
     ? 'Before you continue, take a moment to understand how the platform works and how your data is handled.'
-    : 'Reference for how LOIs, negotiation, and contract conversion work on Condo Market SF.';
+    : 'Reference for how Expressions of Interest, presumptive signaling, and licensed-agent handoff work on Condo Market SF.';
 
   const footHtml = isAccept
     ? `
       <label class="cm-tos-checkbox-row">
         <input type="checkbox" id="cm-tos-accept-cb">
         <span class="cm-tos-checkbox-label">
-          I have read and agree to the <strong>Terms of Service</strong>, and I understand that Condo Market SF is a marketing platform — not a licensed brokerage — and that any transaction originating here will be handled by the licensed agent designated by the platform.
+          I have read and agree to the <strong>Terms of Service</strong>. I understand that Condo Market SF is a marketing and lead-generation platform owned and operated by <strong>McMullen Properties (CA DRE #02016832)</strong>, that the Platform itself is not a real estate brokerage and does not facilitate real estate transactions, and that any transaction substantially originating from a Platform interaction will be coordinated by the licensed agent designated by the Platform.
         </span>
       </label>
       <div class="cm-tos-actions">
