@@ -15,6 +15,7 @@
 <link rel="preload" as="image" href="https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69d40b49920c46329c3e6cc4_SF%20skyline%20Condo%20Market%20Image.avif" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <style>
 /* ─── TOKENS ─────────────────────────────────────────────── */
@@ -135,83 +136,242 @@ img { display: block; max-width: 100%; }
 }
 
 /* ─── HERO ───────────────────────────────────────────────── */
+/* ─── HERO: immersive full-viewport with animated sun + clouds ─── */
+/* To swap base image to the Unsplash sunrise variant:
+   replace url('https://cdn.prod.website-files.com/...avif')
+   with url('https://images.unsplash.com/photo-1753563351975-7304490da3f3?w=2400&q=85&auto=format&fit=crop') */
 .cm-hero {
   position: relative; overflow: hidden;
-  padding: 120px 0 140px; color: var(--ivory);
-  background-color: var(--dark);
-  background-image:
-    /* 1. Bottom/vertical darkening — top shows sky, bottom solid for CTAs + stats */
-    linear-gradient(180deg,
-      rgba(10,13,18,.55)   0%,
-      rgba(10,13,18,.20)   22%,
-      rgba(10,13,18,.40)   58%,
-      rgba(10,13,18,.90)   92%,
-      rgba(10,13,18,1)    100%),
-    /* 2. Left-side darkening — headline sits on darker ground, skyline reveals on right */
-    linear-gradient(90deg,
-      rgba(10,13,18,.78)   0%,
-      rgba(10,13,18,.45)  38%,
-      rgba(10,13,18,.15)  62%,
-      rgba(10,13,18,.05) 100%),
-    /* 3. The photograph */
-    url('https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69d40b49920c46329c3e6cc4_SF%20skyline%20Condo%20Market%20Image.avif');
-  background-position: center, center, 68% 35%;
-  background-size: cover, cover, cover;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-  border-bottom: 1px solid rgba(159,180,216,.08);
+  height: 100vh; height: 100dvh; min-height: 620px;
+  color: var(--ivory);
+  background-color: #0a0d12;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: flex; flex-direction: column;
 }
-/* Periwinkle tint glow — brand accent overlay on top of the image */
+/* Layer 1: static skyline base */
+.cm-hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background-image: url('https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69d40b49920c46329c3e6cc4_SF%20skyline%20Condo%20Market%20Image.avif');
+  background-size: cover;
+  background-position: center 62%;
+  background-repeat: no-repeat;
+}
+/* Layer 2: animated sun — arcs east → west across the sky */
+.cm-hero-sun {
+  position: absolute; z-index: 1;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,228,170,0.95) 0%,
+    rgba(255,200,130,0.75) 18%,
+    rgba(255,170,100,0.40) 38%,
+    rgba(255,150,90,0.18) 58%,
+    transparent 75%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: cm-sun-arc 95s linear infinite;
+}
+@keyframes cm-sun-arc {
+  0%   { left: -18%; top: 78%; opacity: 0; transform: scale(0.85); }
+  6%   { opacity: 0.8; }
+  16%  { left: 8%;  top: 38%; opacity: 1; transform: scale(1); }
+  35%  { left: 32%; top: 14%; opacity: 1; transform: scale(1.05); }
+  50%  { left: 50%; top: 6%;  opacity: 1; transform: scale(1.08); }
+  65%  { left: 68%; top: 14%; opacity: 1; transform: scale(1.05); }
+  84%  { left: 92%; top: 38%; opacity: 1; transform: scale(1); }
+  94%  { opacity: 0.8; }
+  100% { left: 118%; top: 78%; opacity: 0; transform: scale(0.85); }
+}
+/* Layer 3: drifting cloud SVGs — 5 layers with different speeds */
+.cm-hero-clouds {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  overflow: hidden;
+}
+.cm-hero-cloud {
+  position: absolute;
+  filter: blur(1px);
+  opacity: 0.78;
+  will-change: transform;
+}
+.cm-hero-cloud svg { display: block; width: 100%; height: 100%; }
+.cm-hero-cloud-1 { top:  9%; width: 340px; height: 130px; opacity: 0.85; animation: cm-cloud-drift 72s linear infinite; }
+.cm-hero-cloud-2 { top: 18%; width: 240px; height:  92px; opacity: 0.70; animation: cm-cloud-drift 96s linear infinite; animation-delay: -40s; }
+.cm-hero-cloud-3 { top: 26%; width: 420px; height: 160px; opacity: 0.62; animation: cm-cloud-drift 124s linear infinite; animation-delay: -75s; filter: blur(2px); }
+.cm-hero-cloud-4 { top: 14%; width: 200px; height:  78px; opacity: 0.55; animation: cm-cloud-drift 58s linear infinite; animation-delay: -22s; }
+.cm-hero-cloud-5 { top: 32%; width: 320px; height: 120px; opacity: 0.48; animation: cm-cloud-drift 110s linear infinite; animation-delay: -88s; filter: blur(3px); }
+@keyframes cm-cloud-drift {
+  0%   { transform: translateX(-50vw); }
+  100% { transform: translateX(120vw); }
+}
+/* Layer 4: subtle horizon haze + bottom darkening for text legibility */
+.cm-hero-veil {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      rgba(10,13,18,0)   0%,
+      rgba(10,13,18,0)  46%,
+      rgba(10,13,18,.35) 70%,
+      rgba(10,13,18,.78) 92%,
+      rgba(10,13,18,.92) 100%);
+}
+/* Peri brand-tint glow at top-right, same as before but lighter */
 .cm-hero::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(ellipse at 82% 18%, rgba(159,180,216,.14), transparent 55%);
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  background: radial-gradient(ellipse at 85% 12%, rgba(159,180,216,.10), transparent 55%);
+}
+
+/* Liquid glass treatment for the stat tag */
+.cm-liquid-glass {
+  background: rgba(10, 13, 22, 0.42);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.10);
+  position: relative; overflow: hidden;
+}
+.cm-liquid-glass::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: inherit; padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.10) 20%,
+    rgba(255,255,255,0)    40%, rgba(255,255,255,0)    60%,
+    rgba(255,255,255,0.10) 80%, rgba(255,255,255,0.35) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Hero content — bottom anchored */
+.cm-hero-inner {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 1280px; margin: 0 auto;
+  padding: 0 32px 56px;
+  flex: 1 1 auto;
+  display: grid; grid-template-columns: 1fr; align-items: end; gap: 32px;
+}
+@media (min-width: 1024px) {
+  .cm-hero-inner { grid-template-columns: 1.6fr 1fr; padding-bottom: 72px; }
 }
 @media (max-width: 720px) {
-  .cm-hero {
-    padding: 80px 0 96px;
-    background-position: center, center, 68% 30%;
-  }
+  .cm-hero-inner { padding: 0 20px 40px; }
 }
-.cm-hero-inner { position: relative; z-index: 1; max-width: 860px; }
+.cm-hero-inner > .cm-hero-main { display: flex; flex-direction: column; }
 .cm-hero h1 {
-  font-size: clamp(48px, 8vw, 84px); line-height: 1.02; margin: 18px 0 28px;
-  color: var(--ivory); letter-spacing: -.02em;
-  text-shadow: 0 2px 40px rgba(10,13,18,.5);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: clamp(44px, 7.2vw, 76px);
+  line-height: 1.02; letter-spacing: -0.04em;
+  color: var(--ivory);
+  margin: 14px 0 22px;
+  text-shadow: 0 2px 32px rgba(10,13,18,.55);
 }
 .cm-hero h1 em { color: var(--peri); font-style: italic; font-weight: 400; }
+.cm-hero h1 .cm-hero-char {
+  display: inline-block;
+  opacity: 0; transform: translateX(-18px);
+  transition: opacity 500ms ease, transform 500ms ease;
+  white-space: pre;
+}
+.cm-hero h1.is-animating .cm-hero-char {
+  opacity: 1; transform: translateX(0);
+}
+.cm-hero .cm-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: .22em; font-weight: 500;
+  text-transform: uppercase; color: var(--peri);
+  opacity: 0; transition: opacity 800ms ease 400ms;
+  margin: 0;
+}
+.cm-hero.is-ready .cm-eyebrow { opacity: 1; }
 .cm-hero-lede {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 20px; font-style: italic; line-height: 1.55;
-  color: rgba(232,227,216,.88); margin: 0 0 44px; max-width: 620px;
-  text-shadow: 0 1px 20px rgba(10,13,18,.6);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(15px, 1.4vw, 18px); font-weight: 400; line-height: 1.55;
+  color: rgba(232,227,216,.88);
+  max-width: 580px; margin: 0 0 30px;
+  text-shadow: 0 1px 16px rgba(10,13,18,.55);
+  opacity: 0; transition: opacity 1000ms ease;
 }
-.cm-hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; }
-.cm-btn-p {
+.cm-hero.is-ready .cm-hero-lede { opacity: 1; transition-delay: 1100ms; }
+.cm-hero-ctas {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  opacity: 0; transition: opacity 1000ms ease;
+}
+.cm-hero.is-ready .cm-hero-ctas { opacity: 1; transition-delay: 1400ms; }
+.cm-hero .cm-btn-p {
   display: inline-flex; align-items: center; gap: 10px;
-  padding: 17px 32px; border-radius: 999px; font-size: 14px; font-weight: 700;
-  letter-spacing: .02em; background: var(--peri); color: var(--dark);
-  transition: all .15s;
+  padding: 15px 30px; border-radius: 12px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+  letter-spacing: .005em;
+  background: #fff; color: #0a0d12;
+  transition: transform .15s, background .15s;
+  border: none;
 }
-.cm-btn-p:hover { background: #fff; transform: translateY(-1px); }
-.cm-btn-s {
+.cm-hero .cm-btn-p:hover { background: #f3f4f6; transform: translateY(-1px); }
+.cm-hero .cm-btn-s {
   display: inline-flex; align-items: center; gap: 10px;
-  padding: 17px 28px; border-radius: 999px; font-size: 14px; font-weight: 600;
-  color: var(--ivory); border: 1px solid rgba(232,227,216,.25);
+  padding: 15px 26px; border-radius: 12px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+  color: var(--ivory);
+  border: 1px solid rgba(255,255,255,.22);
   transition: all .15s;
+  background: rgba(10, 13, 22, 0.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.cm-btn-s:hover { border-color: var(--peri); color: var(--peri); }
+.cm-hero .cm-btn-s:hover { background: #fff; color: #0a0d12; border-color: #fff; }
+
+/* Glass stat tag on the right */
+.cm-hero-tag {
+  align-self: end; justify-self: start;
+  padding: 18px 24px; border-radius: 14px;
+  opacity: 0; transition: opacity 1000ms ease;
+}
+.cm-hero.is-ready .cm-hero-tag { opacity: 1; transition-delay: 1700ms; }
+@media (min-width: 1024px) { .cm-hero-tag { justify-self: end; } }
+@media (max-width: 1023px) { .cm-hero-tag { display: none; } }
+.cm-hero-tag-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: .22em; font-weight: 500;
+  text-transform: uppercase; color: var(--peri);
+  margin: 0 0 8px;
+}
+.cm-hero-tag-val {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(16px, 1.8vw, 22px); font-weight: 300;
+  color: var(--ivory); white-space: nowrap;
+}
+.cm-hero-tag-val strong { font-weight: 500; }
+.cm-hero-tag-val span.dot { color: var(--peri); margin: 0 10px; }
+
+/* Meta strip — kept below the headline column, condensed */
 .cm-hero-meta {
-  margin-top: 64px; display: flex; gap: 40px; flex-wrap: wrap;
-  padding-top: 32px; border-top: 1px solid rgba(159,180,216,.12);
+  margin-top: 28px; display: flex; gap: 36px; flex-wrap: wrap;
+  padding-top: 22px; border-top: 1px solid rgba(255,255,255,.10);
+  opacity: 0; transition: opacity 1000ms ease;
 }
+.cm-hero.is-ready .cm-hero-meta { opacity: 1; transition-delay: 1900ms; }
 .cm-hero-meta-item { display: flex; flex-direction: column; gap: 2px; }
 .cm-hero-meta-v {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 28px; font-weight: 700; color: var(--ivory); letter-spacing: -.015em;
+  font-family: 'Inter', sans-serif;
+  font-size: 22px; font-weight: 500; color: var(--ivory); letter-spacing: -.01em;
 }
 .cm-hero-meta-l {
+  font-family: 'Inter', sans-serif;
   font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--peri); font-weight: 700;
+  color: var(--peri); font-weight: 500;
 }
+@media (max-width: 720px) {
+  .cm-hero-meta { gap: 22px; margin-top: 22px; }
+  .cm-hero-meta-v { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cm-hero-sun, .cm-hero-cloud { animation: none; }
+  .cm-hero h1 .cm-hero-char { opacity: 1; transform: none; transition: none; }
+}
+
 
 /* ─── SECTION SHELL ─────────────────────────────────────── */
 .cm-section { padding: 100px 0; }
@@ -877,21 +1037,59 @@ img { display: block; max-width: 100%; }
 </div>
 
 <!-- ═══ HERO ═════════════════════════════════════════════════════ -->
-<section class="cm-hero">
-  <div class="cm-container cm-hero-inner">
-    <p class="cm-eyebrow">San Francisco · Off-market condos</p>
-    <h1>Every unit is<br>for sale, for the<br><em>right price.</em></h1>
-    <p class="cm-hero-lede">A private exchange for every condo in San Francisco. No listings required. No public record. Just an account, a number, and a vetted buyer pool.</p>
-    <div class="cm-hero-ctas">
-      <a class="cm-btn-p" href="#atlas">Browse 64 buildings &nbsp;→</a>
-      <a class="cm-btn-s" href="#signup" data-cm-auth="signup">Name your price</a>
+<section class="cm-hero" id="cm-hero">
+  <div class="cm-hero-bg" aria-hidden="true"></div>
+  <div class="cm-hero-sun" aria-hidden="true"></div>
+  <div class="cm-hero-clouds" aria-hidden="true">
+    <div class="cm-hero-cloud cm-hero-cloud-1">
+      <svg viewBox="0 0 340 130" xmlns="http://www.w3.org/2000/svg">
+        <path d="M62 90 Q26 90 26 62 Q26 34 60 34 Q72 16 100 22 Q124 6 154 22 Q186 12 200 38 Q230 32 244 56 Q278 56 278 80 Q310 80 310 100 L60 100 Z" fill="rgba(255,255,255,0.92)"/>
+      </svg>
     </div>
-    <div class="cm-hero-meta">
-      <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">64</span><span class="cm-hero-meta-l">Buildings</span></div>
-      <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">5,082</span><span class="cm-hero-meta-l">Units</span></div>
-      <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">15</span><span class="cm-hero-meta-l">Neighborhoods</span></div>
-      <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">3%</span><span class="cm-hero-meta-l">Flat fee</span></div>
-      <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">1%</span><span class="cm-hero-meta-l">Back to HOA</span></div>
+    <div class="cm-hero-cloud cm-hero-cloud-2">
+      <svg viewBox="0 0 240 92" xmlns="http://www.w3.org/2000/svg">
+        <path d="M44 64 Q18 64 18 42 Q18 22 44 22 Q56 6 80 14 Q106 4 128 22 Q152 18 168 36 Q196 36 196 58 Q220 58 220 72 L42 72 Z" fill="rgba(255,255,255,0.86)"/>
+      </svg>
+    </div>
+    <div class="cm-hero-cloud cm-hero-cloud-3">
+      <svg viewBox="0 0 420 160" xmlns="http://www.w3.org/2000/svg">
+        <path d="M82 116 Q34 116 34 78 Q34 42 80 42 Q96 18 130 26 Q158 8 190 26 Q224 14 244 44 Q278 38 296 70 Q336 70 336 96 Q380 96 380 124 L80 124 Z" fill="rgba(255,255,255,0.78)"/>
+      </svg>
+    </div>
+    <div class="cm-hero-cloud cm-hero-cloud-4">
+      <svg viewBox="0 0 200 78" xmlns="http://www.w3.org/2000/svg">
+        <path d="M36 54 Q14 54 14 36 Q14 20 36 20 Q46 6 66 12 Q86 4 104 18 Q124 16 138 30 Q162 30 162 48 Q184 48 184 60 L34 60 Z" fill="rgba(255,255,255,0.82)"/>
+      </svg>
+    </div>
+    <div class="cm-hero-cloud cm-hero-cloud-5">
+      <svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+        <path d="M62 84 Q26 84 26 58 Q26 30 60 30 Q72 12 96 18 Q122 4 150 20 Q180 12 196 36 Q224 32 240 54 Q272 54 272 76 Q298 76 298 92 L60 92 Z" fill="rgba(255,255,255,0.70)"/>
+      </svg>
+    </div>
+  </div>
+  <div class="cm-hero-veil" aria-hidden="true"></div>
+
+  <div class="cm-hero-inner">
+    <div class="cm-hero-main">
+      <p class="cm-eyebrow">San Francisco · Off-market condos</p>
+      <h1 id="cm-hero-heading">Every unit is<br>for sale, for the<br><em>right price.</em></h1>
+      <p class="cm-hero-lede">A private exchange for every condo in San Francisco. No listings required. No public record. Just an account, a number, and a vetted buyer pool.</p>
+      <div class="cm-hero-ctas">
+        <a class="cm-btn-p" href="#atlas">Browse 64 buildings →</a>
+        <a class="cm-btn-s" href="#signup" data-cm-auth="signup">Name your price</a>
+      </div>
+      <div class="cm-hero-meta">
+        <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">64</span><span class="cm-hero-meta-l">Buildings</span></div>
+        <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">5,082</span><span class="cm-hero-meta-l">Units</span></div>
+        <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">15</span><span class="cm-hero-meta-l">Neighborhoods</span></div>
+        <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">3%</span><span class="cm-hero-meta-l">Flat fee</span></div>
+        <div class="cm-hero-meta-item"><span class="cm-hero-meta-v">1%</span><span class="cm-hero-meta-l">Back to HOA</span></div>
+      </div>
+    </div>
+
+    <div class="cm-hero-tag cm-liquid-glass">
+      <p class="cm-hero-tag-label">Private exchange</p>
+      <p class="cm-hero-tag-val"><strong>5,082</strong> units<span class="dot">·</span><strong>64</strong> buildings</p>
     </div>
   </div>
 </section>
@@ -3088,6 +3286,46 @@ img { display: block; max-width: 100%; }
   $('#cm-burger').addEventListener('click', () => drawer.classList.add('is-open'));
   $('#cm-drawer-close').addEventListener('click', () => drawer.classList.remove('is-open'));
   $$('#cm-drawer a').forEach(a => a.addEventListener('click', () => drawer.classList.remove('is-open')));
+
+  // ─── HERO HEADING ANIMATION ──────────────────────────────
+  // Walks the H1 DOM, wraps each character in a span with staggered transition-delay,
+  // preserves <br> and <em> structure. Triggered shortly after page load.
+  (function animateHero() {
+    const heading = $('#cm-hero-heading');
+    const hero    = $('#cm-hero');
+    if (!heading || !hero) return;
+
+    const CHAR_DELAY = 30; // ms per char
+    const START_DELAY = 200; // ms before first char animates
+    let idx = 0;
+
+    function walk(node) {
+      if (node.nodeType === 3) {
+        const text = node.textContent;
+        if (!text) return;
+        const frag = document.createDocumentFragment();
+        for (const ch of text) {
+          const span = document.createElement('span');
+          span.className = 'cm-hero-char';
+          span.style.transitionDelay = (idx * CHAR_DELAY + START_DELAY) + 'ms';
+          span.textContent = (ch === ' ') ? '\u00A0' : ch;
+          frag.appendChild(span);
+          idx++;
+        }
+        node.parentNode.replaceChild(frag, node);
+      } else if (node.nodeType === 1) {
+        if (node.tagName === 'BR') return;
+        Array.from(node.childNodes).forEach(walk);
+      }
+    }
+    Array.from(heading.childNodes).forEach(walk);
+
+    // Trigger transitions on next frame so initial styles apply first
+    requestAnimationFrame(() => {
+      heading.classList.add('is-animating');
+      hero.classList.add('is-ready');
+    });
+  })();
 
   // ─── ATLAS MAP ───────────────────────────────────────────
   const allLats = BLDGS.map(b => b.lat);
