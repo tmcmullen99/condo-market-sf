@@ -1,16 +1,11 @@
 /* =========================================================================
-   cm-truth-patch.js  v2
+   cm-truth-patch.js  v4
    ---------------------------------------------------------------------------
-   Replaces fabricated metrics with real data from Supabase RPCs.
-   Loaded via:  <script src="/assets/cm-truth-patch.js" defer></script>
-
-   v2 changes (2026-05-10):
-     - Two-card comparison panel (public vs members) replaces single CTA
-     - Real value drivers: tenure 8.6y, 45/39/16 ownership split
-     - Removed Data Pending overlay (Tim feedback)
-     - Kills "270 active offers", "Concentrated in Pacific Heights",
-       "Tax record feed updating soon" on /buildings/
-     - Re-runs on window.load to catch deferred content
+   v4 fixes (2026-05-10):
+     - patchTicker forces white-space:nowrap so ticker stays single-line
+     - patchCardYears no longer corrupts dates inside the ticker
+       (skips anchors whose ancestors are already patched, and skips
+        text nodes that look like a "Mon DD, YYYY" date string)
    ========================================================================= */
 
 (function () {
@@ -18,7 +13,7 @@
 
   var SUPABASE_URL  = 'https://kfqphwerygccpzntbbif.supabase.co';
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
-
+  var SIGNUP_URL = '/owner-signup/';
   var LOG_PREFIX = '[cm-truth]';
   var DATA = { buildings: null, aggregates: null, ticker: null, cards: null, panel: null };
   var CARD_BY_SLUG = {};
@@ -33,7 +28,6 @@
       console.log.apply(console, args);
     }
   }
-
   function err() {
     if (window.console && console.warn) {
       var args = Array.prototype.slice.call(arguments);
@@ -45,15 +39,12 @@
   function anonHeaders() {
     return { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
   }
-
   function fmtInt(n) { return (Number(n) || 0).toLocaleString(); }
-
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
     });
   }
-
   function walkText(root, fn) {
     if (!root || !document.createTreeWalker) return;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
@@ -61,7 +52,6 @@
     while ((n = walker.nextNode())) nodes.push(n);
     nodes.forEach(fn);
   }
-
   function findContainer(anchors) {
     if (!Array.isArray(anchors) || anchors.length === 0) return null;
     var all = document.body.querySelectorAll('*');
@@ -77,6 +67,14 @@
     }
     return best;
   }
+  function hasPatchedAncestor(el) {
+    var n = el;
+    while (n) {
+      if (n.getAttribute && n.getAttribute('data-cm-truth-patched')) return true;
+      n = n.parentNode;
+    }
+    return false;
+  }
 
   async function fetchBuildingsJson() {
     try {
@@ -85,7 +83,6 @@
       return await r.json();
     } catch (e) { err('buildings.json', e); return []; }
   }
-
   async function callRpc(name) {
     try {
       var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
@@ -105,7 +102,7 @@
       var m = t.match(/offers this week/g);
       if (m && m.length >= 3) { ticker = all[i]; break; }
     }
-    if (!ticker) { return; }
+    if (!ticker) return;
     if (ticker.getAttribute('data-cm-truth-patched') === '1') return;
 
     var items = DATA.ticker.map(function (row) {
@@ -116,7 +113,6 @@
         ? '<a href="' + escapeHtml(row.href) + '">' + inner + '</a>'
         : '<span>' + inner + '</span>';
     });
-
     var agg = DATA.aggregates && DATA.aggregates[0] ? DATA.aggregates[0] : {};
     var bldCount = (DATA.buildings && DATA.buildings.length) || 64;
     items.push('<span><strong>' + fmtInt(agg.total_units || 0) + ' units</strong> tracked across ' + bldCount + ' buildings</span>');
@@ -124,8 +120,15 @@
 
     var oneLap = items.join(' \u00b7 ');
     ticker.innerHTML = oneLap + ' \u00b7 ' + oneLap;
+
+    // FORCE single-line layout — page CSS may rely on white-space:nowrap
+    // somewhere upstream that gets disturbed by innerHTML replacement.
+    ticker.style.whiteSpace = 'nowrap';
+    ticker.style.overflow = 'hidden';
+    ticker.style.textOverflow = 'clip';
+
     ticker.setAttribute('data-cm-truth-patched', '1');
-    log('ticker patched (' + items.length + ' items)');
+    log('ticker patched (' + items.length + ' items, single-line forced)');
   }
 
   function patchHeroUnitsCount() {
@@ -147,11 +150,10 @@
 
   function patchTwoLayersPanel() {
     var panel = findContainer(['Public layer', 'Enhanced layer', 'Sale-to-list ratio']);
-    if (!panel) {
-      panel = findContainer(['Sign in to unlock', 'enhanced layer']);
-      if (!panel) return;
-    }
-    if (panel.getAttribute('data-cm-truth-patched') === '1') return;
+    if (!panel) panel = findContainer(['Sign in to unlock', 'enhanced layer']);
+    if (!panel) panel = findContainer(['See what', 'members see', 'Per-unit specifics']);
+    if (!panel) return;
+    if (panel.getAttribute('data-cm-truth-patched') === 'v3') return;
 
     var agg = DATA.aggregates && DATA.aggregates[0] ? DATA.aggregates[0] : {};
     var sig = DATA.panel && DATA.panel[0] ? DATA.panel[0] : {};
@@ -179,47 +181,41 @@
 
     function bulletList(items, color) {
       return items.map(function (b) {
-        return '<li style="display:flex;gap:10px;align-items:flex-start;padding:0;margin:0;font-size:14px;line-height:1.55;color:rgba(232,227,216,0.75);">' +
-          '<span style="color:' + color + ';flex-shrink:0;line-height:1.55;">\u2713</span>' +
+        return '<li style="display:flex;gap:12px;align-items:flex-start;padding:0;margin:0;font-size:15px;line-height:1.55;color:rgba(232,227,216,0.78);">' +
+          '<span style="color:' + color + ';flex-shrink:0;line-height:1.55;font-weight:600;">\u2713</span>' +
           '<span>' + b + '</span>' +
           '</li>';
       }).join('');
     }
 
     panel.innerHTML = [
-      '<div style="padding:56px 32px;background:#0f131d;border-radius:14px;border:1px solid rgba(159,180,216,0.12);">',
-        '<div style="text-align:center;max-width:680px;margin:0 auto 36px;">',
-          '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#d4a574;margin-bottom:14px;">Two layers of intelligence</div>',
-          '<h2 style="font-family:\'Playfair Display\',Georgia,serif;font-size:clamp(30px,4.2vw,46px);font-weight:500;line-height:1.1;margin:0 0 14px;color:#e8e3d8;">See what <em style="color:#9fb4d8;">members see.</em></h2>',
-          '<p style="font-size:16px;color:rgba(232,227,216,0.6);margin:0;line-height:1.5;">A free account unlocks per-unit data \u2014 sale history, owner tenure, ownership type, and Make-Me-Move prices for every building.</p>',
-        '</div>',
-        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:880px;margin:0 auto;">',
-          '<div style="padding:32px 28px;background:rgba(159,180,216,0.04);border:1px solid rgba(159,180,216,0.18);border-radius:12px;">',
-            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(232,227,216,0.5);margin-bottom:10px;">Public</div>',
-            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:22px;color:#e8e3d8;margin-bottom:6px;font-weight:500;">Free \u00b7 no account</div>',
-            '<div style="font-size:13px;color:rgba(232,227,216,0.5);margin-bottom:24px;">Aggregates only.</div>',
-            '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;">',
+      '<div style="width:100%;max-width:1100px;margin:0 auto;">',
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">',
+          '<div style="padding:40px 36px;background:rgba(159,180,216,0.04);border:1px solid rgba(159,180,216,0.18);border-radius:14px;">',
+            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:rgba(232,227,216,0.5);margin-bottom:10px;">Public</div>',
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#e8e3d8;margin-bottom:6px;font-weight:500;font-style:italic;">Free, no account.</div>',
+            '<div style="font-size:13px;color:rgba(232,227,216,0.5);margin-bottom:28px;">Aggregates only.</div>',
+            '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:16px;">',
               bulletList(publicBullets, '#9fb4d8'),
             '</ul>',
           '</div>',
-          '<div style="padding:32px 28px;background:rgba(212,165,116,0.06);border:1px solid rgba(212,165,116,0.3);border-radius:12px;position:relative;">',
-            '<div style="position:absolute;top:-1px;right:-1px;background:#d4a574;color:#0f131d;font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:10px;font-weight:600;padding:6px 10px;border-radius:0 12px 0 8px;letter-spacing:0.1em;">FREE \u00b7 30 SECONDS</div>',
-            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:#d4a574;margin-bottom:10px;">Members</div>',
-            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:22px;color:#e8e3d8;margin-bottom:6px;font-weight:500;">Per-unit specifics</div>',
-            '<div style="font-size:13px;color:rgba(232,227,216,0.5);margin-bottom:24px;">Everything in public, plus:</div>',
-            '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;">',
+          '<div style="padding:40px 36px;background:linear-gradient(180deg, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 100%);border:1px solid rgba(212,165,116,0.4);border-radius:14px;box-shadow:0 0 0 1px rgba(212,165,116,0.06), 0 8px 32px rgba(212,165,116,0.04);">',
+            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#d4a574;margin-bottom:10px;">Members \u00b7 Free</div>',
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#e8e3d8;margin-bottom:6px;font-weight:500;font-style:italic;">Per-unit specifics.</div>',
+            '<div style="font-size:13px;color:rgba(232,227,216,0.55);margin-bottom:28px;">Everything in public, plus:</div>',
+            '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:16px;">',
               bulletList(memberBullets, '#d4a574'),
             '</ul>',
           '</div>',
         '</div>',
-        '<div style="text-align:center;margin-top:36px;">',
-          '<a href="#signup" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;background:#d4a574;color:#0f131d;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:0.01em;">Create a free account \u2192</a>',
-          '<div style="margin-top:14px;font-size:12px;color:rgba(232,227,216,0.4);font-family:\'JetBrains Mono\',ui-monospace,monospace;">No credit card. No spam. Cancel anytime.</div>',
+        '<div style="text-align:center;margin-top:40px;">',
+          '<a href="' + SIGNUP_URL + '" style="display:inline-flex;align-items:center;gap:10px;padding:18px 36px;background:#d4a574;color:#0f131d;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px;letter-spacing:0.005em;box-shadow:0 4px 16px rgba(212,165,116,0.2);">Create a free account \u2192</a>',
+          '<div style="margin-top:14px;font-size:12px;color:rgba(232,227,216,0.4);font-family:\'JetBrains Mono\',ui-monospace,monospace;">No credit card \u00b7 No spam \u00b7 30 seconds</div>',
         '</div>',
       '</div>'
     ].join('');
-    panel.setAttribute('data-cm-truth-patched', '1');
-    log('two-layer panel replaced with comparison cards');
+    panel.setAttribute('data-cm-truth-patched', 'v3');
+    log('two-layer panel: v4 (1100px, bronze gradient, /owner-signup/)');
   }
 
   function patchFabricatedCounters() {
@@ -326,7 +322,12 @@
     if (!Object.keys(CARD_BY_SLUG).length) return;
     var anchors = document.querySelectorAll('a[href*="/building/"]');
     var fixed = 0;
+    // Date-pattern check: skip text that looks like "Mon DD, YYYY" so we
+    // don't corrupt ticker dates.
+    var DATE_RX = /[A-Z][a-z]{2,8}\.?\s+\d{1,2},\s+\d{4}/;
     anchors.forEach(function (a) {
+      // SKIP: anchor inside the ticker (or any other already-patched container)
+      if (hasPatchedAncestor(a)) return;
       var m = a.getAttribute('href').match(/\/building\/([a-z0-9-]+)/);
       if (!m) return;
       var card = CARD_BY_SLUG[m[1]];
@@ -335,6 +336,8 @@
       walkText(a, function (n) {
         var v = n.nodeValue;
         if (!v) return;
+        // SKIP: text node that contains a date-like string.
+        if (DATE_RX.test(v)) return;
         var newV = v.replace(/\b(19\d{2}|20[0-2]\d)\b/g, function (yr) {
           if (yr === realYear) return yr;
           if (Math.abs(parseInt(yr) - parseInt(realYear)) > 2) {
@@ -385,7 +388,7 @@
     patches.forEach(function (p) {
       try { p[1](); } catch (e) { err('patch failed:', p[0], e); }
     });
-    log('patches run #' + PATCH_RUN_COUNT);
+    log('patches run #' + PATCH_RUN_COUNT + ' (v4)');
   }
 
   async function init() {
