@@ -1,5 +1,18 @@
 /**
- * cm-offer-modal.js — Offer submission modal
+ * cm-offer-modal.js — Express Interest submission modal (v2.0)
+ *
+ * v2.0 (2026-05-10): full rename to "Express Interest" terminology
+ * reflecting the lead-gen marketplace model:
+ *   - Submissions are EOIs (Expressions of Interest), NOT Letters of Intent
+ *   - The Platform records the presumptive signal; the licensed agent drafts
+ *     the actual LOI off-platform
+ *   - User must check certification box before submitting (Section 3 TOS
+ *     anti-circumvention + EOI/LOI distinction)
+ *   - Submit button: "Send to agent →" (was "Submit offer →")
+ *   - Success state reflects agent handoff (was "your offer is on its way to
+ *     the owner" → now "your assigned agent will contact you")
+ *
+ * Database column names (offers.offer_amount etc) unchanged — internal only.
  *
  * Auto-mounts a single global modal on document.body. Opens via two paths:
  *
@@ -13,10 +26,10 @@
  *      whole-card click).
  *
  * States:
- *   - Anon: gate with "Sign in to make an offer" CTA
+ *   - Anon: gate with "Sign in to express interest" CTA
  *   - Form: amount slider (matches MMM price by default if listing provided),
- *           optional message, submit
- *   - Success: confirmation + auto-close after 3s
+ *           optional message, required certification checkbox, submit
+ *   - Success: confirmation + auto-close after 5s
  *
  * Submission: CM.createOffer() inserts a row into offers; RLS allows the
  * buyer to insert their own. Owner & admin get notified server-side
@@ -228,6 +241,37 @@ const STYLE_CSS = `
     color: var(--cm-ivory-faint, rgba(232, 227, 216, 0.36));
   }
 
+  /* v2.0 — Certification checkbox */
+  .cm-om-cert-row {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    background: rgba(159, 180, 216, 0.06);
+    border: 1px solid rgba(159, 180, 216, 0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    cursor: pointer;
+  }
+  .cm-om-cert-row input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 17px; height: 17px;
+    margin-top: 2px;
+    accent-color: var(--cm-peri, #9fb4d8);
+    cursor: pointer;
+  }
+  .cm-om-cert-label {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--cm-ivory-dim, rgba(232, 227, 216, 0.72));
+  }
+  .cm-om-cert-label strong { color: var(--cm-ivory, #e8e3d8); }
+  .cm-om-cert-label a {
+    color: var(--cm-peri, #9fb4d8);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   .cm-om-submit {
     width: 100%;
     background: var(--cm-bronze, #d4a574);
@@ -239,7 +283,7 @@ const STYLE_CSS = `
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: transform 150ms ease, background 150ms ease;
+    transition: transform 150ms ease, background 150ms ease, opacity 150ms ease;
     margin-top: 4px;
   }
   .cm-om-submit:hover:not(:disabled) {
@@ -247,7 +291,7 @@ const STYLE_CSS = `
     transform: translateY(-1px);
   }
   .cm-om-submit:disabled {
-    opacity: 0.6;
+    opacity: 0.45;
     cursor: not-allowed;
   }
   .cm-om-fine {
@@ -297,9 +341,22 @@ const STYLE_CSS = `
     color: var(--cm-ivory-dim, rgba(232, 227, 216, 0.62));
     font-size: 14px;
     line-height: 1.55;
-    max-width: 38ch;
-    margin: 0 auto;
+    max-width: 42ch;
+    margin: 0 auto 8px;
   }
+  .cm-om-success-steps {
+    text-align: left;
+    margin: 18px auto 0;
+    max-width: 42ch;
+    background: rgba(232, 227, 216, 0.03);
+    border-left: 3px solid var(--cm-peri, #9fb4d8);
+    padding: 14px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--cm-ivory-dim, rgba(232, 227, 216, 0.62));
+  }
+  .cm-om-success-steps strong { color: var(--cm-ivory, #e8e3d8); }
 
   .cm-om-gate {
     text-align: center;
@@ -415,9 +472,9 @@ function close() {
 function renderGate(modal) {
   modal.innerHTML = `
     <button class="cm-om-close" aria-label="Close">×</button>
-    <span class="cm-om-eyebrow">Submit an offer</span>
-    <h2 id="cm-om-title">Sign in to <em>make an offer</em>.</h2>
-    <p class="cm-om-sub">Members make offers privately on Condo Market. Owners receive them in their dashboard and decide on their own terms. Free to create an account.</p>
+    <span class="cm-om-eyebrow">Express interest</span>
+    <h2 id="cm-om-title">Sign in to <em>express interest</em>.</h2>
+    <p class="cm-om-sub">Members privately express interest in units they'd seriously consider buying. Owners are notified and a licensed agent handles the rest. Free to create an account.</p>
     <div class="cm-om-gate">
       <a href="#signup" class="cm-om-gate-cta" data-cm-auth="signup">Create free account →</a>
     </div>
@@ -440,7 +497,7 @@ async function renderForm(modal, ctx) {
 
   const subText = listing
     ? `${escapeHtml(listing.address || '')}${listing.unit_number ? ' · Unit ' + escapeHtml(listing.unit_number) : ''}`
-    : `Generic offer at ${escapeHtml(buildingName)}.`;
+    : `Generic interest in ${escapeHtml(buildingName)}.`;
 
   const anchorHtml = listing && listingPrice
     ? `
@@ -457,7 +514,7 @@ async function renderForm(modal, ctx) {
 
   modal.innerHTML = `
     <button class="cm-om-close" aria-label="Close">×</button>
-    <span class="cm-om-eyebrow">Submit an offer · ${escapeHtml(buildingName)}</span>
+    <span class="cm-om-eyebrow">Express interest · ${escapeHtml(buildingName)}</span>
     <h2 id="cm-om-title">What's your <em>number</em>?</h2>
     <p class="cm-om-sub">${subText}</p>
 
@@ -466,7 +523,7 @@ async function renderForm(modal, ctx) {
     <form id="cm-om-form">
       <div class="cm-om-field">
         <label for="cm-om-amount">
-          <span>Your offer</span>
+          <span>Your number</span>
           <span class="cm-om-field-display" id="cm-om-amount-display">${fmtMoneyShort(defaultAmt)}</span>
         </label>
         <input type="range" class="cm-om-slider" id="cm-om-amount"
@@ -474,12 +531,19 @@ async function renderForm(modal, ctx) {
       </div>
 
       <div class="cm-om-field">
-        <label for="cm-om-message"><span>Note to owner</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Optional</span></label>
-        <textarea class="cm-om-textarea" id="cm-om-message" placeholder="Cash offer · 15-day close · pre-approved at $X · etc."></textarea>
+        <label for="cm-om-message"><span>Note to your agent (optional)</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Optional</span></label>
+        <textarea class="cm-om-textarea" id="cm-om-message" placeholder="Cash offer · 15-day close · pre-approved at $X · any context you want your agent to know"></textarea>
       </div>
 
-      <button type="submit" class="cm-om-submit" id="cm-om-submit">Submit offer →</button>
-      <p class="cm-om-fine">Owner is notified by email. They have 24h to respond. You'll be emailed with their decision.</p>
+      <label class="cm-om-cert-row">
+        <input type="checkbox" id="cm-om-cert-cb">
+        <span class="cm-om-cert-label">
+          <strong>I understand:</strong> This is an Expression of Interest — not a Letter of Intent. My assigned licensed agent (<strong>McMullen Properties, CA DRE #02016832</strong>) will draft the formal LOI and review it with me before delivery to the owner. I agree to the Platform's <a href="#tos" data-cm-tos>Terms of Service</a>, including Section 3 requiring me to use the Platform-designated agent for any resulting transaction.
+        </span>
+      </label>
+
+      <button type="submit" class="cm-om-submit" id="cm-om-submit" disabled>Send to agent →</button>
+      <p class="cm-om-fine">Your assigned agent will contact you within 24 hours to review and prepare the formal LOI before any document is delivered to the owner.</p>
       <div id="cm-om-msg"></div>
     </form>
   `;
@@ -503,17 +567,38 @@ async function renderForm(modal, ctx) {
     });
   }
 
+  // Wire certification checkbox — gates submit button
+  const certCb = modal.querySelector('#cm-om-cert-cb');
+  const submitBtn = modal.querySelector('#cm-om-submit');
+  certCb.addEventListener('change', () => {
+    submitBtn.disabled = !certCb.checked;
+  });
+
+  // Wire TOS link inside cert label — opens TOS modal in info mode
+  const tosLink = modal.querySelector('[data-cm-tos]');
+  if (tosLink) {
+    tosLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const m = await import('/assets/cm-tos-modal.js');
+        m.openTosModal({ mode: 'info' });
+      } catch (err) {
+        console.error('Could not load TOS modal', err);
+      }
+    });
+  }
+
   // Wire submit
   modal.querySelector('#cm-om-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = modal.querySelector('#cm-om-submit');
+    if (!certCb.checked) return;
     const msgEl = modal.querySelector('#cm-om-msg');
     const amount = parseInt(slider.value, 10);
     const message = modal.querySelector('#cm-om-message').value.trim();
 
     msgEl.innerHTML = '';
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
+    submitBtn.textContent = 'Sending…';
 
     const result = await CM.createOffer({
       listing_id:    listing?.id || null,
@@ -524,13 +609,13 @@ async function renderForm(modal, ctx) {
 
     if (result.error) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit offer →';
+      submitBtn.textContent = 'Send to agent →';
       msgEl.innerHTML = '<div class="cm-om-msg is-error">' + escapeHtml('Submission failed: ' + result.error.message) + '</div>';
       return;
     }
 
     renderSuccess(modal, { amount, building: buildingName });
-    setTimeout(close, 4500);
+    setTimeout(close, 6000);
   });
 }
 
@@ -539,8 +624,14 @@ function renderSuccess(modal, { amount, building }) {
     <button class="cm-om-close" aria-label="Close">×</button>
     <div class="cm-om-success">
       <div class="cm-om-success-icon">✓</div>
-      <h3 id="cm-om-title">Offer sent.</h3>
-      <p>Your <strong>${fmtMoney(amount)}</strong> offer at ${escapeHtml(building)} is on its way to the owner. They'll respond within 24 hours.</p>
+      <h3 id="cm-om-title">Interest registered.</h3>
+      <p>Your <strong>${fmtMoney(amount)}</strong> Expression of Interest at ${escapeHtml(building)} has been submitted to your assigned agent.</p>
+      <div class="cm-om-success-steps">
+        <strong>What happens next:</strong>
+        <br>· Within 24 hours, your assigned licensed agent contacts you to schedule a review meeting.
+        <br>· The agent drafts the formal Letter of Intent and reviews it with you before any document is delivered to the owner.
+        <br>· You can track status anytime in your dashboard.
+      </div>
     </div>
   `;
   modal.querySelector('.cm-om-close').addEventListener('click', close);
