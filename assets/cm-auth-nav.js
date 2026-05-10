@@ -68,6 +68,15 @@ const CSS = `
   body.cm-signed-in .dossier-enhanced-cta {
     display: none !important;
   }
+  /* Hide every link to /history/ site-wide (added 2026-05-10).
+     Tim de-emphasized the History page; the link should disappear from
+     every page's masthead nav AND footer without patching each page's
+     hardcoded markup. The page itself at /history/ stays reachable by URL.
+     Same precedent as the .dossier-enhanced-cta rule above. */
+  a[href="/history/"],
+  a[href="/history"] {
+    display: none !important;
+  }
 `;
 
 function injectStyles() {
