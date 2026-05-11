@@ -1,14 +1,15 @@
 /* =============================================================================
  * Condo Market SF — Referral Savings Calculator Widget
  * -----------------------------------------------------------------------------
- * Drop-in widget that shows homeowners how much they save on commission by
+ * Drop-in widget that shows users how much they save on commission by
  * referring others to Condo Market SF.
  *
  * MATH (locked, do not change without legal review):
- *   - 0.2% of sale price per successful referral signup
- *   - Maximum 5 referrals = 1% of sale price = 1% off the 3% CM commission
+ *   - 0.2% of property value per successful referral signup
+ *   - Maximum 5 referrals = 1% of property value = 1% off the user's commission
+ *   - Applies to EITHER side of a transaction (buy or sell), per Tim 2026-05-10
  *   - Credit accumulates permanently in account, applied at next CM transaction
- *   - At $1.5M sale price, full 5 referrals = $15,000 savings
+ *   - At $1.5M property value, full 5 referrals = $15,000 savings
  *
  * USAGE:
  *   <div data-cm-referral-calc
@@ -379,17 +380,17 @@
       savingsLabel = 'Earned to date';
       if (isMax) {
         headline = 'You\'ve maxed your <em>1% commission credit</em>.';
-        contextText = 'Applied automatically at your next Condo Market transaction.';
+        contextText = 'Applied automatically at your next Condo Market transaction — buy or sell side.';
       } else {
         var remaining = MAX_REFERRALS - referralCount;
         headline = 'You\'re <em>' + remaining + ' referral' + (remaining === 1 ? '' : 's') + '</em> from the full 1%.';
-        contextText = referralCount + ' of ' + MAX_REFERRALS + ' earned. Each referral that joins Condo Market adds 0.2% off your 3% commission.';
+        contextText = referralCount + ' of ' + MAX_REFERRALS + ' earned. Each new referral adds 0.2% off your next commission — buy or sell side.';
       }
     } else {
       eyebrow = 'Refer & save';
       savingsLabel = 'Maximum savings at full referrals';
-      headline = 'Save up to <em>1% of your sale price</em> on commission.';
-      contextText = 'Refer ' + MAX_REFERRALS + ' people who join Condo Market. Each one earns you 0.2% off your 3% commission, capped at 1% credit.';
+      headline = 'Save up to <em>1% of your property value</em> on commission.';
+      contextText = 'Refer ' + MAX_REFERRALS + ' people who join Condo Market. Each one earns you 0.2% credit, up to 1% off your next commission — buy or sell.';
     }
 
     var tiersHtml = '';
@@ -429,7 +430,7 @@
       '<div class="cm-rc-tiers" data-cm-rc-tiers>' + tiersHtml + '</div>',
       '<a href="' + escapeHtml(ctaHref) + '" class="cm-rc-cta">' + escapeHtml(ctaLabel) + '</a>',
       '<div class="cm-rc-disclaimer">',
-      '  Discount applied to listing-side commission at next Condo Market transaction.',
+      '  Discount applied to your commission at your next Condo Market transaction — buy or sell side.',
       '  Maximum 1% credit per account, regardless of property value.',
       '</div>'
     ].join('\n');
