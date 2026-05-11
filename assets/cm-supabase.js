@@ -344,6 +344,36 @@ export const CM = {
   async removeListing(id) { return await this.updateListing(id, { status: 'removed' }); },
 
   // ---------------------------------------------------------------------------
+  // Unit claims (user_units) — Sprint B-2D dashboard gate
+  // ---------------------------------------------------------------------------
+  //
+  // The listings_require_approved_claim_trg trigger rejects any INSERT into
+  // public.listings unless an approved user_units row exists for the SAME
+  // user_id + building_slug + (normalized) unit. The dashboard reads claim
+  // status via this method so it can surface a gating UI before the user
+  // attempts an insert that the DB will block.
+
+  /**
+   * Return all unit-ownership claims for the current user across statuses
+   * (pending / approved / rejected), newest first. RLS allows users to read
+   * only their own user_units rows.
+   */
+  async getMyUnitClaims() {
+    const user = await this.getUser();
+    if (!user) return [];
+    const { data, error } = await sb
+      .from('user_units')
+      .select('id, building_slug, unit_address, claimed_name, status, reviewed_at, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('[cm] getMyUnitClaims failed:', error.message);
+      return [];
+    }
+    return data || [];
+  },
+
+  // ---------------------------------------------------------------------------
   // Offers — buyer submits, owner & admin see, status transitions accept/decline/withdraw
   // ---------------------------------------------------------------------------
 
