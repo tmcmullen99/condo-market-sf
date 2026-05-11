@@ -56,6 +56,7 @@
   .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
   .section h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 26px; color: var(--cm-ivory); }
   .section h2 em { color: var(--cm-peri); }
+  .section-sub { font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); letter-spacing: 0.05em; }
 
   .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .filter {
@@ -73,6 +74,8 @@
   .table th { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500; }
   .table tbody tr:last-child td { border-bottom: none; }
   .table td { color: var(--cm-ivory); }
+
+  /* Offer row expand */
   .table tr.offer-tr { cursor: pointer; transition: background 150ms ease; }
   .table tr.offer-tr:hover { background: rgba(159, 180, 216, 0.04); }
   .table tr.offer-tr.is-expanded { background: rgba(212, 165, 116, 0.04); }
@@ -134,6 +137,110 @@
     font-style: italic;
   }
 
+  /* ─── User row expand (Phase A) ────────────────────────────────────── */
+  .table tr.user-tr { cursor: pointer; transition: background 150ms ease; }
+  .table tr.user-tr:hover { background: rgba(159, 180, 216, 0.04); }
+  .table tr.user-tr.is-expanded { background: rgba(159, 180, 216, 0.06); }
+  .table tr.user-tr .chev {
+    display: inline-block; width: 14px; margin-right: 6px;
+    color: var(--cm-ivory-dim); transition: transform 0.18s; font-style: normal;
+  }
+  .table tr.user-tr.is-expanded .chev { transform: rotate(90deg); color: var(--cm-peri); }
+  .user-detail { background: rgba(15, 19, 29, 0.4); }
+  .user-detail-content {
+    padding: 22px 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+  }
+  @media (max-width: 720px) { .user-detail-content { grid-template-columns: 1fr; } }
+  .user-detail h4 {
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--cm-ivory-dim);
+    margin-bottom: 14px; font-weight: 500;
+  }
+  .user-profile dl { margin: 0; }
+  .user-profile .dl-row {
+    display: grid; grid-template-columns: 110px 1fr; gap: 8px;
+    padding: 5px 0; font-size: 13px; align-items: baseline;
+  }
+  .user-profile .dl-key {
+    font-family: var(--cm-ff-mono); font-size: 10px; color: var(--cm-ivory-dim);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .user-profile .dl-val { color: var(--cm-ivory); word-break: break-word; }
+  .user-profile .dl-val .role-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(159, 180, 216, 0.12); color: var(--cm-peri);
+    border: 1px solid rgba(159, 180, 216, 0.3);
+  }
+  .user-profile .dl-val .role-pill.is-admin {
+    background: rgba(212, 165, 116, 0.12); color: var(--cm-bronze);
+    border-color: rgba(212, 165, 116, 0.3);
+  }
+  .user-stats-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+  @media (max-width: 540px) { .user-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .user-stat-tile {
+    background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule);
+    border-radius: 8px; padding: 14px 14px;
+  }
+  .user-stat-tile .stat-num {
+    font-family: var(--cm-ff-display); font-style: italic; font-weight: 500;
+    font-size: 22px; line-height: 1; color: var(--cm-ivory); margin-bottom: 5px;
+  }
+  .user-stat-tile .stat-lbl {
+    font-family: var(--cm-ff-mono); font-size: 9px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--cm-ivory-dim);
+  }
+  .user-activity {
+    grid-column: 1 / -1; padding-top: 18px;
+    border-top: 1px solid var(--cm-rule); margin-top: 4px;
+  }
+  .user-activity-list { max-height: 420px; overflow-y: auto; padding-right: 6px; }
+  .user-activity-list::-webkit-scrollbar { width: 6px; }
+  .user-activity-list::-webkit-scrollbar-track { background: transparent; }
+  .user-activity-list::-webkit-scrollbar-thumb { background: var(--cm-rule); border-radius: 3px; }
+  .user-activity-item {
+    display: grid; grid-template-columns: 26px 1fr auto; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid rgba(232, 227, 216, 0.06);
+    align-items: start;
+  }
+  .user-activity-item:last-child { border-bottom: none; }
+  .user-activity-icon {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(159, 180, 216, 0.10); color: var(--cm-peri); font-size: 13px;
+  }
+  .user-activity-icon.signup    { background: rgba(232, 227, 216, 0.08); color: var(--cm-ivory-dim); }
+  .user-activity-icon.offer     { background: rgba(212, 165, 116, 0.12); color: var(--cm-bronze); }
+  .user-activity-icon.listing   { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
+  .user-activity-icon.watchlist { background: rgba(159, 180, 216, 0.12); color: var(--cm-peri); }
+  .user-activity-icon.signature { background: rgba(179, 157, 219, 0.12); color: #b39ddb; }
+  .user-activity-icon.referral  { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
+  .user-activity-title {
+    font-size: 13px; color: var(--cm-ivory); line-height: 1.45;
+  }
+  .user-activity-body {
+    font-size: 11px; color: var(--cm-ivory-dim); margin-top: 3px;
+  }
+  .user-activity-ts {
+    font-family: var(--cm-ff-mono); font-size: 10px;
+    color: var(--cm-ivory-dim); letter-spacing: 0.04em;
+    white-space: nowrap; padding-top: 2px;
+  }
+  .user-activity-empty {
+    padding: 24px; text-align: center; color: var(--cm-ivory-faint);
+    font-style: italic; font-family: var(--cm-ff-display); font-size: 14px;
+  }
+  .user-detail-loading {
+    padding: 32px; text-align: center; color: var(--cm-ivory-dim);
+    font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.1em;
+  }
+  .user-detail-error {
+    padding: 24px; text-align: center; color: var(--cm-loss);
+    font-size: 13px;
+  }
+
   .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
   .tool-card { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 22px 24px; text-decoration: none; color: var(--cm-ivory); transition: all 0.15s; display: block; }
   .tool-card:hover { border-color: var(--cm-peri); background: rgba(159, 180, 216, 0.08); }
@@ -157,6 +264,7 @@
       <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
       <div class="meta">
         <span class="admin-pill">Admin</span>
+        <a href="/admin/outreach.html" style="color:var(--cm-ivory-dim);text-decoration:none;">Outreach</a>
         <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
         <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
       </div>
@@ -236,9 +344,12 @@
         </div>
       </div>
 
-      <!-- ─── Recent signups ─── -->
+      <!-- ─── Users table (Phase A — click row to drill in) ─── -->
       <div class="section">
-        <div class="section-head"><h2>Recent <em>signups</em></h2></div>
+        <div class="section-head">
+          <h2>Users · <em>click to expand</em></h2>
+          <span class="section-sub" id="users-count">—</span>
+        </div>
         <div class="table-host">
           <table class="table">
             <thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Referral code</th><th>Referred by</th></tr></thead>
@@ -253,6 +364,10 @@
       <div class="section">
         <div class="section-head"><h2>Admin <em>tools</em></h2></div>
         <div class="tools-grid">
+          <a class="tool-card" href="/admin/outreach.html">
+            <div class="t-name">HOA Outreach CRM</div>
+            <div class="t-desc">Building-by-building pipeline · contacts · timeline · pitch emails.</div>
+          </a>
           <a class="tool-card" href="/tools/">
             <div class="t-name">Bulk CSV Image Downloader</div>
             <div class="t-desc">Extract building images from a Webflow CMS CSV export.</div>
@@ -288,6 +403,20 @@
 
   let allOffers = [];
   let listingsById = {};
+
+  // Phase A — user drill-down state
+  const userActivityCache = new Map();   // userId -> { profile, offers?, listings?, watchlist?, signatures?, credits? }
+  let referrerEmailMap = {};             // referrer uuid -> email (for "referred by" cell)
+
+  const USER_ACTIVITY_ICON = {
+    signup: '✨',
+    tos:    '📜',
+    offer:  '$',
+    listing:'🏠',
+    watchlist:'★',
+    signature:'✍',
+    referral:'🎁',
+  };
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -326,6 +455,10 @@
   function buildingPretty(slug) {
     if (!slug) return '—';
     return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  function unitLabel(l) {
+    if (!l) return '—';
+    return (l.address || '?') + (l.unit_number ? ' #' + l.unit_number : '');
   }
 
   async function render() {
@@ -473,31 +606,210 @@
     }).join('\n');
   }
 
+  // ─── PHASE A: Users with drill-down ─────────────────────────────────────
   async function loadUsers() {
     try {
-      const { data: users } = await sb
+      const { data: users, error } = await sb
         .from('profiles')
-        .select('email, full_name, created_at, referral_code, referred_by_code')
+        .select('id, email, full_name, phone, created_at, referral_code, referred_by, role, tos_accepted_at, tos_version, points_earned')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(200);
+      if (error) throw error;
+
+      // Resolve referrer emails for the "Referred by" column
+      const referrerIds = [...new Set((users || []).map(u => u.referred_by).filter(Boolean))];
+      referrerEmailMap = {};
+      if (referrerIds.length > 0) {
+        try {
+          const { data: referrers } = await sb.from('profiles').select('id, email').in('id', referrerIds);
+          referrerEmailMap = Object.fromEntries((referrers || []).map(r => [r.id, r.email]));
+        } catch (e) { /* swallow — referred-by column gracefully shows '—' */ }
+      }
+
+      // Seed cache with the basic profile so drill-down only has to fetch activity tables
+      (users || []).forEach(u => {
+        userActivityCache.set(u.id, { profile: u });
+      });
+
       const tbody = document.getElementById('users-tbody');
+      const countEl = document.getElementById('users-count');
       if (users && users.length > 0) {
-        tbody.innerHTML = users.map(u => `
-          <tr>
-            <td style="font-family:var(--cm-ff-mono);font-size:12px;">${escapeHtml(u.email || '—')}</td>
-            <td>${escapeHtml(u.full_name || '—')}</td>
-            <td style="color:var(--cm-ivory-dim);font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-            <td style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(u.referral_code || '—')}</td>
-            <td style="font-family:var(--cm-ff-mono);color:var(--cm-ivory-dim);">${escapeHtml(u.referred_by_code || '—')}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = users.map(u => renderUserRow(u)).join('');
+        countEl.textContent = users.length === 200
+          ? 'Showing most recent 200'
+          : `${users.length} user${users.length === 1 ? '' : 's'}`;
       } else {
         tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No users yet.</td></tr>';
+        countEl.textContent = '';
       }
     } catch (e) {
+      console.error('[loadUsers]', e);
       document.getElementById('users-tbody').innerHTML =
         '<tr class="empty-row"><td colspan="5">Could not load users.</td></tr>';
     }
+  }
+
+  function renderUserRow(u) {
+    const referrerEmail = u.referred_by ? referrerEmailMap[u.referred_by] : null;
+    return [
+      `<tr class="user-tr" data-user-id="${escapeHtml(u.id)}">`,
+      `  <td style="font-family:var(--cm-ff-mono);font-size:12px;"><i class="chev">›</i>${escapeHtml(u.email || '—')}</td>`,
+      `  <td>${escapeHtml(u.full_name || '—')}</td>`,
+      `  <td style="color:var(--cm-ivory-dim);font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>`,
+      `  <td style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(u.referral_code || '—')}</td>`,
+      `  <td style="font-family:var(--cm-ff-mono);color:var(--cm-ivory-dim);font-size:12px;">${escapeHtml(referrerEmail || '—')}</td>`,
+      `</tr>`,
+      `<tr class="user-detail" data-detail-for="${escapeHtml(u.id)}" style="display:none;">`,
+      `  <td colspan="5"><div class="user-detail-loading" data-loading="true">Loading activity…</div></td>`,
+      `</tr>`,
+    ].join('');
+  }
+
+  async function loadUserActivity(userId) {
+    const cached = userActivityCache.get(userId);
+    if (cached && cached.offers !== undefined) return cached;
+
+    const [offersR, listingsR, watchlistR, sigsR, creditsR] = await Promise.all([
+      sb.from('offers')
+        .select('id, building_slug, listing_id, offer_amount, status, current_round, created_at, updated_at')
+        .eq('buyer_user_id', userId).order('created_at', { ascending: false }),
+      sb.from('listings')
+        .select('id, address, unit_number, building, price, status, created_at, updated_at')
+        .eq('user_id', userId).order('created_at', { ascending: false }),
+      sb.from('watchlist')
+        .select('id, building_slug, created_at')
+        .eq('user_id', userId).order('created_at', { ascending: false }),
+      sb.from('petition_signatures')
+        .select('id, building_slug, unit_address, matched_owner_name, signed_at')
+        .eq('signer_user_id', userId).order('signed_at', { ascending: false }),
+      sb.from('referral_credits')
+        .select('id, points_awarded, source, awarded_at, referred_user_id')
+        .eq('referrer_id', userId).order('awarded_at', { ascending: false }),
+    ]);
+
+    const activity = {
+      profile: cached?.profile,
+      offers:     offersR.data    || [],
+      listings:   listingsR.data  || [],
+      watchlist:  watchlistR.data || [],
+      signatures: sigsR.data      || [],
+      credits:    creditsR.data   || [],
+    };
+    userActivityCache.set(userId, activity);
+    return activity;
+  }
+
+  function buildUserTimeline(activity) {
+    const events = [];
+    const p = activity.profile || {};
+
+    if (p.created_at) {
+      events.push({ ts: p.created_at, kind: 'signup', title: 'Joined Condo Market', body: '' });
+    }
+    if (p.tos_accepted_at) {
+      events.push({
+        ts: p.tos_accepted_at, kind: 'tos',
+        title: `Accepted Terms of Service${p.tos_version ? ' v' + p.tos_version : ''}`,
+        body: '',
+      });
+    }
+    activity.offers.forEach(o => {
+      events.push({
+        ts: o.created_at, kind: 'offer',
+        title: `Made ${fmtMoney(o.offer_amount)} offer · ${buildingPretty(o.building_slug)}`,
+        body: o.status !== 'pending' ? `Status: ${o.status}` : '',
+      });
+    });
+    activity.listings.forEach(l => {
+      events.push({
+        ts: l.created_at, kind: 'listing',
+        title: `Created MMM listing · ${unitLabel(l)} · ${fmtMoney(l.price)}`,
+        body: l.status !== 'active' ? `Status: ${l.status}` : '',
+      });
+    });
+    activity.watchlist.forEach(w => {
+      events.push({
+        ts: w.created_at, kind: 'watchlist',
+        title: `Watchlisted ${buildingPretty(w.building_slug)}`,
+        body: '',
+      });
+    });
+    activity.signatures.forEach(s => {
+      events.push({
+        ts: s.signed_at, kind: 'signature',
+        title: `Signed petition · ${buildingPretty(s.building_slug)}${s.unit_address ? ' · ' + s.unit_address : ''}`,
+        body: s.matched_owner_name ? `Public-record owner: ${s.matched_owner_name}` : '',
+      });
+    });
+    activity.credits.forEach(c => {
+      events.push({
+        ts: c.awarded_at, kind: 'referral',
+        title: `Earned ${c.points_awarded} pts referral credit`,
+        body: c.source ? `Source: ${c.source}` : '',
+      });
+    });
+    return events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  }
+
+  function renderUserDetail(activity) {
+    const p = activity.profile || {};
+    const referrerEmail = p.referred_by ? referrerEmailMap[p.referred_by] : null;
+    const timeline = buildUserTimeline(activity);
+
+    const tosCell = p.tos_accepted_at
+      ? `v${escapeHtml(p.tos_version || '?')} · ${new Date(p.tos_accepted_at).toLocaleDateString()}`
+      : '<span style="color:var(--cm-ivory-faint);">Not accepted</span>';
+
+    return [
+      `<div class="user-detail-content">`,
+
+      // ── Profile card
+      `  <div class="user-profile">`,
+      `    <h4>Profile</h4>`,
+      `    <dl>`,
+      `      <div class="dl-row"><span class="dl-key">Email</span><span class="dl-val" style="font-family:var(--cm-ff-mono);">${escapeHtml(p.email || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Name</span><span class="dl-val">${escapeHtml(p.full_name || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Phone</span><span class="dl-val">${escapeHtml(p.phone || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Role</span><span class="dl-val"><span class="role-pill ${p.role === 'admin' ? 'is-admin' : ''}">${escapeHtml(p.role || 'user')}</span></span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Joined</span><span class="dl-val">${p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">TOS</span><span class="dl-val">${tosCell}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Their code</span><span class="dl-val" style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(p.referral_code || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Referred by</span><span class="dl-val" style="font-family:var(--cm-ff-mono);font-size:12px;">${escapeHtml(referrerEmail || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">User ID</span><span class="dl-val" style="font-family:var(--cm-ff-mono);font-size:10px;color:var(--cm-ivory-dim);">${escapeHtml(p.id || '—')}</span></div>`,
+      `    </dl>`,
+      `  </div>`,
+
+      // ── Stats grid
+      `  <div class="user-stats">`,
+      `    <h4>Activity stats</h4>`,
+      `    <div class="user-stats-grid">`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.offers.length}</div><div class="stat-lbl">Offers</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.listings.length}</div><div class="stat-lbl">MMM listings</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.watchlist.length}</div><div class="stat-lbl">Watchlist</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.signatures.length}</div><div class="stat-lbl">Petitions</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.credits.length}</div><div class="stat-lbl">Referrals made</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num" style="color:var(--cm-peri);">${p.points_earned || 0}</div><div class="stat-lbl">Total points</div></div>`,
+      `    </div>`,
+      `  </div>`,
+
+      // ── Activity timeline (full width)
+      `  <div class="user-activity">`,
+      `    <h4>Activity timeline · ${timeline.length} event${timeline.length === 1 ? '' : 's'}</h4>`,
+      timeline.length === 0
+        ? `    <div class="user-activity-empty">No activity yet.</div>`
+        : `    <div class="user-activity-list">${timeline.map(e => `
+            <div class="user-activity-item">
+              <div class="user-activity-icon ${e.kind}">${USER_ACTIVITY_ICON[e.kind] || '•'}</div>
+              <div>
+                <div class="user-activity-title">${escapeHtml(e.title)}</div>
+                ${e.body ? `<div class="user-activity-body">${escapeHtml(e.body)}</div>` : ''}
+              </div>
+              <div class="user-activity-ts">${escapeHtml(relativeTime(e.ts))}</div>
+            </div>
+          `).join('')}</div>`,
+      `  </div>`,
+      `</div>`,
+    ].join('\n');
   }
 
   // Filter changes re-render
@@ -507,8 +819,9 @@
     }
   });
 
-  // Click row to expand; click action button to act
+  // Unified click handler — offer-row expand, offer-action buttons, user-row expand
   document.addEventListener('click', async (e) => {
+    // Offer action buttons (accept/decline/expire) — handle first because they live inside an offer-tr
     const actionBtn = e.target.closest('button[data-action]');
     if (actionBtn) {
       const action = actionBtn.dataset.action;
@@ -527,14 +840,46 @@
       await loadOffers();
       return;
     }
-    const row = e.target.closest('tr.offer-tr');
-    if (!row) return;
-    const id = row.dataset.id;
-    const detail = document.querySelector(`tr.offer-detail[data-detail-for="${CSS.escape(id)}"]`);
-    if (!detail) return;
-    const isOpen = detail.style.display !== 'none';
-    detail.style.display = isOpen ? 'none' : 'table-row';
-    row.classList.toggle('is-expanded', !isOpen);
+
+    // Offer row expand
+    const offerRow = e.target.closest('tr.offer-tr');
+    if (offerRow) {
+      const id = offerRow.dataset.id;
+      const detail = document.querySelector(`tr.offer-detail[data-detail-for="${CSS.escape(id)}"]`);
+      if (!detail) return;
+      const isOpen = detail.style.display !== 'none';
+      detail.style.display = isOpen ? 'none' : 'table-row';
+      offerRow.classList.toggle('is-expanded', !isOpen);
+      return;
+    }
+
+    // User row expand (Phase A)
+    const userRow = e.target.closest('tr.user-tr');
+    if (userRow) {
+      const userId = userRow.dataset.userId;
+      const detail = document.querySelector(`tr.user-detail[data-detail-for="${CSS.escape(userId)}"]`);
+      if (!detail) return;
+      const isOpen = detail.style.display !== 'none';
+      if (isOpen) {
+        detail.style.display = 'none';
+        userRow.classList.remove('is-expanded');
+        return;
+      }
+      detail.style.display = 'table-row';
+      userRow.classList.add('is-expanded');
+      const td = detail.querySelector('td');
+      const loadingPane = td.querySelector('.user-detail-loading');
+      if (loadingPane && loadingPane.dataset.loading === 'true') {
+        try {
+          const activity = await loadUserActivity(userId);
+          td.innerHTML = renderUserDetail(activity);
+        } catch (err) {
+          console.error('[loadUserActivity]', err);
+          td.innerHTML = `<div class="user-detail-error">Could not load activity: ${escapeHtml(err.message || 'unknown error')}</div>`;
+        }
+      }
+      return;
+    }
   });
 
   window.addEventListener('cm-ready', render);
