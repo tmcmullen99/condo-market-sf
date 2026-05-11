@@ -1,1 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim your unit · Condo Market SF</title>
+<meta name="description" content="Claim your San Francisco condo. Once verified you can sign your building's petition and receive offers.">
+<link rel="canonical" href="https://www.sanfranciscocondomarket.com/claim/">
+<link rel="icon" href="/favicon.svg">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e;
+    --cm-navy-deep: #0f131d;
+    --cm-peri: #9fb4d8;
+    --cm-bronze: #d4a574;
+    --cm-rust: #c95742;
+    --cm-gain: #8fb97a;
+    --cm-amber: #d9a44b;
+    --cm-ivory: #e8e3d8;
+    --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep);
+    color: var(--cm-ivory);
+    font-family: var(--ff-body);
+    font-weight: 300;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
+  .nav-meta a { color: var(--cm-ivory-dim); text-decoration: none; }
+  .nav-meta a:hover { color: var(--cm-ivory); }
+  .signin-pill { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
+  .signin-pill:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
 
+  main { padding: 64px 0 96px; }
+  h1 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: clamp(34px, 5vw, 48px); line-height: 1.05; margin-bottom: 16px; color: var(--cm-ivory); }
+  h1 em { color: var(--cm-peri); }
+  .subtitle { color: var(--cm-ivory-dim); font-size: 16px; margin-bottom: 40px; max-width: 56ch; line-height: 1.5; }
+  .eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 16px; display: block; }
+
+  .card { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 16px; padding: clamp(28px, 4vw, 40px); }
+  .field { margin-bottom: 24px; }
+  .field-label { display: block; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 10px; }
+  .field-hint { font-size: 13px; color: var(--cm-ivory-dim); margin-top: 6px; line-height: 1.45; }
+  .field-input, .field-select { width: 100%; background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 8px; padding: 14px 16px; color: var(--cm-ivory); font-family: var(--ff-body); font-size: 16px; transition: border-color 0.15s ease; }
+  .field-input:focus, .field-select:focus { outline: none; border-color: var(--cm-peri); }
+  .field-input::placeholder { color: var(--cm-ivory-faint); }
+  .field-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239fb4d8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 10px 6px; padding-right: 36px; }
+
+  .price-toggle { display: flex; align-items: flex-start; gap: 12px; padding: 14px 18px; background: rgba(212, 165, 116, 0.05); border: 1px solid rgba(212, 165, 116, 0.2); border-radius: 8px; cursor: pointer; margin-bottom: 18px; }
+  .price-toggle input { accent-color: var(--cm-bronze); margin-top: 3px; }
+  .price-toggle-label { font-size: 14px; color: var(--cm-ivory); line-height: 1.4; }
+  .price-toggle-label .hint { color: var(--cm-ivory-dim); font-size: 12px; display: block; margin-top: 4px; line-height: 1.5; }
+
+  .price-display-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .price-display { font-family: var(--ff-display); font-style: italic; font-weight: 600; font-size: clamp(34px, 6vw, 48px); line-height: 1; color: var(--cm-bronze); }
+  .price-context { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .price-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--cm-rule); border-radius: 2px; cursor: pointer; outline: none; margin: 4px 0; }
+  .price-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--cm-bronze); border-radius: 50%; cursor: grab; border: 3px solid var(--cm-navy-deep); box-shadow: 0 0 0 1px var(--cm-bronze); }
+  .price-slider::-moz-range-thumb { width: 24px; height: 24px; background: var(--cm-bronze); border-radius: 50%; cursor: grab; border: 3px solid var(--cm-navy-deep); box-shadow: 0 0 0 1px var(--cm-bronze); }
+  .price-marks { display: flex; justify-content: space-between; font-family: var(--ff-mono); font-size: 10px; color: var(--cm-ivory-faint); margin-top: 6px; }
+
+  .cta { display: block; width: 100%; background: var(--cm-peri); color: var(--cm-navy); border: none; padding: 16px 24px; border-radius: 10px; font-family: var(--ff-body); font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.15s ease; margin-top: 12px; }
+  .cta:hover:not(:disabled) { background: var(--cm-ivory); transform: translateY(-1px); }
+  .cta:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .fine { margin-top: 18px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--cm-ivory-faint); line-height: 1.6; }
+
+  .gate { text-align: center; padding: 56px 32px; background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 12px; }
+  .gate h2 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 26px; margin-bottom: 14px; color: var(--cm-ivory); }
+  .gate p { color: var(--cm-ivory-dim); margin: 0 auto 24px; max-width: 44ch; }
+
+  .result { padding: clamp(28px, 4vw, 36px); background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 12px; }
+  .result.is-approved { border-left: 3px solid var(--cm-gain); }
+  .result.is-pending  { border-left: 3px solid var(--cm-amber); }
+  .result-badge { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; display: inline-block; padding: 4px 10px; border-radius: 999px; margin-bottom: 14px; }
+  .result.is-approved .result-badge { background: rgba(143, 185, 122, 0.15); color: var(--cm-gain); }
+  .result.is-pending .result-badge { background: rgba(217, 164, 75, 0.15); color: var(--cm-amber); }
+  .result h2 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 28px; margin-bottom: 14px; color: var(--cm-ivory); line-height: 1.15; }
+  .result p { color: var(--cm-ivory-dim); margin-bottom: 16px; }
+  .result p strong { color: var(--cm-ivory); font-weight: 500; }
+  .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 22px; border-radius: 8px; border: 1px solid; font-family: var(--ff-body); font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.15s ease; }
+  .btn-primary { background: var(--cm-peri); color: var(--cm-navy); border-color: var(--cm-peri); }
+  .btn-primary:hover { background: var(--cm-ivory); }
+  .btn-ghost { background: transparent; color: var(--cm-peri); border-color: var(--cm-rule); }
+  .btn-ghost:hover { border-color: var(--cm-peri); }
+
+  .error-banner { margin-bottom: 18px; padding: 14px 16px; background: rgba(201, 87, 66, 0.08); border: 1px solid rgba(201, 87, 66, 0.3); border-radius: 8px; color: var(--cm-ivory); font-size: 14px; line-height: 1.5; }
+
+  #loading { text-align: center; padding: 96px 20px; color: var(--cm-ivory-dim); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.1em; }
+
+  footer { padding: 32px 0 28px; color: var(--cm-ivory-faint); font-size: 12px; text-align: center; border-top: 1px solid var(--cm-rule); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-row">
+    <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+    <nav class="nav-meta">
+      <a href="/buildings/">Buildings</a>
+      <a href="/dashboard/">Dashboard</a>
+      <a href="#signin" data-cm-auth="login" class="signin-pill">Sign in</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="loading">Loading…</div>
+    <div id="claim-content" style="display:none;"></div>
+  </div>
+</main>
+
+<footer>© 2026 Condo Market SF · McMullen Properties · DRE #02016832</footer>
+
+<script type="module">
+  import { CM, sb } from '/assets/cm-supabase.js';
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+  function fmtMoney(n) {
+    n = Number(n) || 0;
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+  function buildingPretty(slug) {
+    if (!slug) return '';
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const preselectedSlug = (params.get('building') || '').toLowerCase();
+  const root = document.getElementById('claim-content');
+  const loadingEl = document.getElementById('loading');
+
+  let buildingsList = [];
+
+  async function loadBuildings() {
+    try {
+      const r = await fetch('/assets/buildings.json', { cache: 'no-cache' });
+      if (!r.ok) return [];
+      const all = await r.json();
+      return (all || []).map(function(b) {
+        const m = b.href && b.href.match(/\/buildings\/([a-z0-9-]+)/i);
+        const slug = m ? m[1] : ((b.href || '').replace(/^\/+|\/+$/g, '').split('/').pop() || '');
+        return { slug: slug.toLowerCase(), name: b.name || buildingPretty(slug) };
+      }).filter(function(b) { return b.slug; });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function showContent(html) {
+    loadingEl.style.display = 'none';
+    root.style.display = 'block';
+    root.innerHTML = html;
+  }
+
+  function renderSignedOut() {
+    return [
+      '<span class="eyebrow">Claim your unit</span>',
+      '<h1>Verify your <em>ownership</em></h1>',
+      '<p class="subtitle">Sign in or create a Condo Market account to claim your unit. We cross-reference your name against the public ownership record — most claims auto-verify instantly.</p>',
+      '<div class="gate">',
+        '<h2>Sign in to continue</h2>',
+        '<p>Once signed in you can claim a unit, set a make-me-move price, and sign your building&rsquo;s petition.</p>',
+        '<a class="btn btn-primary" href="#signin" data-cm-auth="login">Sign in</a>',
+        ' &nbsp; ',
+        '<a class="btn btn-ghost" href="#signup" data-cm-auth="signup">Create account</a>',
+      '</div>',
+    ].join('');
+  }
+
+  function renderForm(profile) {
+    const buildingOpts = buildingsList.map(function(b) {
+      return '<option value="' + escapeHtml(b.slug) + '"' + (b.slug === preselectedSlug ? ' selected' : '') + '>' + escapeHtml(b.name) + '</option>';
+    }).join('');
+    const preselectedName = profile.full_name || '';
+    return [
+      '<span class="eyebrow">Claim your unit</span>',
+      '<h1>Verify your <em>ownership</em></h1>',
+      '<p class="subtitle">Pick your building, type your unit and the name on title. We auto-verify against public records — usually instant. If not, it goes to a brief admin review.</p>',
+      '<div class="card">',
+        '<div id="err-banner" style="display:none;" class="error-banner"></div>',
+
+        '<div class="field">',
+          '<label class="field-label" for="f-building">Building</label>',
+          '<select class="field-select" id="f-building">',
+            '<option value="">— Pick your building —</option>',
+            buildingOpts,
+          '</select>',
+        '</div>',
+
+        '<div class="field">',
+          '<label class="field-label" for="f-unit">Unit number</label>',
+          '<input class="field-input" id="f-unit" type="text" placeholder="e.g. 12B, #15A, PH-3" autocomplete="off">',
+          '<div class="field-hint">Type the unit identifier as it appears on your deed or HOA bill. Punctuation and spacing don&rsquo;t matter.</div>',
+        '</div>',
+
+        '<div class="field">',
+          '<label class="field-label" for="f-name">Your name (as it appears on title)</label>',
+          '<input class="field-input" id="f-name" type="text" value="' + escapeHtml(preselectedName) + '" placeholder="e.g. Harish Bharadwaj" autocomplete="name">',
+          '<div class="field-hint">Best match is the name on your deed. Reordered, lowercased, or shortened versions all work — &ldquo;BHARADWAJ HARISH&rdquo; and &ldquo;Harish Bharadwaj&rdquo; both verify against the same record.</div>',
+        '</div>',
+
+        '<label class="price-toggle" for="f-toggle-price">',
+          '<input type="checkbox" id="f-toggle-price" checked>',
+          '<span class="price-toggle-label">',
+            'Also set a make-me-move price',
+            '<span class="hint">If a buyer offers this much, you&rsquo;re open to a conversation. Optional — you can add or change this later from your dashboard.</span>',
+          '</span>',
+        '</label>',
+
+        '<div id="price-section" class="field">',
+          '<div class="price-display-row">',
+            '<span class="price-display" id="price-display">$1,500,000</span>',
+            '<span class="price-context">Make-me-move price</span>',
+          '</div>',
+          '<input class="price-slider" id="f-price" type="range" min="500000" max="5000000" step="25000" value="1500000">',
+          '<div class="price-marks">',
+            '<span>$500K</span><span>$1.5M</span><span>$3M</span><span>$5M</span>',
+          '</div>',
+        '</div>',
+
+        '<button class="cta" id="f-submit">Submit claim</button>',
+
+        '<div class="fine">Auto-verifies against public ownership records. Edge cases (trust ownership, LLCs, name variations) go to a short admin review and typically clear within a day.</div>',
+      '</div>',
+    ].join('');
+  }
+
+  function renderResult(claim, mmm, autoVerified) {
+    const isApproved = autoVerified || (claim && claim.status === 'approved');
+    const bldName = buildingPretty(claim.building_slug);
+    let priceLine = '';
+    if (mmm && mmm.target_price) {
+      const livePhrase = isApproved
+        ? 'now <strong>live</strong> in the building&rsquo;s open-to-offers list'
+        : 'recorded but will not go live until your claim is approved';
+      priceLine = '<p>Your make-me-move price of <strong>' + fmtMoney(mmm.target_price) + '</strong> is ' + livePhrase + '.</p>';
+    }
+
+    if (isApproved) {
+      return [
+        '<span class="eyebrow">Claim submitted</span>',
+        '<div class="result is-approved">',
+          '<span class="result-badge">✓ Auto-verified</span>',
+          '<h2>You&rsquo;re verified at ' + escapeHtml(bldName) + '</h2>',
+          '<p>Your name fuzzy-matched the title record for unit <strong>' + escapeHtml(claim.unit_address) + '</strong>. You can now sign your building&rsquo;s petition and receive offers on your unit.</p>',
+          priceLine,
+          '<div class="result-actions">',
+            '<a class="btn btn-primary" href="/petition?slug=' + encodeURIComponent(claim.building_slug) + '">Sign the petition →</a>',
+            '<a class="btn btn-ghost" href="/dashboard/">Go to dashboard</a>',
+          '</div>',
+        '</div>',
+      ].join('');
+    }
+    return [
+      '<span class="eyebrow">Claim submitted</span>',
+      '<div class="result is-pending">',
+        '<span class="result-badge">⏳ Pending review</span>',
+        '<h2>Your claim is in review</h2>',
+        '<p>Your name didn&rsquo;t auto-match the title record for unit <strong>' + escapeHtml(claim.unit_address) + '</strong> at ' + escapeHtml(bldName) + '. This is normal for trust ownership, LLCs, or name variations — an admin will review it (usually within a day).</p>',
+        priceLine,
+        '<p>You&rsquo;ll get an email the moment it&rsquo;s approved. After that, come back to sign your building&rsquo;s petition.</p>',
+        '<div class="result-actions">',
+          '<a class="btn btn-primary" href="/dashboard/">Go to dashboard</a>',
+          '<a class="btn btn-ghost" href="/buildings/">Browse buildings</a>',
+        '</div>',
+      '</div>',
+    ].join('');
+  }
+
+  function bindFormHandlers() {
+    const slider = document.getElementById('f-price');
+    const display = document.getElementById('price-display');
+    const toggle = document.getElementById('f-toggle-price');
+    const priceSection = document.getElementById('price-section');
+
+    function updatePrice() {
+      const v = parseInt(slider.value, 10) || 0;
+      display.textContent = fmtMoney(v);
+    }
+    slider.addEventListener('input', updatePrice);
+    updatePrice();
+
+    toggle.addEventListener('change', function() {
+      priceSection.style.display = toggle.checked ? '' : 'none';
+    });
+
+    document.getElementById('f-submit').addEventListener('click', async function() {
+      const buildingSlug = document.getElementById('f-building').value;
+      const unit = document.getElementById('f-unit').value.trim();
+      const name = document.getElementById('f-name').value.trim();
+      const wantsPrice = toggle.checked;
+      const price = wantsPrice ? parseInt(slider.value, 10) : null;
+      const errBanner = document.getElementById('err-banner');
+
+      function showErr(msg) {
+        errBanner.textContent = msg;
+        errBanner.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (!buildingSlug) return showErr('Pick your building.');
+      if (!unit)          return showErr('Type your unit number.');
+      if (!name)          return showErr('Type your name as it appears on title.');
+      if (wantsPrice && (!price || price < 500000)) return showErr('Set a make-me-move price of at least $500,000.');
+
+      errBanner.style.display = 'none';
+      const submitBtn = document.getElementById('f-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+
+      const { data, error } = await sb.rpc('submit_claim_with_mmm', {
+        p_building_slug: buildingSlug,
+        p_unit_address:  unit,
+        p_claimed_name:  name,
+        p_target_price:  price,
+      });
+
+      if (error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit claim';
+        console.error('[claim] submit failed', error);
+        showErr('Submit failed: ' + error.message + ' — please try again or contact tim@mcmullen.properties.');
+        return;
+      }
+
+      const result = data || {};
+      showContent(renderResult(
+        result.claim || { building_slug: buildingSlug, unit_address: unit, status: 'pending' },
+        result.mmm,
+        !!result.auto_verified
+      ));
+    });
+  }
+
+  async function init() {
+    loadingEl.style.display = 'block';
+    root.style.display = 'none';
+
+    if (buildingsList.length === 0) {
+      buildingsList = await loadBuildings();
+      buildingsList.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    }
+
+    const session = await CM.getSession();
+    if (!session || !session.user) {
+      showContent(renderSignedOut());
+      return;
+    }
+
+    let profile = null;
+    try { profile = await CM.getMyProfile(); } catch (e) {}
+    profile = profile || { full_name: '' };
+
+    showContent(renderForm(profile));
+    bindFormHandlers();
+  }
+
+  window.addEventListener('cm-ready', init);
+  window.addEventListener('cm-auth-change', init);
+</script>
+
+</body>
+</html>
