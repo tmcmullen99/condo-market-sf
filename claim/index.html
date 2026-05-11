@@ -200,7 +200,7 @@
     return [
       '<span class="eyebrow">Claim your unit</span>',
       '<h1>Verify your <em>ownership</em></h1>',
-      '<p class="subtitle">Pick your building, type your unit and the name on title. We auto-verify against public records — usually instant. If not, it goes to a brief admin review.</p>',
+      '<p class="subtitle">Pick your building, type your unit, and the name on title. Tim manually reviews each claim against the title record on file — typically within a few hours during business hours.</p>',
       '<div class="card">',
         '<div id="err-banner" style="display:none;" class="error-banner"></div>',
 
@@ -221,7 +221,7 @@
         '<div class="field">',
           '<label class="field-label" for="f-name">Your name (as it appears on title)</label>',
           '<input class="field-input" id="f-name" type="text" value="' + escapeHtml(preselectedName) + '" placeholder="e.g. Harish Bharadwaj" autocomplete="name">',
-          '<div class="field-hint">Best match is the name on your deed. Reordered, lowercased, or shortened versions all work — &ldquo;BHARADWAJ HARISH&rdquo; and &ldquo;Harish Bharadwaj&rdquo; both verify against the same record.</div>',
+          '<div class="field-hint">Match the name on your deed if you can. Reordered, abbreviated, or all-caps versions are fine — Tim cross-references against the title record on file.</div>',
         '</div>',
 
         '<label class="price-toggle" for="f-toggle-price">',
@@ -245,7 +245,7 @@
 
         '<button class="cta" id="f-submit">Submit claim</button>',
 
-        '<div class="fine">Auto-verifies against public ownership records. Edge cases (trust ownership, LLCs, name variations) go to a short admin review and typically clear within a day.</div>',
+        '<div class="fine">Tim manually compares your submission against the title record on file. Typical turnaround is a few hours during business hours.</div>',
       '</div>',
     ].join('');
   }
@@ -281,7 +281,7 @@
       '<div class="result is-pending">',
         '<span class="result-badge">⏳ Pending review</span>',
         '<h2>Your claim is in review</h2>',
-        '<p>Your name didn&rsquo;t auto-match the title record for unit <strong>' + escapeHtml(claim.unit_address) + '</strong> at ' + escapeHtml(bldName) + '. This is normal for trust ownership, LLCs, or name variations — an admin will review it (usually within a day).</p>',
+        '<p>Tim received your claim for unit <strong>' + escapeHtml(claim.unit_address) + '</strong> at ' + escapeHtml(bldName) + '. He&rsquo;ll cross-reference it against the title record on file and approve or reject typically within a few hours during business hours.</p>',
         priceLine,
         '<p>You&rsquo;ll get an email the moment it&rsquo;s approved. After that, come back to sign your building&rsquo;s petition.</p>',
         '<div class="result-actions">',
