@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HOA Outreach · Admin · Condo Market</title>
+<title>Buildings · Admin · Condo Market</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -111,7 +111,6 @@
   .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--cm-peri); }
   .field textarea { min-height: 70px; resize: vertical; font-family: var(--ff-body); }
 
-  /* Inline quick-log form (replaces the broken modal flow) */
   .quick-log {
     margin-top: 22px; padding: 18px 20px; border: 1px solid var(--cm-rule);
     border-radius: 10px; background: rgba(159,180,216,0.04);
@@ -149,7 +148,6 @@
   .timeline-content .body { font-size: 12px; color: var(--cm-ivory-dim); margin-top: 5px; line-height: 1.5; white-space: pre-wrap; }
   .timeline-empty { text-align: center; padding: 32px 12px; color: var(--cm-ivory-faint); font-style: italic; font-family: var(--ff-display); font-size: 14px; }
 
-  /* Email modal (kept — works fine, distinct flow with templates) */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(15,19,29,0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .modal-backdrop[hidden] { display: none !important; }
   .modal { background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 32px; max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto; }
@@ -185,8 +183,8 @@
   <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
   <nav class="admin-nav">
     <a href="/admin/">Dashboard</a>
-    <a href="/admin/outreach.html" class="active">Outreach</a>
-    <a href="/buildings/">Buildings</a>
+    <a href="/admin/outreach.html" class="active">Buildings</a>
+    <a href="/buildings/">← Home</a>
   </nav>
   <span class="admin-user" id="admin-user">—</span>
 </header>
@@ -198,8 +196,8 @@
     <p>This page requires an admin role. <a href="/" style="color:var(--cm-peri);text-decoration:underline;">Return home</a></p>
   </div>
   <div id="content" hidden>
-    <div class="page-eyebrow">CRM · HOA Outreach</div>
-    <h1 class="page-title">Outreach Pipeline</h1>
+    <div class="page-eyebrow">CRM · Buildings</div>
+    <h1 class="page-title">Buildings</h1>
     <p class="page-sub">Every San Francisco condo building — sorted by missed HOA revenue. Track each board from prospect to partner.</p>
     <div class="kpis" id="kpis"></div>
     <div class="filters">
@@ -226,7 +224,6 @@
   </div>
 </main>
 
-<!-- Email modal — kept (different flow, has 4 templates with merge variables) -->
 <div class="modal-backdrop" id="email-modal" hidden>
   <div class="modal">
     <h3>Compose email</h3>
@@ -251,6 +248,7 @@
 
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '/assets/cm-config.js';
+import { CM } from '/assets/cm-supabase.js';
 
 const SITE_ORIGIN = window.location.origin;
 
@@ -263,22 +261,15 @@ function toast(msg, kind = 'error', ms = 6000) {
   if (ms) setTimeout(() => t.remove(), ms);
 }
 
+// Session is populated by init() before any sb.token()/user() calls.
+// Using CM.getSession() (the official Supabase client) sidesteps the base64-encoded
+// localStorage format that broke the previous DIY reader.
+let _cmSession = null;
+
 const sb = {
   url: SUPABASE_URL, key: SUPABASE_ANON_KEY,
-  _readSession: () => {
-    try {
-      const k = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-      if (!k) return null;
-      const raw = localStorage.getItem(k);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      if (obj?.access_token && obj?.user) return obj;
-      if (obj?.currentSession?.access_token) return obj.currentSession;
-      return obj;
-    } catch (e) { console.error('[auth] session read failed', e); return null; }
-  },
-  token: () => sb._readSession()?.access_token || null,
-  user: () => sb._readSession()?.user || null,
+  token: () => _cmSession?.access_token || null,
+  user:  () => _cmSession?.user || null,
   headers: (extra = {}) => {
     const t = sb.token();
     return { apikey: sb.key, Authorization: `Bearer ${t || sb.key}`, 'Content-Type': 'application/json', ...extra };
@@ -362,9 +353,11 @@ const QL_TYPES = [
 
 async function init() {
   try {
+    // Resolve session via the official Supabase client BEFORE any auth-gated work.
+    _cmSession = await CM.getSession();
     state.user = sb.user();
     if (!state.user || !state.user.id) {
-      showAccessDenied('Sign in required (no auth session in localStorage)');
+      showAccessDenied('Sign in required — please sign in on the main site, then return here.');
       return;
     }
     const profileRes = await fetch(`${sb.url}/rest/v1/profiles?id=eq.${state.user.id}&select=role,full_name,email`, { headers: sb.headers() });
@@ -445,7 +438,7 @@ function renderKpis() {
 
 function getEnrichedRows() {
   return state.buildings.map(b => {
-    const o = state.outreach.get(b.slug) || { status: 'untouched', last_contacted_at: null, next_action_at: null, contact_name: '', contact_email: '', contact_role: '', notes: '' };
+    const o = state.outreach.get(b.slug) || { status: 'untouched', last_contacted_at: null, next_action_at: null, contact_name: '', contact_email: '', contact_role: '', contact_url: '', notes: '' };
     const s = state.summary.get(b.slug) || { sales_10y: 0, missed_hoa_10y: 0, median_price_10y: 0 };
     return { ...b, outreach: o, summary: s, events: state.events.get(b.slug) || [] };
   });
@@ -556,6 +549,10 @@ function renderDetailPanel(r) {
             <div class="field"><label>Name</label><input data-field="contact_name" type="text" value="${esc(o.contact_name || '')}" placeholder="HOA contact name"></div>
             <div class="field"><label>Role</label><input data-field="contact_role" type="text" value="${esc(o.contact_role || '')}" placeholder="e.g. President, Property Manager"></div>
             <div class="field field-full"><label>Email</label><input data-field="contact_email" type="email" value="${esc(o.contact_email || '')}" placeholder="email@example.com"></div>
+            <div class="field field-full">
+              <label>Website / HOA portal URL ${o.contact_url ? `<a href="${esc(o.contact_url)}" target="_blank" rel="noopener" style="float:right;color:var(--cm-peri);text-decoration:underline;text-transform:none;letter-spacing:0;font-family:var(--ff-body);font-size:11px;">↗ Open</a>` : ''}</label>
+              <input data-field="contact_url" type="url" value="${esc(o.contact_url || '')}" placeholder="https://example.com/contact">
+            </div>
           </div>
 
           <h4>Pipeline</h4>
@@ -569,7 +566,6 @@ function renderDetailPanel(r) {
             <div class="field field-full"><label>Notes</label><textarea data-field="notes" placeholder="Persistent notes about this building/board…">${esc(o.notes || '')}</textarea></div>
           </div>
 
-          <!-- Inline log form (replaces broken modal flow) -->
           <div class="quick-log" data-ql-slug="${esc(r.slug)}">
             <h4>Log a touchpoint</h4>
             <div class="field-grid">
@@ -642,7 +638,6 @@ function wireDetailPanel(slug) {
   const detailRow = $('tbody').querySelector(`tr.detail[data-slug="${slug}"]`);
   if (!detailRow) return;
 
-  // Auto-save fields
   detailRow.querySelectorAll('[data-field]').forEach(el => {
     const evt = (el.tagName === 'SELECT') ? 'change' : 'blur';
     el.addEventListener(evt, () => saveField(slug, el.dataset.field, el.value).catch(err => {
@@ -650,7 +645,6 @@ function wireDetailPanel(slug) {
     }));
   });
 
-  // Copy buttons
   detailRow.querySelectorAll('[data-copy]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -662,7 +656,6 @@ function wireDetailPanel(slug) {
     });
   });
 
-  // Inline quick-log submit — reads form values directly from the same panel
   const qlSubmit = detailRow.querySelector('[data-ql-submit]');
   if (qlSubmit) {
     qlSubmit.addEventListener('click', async (e) => {
@@ -690,7 +683,6 @@ function wireDetailPanel(slug) {
     });
   }
 
-  // Action buttons (email / won / declined)
   detailRow.querySelectorAll('[data-act]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -805,7 +797,6 @@ async function cycleStatus(slug) {
   } catch (err) { console.error('[cycleStatus]', err); toast(`Status change failed: ${err.message || err}`); }
 }
 
-// ─── Email modal (kept — distinct flow with merge-variable templates) ──────
 const TEMPLATES = {
   cold: {
     subject: 'A partnership that pays {{building_name}} — direct revenue from every sale',
@@ -946,7 +937,6 @@ $('btn-email-send').addEventListener('click', async () => {
   }
 });
 
-// Top-level icon copy
 document.body.addEventListener('click', async (e) => {
   const btn = e.target.closest('.iconbtn[data-copy]');
   if (!btn) return;
