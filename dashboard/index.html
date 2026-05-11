@@ -217,8 +217,52 @@
   .btn-link.is-primary:hover { color: var(--cm-ivory); border-color: var(--cm-bronze); background: rgba(212, 165, 116, 0.1); }
 
   .mmm-msg { margin-top: 14px; padding: 10px 14px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
-  .mmm-msg.is-error { background: rgba(201, 120, 101, 0.1); border: 1px solid rgba(201, 120, 101, 0.3); color: var(--cm-loss); }
+ .mmm-msg.is-error { background: rgba(201, 120, 101, 0.1); border: 1px solid rgba(201, 120, 101, 0.3); color: var(--cm-loss); }
   .mmm-msg.is-success { background: rgba(143, 185, 122, 0.1); border: 1px solid rgba(143, 185, 122, 0.3); color: var(--cm-gain); }
+
+  /* Sprint B-2D: needs-claim state — shown when user has no approved user_units row */
+  .mmm-needs-claim-banner {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(217, 164, 75, 0.08);
+    border: 1px solid rgba(217, 164, 75, 0.25);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--cm-ivory);
+  }
+  .mmm-needs-claim-banner .dot { width: 6px; height: 6px; background: var(--cm-amber); border-radius: 50%; flex-shrink: 0; }
+  .mmm-claim-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .mmm-claim-row {
+    background: var(--cm-navy-deep);
+    border: 1px solid var(--cm-rule);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .mmm-claim-row-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .mmm-claim-row-addr {
+    font-family: var(--cm-ff-display); font-style: italic; font-weight: 500;
+    font-size: 16px; color: var(--cm-ivory); line-height: 1.25;
+  }
+  .mmm-claim-row-when {
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--cm-ivory-faint);
+    margin-top: 6px;
+  }
+  .mmm-claim-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .mmm-claim-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .mmm-claim-status-pending  { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
+  .mmm-claim-status-pending::before  { background: var(--cm-amber); }
+  .mmm-claim-status-rejected { background: rgba(201, 120, 101, 0.12); color: var(--cm-loss); }
+  .mmm-claim-status-rejected::before { background: var(--cm-loss); }
+  a#mmm-needs-claim-cta { display: inline-block; text-decoration: none; text-align: center; }
 
   /* Offer rows (used by both buyer-side and owner-side offer cards) */
   .offers-list { display: flex; flex-direction: column; gap: 14px; }
@@ -806,7 +850,20 @@
       <p class="view-intro">Set the price you'd actually take. Visible only to verified buyers signed into Condo Market — never on Zillow, never in MLS, no public sign.</p>
 
       <div class="card mmm-card">
-        <h2>Your <em>make-me-move</em> number</h2>
+       <h2>Your <em>make-me-move</em> number</h2>
+
+        <!-- Sprint B-2D: gate state — shown when user has no approved user_units row -->
+        <div id="mmm-needs-claim" style="display:none;">
+          <div class="mmm-needs-claim-banner">
+            <span class="dot"></span>
+            <span id="mmm-needs-claim-headline">Claim your unit before you list</span>
+          </div>
+          <p class="card-intro" id="mmm-needs-claim-body">We verify ownership before make-me-move pricing goes live, so the buyers you negotiate with know they're talking to real owners.</p>
+          <div id="mmm-needs-claim-list" class="mmm-claim-list" style="display:none;"></div>
+          <div class="form-actions">
+            <a class="btn-primary" id="mmm-needs-claim-cta" href="/claim/">Claim my unit →</a>
+          </div>
+        </div>
 
         <!-- Confirm state: prefilled from cm_owner_intent localStorage -->
         <div id="mmm-confirm" style="display:none;">
@@ -1556,24 +1613,108 @@
     ].filter(Boolean).join('\n');
   }
 
+  // ─── Sprint B-2D: claim-gate helpers ─────────────────────────────────────
+  // The listings_require_approved_claim_trg DB trigger rejects any INSERT
+  // into public.listings unless an approved user_units row exists for the
+  // matching user+building+unit. We surface that gate in the UI so users
+  // see the appropriate explanatory state before they hit the DB error.
+
+  async function renderNeedsClaim(claims) {
+    const headlineEl  = document.getElementById('mmm-needs-claim-headline');
+    const bodyEl      = document.getElementById('mmm-needs-claim-body');
+    const listEl      = document.getElementById('mmm-needs-claim-list');
+    const ctaEl       = document.getElementById('mmm-needs-claim-cta');
+    const containerEl = document.getElementById('mmm-needs-claim');
+
+    const pending  = claims.filter(c => c.status === 'pending');
+    const rejected = claims.filter(c => c.status === 'rejected');
+    const buildings = await loadBuildings();
+
+    function bName(slug) {
+      if (!slug) return 'your building';
+      const b = (buildings || []).find(x => x.href && x.href.indexOf('/' + slug + '/') !== -1);
+      if (b && b.name) return b.name;
+      return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    listEl.style.display = 'none';
+    listEl.innerHTML = '';
+
+    if (pending.length > 0) {
+      headlineEl.textContent = 'Your claim is under review';
+      bodyEl.textContent = pending.length > 1
+        ? 'We\u2019re verifying your unit ownership. Your make-me-move number unlocks the moment any claim is approved \u2014 usually within 24 hours.'
+        : 'We\u2019re verifying ownership of ' + bName(pending[0].building_slug) + ' \u00b7 ' + (pending[0].unit_address || 'your unit') + '. We email you the moment it\u2019s approved \u2014 usually within 24 hours. Your make-me-move number unlocks then.';
+      listEl.innerHTML = pending.map(c =>
+        '<div class="mmm-claim-row">' +
+          '<div class="mmm-claim-row-meta">' +
+            '<span class="mmm-claim-row-addr">' + escapeHtml(bName(c.building_slug)) + ' \u00b7 ' + escapeHtml(c.unit_address || '\u2014') + '</span>' +
+            '<span class="mmm-claim-status mmm-claim-status-pending">Pending</span>' +
+          '</div>' +
+          '<div class="mmm-claim-row-when">Submitted ' + escapeHtml(relativeDate(c.created_at).replace(/^Listed /, '')) + '</div>' +
+        '</div>'
+      ).join('');
+      listEl.style.display = 'block';
+      ctaEl.textContent = 'Submit another claim \u2192';
+      ctaEl.setAttribute('href', '/claim/');
+    } else if (rejected.length > 0) {
+      const latest = rejected[0];
+      headlineEl.textContent = 'Your claim needs another look';
+      bodyEl.textContent = 'We weren\u2019t able to verify your last claim. Resubmit with the name on the deed and the exact unit number to try again.';
+      listEl.innerHTML = rejected.map(c =>
+        '<div class="mmm-claim-row">' +
+          '<div class="mmm-claim-row-meta">' +
+            '<span class="mmm-claim-row-addr">' + escapeHtml(bName(c.building_slug)) + ' \u00b7 ' + escapeHtml(c.unit_address || '\u2014') + '</span>' +
+            '<span class="mmm-claim-status mmm-claim-status-rejected">Needs another look</span>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+      listEl.style.display = 'block';
+      ctaEl.textContent = 'Update and resubmit \u2192';
+      ctaEl.setAttribute('href', '/claim/?building=' + encodeURIComponent(latest.building_slug || ''));
+    } else {
+      headlineEl.textContent = 'Claim your unit before you list';
+      bodyEl.textContent = 'We verify ownership before make-me-move pricing goes live, so the buyers you negotiate with know they\u2019re talking to real owners.';
+      ctaEl.textContent = 'Claim my unit \u2192';
+      ctaEl.setAttribute('href', '/claim/');
+    }
+
+    containerEl.style.display = 'block';
+  }
+
   async function refreshMMM() {
     // If the wizard is open, leave the UI alone — its onComplete/onCancel
     // will call refreshMMM after the user closes it.
     if (_wizardOpen) return;
 
-    const confirmEl = document.getElementById('mmm-confirm');
-    const emptyEl   = document.getElementById('mmm-empty');
-    const activeEl  = document.getElementById('mmm-active');
-    const wizMount  = document.getElementById('mmm-wizard-mount');
-    const listings  = await CM.getMyListings();
-    const visible   = listings.filter(l => l.status !== 'removed');
-    const intent    = readIntent();
+    const needsClaimEl = document.getElementById('mmm-needs-claim');
+    const confirmEl    = document.getElementById('mmm-confirm');
+    const emptyEl      = document.getElementById('mmm-empty');
+    const activeEl     = document.getElementById('mmm-active');
+    const wizMount     = document.getElementById('mmm-wizard-mount');
 
-    confirmEl.style.display = 'none';
-    emptyEl.style.display   = 'none';
-    activeEl.style.display  = 'none';
-    wizMount.style.display  = 'none';
-    wizMount.innerHTML      = '';
+    needsClaimEl.style.display = 'none';
+    confirmEl.style.display    = 'none';
+    emptyEl.style.display      = 'none';
+    activeEl.style.display     = 'none';
+    wizMount.style.display     = 'none';
+    wizMount.innerHTML         = '';
+
+    // Sprint B-2D gate: listing creation requires an approved user_units claim
+    // (per-unit; enforced by listings_require_approved_claim_trg). Surface the
+    // gate state if the user has no approved claim yet.
+    const claims = await CM.getMyUnitClaims();
+    const hasApproved = claims.some(c => c.status === 'approved');
+
+    if (!hasApproved) {
+      await renderNeedsClaim(claims);
+      return;
+    }
+
+    // Past the gate — existing behavior follows.
+    const listings = await CM.getMyListings();
+    const visible  = listings.filter(l => l.status !== 'removed');
+    const intent   = readIntent();
 
     if (visible.length === 0 && intent) {
       // Show confirm-from-intent state
@@ -2314,12 +2455,27 @@
       const noListings = visibleListings.length === 0;
       const noOffersMade = (buyerOffers || []).length === 0;
       const persona = readPersona() || autoPersona(visibleListings.length);
-      if (top.length === 0 && noListings && persona !== 'buyer') {
-        document.getElementById('next-action-title').textContent = 'Set your make-me-move number';
-        document.getElementById('next-action-body').textContent = 'List your unit silently — visible only to verified buyers signed into Condo Market, never on Zillow or MLS.';
-        const btn = document.getElementById('next-action-btn');
-        btn.textContent = 'Create my listing →';
-        btn.setAttribute('href', '#listings');
+     if (top.length === 0 && noListings && persona !== 'buyer') {
+        // Sprint B-2D: if user has no approved claim, route to /claim/ instead of #listings
+        let needsClaim = false;
+        try {
+          const claims = await CM.getMyUnitClaims();
+          needsClaim = !claims.some(c => c.status === 'approved');
+        } catch (e) { /* network failure → fall through to default copy */ }
+
+        if (needsClaim) {
+          document.getElementById('next-action-title').textContent = 'Claim your unit first';
+          document.getElementById('next-action-body').textContent = 'We verify ownership before make-me-move pricing goes live, so buyers know they\u2019re talking to real owners.';
+          const btn = document.getElementById('next-action-btn');
+          btn.textContent = 'Claim my unit \u2192';
+          btn.setAttribute('href', '/claim/');
+        } else {
+          document.getElementById('next-action-title').textContent = 'Set your make-me-move number';
+          document.getElementById('next-action-body').textContent = 'List your unit silently — visible only to verified buyers signed into Condo Market, never on Zillow or MLS.';
+          const btn = document.getElementById('next-action-btn');
+          btn.textContent = 'Create my listing →';
+          btn.setAttribute('href', '#listings');
+        }
         nextCard.style.display = 'block';
       } else if (top.length === 0 && noOffersMade && persona === 'buyer') {
         document.getElementById('next-action-title').textContent = 'Find a unit you\u2019d sign for';
