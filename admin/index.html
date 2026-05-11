@@ -306,6 +306,35 @@
           <div class="metric-label">MMM listings</div>
           <div class="metric-val" id="f-listing-count">—</div>
         </div>
+        <div class="metric">
+          <div class="metric-label">Pending claims</div>
+          <div class="metric-val amber" id="f-pending-claims">—</div>
+        </div>
+      </div>
+
+      <!-- ─── Approval queue (Sprint B-2B) ─── -->
+      <div class="section">
+        <div class="section-head">
+          <h2>Approval <em>queue</em></h2>
+          <span class="section-sub">Auto-verified claims approve instantly. Manual review needed for names that didn't fuzzy-match title records (trusts, LLCs, misspellings).</span>
+        </div>
+        <div class="table-host">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Claimed by</th>
+                <th>Building · Unit</th>
+                <th>MMM</th>
+                <th>Title record</th>
+                <th style="text-align:right;">Submitted</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="claims-tbody">
+              <tr class="empty-row"><td colspan="6">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- ─── Offers queue ─── -->
@@ -402,11 +431,13 @@
   import { CM, sb } from '/assets/cm-supabase.js';
 
   let allOffers = [];
+  let allClaims = [];
   let listingsById = {};
+  const claimsTitleCache = new Map();
 
   // Phase A — user drill-down state
-  const userActivityCache = new Map();   // userId -> { profile, offers?, listings?, watchlist?, signatures?, credits? }
-  let referrerEmailMap = {};             // referrer uuid -> email (for "referred by" cell)
+  const userActivityCache = new Map();
+  let referrerEmailMap = {};
 
   const USER_ACTIVITY_ICON = {
     signup: '✨',
@@ -483,6 +514,7 @@
       loadCounts(),
       loadOffers(),
       loadUsers(),
+      loadClaims(),
     ]);
   }
 
@@ -497,6 +529,142 @@
         .neq('status', 'removed');
       document.getElementById('f-listing-count').textContent = listingCount ?? '—';
     } catch (e) {}
+  }
+
+  // ─── Approval queue (Sprint B-2B) ────────────────────────────────────
+  async function loadClaims() {
+    const cr = await sb.from('user_units')
+      .select('id, user_id, building_slug, unit_address, claimed_name, evidence_url, status, created_at, review_notes')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (cr.error) {
+      console.error('[loadClaims]', cr.error);
+      document.getElementById('claims-tbody').innerHTML =
+        '<tr class="empty-row"><td colspan="6">Could not load claims: ' + escapeHtml(cr.error.message) + '</td></tr>';
+      document.getElementById('f-pending-claims').textContent = '?';
+      return;
+    }
+    allClaims = cr.data || [];
+
+    if (allClaims.length > 0) {
+      const userIds = [...new Set(allClaims.map(c => c.user_id).filter(Boolean))];
+
+      try {
+        const { data: profs } = await sb.from('profiles')
+          .select('id, email, full_name').in('id', userIds);
+        const profMap = Object.fromEntries((profs || []).map(p => [p.id, p]));
+        allClaims.forEach(c => { c.profile = profMap[c.user_id] || null; });
+      } catch (e) { /* swallow — email column will show — */ }
+
+      try {
+        const { data: mmmRows } = await sb.from('make_me_move')
+          .select('user_id, building_slug, unit_address, target_price')
+          .in('user_id', userIds);
+        const mmmMap = new Map();
+        (mmmRows || []).forEach(m => {
+          mmmMap.set(m.user_id + '|' + m.building_slug + '|' + m.unit_address, m.target_price);
+        });
+        allClaims.forEach(c => {
+          c.mmm_price = mmmMap.get(c.user_id + '|' + c.building_slug + '|' + c.unit_address) || null;
+        });
+      } catch (e) { /* swallow */ }
+
+      const uniqueUnits = [...new Set(allClaims.map(c => c.building_slug + '|' + c.unit_address))];
+      await Promise.all(uniqueUnits.map(async (k) => {
+        if (claimsTitleCache.has(k)) return;
+        const [slug, unit] = k.split('|');
+        try {
+          const { data: tr } = await sb.rpc('title_record_for_unit', {
+            p_building_slug: slug,
+            p_unit_label:    unit,
+          });
+          claimsTitleCache.set(k, tr || []);
+        } catch (e) { claimsTitleCache.set(k, []); }
+      }));
+    }
+
+    document.getElementById('f-pending-claims').textContent = allClaims.length;
+    renderClaims();
+  }
+
+  function renderClaims() {
+    const tbody = document.getElementById('claims-tbody');
+    if (allClaims.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No claims awaiting review — auto-verified submissions skip this queue.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = allClaims.map(c => {
+      const titles  = claimsTitleCache.get(c.building_slug + '|' + c.unit_address) || [];
+      const profile = c.profile || {};
+      const titleCell = titles.length === 0
+        ? '<span style="color:var(--cm-loss);font-style:italic;font-size:12px;">No title record on file</span>'
+        : titles.map(t => {
+            const owners = escapeHtml(t.owner_name || '—')
+              + (t.owner_name_2 ? ' <span style="color:var(--cm-ivory-dim);">/</span> ' + escapeHtml(t.owner_name_2) : '');
+            const sub = t.sale_date
+              ? '<br><span style="font-family:var(--cm-ff-mono);font-size:10px;color:var(--cm-ivory-dim);">'
+                + escapeHtml(new Date(t.sale_date).toLocaleDateString())
+                + (t.sale_price ? ' · ' + escapeHtml(fmtMoneyShort(t.sale_price)) : '')
+                + '</span>'
+              : '';
+            return '<div style="margin-bottom:6px;font-size:13px;line-height:1.35;">' + owners + sub + '</div>';
+          }).join('');
+      const mmmCell = c.mmm_price
+        ? '<span style="font-family:var(--cm-ff-display);font-style:italic;color:var(--cm-bronze);font-size:15px;">'
+            + fmtMoneyShort(c.mmm_price) + '</span>'
+        : '<span style="color:var(--cm-ivory-faint);">—</span>';
+      const evidenceLine = c.evidence_url
+        ? '<br><a href="' + escapeHtml(c.evidence_url) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--cm-peri);">evidence ↗</a>'
+        : '';
+      return [
+        '<tr class="claim-tr" data-claim-id="' + escapeHtml(c.id) + '">',
+        '  <td>',
+        '    <strong>' + escapeHtml(c.claimed_name || '—') + '</strong>',
+        '    <br><span style="color:var(--cm-ivory-dim);font-size:12px;font-family:var(--cm-ff-mono);">' + escapeHtml(profile.email || '—') + '</span>',
+        '    ' + evidenceLine,
+        '  </td>',
+        '  <td>',
+        '    <strong>' + escapeHtml(buildingPretty(c.building_slug)) + '</strong>',
+        '    <br><span style="color:var(--cm-peri);font-family:var(--cm-ff-mono);font-size:12px;">' + escapeHtml(c.unit_address || '—') + '</span>',
+        '  </td>',
+        '  <td>' + mmmCell + '</td>',
+        '  <td>' + titleCell + '</td>',
+        '  <td style="text-align:right;font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">' + escapeHtml(relativeTime(c.created_at)) + '</td>',
+        '  <td style="text-align:right;white-space:nowrap;">',
+        '    <button class="btn-mini btn-mini-accept" data-claim-action="approve" data-id="' + escapeHtml(c.id) + '">Approve</button>',
+        '    <button class="btn-mini btn-mini-decline" data-claim-action="reject" data-id="' + escapeHtml(c.id) + '" style="margin-left:6px;">Reject</button>',
+        '  </td>',
+        '</tr>',
+      ].join('\n');
+    }).join('\n');
+  }
+
+  async function approveClaim(claimId) {
+    const session = await CM.getSession();
+    if (!session?.user) { alert('Not signed in'); return false; }
+    const { error } = await sb.from('user_units').update({
+      status:       'approved',
+      reviewed_at:  new Date().toISOString(),
+      reviewed_by:  session.user.id,
+      review_notes: 'Approved by admin via approval queue',
+    }).eq('id', claimId);
+    if (error) { alert('Approve failed: ' + error.message); return false; }
+    return true;
+  }
+
+  async function rejectClaim(claimId) {
+    const notes = prompt('Reason for rejection (will be sent to the homeowner):');
+    if (notes == null || notes.trim() === '') return false;
+    const session = await CM.getSession();
+    if (!session?.user) { alert('Not signed in'); return false; }
+    const { error } = await sb.from('user_units').update({
+      status:       'rejected',
+      reviewed_at:  new Date().toISOString(),
+      reviewed_by:  session.user.id,
+      review_notes: notes.trim(),
+    }).eq('id', claimId);
+    if (error) { alert('Reject failed: ' + error.message); return false; }
+    return true;
   }
 
   async function loadOffers() {
@@ -616,17 +784,15 @@
         .limit(200);
       if (error) throw error;
 
-      // Resolve referrer emails for the "Referred by" column
       const referrerIds = [...new Set((users || []).map(u => u.referred_by).filter(Boolean))];
       referrerEmailMap = {};
       if (referrerIds.length > 0) {
         try {
           const { data: referrers } = await sb.from('profiles').select('id, email').in('id', referrerIds);
           referrerEmailMap = Object.fromEntries((referrers || []).map(r => [r.id, r.email]));
-        } catch (e) { /* swallow — referred-by column gracefully shows '—' */ }
+        } catch (e) { /* swallow */ }
       }
 
-      // Seed cache with the basic profile so drill-down only has to fetch activity tables
       (users || []).forEach(u => {
         userActivityCache.set(u.id, { profile: u });
       });
@@ -763,7 +929,6 @@
     return [
       `<div class="user-detail-content">`,
 
-      // ── Profile card
       `  <div class="user-profile">`,
       `    <h4>Profile</h4>`,
       `    <dl>`,
@@ -779,7 +944,6 @@
       `    </dl>`,
       `  </div>`,
 
-      // ── Stats grid
       `  <div class="user-stats">`,
       `    <h4>Activity stats</h4>`,
       `    <div class="user-stats-grid">`,
@@ -792,7 +956,6 @@
       `    </div>`,
       `  </div>`,
 
-      // ── Activity timeline (full width)
       `  <div class="user-activity">`,
       `    <h4>Activity timeline · ${timeline.length} event${timeline.length === 1 ? '' : 's'}</h4>`,
       timeline.length === 0
@@ -812,16 +975,32 @@
     ].join('\n');
   }
 
-  // Filter changes re-render
   document.addEventListener('change', (e) => {
     if (e.target.id === 'f-filter-status' || e.target.id === 'f-filter-building') {
       renderOffers();
     }
   });
 
-  // Unified click handler — offer-row expand, offer-action buttons, user-row expand
   document.addEventListener('click', async (e) => {
-    // Offer action buttons (accept/decline/expire) — handle first because they live inside an offer-tr
+    // Claim approve/reject (Sprint B-2B)
+    const claimBtn = e.target.closest('button[data-claim-action]');
+    if (claimBtn) {
+      const action = claimBtn.dataset.claimAction;
+      const id     = claimBtn.dataset.id;
+      if (!id || !['approve','reject'].includes(action)) return;
+      claimBtn.disabled = true;
+      const orig = claimBtn.textContent;
+      claimBtn.textContent = '…';
+      let ok = false;
+      if (action === 'approve') ok = await approveClaim(id);
+      if (action === 'reject')  ok = await rejectClaim(id);
+      claimBtn.disabled = false;
+      claimBtn.textContent = orig;
+      if (ok) await loadClaims();
+      return;
+    }
+
+    // Offer action buttons (accept/decline/expire)
     const actionBtn = e.target.closest('button[data-action]');
     if (actionBtn) {
       const action = actionBtn.dataset.action;
