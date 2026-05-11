@@ -121,6 +121,60 @@
   .btn-log { background: var(--cm-peri); color: var(--cm-navy); padding: 9px 18px; border-radius: 999px; border: none; font-weight: 500; font-size: 12px; }
   .btn-log:hover { opacity: 0.88; }
 
+  .docs-wrap { margin-top: 22px; }
+  .docs-wrap h4 { margin-bottom: 12px; }
+  .docs-drop {
+    border: 1.5px dashed var(--cm-rule); border-radius: 10px;
+    padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+    background: rgba(159,180,216,0.03); margin-bottom: 14px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .docs-drop.is-dragover { border-color: var(--cm-peri); background: rgba(159,180,216,0.10); }
+  .docs-drop input[type="file"] { display: none; }
+  .btn-upload {
+    background: var(--cm-peri); color: var(--cm-navy);
+    padding: 8px 18px; border-radius: 999px; border: none;
+    font-weight: 500; font-size: 12px; cursor: pointer;
+  }
+  .btn-upload:hover { opacity: 0.88; }
+  .docs-hint { font-family: var(--ff-mono); font-size: 10px; color: var(--cm-ivory-dim); letter-spacing: 0.04em; }
+  .docs-list { display: flex; flex-direction: column; gap: 0; }
+  .docs-item {
+    display: grid; grid-template-columns: 1fr auto auto auto auto;
+    gap: 12px; padding: 12px 0; align-items: center;
+    border-bottom: 1px solid var(--cm-rule-soft);
+  }
+  .docs-item:last-child { border-bottom: none; }
+  .docs-name { font-size: 13px; color: var(--cm-ivory); word-break: break-all; line-height: 1.35; }
+  .docs-name .meta { font-family: var(--ff-mono); font-size: 10px; color: var(--cm-ivory-dim); margin-top: 3px; letter-spacing: 0.04em; }
+  .docs-cat-input {
+    background: var(--cm-navy); border: 1px solid var(--cm-rule);
+    color: var(--cm-ivory-dim); border-radius: 4px;
+    padding: 4px 8px; font-size: 11px; font-family: var(--ff-mono);
+    width: 110px; transition: border-color 0.15s, color 0.15s;
+  }
+  .docs-cat-input:focus { outline: none; border-color: var(--cm-peri); color: var(--cm-ivory); }
+  .docs-cat-input::placeholder { color: var(--cm-ivory-faint); }
+  .docs-action {
+    background: transparent; color: var(--cm-ivory-dim);
+    border: 1px solid var(--cm-rule); border-radius: 4px;
+    padding: 5px 10px; font-size: 11px; font-family: var(--ff-mono);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  }
+  .docs-action:hover { color: var(--cm-peri); border-color: var(--cm-peri); }
+  .docs-action.is-delete:hover { color: var(--cm-rust); border-color: var(--cm-rust); }
+  .docs-empty {
+    padding: 22px 12px; text-align: center;
+    color: var(--cm-ivory-faint); font-style: italic;
+    font-family: var(--ff-display); font-size: 13px;
+  }
+  .docs-loading { padding: 16px 12px; color: var(--cm-ivory-dim); font-size: 12px; font-family: var(--ff-mono); }
+  .docs-uploading {
+    padding: 10px 14px; background: rgba(159,180,216,0.08);
+    border-radius: 6px; margin-bottom: 8px;
+    font-size: 11px; font-family: var(--ff-mono); color: var(--cm-peri);
+  }
+
   .actions-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
   .action-btn { background: transparent; color: var(--cm-ivory); padding: 9px 16px; border-radius: 999px; border: 1px solid var(--cm-rule); font-size: 12px; font-family: var(--ff-body); transition: border-color 0.15s, color 0.15s; display: inline-flex; align-items: center; gap: 6px; }
   .action-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
@@ -224,6 +278,18 @@
   </div>
 </main>
 
+<datalist id="docs-cat-options">
+  <option value="Proposal">
+  <option value="Agreement">
+  <option value="Signed Agreement">
+  <option value="Board Minutes">
+  <option value="Photos">
+  <option value="Pitch Deck">
+  <option value="Email Thread">
+  <option value="Reserves">
+  <option value="Other">
+</datalist>
+
 <div class="modal-backdrop" id="email-modal" hidden>
   <div class="modal">
     <h3>Compose email</h3>
@@ -248,7 +314,7 @@
 
 <script type="module">
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '/assets/cm-config.js';
-import { CM } from '/assets/cm-supabase.js';
+import { CM, sb as supaClient } from '/assets/cm-supabase.js';
 
 const SITE_ORIGIN = window.location.origin;
 
@@ -277,7 +343,7 @@ const sb = {
 };
 
 const state = {
-  buildings: [], outreach: new Map(), summary: new Map(), events: new Map(),
+  buildings: [], outreach: new Map(), summary: new Map(), events: new Map(), docs: new Map(),
   user: null, profile: null, expandedSlug: null,
   filters: { status: 'all', hood: 'all', units: 0, sort: 'missed_hoa' }
 };
@@ -584,6 +650,19 @@ function renderDetailPanel(r) {
             </div>
           </div>
 
+          <div class="docs-wrap" data-docs-slug="${esc(r.slug)}">
+            <h4>Documents</h4>
+            <label class="docs-drop" data-drop-slug="${esc(r.slug)}">
+              <input type="file" data-upload-input="${esc(r.slug)}" multiple>
+              <button type="button" class="btn-upload" data-upload-trigger="${esc(r.slug)}">+ Upload file(s)</button>
+              <span class="docs-hint">PDF, DOCX, images, etc. · up to 50 MB per file · drag & drop or click</span>
+            </label>
+            <div class="docs-upload-status" data-upload-status="${esc(r.slug)}"></div>
+            <div class="docs-list" data-docs-list="${esc(r.slug)}">
+              <div class="docs-loading">Loading documents…</div>
+            </div>
+          </div>
+
           <div class="actions-row">
             <button class="action-btn" data-act="email" data-slug="${esc(r.slug)}">✉ Compose email</button>
             <button class="action-btn is-won" data-act="won" data-slug="${esc(r.slug)}">✓ Mark Won</button>
@@ -698,6 +777,145 @@ function wireDetailPanel(slug) {
       }
     });
   });
+
+  // Documents section: load, render, wire upload triggers (button + drag/drop)
+  const docsList = detailRow.querySelector(`[data-docs-list="${slug}"]`);
+  const docsStatus = detailRow.querySelector(`[data-upload-status="${slug}"]`);
+  const dropZone = detailRow.querySelector(`[data-drop-slug="${slug}"]`);
+  const fileInput = detailRow.querySelector(`[data-upload-input="${slug}"]`);
+  const uploadBtn = detailRow.querySelector(`[data-upload-trigger="${slug}"]`);
+
+  const refreshDocs = async () => {
+    try {
+      const docs = await loadDocs(slug);
+      state.docs.set(slug, docs);
+      if (docsList) {
+        docsList.innerHTML = renderDocsList(slug, docs);
+        wireDocsItemActions(slug, docsList);
+      }
+    } catch (err) {
+      console.error('[loadDocs]', err);
+      if (docsList) docsList.innerHTML = `<div class="docs-empty">Failed to load: ${esc(err.message || err)}</div>`;
+    }
+  };
+  refreshDocs();
+
+  uploadBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fileInput?.click();
+  });
+
+  fileInput?.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ''; // allow re-uploading the same name
+    if (!files.length) return;
+    await uploadFiles(slug, files, docsStatus, refreshDocs);
+  });
+
+  fileInput?.addEventListener('click', (e) => e.stopPropagation());
+
+  if (dropZone) {
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.add('is-dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.remove('is-dragover');
+      });
+    });
+    dropZone.addEventListener('drop', async (e) => {
+      const files = Array.from(e.dataTransfer?.files || []);
+      if (!files.length) return;
+      await uploadFiles(slug, files, docsStatus, refreshDocs);
+    });
+  }
+}
+
+async function uploadFiles(slug, files, statusEl, refreshFn) {
+  let successCount = 0;
+  for (const file of files) {
+    if (statusEl) statusEl.innerHTML = `<div class="docs-uploading">Uploading ${esc(file.name)} (${formatBytes(file.size)})…</div>`;
+    try {
+      await uploadDoc(slug, file);
+      successCount++;
+    } catch (err) {
+      console.error('[uploadDoc]', err);
+      toast(`Upload failed: ${file.name} — ${err.message || err}`, 'error', 9000);
+    }
+  }
+  if (statusEl) statusEl.innerHTML = '';
+  if (successCount > 0) {
+    toast(`Uploaded ${successCount} of ${files.length} file${files.length === 1 ? '' : 's'}.`, 'success', 3000);
+    await refreshFn();
+  }
+}
+
+function wireDocsItemActions(slug, listEl) {
+  // Download → open signed URL in new tab
+  listEl.querySelectorAll('[data-doc-download]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const docId = btn.dataset.docDownload;
+      const doc = state.docs.get(slug)?.find(d => d.id === docId);
+      if (!doc) return;
+      try {
+        const url = await getSignedDocUrl(doc);
+        window.open(url, '_blank', 'noopener');
+      } catch (err) {
+        console.error('[download]', err);
+        toast(`Download failed: ${err.message || err}`, 'error', 6000);
+      }
+    });
+  });
+
+  // Delete → double-confirm, remove storage blob + metadata row, refresh list
+  listEl.querySelectorAll('[data-doc-delete]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const docId = btn.dataset.docDelete;
+      const doc = state.docs.get(slug)?.find(d => d.id === docId);
+      if (!doc) return;
+      try {
+        const deleted = await deleteDoc(slug, doc);
+        if (deleted) {
+          const docs = await loadDocs(slug);
+          state.docs.set(slug, docs);
+          listEl.innerHTML = renderDocsList(slug, docs);
+          wireDocsItemActions(slug, listEl);
+          toast('Document deleted.', 'success', 2500);
+        }
+      } catch (err) {
+        console.error('[delete]', err);
+        toast(`Delete failed: ${err.message || err}`, 'error', 6000);
+      }
+    });
+  });
+
+  // Category input → save on blur (skip if unchanged)
+  listEl.querySelectorAll('[data-doc-cat]').forEach(input => {
+    input.addEventListener('blur', async () => {
+      const docId = input.dataset.docCat;
+      const newCat = input.value;
+      const doc = state.docs.get(slug)?.find(d => d.id === docId);
+      if (!doc) return;
+      if ((doc.category || '') === (newCat || '').trim()) return;
+      try {
+        const updated = await updateDocCategory(docId, newCat);
+        const docs = state.docs.get(slug) || [];
+        const idx = docs.findIndex(d => d.id === docId);
+        if (idx >= 0) { docs[idx] = updated; state.docs.set(slug, docs); }
+      } catch (err) {
+        console.error('[updateCategory]', err);
+        toast(`Save category failed: ${err.message || err}`, 'error', 6000);
+      }
+    });
+    input.addEventListener('click', (e) => e.stopPropagation());
+  });
 }
 
 async function saveField(slug, field, value) {
@@ -764,6 +982,132 @@ async function insertEvent(slug, event) {
     state.events.set(slug, arr);
   }
   return inserted;
+}
+
+function formatBytes(bytes) {
+  if (!bytes && bytes !== 0) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function sanitizeFilename(name) {
+  // Storage paths can't contain certain chars; replace anything non-safe with underscore
+  return String(name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 180);
+}
+
+async function loadDocs(slug) {
+  const res = await fetch(
+    `${sb.url}/rest/v1/attachments?building_slug=eq.${encodeURIComponent(slug)}&select=*&order=created_at.desc`,
+    { headers: sb.headers() }
+  );
+  if (!res.ok) {
+    const errText = await res.text().catch(() => 'unknown');
+    throw new Error(`Load attachments (${res.status}): ${errText}`);
+  }
+  return await res.json();
+}
+
+async function uploadDoc(slug, file) {
+  if (!state.user || !state.user.id) throw new Error('Not signed in');
+  if (file.size > 50 * 1024 * 1024) throw new Error(`File exceeds 50MB limit (${formatBytes(file.size)})`);
+
+  const safeName = sanitizeFilename(file.name);
+  const path = `${slug}/${Date.now()}_${safeName}`;
+
+  // 1. Upload binary to Storage
+  const { error: upErr } = await supaClient.storage
+    .from('crm-attachments')
+    .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || 'application/octet-stream' });
+  if (upErr) throw new Error(`Storage upload: ${upErr.message}`);
+
+  // 2. Insert metadata row
+  const meta = {
+    building_slug: slug,
+    file_name: file.name,
+    file_path: path,
+    file_size: file.size,
+    mime_type: file.type || null,
+    uploaded_by: state.user.id
+  };
+  const res = await fetch(`${sb.url}/rest/v1/attachments`, {
+    method: 'POST',
+    headers: sb.headers({ Prefer: 'return=representation' }),
+    body: JSON.stringify(meta)
+  });
+  if (!res.ok) {
+    // Rollback the storage upload so we don't orphan a blob
+    await supaClient.storage.from('crm-attachments').remove([path]).catch(() => {});
+    const errText = await res.text().catch(() => 'unknown');
+    throw new Error(`Insert metadata (${res.status}): ${errText}`);
+  }
+  const inserted = (await res.json())[0];
+  return inserted;
+}
+
+async function deleteDoc(slug, doc) {
+  // Two-step confirm — destructive, can't be undone
+  if (!confirm(`Delete "${doc.file_name}"?\n\nThis cannot be undone.`)) return false;
+  if (!confirm(`Are you absolutely sure? "${doc.file_name}" will be permanently deleted from this building's records.`)) return false;
+
+  // Best-effort: remove from Storage first. If the blob is already missing, keep going.
+  const { error: rmErr } = await supaClient.storage.from('crm-attachments').remove([doc.file_path]);
+  if (rmErr) console.warn('[deleteDoc] storage remove failed but proceeding with metadata delete:', rmErr);
+
+  // Delete metadata row
+  const res = await fetch(`${sb.url}/rest/v1/attachments?id=eq.${doc.id}`, {
+    method: 'DELETE',
+    headers: sb.headers({ Prefer: 'return=representation' })
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => 'unknown');
+    throw new Error(`Delete metadata (${res.status}): ${errText}`);
+  }
+  return true;
+}
+
+async function getSignedDocUrl(doc) {
+  const { data, error } = await supaClient.storage
+    .from('crm-attachments')
+    .createSignedUrl(doc.file_path, 3600); // 1 hour
+  if (error) throw new Error(`Signed URL: ${error.message}`);
+  return data.signedUrl;
+}
+
+async function updateDocCategory(docId, category) {
+  const value = (category || '').trim() || null;
+  const res = await fetch(`${sb.url}/rest/v1/attachments?id=eq.${docId}`, {
+    method: 'PATCH',
+    headers: sb.headers({ Prefer: 'return=representation' }),
+    body: JSON.stringify({ category: value })
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => 'unknown');
+    throw new Error(`Update category (${res.status}): ${errText}`);
+  }
+  return (await res.json())[0];
+}
+
+function renderDocsList(slug, docs) {
+  if (!docs || docs.length === 0) {
+    return '<div class="docs-empty">No documents yet. Upload proposals, signed agreements, board minutes, photos — anything relevant to this building.</div>';
+  }
+  return docs.map(d => `
+    <div class="docs-item" data-doc-id="${esc(d.id)}">
+      <div class="docs-name">
+        ${esc(d.file_name)}
+        <div class="meta">${formatBytes(d.file_size)} · ${fmt.date(d.created_at)}</div>
+      </div>
+      <input class="docs-cat-input"
+             data-doc-cat="${esc(d.id)}"
+             type="text" list="docs-cat-options"
+             value="${esc(d.category || '')}"
+             placeholder="category">
+      <button class="docs-action" data-doc-download="${esc(d.id)}">Download</button>
+      <button class="docs-action is-delete" data-doc-delete="${esc(d.id)}">Delete</button>
+    </div>
+  `).join('');
 }
 
 function showSaved(slug) {
