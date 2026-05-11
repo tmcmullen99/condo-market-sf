@@ -1,963 +1,1068 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Building petition · Condo Market</title>
-<meta name="description" content="Sign to ask your building's HOA Board to take a meeting with Condo Market." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
   :root {
-    --cm-navy: #1a1f2e;
-    --cm-navy-deep: #0f131d;
-    --cm-peri: #9fb4d8;
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
+    --cm-rule: rgba(232, 227, 216, 0.14);
     --cm-bronze: #d4a574;
-    --cm-rust: #c95742;
     --cm-gain: #8fb97a;
-    --cm-ivory: #e8e3d8;
-    --cm-mute: rgba(232, 227, 216, 0.7);
-    --cm-faint: rgba(232, 227, 216, 0.5);
-    --cm-line: rgba(159, 180, 216, 0.15);
+    --cm-amber: #d9a44b;
+    --cm-loss: #c97865;
+    --cm-ff-display: 'Playfair Display', Georgia, serif;
+    --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
+    --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--cm-navy-deep);
-    color: var(--cm-ivory);
-    font-family: 'DM Sans', system-ui, sans-serif;
-    line-height: 1.55;
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--cm-ff-body); font-weight: 300;
+    line-height: 1.55; min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
   }
-  a { color: var(--cm-peri); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  .meta .admin-pill { background: var(--cm-peri); color: var(--cm-navy); padding: 4px 10px; border-radius: 4px; font-weight: 500; }
+  main { padding: 56px 0 96px; }
+  h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(36px, 5vw, 52px); line-height: 1.05; margin-bottom: 8px; }
+  h1 .accent { color: var(--cm-peri); }
+  .subtitle { color: var(--cm-ivory-dim); font-size: 15px; margin-bottom: 48px; }
 
-  /* NAV */
-  .cm-nav {
-    position: sticky; top: 0; z-index: 50;
-    background: rgba(15, 19, 29, 0.85);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--cm-line);
-    padding: 18px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .cm-nav__brand {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 18px;
-    color: var(--cm-ivory);
-    text-decoration: none;
-    letter-spacing: 0.005em;
-  }
-  .cm-nav__brand em { font-style: italic; color: var(--cm-peri); }
-  .cm-nav__links { display: flex; gap: 24px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', ui-monospace, monospace; }
-  .cm-nav__links a { color: var(--cm-mute); text-decoration: none; }
-  .cm-nav__links a:hover { color: var(--cm-ivory); }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 48px; }
+  .metric { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; }
+  .metric-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
+  .metric-val { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 32px; color: var(--cm-ivory); line-height: 1; }
+  .metric-val.peri { color: var(--cm-peri); }
+  .metric-val.bronze { color: var(--cm-bronze); }
+  .metric-val.gain { color: var(--cm-gain); }
+  .metric-val.amber { color: var(--cm-amber); }
 
-  /* LAYOUT */
-  main { max-width: 920px; margin: 0 auto; padding: 80px 32px 120px; }
-  section { margin-bottom: 88px; }
-  .eyebrow {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--cm-bronze);
-    display: block;
-    margin-bottom: 14px;
-  }
-  h1, h2, h3 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-weight: 500;
-    margin: 0;
-    color: var(--cm-ivory);
-    letter-spacing: 0.005em;
-  }
-  h1 { font-size: clamp(36px, 5vw, 56px); line-height: 1.1; margin-bottom: 24px; }
-  h1 .accent { font-style: italic; color: var(--cm-peri); }
-  h2 { font-size: 28px; margin-bottom: 16px; line-height: 1.2; }
-  h3 { font-size: 18px; margin-bottom: 6px; }
-  p { font-size: 16px; color: var(--cm-mute); margin: 0 0 16px; max-width: 64ch; }
-  p strong { color: var(--cm-ivory); font-weight: 500; }
-  .hook { color: var(--cm-rust); font-style: italic; }
+  .section { margin-bottom: 48px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .section h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 26px; color: var(--cm-ivory); }
+  .section h2 em { color: var(--cm-peri); }
+  .section-sub { font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); letter-spacing: 0.05em; }
 
-  /* HERO */
-  .hero h1 { max-width: 22ch; }
-  .hero .subhead { font-size: 18px; color: var(--cm-mute); max-width: 56ch; line-height: 1.5; }
-  .hero-stat {
-    margin-top: 36px;
-    padding: 24px 0;
-    border-top: 1px solid var(--cm-line);
-    border-bottom: 1px solid var(--cm-line);
-    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
-  }
-  .hero-stat__num {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 44px;
-    color: var(--cm-rust);
-    font-weight: 500;
-    line-height: 1;
-  }
-  .hero-stat__lbl { color: var(--cm-mute); font-size: 15px; max-width: 38ch; }
-
-  /* COUNTER */
-  .counter {
-    display: flex; align-items: center; gap: 14px;
-    padding: 18px 24px;
-    background: rgba(143, 185, 122, 0.06);
-    border: 1px solid rgba(143, 185, 122, 0.2);
-    border-radius: 8px;
-  }
-  .counter-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--cm-gain);
-    box-shadow: 0 0 0 0 rgba(143, 185, 122, 0.6);
-    animation: pulse 2s infinite;
-    flex-shrink: 0;
-  }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(143, 185, 122, 0.6); }
-    70% { box-shadow: 0 0 0 12px rgba(143, 185, 122, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(143, 185, 122, 0); }
-  }
-  .counter-num {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 36px; line-height: 1; color: var(--cm-ivory);
-  }
-  .counter-lbl { color: var(--cm-mute); font-size: 14px; }
-
-  /* SIGN PANEL */
-  .sign-panel {
-    background: rgba(159, 180, 216, 0.04);
-    border: 1px solid var(--cm-line);
-    border-radius: 12px;
-    padding: 36px 32px;
-  }
-  .sign-panel h2 { margin-bottom: 12px; }
-  .sign-panel .helper { color: var(--cm-mute); font-size: 14px; margin-bottom: 24px; }
-  .sign-panel ul.units { list-style: none; padding: 0; margin: 0 0 20px; display: flex; flex-direction: column; gap: 10px; }
-  .sign-panel ul.units li {
-    padding: 14px 16px;
-    background: rgba(15, 19, 29, 0.4);
-    border: 1px solid var(--cm-line);
-    border-radius: 8px;
-    display: flex; align-items: center; gap: 12px;
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .filter {
+    background: var(--cm-navy); color: var(--cm-ivory);
+    border: 1px solid var(--cm-rule); border-radius: 6px;
+    padding: 7px 12px; font-family: var(--cm-ff-mono);
+    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
     cursor: pointer;
-    transition: border-color 0.15s ease;
   }
-  .sign-panel ul.units li:hover { border-color: rgba(212, 165, 116, 0.4); }
-  .sign-panel ul.units li.selected { border-color: var(--cm-bronze); background: rgba(212, 165, 116, 0.06); }
-  .sign-panel ul.units input[type="radio"] { accent-color: var(--cm-bronze); margin: 0; }
-  .sign-panel textarea {
-    width: 100%;
-    padding: 14px 16px;
-    background: rgba(15, 19, 29, 0.4);
-    border: 1px solid var(--cm-line);
-    border-radius: 8px;
-    color: var(--cm-ivory);
-    font-family: inherit; font-size: 14px; line-height: 1.5;
-    resize: vertical; min-height: 88px;
-    margin-bottom: 16px;
-  }
-  .sign-panel .commitment {
-    padding: 16px 18px;
-    background: rgba(201, 87, 66, 0.05);
-    border: 1px solid rgba(201, 87, 66, 0.2);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: var(--cm-ivory);
-    line-height: 1.5;
-  }
-  .sign-panel .commitment strong { color: var(--cm-rust); font-weight: 500; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 14px 24px;
-    border-radius: 8px;
-    border: none; cursor: pointer;
-    font-family: 'DM Sans', system-ui, sans-serif;
-    font-size: 15px; font-weight: 600;
-    transition: transform 0.1s ease, opacity 0.15s ease;
-    text-decoration: none;
-  }
-  .btn:hover { transform: translateY(-1px); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn--primary { background: var(--cm-rust); color: white; }
-  .btn--primary:hover:not(:disabled) { background: #b04935; }
-  .btn--ghost { background: transparent; color: var(--cm-peri); border: 1px solid var(--cm-line); }
-  .btn--ghost:hover { border-color: var(--cm-peri); }
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .filter:focus { outline: none; border-color: var(--cm-peri); }
 
-  /* INDEPENDENCE NOTE */
-  .indep {
-    padding: 32px;
-    background: rgba(159, 180, 216, 0.04);
-    border-left: 3px solid var(--cm-peri);
-    border-radius: 0 8px 8px 0;
-  }
-  .indep h2 { margin-bottom: 12px; font-size: 22px; }
+  .table-host { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; overflow: hidden; }
+  .table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .table th, .table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--cm-rule); }
+  .table th { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500; }
+  .table tbody tr:last-child td { border-bottom: none; }
+  .table td { color: var(--cm-ivory); }
 
-  /* EDUCATION */
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px; margin-top: 24px;
+  /* Offer row expand */
+  .table tr.offer-tr { cursor: pointer; transition: background 150ms ease; }
+  .table tr.offer-tr:hover { background: rgba(159, 180, 216, 0.04); }
+  .table tr.offer-tr.is-expanded { background: rgba(212, 165, 116, 0.04); }
+  .offer-amount-cell {
+    font-family: var(--cm-ff-display); font-style: italic; font-weight: 600;
+    color: var(--cm-bronze); font-size: 16px;
   }
-  .stat-card {
-    padding: 24px;
-    background: rgba(15, 19, 29, 0.4);
-    border: 1px solid var(--cm-line);
-    border-radius: 10px;
+  .offer-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px;
   }
-  .stat-card__num {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 32px; color: var(--cm-bronze);
-    line-height: 1; margin-bottom: 8px;
+  .offer-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .offer-status-pending { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
+  .offer-status-pending::before { background: var(--cm-amber); }
+  .offer-status-accepted { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
+  .offer-status-accepted::before { background: var(--cm-gain); }
+  .offer-status-declined { background: rgba(201, 120, 101, 0.12); color: var(--cm-loss); }
+  .offer-status-declined::before { background: var(--cm-loss); }
+  .offer-status-withdrawn, .offer-status-expired { background: rgba(232, 227, 216, 0.08); color: var(--cm-ivory-dim); }
+  .offer-status-withdrawn::before, .offer-status-expired::before { background: var(--cm-ivory-faint); }
+
+  .offer-detail { background: rgba(15, 19, 29, 0.4); }
+  .offer-detail-content {
+    padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
   }
-  .stat-card__lbl { color: var(--cm-mute); font-size: 13px; line-height: 1.5; }
-  .funded {
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid var(--cm-line);
+  @media (max-width: 720px) { .offer-detail-content { grid-template-columns: 1fr; } }
+  .offer-detail-block .dl-label {
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--cm-peri); margin-bottom: 6px;
   }
-  .funded ul {
-    list-style: none; padding: 0; margin: 16px 0 0;
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px 24px;
+  .offer-detail-block .dl-value {
+    font-size: 14px; color: var(--cm-ivory); line-height: 1.55; margin-bottom: 14px;
   }
-  .funded li {
-    padding: 8px 0;
-    color: var(--cm-mute); font-size: 14px;
-    display: flex; align-items: center; gap: 10px;
+  .offer-detail-block .dl-value.italic {
+    font-style: italic;
+    border-left: 2px solid var(--cm-rule);
+    padding-left: 12px; padding-block: 2px;
+    color: var(--cm-ivory-dim);
   }
-  .funded li::before {
-    content: '✓'; color: var(--cm-gain); font-weight: 600; flex-shrink: 0;
+  .offer-detail-actions {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;
+    grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--cm-rule);
+  }
+  .btn-mini {
+    padding: 8px 16px; border-radius: 999px; font-family: var(--cm-ff-body);
+    font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid;
+    transition: all 150ms ease;
+  }
+  .btn-mini-accept { background: var(--cm-gain); color: var(--cm-navy); border-color: var(--cm-gain); }
+  .btn-mini-accept:hover { opacity: 0.85; }
+  .btn-mini-decline { background: transparent; color: var(--cm-loss); border-color: rgba(201, 120, 101, 0.4); }
+  .btn-mini-decline:hover { background: rgba(201, 120, 101, 0.1); }
+  .btn-mini-expire { background: transparent; color: var(--cm-ivory-dim); border-color: var(--cm-rule); }
+  .btn-mini-expire:hover { background: rgba(232, 227, 216, 0.04); color: var(--cm-ivory); }
+
+  .empty-row td {
+    text-align: center; color: var(--cm-ivory-dim); padding: 36px;
+    font-style: italic;
   }
 
-  /* HOW IT WORKS */
-  .steps { display: flex; flex-direction: column; gap: 18px; margin-top: 24px; }
-  .step {
-    display: flex; gap: 20px; align-items: flex-start;
-    padding: 22px 24px;
-    background: rgba(15, 19, 29, 0.4);
-    border: 1px solid var(--cm-line);
-    border-radius: 10px;
+  /* ─── User row expand (Phase A) ────────────────────────────────────── */
+  .table tr.user-tr { cursor: pointer; transition: background 150ms ease; }
+  .table tr.user-tr:hover { background: rgba(159, 180, 216, 0.04); }
+  .table tr.user-tr.is-expanded { background: rgba(159, 180, 216, 0.06); }
+  .table tr.user-tr .chev {
+    display: inline-block; width: 14px; margin-right: 6px;
+    color: var(--cm-ivory-dim); transition: transform 0.18s; font-style: normal;
   }
-  .step-num {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 14px; color: var(--cm-bronze);
-    flex-shrink: 0; min-width: 24px;
+  .table tr.user-tr.is-expanded .chev { transform: rotate(90deg); color: var(--cm-peri); }
+  .user-detail { background: rgba(15, 19, 29, 0.4); }
+  .user-detail-content {
+    padding: 22px 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
   }
-  .step-body { flex: 1; }
-  .step-body strong { color: var(--cm-ivory); }
-  .step-body p { margin: 0; font-size: 15px; }
+  @media (max-width: 720px) { .user-detail-content { grid-template-columns: 1fr; } }
+  .user-detail h4 {
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--cm-ivory-dim);
+    margin-bottom: 14px; font-weight: 500;
+  }
+  .user-profile dl { margin: 0; }
+  .user-profile .dl-row {
+    display: grid; grid-template-columns: 110px 1fr; gap: 8px;
+    padding: 5px 0; font-size: 13px; align-items: baseline;
+  }
+  .user-profile .dl-key {
+    font-family: var(--cm-ff-mono); font-size: 10px; color: var(--cm-ivory-dim);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .user-profile .dl-val { color: var(--cm-ivory); word-break: break-word; }
+  .user-profile .dl-val .role-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(159, 180, 216, 0.12); color: var(--cm-peri);
+    border: 1px solid rgba(159, 180, 216, 0.3);
+  }
+  .user-profile .dl-val .role-pill.is-admin {
+    background: rgba(212, 165, 116, 0.12); color: var(--cm-bronze);
+    border-color: rgba(212, 165, 116, 0.3);
+  }
+  .user-stats-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+  @media (max-width: 540px) { .user-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .user-stat-tile {
+    background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule);
+    border-radius: 8px; padding: 14px 14px;
+  }
+  .user-stat-tile .stat-num {
+    font-family: var(--cm-ff-display); font-style: italic; font-weight: 500;
+    font-size: 22px; line-height: 1; color: var(--cm-ivory); margin-bottom: 5px;
+  }
+  .user-stat-tile .stat-lbl {
+    font-family: var(--cm-ff-mono); font-size: 9px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--cm-ivory-dim);
+  }
+  .user-activity {
+    grid-column: 1 / -1; padding-top: 18px;
+    border-top: 1px solid var(--cm-rule); margin-top: 4px;
+  }
+  .user-activity-list { max-height: 420px; overflow-y: auto; padding-right: 6px; }
+  .user-activity-list::-webkit-scrollbar { width: 6px; }
+  .user-activity-list::-webkit-scrollbar-track { background: transparent; }
+  .user-activity-list::-webkit-scrollbar-thumb { background: var(--cm-rule); border-radius: 3px; }
+  .user-activity-item {
+    display: grid; grid-template-columns: 26px 1fr auto; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid rgba(232, 227, 216, 0.06);
+    align-items: start;
+  }
+  .user-activity-item:last-child { border-bottom: none; }
+  .user-activity-icon {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(159, 180, 216, 0.10); color: var(--cm-peri); font-size: 13px;
+  }
+  .user-activity-icon.signup    { background: rgba(232, 227, 216, 0.08); color: var(--cm-ivory-dim); }
+  .user-activity-icon.offer     { background: rgba(212, 165, 116, 0.12); color: var(--cm-bronze); }
+  .user-activity-icon.listing   { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
+  .user-activity-icon.watchlist { background: rgba(159, 180, 216, 0.12); color: var(--cm-peri); }
+  .user-activity-icon.signature { background: rgba(179, 157, 219, 0.12); color: #b39ddb; }
+  .user-activity-icon.referral  { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
+  .user-activity-title {
+    font-size: 13px; color: var(--cm-ivory); line-height: 1.45;
+  }
+  .user-activity-body {
+    font-size: 11px; color: var(--cm-ivory-dim); margin-top: 3px;
+  }
+  .user-activity-ts {
+    font-family: var(--cm-ff-mono); font-size: 10px;
+    color: var(--cm-ivory-dim); letter-spacing: 0.04em;
+    white-space: nowrap; padding-top: 2px;
+  }
+  .user-activity-empty {
+    padding: 24px; text-align: center; color: var(--cm-ivory-faint);
+    font-style: italic; font-family: var(--cm-ff-display); font-size: 14px;
+  }
+  .user-detail-loading {
+    padding: 32px; text-align: center; color: var(--cm-ivory-dim);
+    font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.1em;
+  }
+  .user-detail-error {
+    padding: 24px; text-align: center; color: var(--cm-loss);
+    font-size: 13px;
+  }
 
-  /* NEIGHBORS */
-  .neighbors-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-  .neighbor-item {
-    padding: 14px 16px;
-    background: rgba(15, 19, 29, 0.3);
-    border: 1px solid var(--cm-line);
-    border-radius: 8px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .neighbor-item__line {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 13px; color: var(--cm-ivory);
-  }
-  .neighbor-item__line span { color: var(--cm-mute); }
-  .neighbor-item__cmt { font-size: 14px; color: var(--cm-mute); font-style: italic; }
-  .neighbors-empty {
-    padding: 20px; text-align: center; color: var(--cm-faint); font-size: 14px;
-    border: 1px dashed var(--cm-line); border-radius: 8px; margin-top: 20px;
-  }
-  .neighbors-locked {
-    padding: 20px;
-    background: rgba(15, 19, 29, 0.3);
-    border: 1px solid var(--cm-line);
-    border-radius: 8px;
-    color: var(--cm-mute); font-size: 14px;
-    margin-top: 20px;
-  }
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .tool-card { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 22px 24px; text-decoration: none; color: var(--cm-ivory); transition: all 0.15s; display: block; }
+  .tool-card:hover { border-color: var(--cm-peri); background: rgba(159, 180, 216, 0.08); }
+  .tool-card .t-name { font-family: var(--cm-ff-display); font-style: italic; font-size: 18px; margin-bottom: 4px; }
+  .tool-card .t-desc { color: var(--cm-ivory-dim); font-size: 13px; }
+  .tool-card.coming { opacity: 0.5; pointer-events: none; }
+  .tool-card.coming::after { content: 'Soon'; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri); border: 1px solid var(--cm-peri); padding: 2px 8px; border-radius: 4px; margin-left: 8px; display: inline-block; vertical-align: middle; }
 
-  /* FAQ */
-  .faq details {
-    border-bottom: 1px solid var(--cm-line);
-    padding: 20px 0;
-  }
-  .faq details:first-of-type { border-top: 1px solid var(--cm-line); }
-  .faq summary {
-    cursor: pointer; list-style: none;
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 18px; color: var(--cm-ivory);
-    display: flex; justify-content: space-between; align-items: center;
-    padding-right: 24px;
-    position: relative;
-  }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after {
-    content: '+'; position: absolute; right: 0;
-    color: var(--cm-bronze); font-size: 22px; line-height: 1;
-    transition: transform 0.2s ease;
-  }
-  .faq details[open] summary::after { transform: rotate(45deg); }
-  .faq details p { margin: 12px 0 0; }
-
-  /* FOOTER */
-  .cm-footer {
-    border-top: 1px solid var(--cm-line);
-    padding: 32px;
-    color: var(--cm-faint);
-    font-size: 12px;
-    text-align: center;
-    line-height: 1.6;
-  }
-  .cm-footer p { margin: 0 auto; max-width: 70ch; color: var(--cm-faint); }
-
-  /* TOAST */
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    padding: 14px 24px;
-    background: var(--cm-navy);
-    border: 1px solid var(--cm-line);
-    border-radius: 8px;
-    color: var(--cm-ivory);
-    font-size: 14px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 100;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
-  .toast--err { border-color: var(--cm-rust); }
-  .toast--ok { border-color: var(--cm-gain); }
-
-  /* ERROR STATE (building not found) */
-  .err-state {
-    text-align: center; padding: 80px 32px;
-    color: var(--cm-mute);
-  }
-  .err-state h1 { margin-bottom: 12px; }
-
-  @media (max-width: 640px) {
-    main { padding: 56px 20px 80px; }
-    section { margin-bottom: 64px; }
-    .sign-panel, .indep, .step, .stat-card { padding: 22px; }
-    .cm-nav { padding: 16px 20px; }
-  }
+  .gate { text-align: center; padding: 120px 20px; }
+  .gate h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 32px; margin-bottom: 14px; color: var(--cm-ivory); }
+  .gate p { color: var(--cm-ivory-dim); font-size: 16px; max-width: 44ch; margin: 0 auto 28px; }
+  .btn { display: inline-block; padding: 13px 28px; border-radius: 999px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid; transition: all 0.15s; }
+  .btn-p { background: var(--cm-peri); color: var(--cm-navy); border-color: var(--cm-peri); }
+  #loading { text-align: center; padding: 120px 20px; color: var(--cm-ivory-dim); }
 </style>
 </head>
 <body>
-
-<header class="cm-nav">
-  <a href="/" class="cm-nav__brand">Condo <em>Market</em> · sf</a>
-  <nav class="cm-nav__links">
-    <a href="/buildings/">Buildings</a>
-    <a href="/dashboard/">Dashboard</a>
-  </nav>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <div class="meta">
+        <span class="admin-pill">Admin</span>
+        <a href="/admin/outreach.html" style="color:var(--cm-ivory-dim);text-decoration:none;">Buildings</a>
+        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
+      </div>
+    </div>
+  </div>
 </header>
 
-<main id="cm-main">
-  <!-- Initial loading state — replaced by JS -->
-  <div style="text-align:center; padding:80px 0; color: var(--cm-faint);">Loading…</div>
+<main>
+  <div class="wrap">
+    <div id="loading">Loading admin console…</div>
+
+    <div id="admin-content" style="display:none;">
+      <h1>Admin <span class="accent">console</span></h1>
+      <div class="subtitle">Signed in as <strong id="f-admin-email">—</strong></div>
+
+      <!-- ─── Metrics row ─── -->
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Total offers</div>
+          <div class="metric-val peri" id="f-offer-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Pending</div>
+          <div class="metric-val amber" id="f-pending-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Accepted · 7 days</div>
+          <div class="metric-val gain" id="f-accepted-week">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Total $ volume</div>
+          <div class="metric-val bronze" id="f-volume">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Registered users</div>
+          <div class="metric-val" id="f-user-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">MMM listings</div>
+          <div class="metric-val" id="f-listing-count">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Pending claims</div>
+          <div class="metric-val amber" id="f-pending-claims">—</div>
+        </div>
+      </div>
+
+      <!-- ─── Approval queue (Sprint B-2B) ─── -->
+      <div class="section">
+        <div class="section-head">
+          <h2>Approval <em>queue</em></h2>
+          <span class="section-sub">Auto-verified claims approve instantly. Manual review needed for names that didn't fuzzy-match title records (trusts, LLCs, misspellings).</span>
+        </div>
+        <div class="table-host">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Claimed by</th>
+                <th>Building · Unit</th>
+                <th>MMM</th>
+                <th>Title record</th>
+                <th style="text-align:right;">Submitted</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="claims-tbody">
+              <tr class="empty-row"><td colspan="6">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── Offers queue ─── -->
+      <div class="section">
+        <div class="section-head">
+          <h2>Offers <em>queue</em></h2>
+          <div class="filters">
+            <select class="filter" id="f-filter-status">
+              <option value="">All statuses</option>
+              <option value="pending" selected>Pending only</option>
+              <option value="accepted">Accepted</option>
+              <option value="declined">Declined</option>
+              <option value="withdrawn">Withdrawn</option>
+              <option value="expired">Expired</option>
+            </select>
+            <select class="filter" id="f-filter-building">
+              <option value="">All buildings</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-host">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>Buyer</th>
+                <th style="text-align:right;">Amount</th>
+                <th>Status</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="offers-tbody">
+              <tr class="empty-row"><td colspan="5">Loading offers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── Users table (Phase A — click row to drill in) ─── -->
+      <div class="section">
+        <div class="section-head">
+          <h2>Users · <em>click to expand</em></h2>
+          <span class="section-sub" id="users-count">—</span>
+        </div>
+        <div class="table-host">
+          <table class="table">
+            <thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Referral code</th><th>Referred by</th></tr></thead>
+            <tbody id="users-tbody">
+              <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── Tools ─── -->
+      <div class="section">
+        <div class="section-head"><h2>Admin <em>tools</em></h2></div>
+        <div class="tools-grid">
+          <a class="tool-card" href="/admin/outreach.html">
+            <div class="t-name">Buildings CRM</div>
+            <div class="t-desc">Building-by-building pipeline · contacts · timeline · pitch emails.</div>
+          </a>
+          <a class="tool-card" href="/tools/">
+            <div class="t-name">Bulk CSV Image Downloader</div>
+            <div class="t-desc">Extract building images from a Webflow CMS CSV export.</div>
+          </a>
+          <div class="tool-card coming">
+            <div class="t-name">Invite a VIP</div>
+            <div class="t-desc">Send a dark letter-style invite to a high-value prospect.</div>
+          </div>
+          <div class="tool-card coming">
+            <div class="t-name">Make-Me-Move queue</div>
+            <div class="t-desc">All MMM listings — match with incoming offers.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="not-authorized" class="gate" style="display:none;">
+      <h2>Not <em style="color:var(--cm-peri);">authorized</em></h2>
+      <p>You need to be signed in as an admin to view this page.</p>
+      <a class="btn btn-p" href="/buildings/">Return to home →</a>
+    </div>
+
+    <div id="signed-out" class="gate" style="display:none;">
+      <h2>Sign in to continue</h2>
+      <p>This area is for administrators only.</p>
+      <a class="btn btn-p" href="#signin" data-cm-auth="login">Sign in</a>
+    </div>
+  </div>
 </main>
 
-<footer class="cm-footer">
-  <p>
-    Condo Market is operated by Tim McMullen, a California licensed real estate agent (DRE #02016832) of McMullen Properties at Compass. This page is informational and does not constitute a binding agreement, offer, or solicitation.
-  </p>
-</footer>
+<script type="module">
+  import { CM, sb } from '/assets/cm-supabase.js';
 
-<div id="toast" class="toast"></div>
+  let allOffers = [];
+  let allClaims = [];
+  let listingsById = {};
+  const claimsTitleCache = new Map();
 
-<script>
-(function() {
-  'use strict';
+  // Phase A — user drill-down state
+  const userActivityCache = new Map();
+  let referrerEmailMap = {};
 
-  var SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
-
-  var state = {
-    slug: null,
-    building: null,
-    summary: null,
-    sigCount: 0,
-    matchedUnits: [],
-    selectedUnit: null,
-    mySig: null,
-    accessToken: null,
-    profile: null,
+  const USER_ACTIVITY_ICON = {
+    signup: '✨',
+    tos:    '📜',
+    offer:  '$',
+    listing:'🏠',
+    watchlist:'★',
+    signature:'✍',
+    referral:'🎁',
   };
 
-  function getAccessToken() {
-    var keys = ['cm-auth-session', 'sb-kfqphwerygccpzntbbif-auth-token'];
-    for (var i = 0; i < keys.length; i++) {
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+  }
+  function fmtMoney(n) {
+    if (!n) return '$0';
+    return '$' + Math.round(Number(n)).toLocaleString('en-US');
+  }
+  function fmtMoneyShort(n) {
+    n = Number(n);
+    if (n >= 1000000) {
+      const m = n / 1000000;
+      let s = m.toFixed(m >= 10 ? 1 : 2).replace(/\.?0+$/, '');
+      return '$' + s + 'M';
+    }
+    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+  function relativeTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (mins < 1)    return 'just now';
+    if (mins < 60)   return mins + ' min ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)    return hrs + ' hr ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 30)   return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function statusLabel(s) {
+    return ({ pending: 'Pending', accepted: 'Accepted', declined: 'Declined', expired: 'Expired', withdrawn: 'Withdrawn' })[s] || s;
+  }
+  function buildingPretty(slug) {
+    if (!slug) return '—';
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  function unitLabel(l) {
+    if (!l) return '—';
+    return (l.address || '?') + (l.unit_number ? ' #' + l.unit_number : '');
+  }
+
+  async function render() {
+    const loading = document.getElementById('loading');
+    const adminContent = document.getElementById('admin-content');
+    const notAuth = document.getElementById('not-authorized');
+    const signedOut = document.getElementById('signed-out');
+
+    const session = await CM.getSession();
+    loading.style.display = 'none';
+
+    if (!session?.user) { signedOut.style.display = 'block'; return; }
+
+    let profile = null;
+    try { profile = await CM.getMyProfile(); } catch (e) {}
+    if (!profile || profile.role !== 'admin') { notAuth.style.display = 'block'; return; }
+
+    adminContent.style.display = 'block';
+    document.getElementById('f-admin-email').textContent = session.user.email;
+
+    await Promise.all([
+      loadCounts(),
+      loadOffers(),
+      loadUsers(),
+      loadClaims(),
+    ]);
+  }
+
+  async function loadCounts() {
+    try {
+      const { count: userCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
+      document.getElementById('f-user-count').textContent = userCount ?? '—';
+    } catch (e) {}
+    try {
+      const { count: listingCount } = await sb
+        .from('listings').select('*', { count: 'exact', head: true })
+        .neq('status', 'removed');
+      document.getElementById('f-listing-count').textContent = listingCount ?? '—';
+    } catch (e) {}
+  }
+
+  // ─── Approval queue (Sprint B-2B) ────────────────────────────────────
+  async function loadClaims() {
+    const cr = await sb.from('user_units')
+      .select('id, user_id, building_slug, unit_address, claimed_name, evidence_url, status, created_at, review_notes')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (cr.error) {
+      console.error('[loadClaims]', cr.error);
+      document.getElementById('claims-tbody').innerHTML =
+        '<tr class="empty-row"><td colspan="6">Could not load claims: ' + escapeHtml(cr.error.message) + '</td></tr>';
+      document.getElementById('f-pending-claims').textContent = '?';
+      return;
+    }
+    allClaims = cr.data || [];
+
+    if (allClaims.length > 0) {
+      const userIds = [...new Set(allClaims.map(c => c.user_id).filter(Boolean))];
+
       try {
-        var raw = localStorage.getItem(keys[i]);
-        if (!raw) continue;
-        var parsed;
-        try { parsed = JSON.parse(raw); } catch (e) { parsed = raw; }
-        if (typeof parsed === 'string' && parsed.indexOf('eyJ') === 0) return parsed;
-        if (parsed && parsed.access_token) return parsed.access_token;
-        if (parsed && parsed.currentSession && parsed.currentSession.access_token) return parsed.currentSession.access_token;
-        if (parsed && parsed.session && parsed.session.access_token) return parsed.session.access_token;
-        if (parsed && parsed.token) return parsed.token;
+        const { data: profs } = await sb.from('profiles')
+          .select('id, email, full_name').in('id', userIds);
+        const profMap = Object.fromEntries((profs || []).map(p => [p.id, p]));
+        allClaims.forEach(c => { c.profile = profMap[c.user_id] || null; });
+      } catch (e) { /* swallow — email column will show — */ }
+
+      try {
+        const { data: mmmRows } = await sb.from('make_me_move')
+          .select('user_id, building_slug, unit_address, target_price')
+          .in('user_id', userIds);
+        const mmmMap = new Map();
+        (mmmRows || []).forEach(m => {
+          mmmMap.set(m.user_id + '|' + m.building_slug + '|' + m.unit_address, m.target_price);
+        });
+        allClaims.forEach(c => {
+          c.mmm_price = mmmMap.get(c.user_id + '|' + c.building_slug + '|' + c.unit_address) || null;
+        });
+      } catch (e) { /* swallow */ }
+
+      const uniqueUnits = [...new Set(allClaims.map(c => c.building_slug + '|' + c.unit_address))];
+      await Promise.all(uniqueUnits.map(async (k) => {
+        if (claimsTitleCache.has(k)) return;
+        const [slug, unit] = k.split('|');
+        try {
+          const { data: tr } = await sb.rpc('title_record_for_unit', {
+            p_building_slug: slug,
+            p_unit_label:    unit,
+          });
+          claimsTitleCache.set(k, tr || []);
+        } catch (e) { claimsTitleCache.set(k, []); }
+      }));
+    }
+
+    document.getElementById('f-pending-claims').textContent = allClaims.length;
+    renderClaims();
+  }
+
+  function renderClaims() {
+    const tbody = document.getElementById('claims-tbody');
+    if (allClaims.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No claims awaiting review — auto-verified submissions skip this queue.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = allClaims.map(c => {
+      const titles  = claimsTitleCache.get(c.building_slug + '|' + c.unit_address) || [];
+      const profile = c.profile || {};
+      const titleCell = titles.length === 0
+        ? '<span style="color:var(--cm-loss);font-style:italic;font-size:12px;">No title record on file</span>'
+        : titles.map(t => {
+            const owners = escapeHtml(t.owner_name || '—')
+              + (t.owner_name_2 ? ' <span style="color:var(--cm-ivory-dim);">/</span> ' + escapeHtml(t.owner_name_2) : '');
+            const sub = t.sale_date
+              ? '<br><span style="font-family:var(--cm-ff-mono);font-size:10px;color:var(--cm-ivory-dim);">'
+                + escapeHtml(new Date(t.sale_date).toLocaleDateString())
+                + (t.sale_price ? ' · ' + escapeHtml(fmtMoneyShort(t.sale_price)) : '')
+                + '</span>'
+              : '';
+            return '<div style="margin-bottom:6px;font-size:13px;line-height:1.35;">' + owners + sub + '</div>';
+          }).join('');
+      const mmmCell = c.mmm_price
+        ? '<span style="font-family:var(--cm-ff-display);font-style:italic;color:var(--cm-bronze);font-size:15px;">'
+            + fmtMoneyShort(c.mmm_price) + '</span>'
+        : '<span style="color:var(--cm-ivory-faint);">—</span>';
+      const evidenceLine = c.evidence_url
+        ? '<br><a href="' + escapeHtml(c.evidence_url) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--cm-peri);">evidence ↗</a>'
+        : '';
+      return [
+        '<tr class="claim-tr" data-claim-id="' + escapeHtml(c.id) + '">',
+        '  <td>',
+        '    <strong>' + escapeHtml(c.claimed_name || '—') + '</strong>',
+        '    <br><span style="color:var(--cm-ivory-dim);font-size:12px;font-family:var(--cm-ff-mono);">' + escapeHtml(profile.email || '—') + '</span>',
+        '    ' + evidenceLine,
+        '  </td>',
+        '  <td>',
+        '    <strong>' + escapeHtml(buildingPretty(c.building_slug)) + '</strong>',
+        '    <br><span style="color:var(--cm-peri);font-family:var(--cm-ff-mono);font-size:12px;">' + escapeHtml(c.unit_address || '—') + '</span>',
+        '  </td>',
+        '  <td>' + mmmCell + '</td>',
+        '  <td>' + titleCell + '</td>',
+        '  <td style="text-align:right;font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">' + escapeHtml(relativeTime(c.created_at)) + '</td>',
+        '  <td style="text-align:right;white-space:nowrap;">',
+        '    <button class="btn-mini btn-mini-accept" data-claim-action="approve" data-id="' + escapeHtml(c.id) + '">Approve</button>',
+        '    <button class="btn-mini btn-mini-decline" data-claim-action="reject" data-id="' + escapeHtml(c.id) + '" style="margin-left:6px;">Reject</button>',
+        '  </td>',
+        '</tr>',
+      ].join('\n');
+    }).join('\n');
+  }
+
+  async function approveClaim(claimId) {
+    const session = await CM.getSession();
+    if (!session?.user) { alert('Not signed in'); return false; }
+    const { error } = await sb.from('user_units').update({
+      status:       'approved',
+      reviewed_at:  new Date().toISOString(),
+      reviewed_by:  session.user.id,
+      review_notes: 'Approved by admin via approval queue',
+    }).eq('id', claimId);
+    if (error) { alert('Approve failed: ' + error.message); return false; }
+    return true;
+  }
+
+  async function rejectClaim(claimId) {
+    const notes = prompt('Reason for rejection (will be sent to the homeowner):');
+    if (notes == null || notes.trim() === '') return false;
+    const session = await CM.getSession();
+    if (!session?.user) { alert('Not signed in'); return false; }
+    const { error } = await sb.from('user_units').update({
+      status:       'rejected',
+      reviewed_at:  new Date().toISOString(),
+      reviewed_by:  session.user.id,
+      review_notes: notes.trim(),
+    }).eq('id', claimId);
+    if (error) { alert('Reject failed: ' + error.message); return false; }
+    return true;
+  }
+
+  async function loadOffers() {
+    allOffers = await CM.listAllOffers();
+
+    const lids = [...new Set(allOffers.map(o => o.listing_id).filter(Boolean))];
+    if (lids.length > 0) {
+      try {
+        const { data } = await sb.from('listings')
+          .select('id, address, unit_number, building, price')
+          .in('id', lids);
+        listingsById = {};
+        (data || []).forEach(l => { listingsById[l.id] = l; });
       } catch (e) {}
     }
-    return null;
+
+    document.getElementById('f-offer-count').textContent  = allOffers.length;
+    const pending = allOffers.filter(o => o.status === 'pending').length;
+    document.getElementById('f-pending-count').textContent = pending;
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const acceptedThisWeek = allOffers.filter(o =>
+      o.status === 'accepted' && new Date(o.created_at).getTime() >= oneWeekAgo
+    ).length;
+    document.getElementById('f-accepted-week').textContent = acceptedThisWeek;
+    const totalVolume = allOffers.reduce((acc, o) => acc + Number(o.offer_amount || 0), 0);
+    document.getElementById('f-volume').textContent = totalVolume > 0 ? fmtMoneyShort(totalVolume) : '$0';
+
+    const buildingSlugs = [...new Set(allOffers.map(o => o.building_slug).filter(Boolean))].sort();
+    const sel = document.getElementById('f-filter-building');
+    sel.innerHTML = '<option value="">All buildings</option>'
+      + buildingSlugs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(buildingPretty(s))}</option>`).join('');
+
+    renderOffers();
   }
 
-  function extractSlug() {
-    var qs = new URLSearchParams(window.location.search);
-    var slug = qs.get('slug');
-    if (slug) return slug;
-    var m = window.location.pathname.match(/\/building\/([a-z0-9-]+)\/petition/);
-    if (m) return m[1];
-    return null;
-  }
+  function renderOffers() {
+    const tbody = document.getElementById('offers-tbody');
+    const statusFilter = document.getElementById('f-filter-status').value;
+    const buildingFilter = document.getElementById('f-filter-building').value;
 
-  function fmtMoney(n) {
-    n = Number(n) || 0;
-    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
-    if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
-    return '$' + n.toLocaleString();
-  }
+    let visible = allOffers;
+    if (statusFilter)   visible = visible.filter(o => o.status === statusFilter);
+    if (buildingFilter) visible = visible.filter(o => o.building_slug === buildingFilter);
 
-  function toast(msg, kind) {
-    var el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show toast--' + (kind || 'ok');
-    setTimeout(function() { el.className = 'toast'; }, 3500);
-  }
-
-  function anonHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON,
-      'Authorization': 'Bearer ' + SUPABASE_ANON
-    };
-  }
-
-  function authHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON,
-      'Authorization': 'Bearer ' + state.accessToken
-    };
-  }
-
-  async function fetchBuildingMeta() {
-    try {
-      var r = await fetch('/assets/buildings.json', { cache: 'no-cache' });
-      if (!r.ok) return null;
-      var all = await r.json();
-      return (all || []).find(function(b) {
-        return b.href && b.href.indexOf('/' + state.slug + '/') !== -1;
-      });
-    } catch (e) { return null; }
-  }
-
-  async function fetchSummary() {
-    try {
-      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/public_building_summary', {
-        method: 'POST',
-        headers: anonHeaders(),
-        body: JSON.stringify({ p_building_slug: state.slug })
-      });
-      if (!r.ok) return null;
-      var rows = await r.json();
-      return Array.isArray(rows) && rows[0] ? rows[0] : null;
-    } catch (e) { return null; }
-  }
-
-  async function fetchSigCount() {
-    try {
-      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/petition_counts', {
-        method: 'POST', headers: anonHeaders(), body: '{}'
-      });
-      if (!r.ok) return 0;
-      var rows = await r.json();
-      var row = (rows || []).find(function(x) { return x.building_slug === state.slug; });
-      return row ? Number(row.signature_count) || 0 : 0;
-    } catch (e) { return 0; }
-  }
-
-  async function fetchMyProfile() {
-    if (!state.accessToken) return null;
-    try {
-      var r = await fetch(SUPABASE_URL + '/rest/v1/profiles?select=id,full_name,email&limit=1', {
-        headers: authHeaders()
-      });
-      if (!r.ok) return null;
-      var rows = await r.json();
-      return rows && rows[0] ? rows[0] : null;
-    } catch (e) { return null; }
-  }
-
-  async function fetchMatchedUnits() {
-    if (!state.accessToken) return [];
-    try {
-      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/find_user_units_in_building', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ p_building_slug: state.slug })
-      });
-      if (!r.ok) return [];
-      var rows = await r.json();
-      return Array.isArray(rows) ? rows : [];
-    } catch (e) { return []; }
-  }
-
-  async function fetchMySig() {
-    if (!state.accessToken) return null;
-    try {
-      var r = await fetch(
-        SUPABASE_URL + '/rest/v1/petition_signatures?select=*&building_slug=eq.' +
-        encodeURIComponent(state.slug) + '&limit=1',
-        { headers: authHeaders() }
-      );
-      if (!r.ok) return null;
-      var rows = await r.json();
-      return rows && rows[0] ? rows[0] : null;
-    } catch (e) { return null; }
-  }
-
-  async function fetchNeighbors() {
-    // Verified-only — RLS will return either own row OR all rows if user is verified owner
-    if (!state.accessToken || state.matchedUnits.length === 0) return [];
-    try {
-      var r = await fetch(
-        SUPABASE_URL + '/rest/v1/petition_signatures?select=matched_owner_name,unit_address,comment,signed_at&building_slug=eq.' +
-        encodeURIComponent(state.slug) + '&order=signed_at.desc&limit=50',
-        { headers: authHeaders() }
-      );
-      if (!r.ok) return [];
-      return await r.json();
-    } catch (e) { return []; }
-  }
-
-  function fmtNeighborName(fullName) {
-    if (!fullName) return 'A neighbor';
-    // "MCMULLEN TIM" → "Tim M."
-    var parts = fullName.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      var first = parts[1].charAt(0) + parts[1].slice(1).toLowerCase();
-      var lastInit = parts[0].charAt(0).toUpperCase();
-      return first + ' ' + lastInit + '.';
-    }
-    return parts[0].charAt(0) + parts[0].slice(1).toLowerCase();
-  }
-
-  // ============ RENDER ============
-
-  function renderHeroAndCounter() {
-    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
-    var missed = state.summary ? fmtMoney(state.summary.missed_hoa_10y) : '$0';
-    var sales = state.summary ? Number(state.summary.sales_10y).toLocaleString() : '0';
-    var sigCount = state.sigCount;
-
-    return [
-      '<section class="hero">',
-        '<span class="eyebrow">Building petition</span>',
-        '<h1>Sign to ask <span class="accent">', escapeHtml(bldName), '</span>\u2019s HOA Board to take a meeting with Condo Market</h1>',
-        '<p class="subhead">Nothing more \u2014 just a meeting. The more owners who sign, the more compelled the board will be to take the conversation.</p>',
-        '<div class="hero-stat">',
-          '<span class="hero-stat__num">', missed, '</span>',
-          '<span class="hero-stat__lbl">in HOA revenue this building has missed over the past 10 years (', sales, ' unit sales). The starting point for the conversation.</span>',
-        '</div>',
-      '</section>',
-      '<section class="counter">',
-        '<span class="counter-dot"></span>',
-        '<span class="counter-num">', sigCount, '</span>',
-        '<span class="counter-lbl">verified ', (sigCount === 1 ? 'owner has' : 'owners have'), ' signed at ', escapeHtml(bldName), '</span>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderSignPanel() {
-    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
-
-    // STATE 1 — already signed
-    if (state.mySig) {
-      return [
-        '<section class="sign-panel">',
-          '<h2>You\u2019ve signed</h2>',
-          '<p class="helper">Thank you. Your name is recorded as supporting the ', escapeHtml(bldName), ' HOA Board taking a meeting with Condo Market.</p>',
-          '<div class="btn-row">',
-            '<button class="btn btn--ghost" id="cm-share-btn">Share with neighbors</button>',
-            '<button class="btn btn--ghost" id="cm-revoke-btn">Revoke my signature</button>',
-          '</div>',
-        '</section>'
-      ].join('');
-    }
-
-    // STATE 2 — not signed in
-    if (!state.accessToken) {
-      return [
-        '<section class="sign-panel">',
-          '<h2>Sign in to sign the petition</h2>',
-          '<p class="helper">Only verified owners at ', escapeHtml(bldName), ' can sign. We verify your name against public records to keep the petition credible.</p>',
-          '<a class="btn btn--primary" href="/auth/?redirect=', encodeURIComponent(window.location.pathname + window.location.search), '">Sign in or create an account</a>',
-        '</section>'
-      ].join('');
-    }
-
-    // STATE 3 — signed in, no profile name
-    if (!state.profile || !state.profile.full_name || !state.profile.full_name.trim()) {
-      return [
-        '<section class="sign-panel">',
-          '<h2>Add your full name to sign</h2>',
-          '<p class="helper">We match your name against public ownership records. Once your profile name is set, refresh this page.</p>',
-          '<a class="btn btn--primary" href="/dashboard/#settings">Update your profile</a>',
-        '</section>'
-      ].join('');
-    }
-
-    // STATE 4 — signed in, no matched units
-    if (state.matchedUnits.length === 0) {
-      return [
-        '<section class="sign-panel">',
-          '<h2>We couldn\u2019t verify your ownership at ', escapeHtml(bldName), '</h2>',
-          '<p class="helper">Your profile name (<strong>', escapeHtml(state.profile.full_name), '</strong>) didn\u2019t match an owner of record at this building. If you do own a unit here, the name on your deed may differ from your profile name. You can update your profile or contact us at tim@mcmullen.properties.</p>',
-          '<a class="btn btn--ghost" href="/dashboard/#settings">Update your profile name</a>',
-        '</section>'
-      ].join('');
-    }
-
-    // STATE 5 — verified, can sign
-    var unitOptions = state.matchedUnits.map(function(u, i) {
-      return [
-        '<li data-idx="', i, '" class="', (i === 0 ? 'selected' : ''), '">',
-          '<input type="radio" name="cm-unit" value="', i, '" ', (i === 0 ? 'checked' : ''), '>',
-          '<span>', escapeHtml(u.unit_address || ''), '</span>',
-        '</li>'
-      ].join('');
-    }).join('');
-
-    state.selectedUnit = state.matchedUnits[0];
-
-    return [
-      '<section class="sign-panel">',
-        '<h2>Sign the petition</h2>',
-        '<p class="helper">Verified owner of record at ', escapeHtml(bldName), '. Select the unit you\u2019re signing for and add an optional note for the board.</p>',
-        (state.matchedUnits.length > 1 ? '<ul class="units">' + unitOptions + '</ul>' : '<ul class="units">' + unitOptions + '</ul>'),
-        '<textarea id="cm-comment" placeholder="Optional: a note to the HOA Board about why you\u2019re signing"></textarea>',
-        '<div class="commitment">',
-          '<strong>What I\u2019m signing.</strong> I support the ', escapeHtml(bldName), ' HOA Board taking a meeting with Condo Market to discuss a potential partnership. Signing is not a vote, a commitment, or an authorization \u2014 it is a request that the board hear the proposal.',
-        '</div>',
-        '<button class="btn btn--primary" id="cm-sign-btn">Sign for ', escapeHtml(bldName), '</button>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderIndependence() {
-    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
-    return [
-      '<section class="indep">',
-        '<h2>Condo Market is already live</h2>',
-        '<p>The platform is operating in San Francisco today. Owners can list units, buyers can browse and make offers, and transactions are happening \u2014 without your HOA\u2019s involvement.</p>',
-        '<p><strong>What this petition does:</strong> tells the ', escapeHtml(bldName), ' HOA Board there\u2019s owner interest in exploring a formal partnership. A partnership would direct 1% of every future unit sale at this building into the HOA\u2019s reserves, at zero cost to homeowners. The board would need to take a meeting first to hear the proposal.</p>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderEducation() {
-    var missed = state.summary ? fmtMoney(state.summary.missed_hoa_10y) : '$0';
-    var sales = state.summary ? Number(state.summary.sales_10y).toLocaleString() : '0';
-    return [
-      '<section class="education">',
-        '<h2>The number, in context</h2>',
-        '<p>Past sales generated zero revenue for your HOA. Going forward, a Condo Market partnership would change that.</p>',
-        '<div class="stats-grid">',
-          '<div class="stat-card">',
-            '<div class="stat-card__num">', missed, '</div>',
-            '<div class="stat-card__lbl">Total HOA revenue your building has missed over the past 10 years</div>',
-          '</div>',
-          '<div class="stat-card">',
-            '<div class="stat-card__num">', sales, '</div>',
-            '<div class="stat-card__lbl">Unit sales that contributed nothing to your reserves</div>',
-          '</div>',
-          '<div class="stat-card">',
-            '<div class="stat-card__num">5\u201310%</div>',
-            '<div class="stat-card__lbl">Higher per-square-foot pricing in well-funded buildings vs comparable buildings with thin reserves</div>',
-          '</div>',
-        '</div>',
-        '<div class="funded">',
-          '<p><strong>What 1% of every future sale could fund</strong> at the HOA Board\u2019s discretion:</p>',
-          '<ul>',
-            '<li>Gym equipment refreshes</li>',
-            '<li>Lobby modernization</li>',
-            '<li>Hallway carpet replacement</li>',
-            '<li>Reserve growth \u00b7 fewer special assessments</li>',
-            '<li>Smart-access systems</li>',
-            '<li>Building envelope work</li>',
-          '</ul>',
-        '</div>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderHowItWorks() {
-    return [
-      '<section class="how">',
-        '<h2>If the board agrees to a partnership</h2>',
-        '<p>This is what would happen after the meeting, only if the board votes to approve.</p>',
-        '<div class="steps">',
-          '<div class="step">',
-            '<span class="step-num">01</span>',
-            '<div class="step-body"><strong>Every future unit sale</strong> through Condo Market generates 1% of the sale price as direct HOA revenue, paid into the building\u2019s reserve account at closing.</div>',
-          '</div>',
-          '<div class="step">',
-            '<span class="step-num">02</span>',
-            '<div class="step-body"><strong>The licensed agent</strong> earns the standard listing commission (paid by the seller, as in any transaction). Homeowners pay nothing extra to participate.</div>',
-          '</div>',
-          '<div class="step">',
-            '<span class="step-num">03</span>',
-            '<div class="step-body"><strong>Reserves grow</strong>. Better-funded buildings trade higher. Every owner benefits from the compounding upside.</div>',
-          '</div>',
-        '</div>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderNeighbors(neighbors) {
-    var bldName = state.building && state.building.name ? state.building.name : state.slug.replace(/-/g, ' ').toUpperCase();
-    if (!state.accessToken || state.matchedUnits.length === 0) {
-      return [
-        '<section>',
-          '<h2>Neighbors who\u2019ve signed</h2>',
-          '<div class="neighbors-locked">Visible to verified ', escapeHtml(bldName), ' owners. Sign in and verify your unit to see who\u2019s already signed.</div>',
-        '</section>'
-      ].join('');
-    }
-    if (!neighbors || neighbors.length === 0) {
-      return [
-        '<section>',
-          '<h2>Neighbors who\u2019ve signed</h2>',
-          '<div class="neighbors-empty">No signatures yet. Be the first.</div>',
-        '</section>'
-      ].join('');
-    }
-    var items = neighbors.map(function(n) {
-      var name = fmtNeighborName(n.matched_owner_name);
-      var unit = n.unit_address ? ' \u00b7 ' + n.unit_address : '';
-      var cmt = n.comment ? '<div class="neighbor-item__cmt">\u201c' + escapeHtml(n.comment) + '\u201d</div>' : '';
-      return [
-        '<div class="neighbor-item">',
-          '<div class="neighbor-item__line">', escapeHtml(name), '<span>', escapeHtml(unit), '</span></div>',
-          cmt,
-        '</div>'
-      ].join('');
-    }).join('');
-    return [
-      '<section>',
-        '<h2>Neighbors who\u2019ve signed</h2>',
-        '<div class="neighbors-list">', items, '</div>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderFaq() {
-    return [
-      '<section class="faq">',
-        '<h2>Common questions</h2>',
-        '<details>',
-          '<summary>What does my signature actually do?</summary>',
-          '<p>It tells your HOA Board that owners want them to take a meeting with Condo Market. Nothing more \u2014 no commitment, no authorization, no vote.</p>',
-        '</details>',
-        '<details>',
-          '<summary>Does signing commit me to anything?</summary>',
-          '<p>No. You\u2019re asking the board to take a meeting, not authorizing a partnership. If the board does eventually agree to a partnership, that decision is theirs to make through normal HOA governance.</p>',
-        '</details>',
-        '<details>',
-          '<summary>Is Condo Market already operating?</summary>',
-          '<p>Yes. The platform is live at sanfranciscocondomarket.com and handling transactions today. This petition is specifically about your building\u2019s HOA exploring a formal partnership \u2014 which would direct 1% of every future sale to the building\u2019s reserves.</p>',
-        '</details>',
-        '<details>',
-          '<summary>How is my ownership verified?</summary>',
-          '<p>Public records. The name on your profile is matched against the owner of record on each unit\u2019s deed. Only verified owners at this specific building can sign.</p>',
-        '</details>',
-        '<details>',
-          '<summary>Can I revoke my signature later?</summary>',
-          '<p>Yes, anytime \u2014 from this page or your dashboard.</p>',
-        '</details>',
-      '</section>'
-    ].join('');
-  }
-
-  function renderError() {
-    return [
-      '<div class="err-state">',
-        '<h1>Building not found</h1>',
-        '<p>This petition link doesn\u2019t match a building we track. <a href="/buildings/">Browse all buildings \u2192</a></p>',
-      '</div>'
-    ].join('');
-  }
-
-  function escapeHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-    });
-  }
-
-  // ============ ACTIONS ============
-
-  async function handleSign() {
-    if (!state.selectedUnit) { toast('Select a unit first', 'err'); return; }
-    var btn = document.getElementById('cm-sign-btn');
-    btn.disabled = true;
-    var commentEl = document.getElementById('cm-comment');
-    var comment = commentEl && commentEl.value ? commentEl.value.trim().slice(0, 1000) : null;
-
-    try {
-      var r = await fetch(SUPABASE_URL + '/rest/v1/petition_signatures', {
-        method: 'POST',
-        headers: Object.assign({}, authHeaders(), { 'Prefer': 'return=representation' }),
-        body: JSON.stringify({
-          building_slug: state.slug,
-          signer_user_id: state.profile.id,
-          unit_address: state.selectedUnit.unit_address,
-          matched_owner_name: state.selectedUnit.matched_owner_name || state.profile.full_name,
-          comment: comment
-        })
-      });
-      if (!r.ok) {
-        var errText = await r.text();
-        console.error('[petition] sign failed', r.status, errText);
-        toast('Could not sign \u2014 please try again or contact support.', 'err');
-        btn.disabled = false;
-        return;
-      }
-      toast('Signed. Thanks for adding your name.', 'ok');
-      await initData();
-      renderAll();
-    } catch (e) {
-      console.error('[petition] sign error', e);
-      toast('Could not sign \u2014 please try again.', 'err');
-      btn.disabled = false;
-    }
-  }
-
-  async function handleRevoke() {
-    if (!confirm('Revoke your signature? You can re-sign anytime.')) return;
-    try {
-      var r = await fetch(
-        SUPABASE_URL + '/rest/v1/petition_signatures?id=eq.' + encodeURIComponent(state.mySig.id),
-        { method: 'DELETE', headers: authHeaders() }
-      );
-      if (!r.ok) {
-        toast('Could not revoke \u2014 please try again.', 'err');
-        return;
-      }
-      toast('Signature revoked.', 'ok');
-      await initData();
-      renderAll();
-    } catch (e) {
-      toast('Could not revoke.', 'err');
-    }
-  }
-
-  function handleShare() {
-    var bldName = state.building && state.building.name ? state.building.name : state.slug;
-    var url = window.location.origin + '/building/' + state.slug + '/petition/?utm_source=share';
-    var text = 'I just signed the petition asking ' + bldName + '\u2019s HOA Board to take a meeting with Condo Market. Add your name: ' + url;
-    if (navigator.share) {
-      navigator.share({ title: 'Sign for ' + bldName, text: text, url: url }).catch(function(){});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(function() { toast('Copied to clipboard.', 'ok'); });
-    } else {
-      prompt('Copy and share this link:', url);
-    }
-  }
-
-  function bindUnitPicker() {
-    var lis = document.querySelectorAll('.sign-panel ul.units li');
-    lis.forEach(function(li) {
-      li.addEventListener('click', function() {
-        var idx = parseInt(li.getAttribute('data-idx'), 10);
-        state.selectedUnit = state.matchedUnits[idx];
-        lis.forEach(function(other) { other.classList.remove('selected'); });
-        li.classList.add('selected');
-        var radio = li.querySelector('input[type="radio"]');
-        if (radio) radio.checked = true;
-      });
-    });
-  }
-
-  function bindActions() {
-    var signBtn = document.getElementById('cm-sign-btn');
-    if (signBtn) signBtn.addEventListener('click', handleSign);
-    var revokeBtn = document.getElementById('cm-revoke-btn');
-    if (revokeBtn) revokeBtn.addEventListener('click', handleRevoke);
-    var shareBtn = document.getElementById('cm-share-btn');
-    if (shareBtn) shareBtn.addEventListener('click', handleShare);
-    bindUnitPicker();
-  }
-
-  function renderAll(neighbors) {
-    var main = document.getElementById('cm-main');
-    main.innerHTML =
-      renderHeroAndCounter() +
-      renderSignPanel() +
-      renderIndependence() +
-      renderEducation() +
-      renderHowItWorks() +
-      renderNeighbors(neighbors || []) +
-      renderFaq();
-    bindActions();
-  }
-
-  // ============ INIT ============
-
-  async function initData() {
-    var promises = [
-      fetchSummary(),
-      fetchSigCount(),
-    ];
-    if (state.accessToken) {
-      promises.push(fetchMyProfile());
-      promises.push(fetchMatchedUnits());
-      promises.push(fetchMySig());
-    }
-    var results = await Promise.all(promises);
-    state.summary = results[0];
-    state.sigCount = results[1];
-    if (state.accessToken) {
-      state.profile = results[2];
-      state.matchedUnits = results[3] || [];
-      state.mySig = results[4];
-    }
-  }
-
-  async function init() {
-    state.slug = extractSlug();
-    if (!state.slug) {
-      document.getElementById('cm-main').innerHTML = renderError();
+    if (visible.length === 0) {
+      const msg = allOffers.length === 0
+        ? 'No offers yet — when buyers submit, they appear here.'
+        : 'No offers match the current filter.';
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${escapeHtml(msg)}</td></tr>`;
       return;
     }
-    state.accessToken = getAccessToken();
-    state.building = await fetchBuildingMeta();
-    if (!state.building) {
-      document.getElementById('cm-main').innerHTML = renderError();
+
+    tbody.innerHTML = visible.map(o => {
+      const lst = listingsById[o.listing_id];
+      const buildingCell = buildingPretty(o.building_slug);
+      const buyerCell = (o.buyer_name ? `<strong>${escapeHtml(o.buyer_name)}</strong><br>` : '')
+        + `<span style="color:var(--cm-ivory-dim);font-size:12px;font-family:var(--cm-ff-mono);">${escapeHtml(o.buyer_email)}</span>`;
+      const listingSub = lst
+        ? `<br><span style="color:var(--cm-ivory-dim);font-size:12px;">${escapeHtml(lst.address || '')}${lst.unit_number ? ' #' + escapeHtml(lst.unit_number) : ''}</span>`
+        : '';
+      const detailListing = lst
+        ? escapeHtml((lst.address || '') + (lst.unit_number ? ' #' + lst.unit_number : ''))
+          + (lst.price ? ` <span style="color:var(--cm-ivory-dim);font-family:var(--cm-ff-mono);font-size:12px;">· MMM ${fmtMoney(lst.price)}</span>` : '')
+        : 'Generic building offer (no specific unit)';
+      const photoUrl = lst && lst.cover_photo_path ? CM.getListingPhotoUrl(lst.cover_photo_path) : null;
+      const photoBlock = photoUrl
+        ? `<div style="margin-bottom:14px;"><img src="${escapeHtml(photoUrl)}" alt="Listing photo" style="width:100%;max-width:240px;border-radius:8px;display:block;"></div>`
+        : '';
+      const messageBlock = o.message
+        ? `<div class="dl-label">Message</div><div class="dl-value italic">${escapeHtml(o.message)}</div>`
+        : `<div class="dl-label">Message</div><div class="dl-value" style="color:var(--cm-ivory-faint);">No message included.</div>`;
+      const actionsBlock = o.status === 'pending'
+        ? `<div class="offer-detail-actions">
+            <button class="btn-mini btn-mini-accept" data-action="accept"  data-id="${escapeHtml(o.id)}">Accept</button>
+            <button class="btn-mini btn-mini-decline" data-action="decline" data-id="${escapeHtml(o.id)}">Decline</button>
+            <button class="btn-mini btn-mini-expire" data-action="expire"  data-id="${escapeHtml(o.id)}">Mark expired</button>
+          </div>`
+        : '';
+      return [
+        `<tr class="offer-tr" data-id="${escapeHtml(o.id)}">`,
+        `  <td><strong>${escapeHtml(buildingCell)}</strong>${listingSub}</td>`,
+        `  <td>${buyerCell}</td>`,
+        `  <td style="text-align:right;"><span class="offer-amount-cell">${fmtMoney(o.offer_amount)}</span></td>`,
+        `  <td><span class="offer-status offer-status-${escapeHtml(o.status)}">${escapeHtml(statusLabel(o.status))}</span></td>`,
+        `  <td style="font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${escapeHtml(relativeTime(o.created_at))}</td>`,
+        `</tr>`,
+        `<tr class="offer-detail" data-detail-for="${escapeHtml(o.id)}" style="display:none;"><td colspan="5">`,
+        `  <div class="offer-detail-content">`,
+        `    <div class="offer-detail-block">`,
+        `      ${photoBlock}`,
+        `      <div class="dl-label">Listing</div>`,
+        `      <div class="dl-value">${detailListing}</div>`,
+        `      <div class="dl-label">Building slug</div>`,
+        `      <div class="dl-value" style="font-family:var(--cm-ff-mono);font-size:13px;">${escapeHtml(o.building_slug || '—')}</div>`,
+        `      <div class="dl-label">Submitted</div>`,
+        `      <div class="dl-value">${escapeHtml(new Date(o.created_at).toLocaleString())}</div>`,
+        `    </div>`,
+        `    <div class="offer-detail-block">`,
+        `      <div class="dl-label">Buyer</div>`,
+        `      <div class="dl-value">${escapeHtml(o.buyer_name || '—')}<br><span style="font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${escapeHtml(o.buyer_email)}</span></div>`,
+        `      ${messageBlock}`,
+        `    </div>`,
+        `    ${actionsBlock}`,
+        `  </div>`,
+        `</td></tr>`,
+      ].join('\n');
+    }).join('\n');
+  }
+
+  // ─── PHASE A: Users with drill-down ─────────────────────────────────────
+  async function loadUsers() {
+    try {
+      const { data: users, error } = await sb
+        .from('profiles')
+        .select('id, email, full_name, phone, created_at, referral_code, referred_by, role, tos_accepted_at, tos_version, points_earned')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+
+      const referrerIds = [...new Set((users || []).map(u => u.referred_by).filter(Boolean))];
+      referrerEmailMap = {};
+      if (referrerIds.length > 0) {
+        try {
+          const { data: referrers } = await sb.from('profiles').select('id, email').in('id', referrerIds);
+          referrerEmailMap = Object.fromEntries((referrers || []).map(r => [r.id, r.email]));
+        } catch (e) { /* swallow */ }
+      }
+
+      (users || []).forEach(u => {
+        userActivityCache.set(u.id, { profile: u });
+      });
+
+      const tbody = document.getElementById('users-tbody');
+      const countEl = document.getElementById('users-count');
+      if (users && users.length > 0) {
+        tbody.innerHTML = users.map(u => renderUserRow(u)).join('');
+        countEl.textContent = users.length === 200
+          ? 'Showing most recent 200'
+          : `${users.length} user${users.length === 1 ? '' : 's'}`;
+      } else {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No users yet.</td></tr>';
+        countEl.textContent = '';
+      }
+    } catch (e) {
+      console.error('[loadUsers]', e);
+      document.getElementById('users-tbody').innerHTML =
+        '<tr class="empty-row"><td colspan="5">Could not load users.</td></tr>';
+    }
+  }
+
+  function renderUserRow(u) {
+    const referrerEmail = u.referred_by ? referrerEmailMap[u.referred_by] : null;
+    return [
+      `<tr class="user-tr" data-user-id="${escapeHtml(u.id)}">`,
+      `  <td style="font-family:var(--cm-ff-mono);font-size:12px;"><i class="chev">›</i>${escapeHtml(u.email || '—')}</td>`,
+      `  <td>${escapeHtml(u.full_name || '—')}</td>`,
+      `  <td style="color:var(--cm-ivory-dim);font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>`,
+      `  <td style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(u.referral_code || '—')}</td>`,
+      `  <td style="font-family:var(--cm-ff-mono);color:var(--cm-ivory-dim);font-size:12px;">${escapeHtml(referrerEmail || '—')}</td>`,
+      `</tr>`,
+      `<tr class="user-detail" data-detail-for="${escapeHtml(u.id)}" style="display:none;">`,
+      `  <td colspan="5"><div class="user-detail-loading" data-loading="true">Loading activity…</div></td>`,
+      `</tr>`,
+    ].join('');
+  }
+
+  async function loadUserActivity(userId) {
+    const cached = userActivityCache.get(userId);
+    if (cached && cached.offers !== undefined) return cached;
+
+    const [offersR, listingsR, watchlistR, sigsR, creditsR] = await Promise.all([
+      sb.from('offers')
+        .select('id, building_slug, listing_id, offer_amount, status, current_round, created_at, updated_at')
+        .eq('buyer_user_id', userId).order('created_at', { ascending: false }),
+      sb.from('listings')
+        .select('id, address, unit_number, building, price, status, created_at, updated_at')
+        .eq('user_id', userId).order('created_at', { ascending: false }),
+      sb.from('watchlist')
+        .select('id, building_slug, created_at')
+        .eq('user_id', userId).order('created_at', { ascending: false }),
+      sb.from('petition_signatures')
+        .select('id, building_slug, unit_address, matched_owner_name, signed_at')
+        .eq('signer_user_id', userId).order('signed_at', { ascending: false }),
+      sb.from('referral_credits')
+        .select('id, points_awarded, source, awarded_at, referred_user_id')
+        .eq('referrer_id', userId).order('awarded_at', { ascending: false }),
+    ]);
+
+    const activity = {
+      profile: cached?.profile,
+      offers:     offersR.data    || [],
+      listings:   listingsR.data  || [],
+      watchlist:  watchlistR.data || [],
+      signatures: sigsR.data      || [],
+      credits:    creditsR.data   || [],
+    };
+    userActivityCache.set(userId, activity);
+    return activity;
+  }
+
+  function buildUserTimeline(activity) {
+    const events = [];
+    const p = activity.profile || {};
+
+    if (p.created_at) {
+      events.push({ ts: p.created_at, kind: 'signup', title: 'Joined Condo Market', body: '' });
+    }
+    if (p.tos_accepted_at) {
+      events.push({
+        ts: p.tos_accepted_at, kind: 'tos',
+        title: `Accepted Terms of Service${p.tos_version ? ' v' + p.tos_version : ''}`,
+        body: '',
+      });
+    }
+    activity.offers.forEach(o => {
+      events.push({
+        ts: o.created_at, kind: 'offer',
+        title: `Made ${fmtMoney(o.offer_amount)} offer · ${buildingPretty(o.building_slug)}`,
+        body: o.status !== 'pending' ? `Status: ${o.status}` : '',
+      });
+    });
+    activity.listings.forEach(l => {
+      events.push({
+        ts: l.created_at, kind: 'listing',
+        title: `Created MMM listing · ${unitLabel(l)} · ${fmtMoney(l.price)}`,
+        body: l.status !== 'active' ? `Status: ${l.status}` : '',
+      });
+    });
+    activity.watchlist.forEach(w => {
+      events.push({
+        ts: w.created_at, kind: 'watchlist',
+        title: `Watchlisted ${buildingPretty(w.building_slug)}`,
+        body: '',
+      });
+    });
+    activity.signatures.forEach(s => {
+      events.push({
+        ts: s.signed_at, kind: 'signature',
+        title: `Signed petition · ${buildingPretty(s.building_slug)}${s.unit_address ? ' · ' + s.unit_address : ''}`,
+        body: s.matched_owner_name ? `Public-record owner: ${s.matched_owner_name}` : '',
+      });
+    });
+    activity.credits.forEach(c => {
+      events.push({
+        ts: c.awarded_at, kind: 'referral',
+        title: `Earned ${c.points_awarded} pts referral credit`,
+        body: c.source ? `Source: ${c.source}` : '',
+      });
+    });
+    return events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  }
+
+  function renderUserDetail(activity) {
+    const p = activity.profile || {};
+    const referrerEmail = p.referred_by ? referrerEmailMap[p.referred_by] : null;
+    const timeline = buildUserTimeline(activity);
+
+    const tosCell = p.tos_accepted_at
+      ? `v${escapeHtml(p.tos_version || '?')} · ${new Date(p.tos_accepted_at).toLocaleDateString()}`
+      : '<span style="color:var(--cm-ivory-faint);">Not accepted</span>';
+
+    return [
+      `<div class="user-detail-content">`,
+
+      `  <div class="user-profile">`,
+      `    <h4>Profile</h4>`,
+      `    <dl>`,
+      `      <div class="dl-row"><span class="dl-key">Email</span><span class="dl-val" style="font-family:var(--cm-ff-mono);">${escapeHtml(p.email || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Name</span><span class="dl-val">${escapeHtml(p.full_name || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Phone</span><span class="dl-val">${escapeHtml(p.phone || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Role</span><span class="dl-val"><span class="role-pill ${p.role === 'admin' ? 'is-admin' : ''}">${escapeHtml(p.role || 'user')}</span></span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Joined</span><span class="dl-val">${p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">TOS</span><span class="dl-val">${tosCell}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Their code</span><span class="dl-val" style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(p.referral_code || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">Referred by</span><span class="dl-val" style="font-family:var(--cm-ff-mono);font-size:12px;">${escapeHtml(referrerEmail || '—')}</span></div>`,
+      `      <div class="dl-row"><span class="dl-key">User ID</span><span class="dl-val" style="font-family:var(--cm-ff-mono);font-size:10px;color:var(--cm-ivory-dim);">${escapeHtml(p.id || '—')}</span></div>`,
+      `    </dl>`,
+      `  </div>`,
+
+      `  <div class="user-stats">`,
+      `    <h4>Activity stats</h4>`,
+      `    <div class="user-stats-grid">`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.offers.length}</div><div class="stat-lbl">Offers</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.listings.length}</div><div class="stat-lbl">MMM listings</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.watchlist.length}</div><div class="stat-lbl">Watchlist</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.signatures.length}</div><div class="stat-lbl">Petitions</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num">${activity.credits.length}</div><div class="stat-lbl">Referrals made</div></div>`,
+      `      <div class="user-stat-tile"><div class="stat-num" style="color:var(--cm-peri);">${p.points_earned || 0}</div><div class="stat-lbl">Total points</div></div>`,
+      `    </div>`,
+      `  </div>`,
+
+      `  <div class="user-activity">`,
+      `    <h4>Activity timeline · ${timeline.length} event${timeline.length === 1 ? '' : 's'}</h4>`,
+      timeline.length === 0
+        ? `    <div class="user-activity-empty">No activity yet.</div>`
+        : `    <div class="user-activity-list">${timeline.map(e => `
+            <div class="user-activity-item">
+              <div class="user-activity-icon ${e.kind}">${USER_ACTIVITY_ICON[e.kind] || '•'}</div>
+              <div>
+                <div class="user-activity-title">${escapeHtml(e.title)}</div>
+                ${e.body ? `<div class="user-activity-body">${escapeHtml(e.body)}</div>` : ''}
+              </div>
+              <div class="user-activity-ts">${escapeHtml(relativeTime(e.ts))}</div>
+            </div>
+          `).join('')}</div>`,
+      `  </div>`,
+      `</div>`,
+    ].join('\n');
+  }
+
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'f-filter-status' || e.target.id === 'f-filter-building') {
+      renderOffers();
+    }
+  });
+
+  document.addEventListener('click', async (e) => {
+    // Claim approve/reject (Sprint B-2B)
+    const claimBtn = e.target.closest('button[data-claim-action]');
+    if (claimBtn) {
+      const action = claimBtn.dataset.claimAction;
+      const id     = claimBtn.dataset.id;
+      if (!id || !['approve','reject'].includes(action)) return;
+      claimBtn.disabled = true;
+      const orig = claimBtn.textContent;
+      claimBtn.textContent = '…';
+      let ok = false;
+      if (action === 'approve') ok = await approveClaim(id);
+      if (action === 'reject')  ok = await rejectClaim(id);
+      claimBtn.disabled = false;
+      claimBtn.textContent = orig;
+      if (ok) await loadClaims();
       return;
     }
-    document.title = 'Petition \u00b7 ' + state.building.name + ' \u00b7 Condo Market';
 
-    await initData();
-
-    var neighbors = [];
-    if (state.accessToken && state.matchedUnits.length > 0) {
-      neighbors = await fetchNeighbors();
+    // Offer action buttons (accept/decline/expire)
+    const actionBtn = e.target.closest('button[data-action]');
+    if (actionBtn) {
+      const action = actionBtn.dataset.action;
+      const id = actionBtn.dataset.id;
+      if (!['accept','decline','expire'].includes(action) || !id) return;
+      actionBtn.disabled = true;
+      const orig = actionBtn.textContent;
+      actionBtn.textContent = '…';
+      let result;
+      if (action === 'accept')  result = await CM.acceptOffer(id);
+      if (action === 'decline') result = await CM.declineOffer(id);
+      if (action === 'expire')  result = await CM.updateOfferStatus(id, 'expired');
+      actionBtn.disabled = false;
+      actionBtn.textContent = orig;
+      if (result?.error) { alert(action + ' failed: ' + result.error.message); return; }
+      await loadOffers();
+      return;
     }
-    renderAll(neighbors);
-  }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+    // Offer row expand
+    const offerRow = e.target.closest('tr.offer-tr');
+    if (offerRow) {
+      const id = offerRow.dataset.id;
+      const detail = document.querySelector(`tr.offer-detail[data-detail-for="${CSS.escape(id)}"]`);
+      if (!detail) return;
+      const isOpen = detail.style.display !== 'none';
+      detail.style.display = isOpen ? 'none' : 'table-row';
+      offerRow.classList.toggle('is-expanded', !isOpen);
+      return;
+    }
+
+    // User row expand (Phase A)
+    const userRow = e.target.closest('tr.user-tr');
+    if (userRow) {
+      const userId = userRow.dataset.userId;
+      const detail = document.querySelector(`tr.user-detail[data-detail-for="${CSS.escape(userId)}"]`);
+      if (!detail) return;
+      const isOpen = detail.style.display !== 'none';
+      if (isOpen) {
+        detail.style.display = 'none';
+        userRow.classList.remove('is-expanded');
+        return;
+      }
+      detail.style.display = 'table-row';
+      userRow.classList.add('is-expanded');
+      const td = detail.querySelector('td');
+      const loadingPane = td.querySelector('.user-detail-loading');
+      if (loadingPane && loadingPane.dataset.loading === 'true') {
+        try {
+          const activity = await loadUserActivity(userId);
+          td.innerHTML = renderUserDetail(activity);
+        } catch (err) {
+          console.error('[loadUserActivity]', err);
+          td.innerHTML = `<div class="user-detail-error">Could not load activity: ${escapeHtml(err.message || 'unknown error')}</div>`;
+        }
+      }
+      return;
+    }
+  });
+
+  window.addEventListener('cm-ready', render);
+  window.addEventListener('cm-auth-change', render);
 </script>
-
 </body>
 </html>
