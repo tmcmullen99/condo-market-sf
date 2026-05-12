@@ -251,6 +251,22 @@ async function handleSubmit() {
       const { data, error } = await CM.signUp({ email, password, fullName, phone });
       if (error) throw error;
 
+      // Detect "email already registered" — Supabase deliberately returns success
+      // with an empty identities[] array (anti-enumeration default). Without this
+      // check, the UI would falsely tell the user to check their email for a
+      // confirmation link. Transparently fall back to a magic-link send so they
+      // can actually get back into their existing account.
+      const isExistingUser = !!(data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
+      if (isExistingUser) {
+        const { error: magicErr } = await CM.sendMagicLink({ email });
+        if (magicErr) {
+          setMessage('err', 'This email already has an account. Click "Email me a sign-in link" below to get back in.');
+        } else {
+          setMessage('ok', 'Looks like you already have an account \u2014 we just sent you a sign-in link instead. Check your email.');
+        }
+        return;
+      }
+
       // Record TOS acceptance immediately if we have a session.
       // (If only verification email was sent, we'll catch them on first dashboard visit.)
       if (data?.session) {
