@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Welcome · Condo Market SF</title>
-<meta name="description" content="Condo Market SF is a private marketplace for every condo in San Francisco. Set a make-me-move price, see real market data, connect only when there's real interest.">
+<meta name="description" content="A private marketplace for every condo in San Francisco. Set a make-me-move price, see real market data, connect only when there's real interest.">
 <link rel="canonical" href="https://www.sanfranciscocondomarket.com/welcome/">
 <link rel="icon" href="/favicon.svg">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
   :root {
@@ -22,8 +22,8 @@
     --cm-gain: #8fb97a;
     --cm-amber: #d9a44b;
     --cm-ivory: #e8e3d8;
-    --cm-ivory-dim: rgba(232, 227, 216, 0.64);
-    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
+    --cm-ivory-dim: rgba(232, 227, 216, 0.7);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.42);
     --cm-rule: rgba(232, 227, 216, 0.14);
     --ff-display: 'Playfair Display', Georgia, serif;
     --ff-body: 'DM Sans', -apple-system, sans-serif;
@@ -34,8 +34,9 @@
     background: var(--cm-navy-deep);
     color: var(--cm-ivory);
     font-family: var(--ff-body);
-    font-weight: 300;
-    line-height: 1.55;
+    font-weight: 400;          /* was 300 — heavier weight reads larger at the same px */
+    font-size: 17px;           /* was 16 — slight bump baseline */
+    line-height: 1.6;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
@@ -43,61 +44,101 @@
 
   header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
-  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); text-decoration: none; }
   .wordmark em { color: var(--cm-peri); }
-  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
+  .nav-meta { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
   .nav-meta a { color: var(--cm-ivory-dim); text-decoration: none; }
   .nav-meta a:hover { color: var(--cm-ivory); }
-  .signin-pill { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
+  .signin-pill { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 8px 16px; border-radius: 999px; font-size: 12px; }
   .signin-pill:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
 
-  main { padding: 72px 0 96px; }
+  main { padding: 80px 0 100px; }
 
-  /* HERO */
-  .hero { margin-bottom: 88px; }
-  .eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-bronze); display: block; margin-bottom: 18px; }
-  .hero h1 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: clamp(38px, 6vw, 64px); line-height: 1.02; margin-bottom: 22px; color: var(--cm-ivory); letter-spacing: -0.01em; max-width: 18ch; }
-  .hero h1 em { color: var(--cm-peri); }
-  .hero-sub { font-size: clamp(16px, 1.5vw, 18px); color: var(--cm-ivory-dim); max-width: 60ch; line-height: 1.55; margin-bottom: 32px; }
+  /* HERO — roman headline, italic kept only for the inline accent <em>. */
+  .hero { margin-bottom: 96px; }
+  .eyebrow { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-bronze); display: block; margin-bottom: 20px; }
+  .hero h1 {
+    font-family: var(--ff-display);
+    font-style: normal;        /* was italic — roman body, italic accent only */
+    font-weight: 500;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.04;
+    margin-bottom: 24px;
+    color: var(--cm-ivory);
+    letter-spacing: -0.01em;
+    max-width: 19ch;
+  }
+  .hero h1 em { color: var(--cm-peri); font-style: italic; }
+  .hero-sub { font-size: clamp(18px, 1.6vw, 20px); color: var(--cm-ivory-dim); max-width: 60ch; line-height: 1.6; margin-bottom: 36px; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 10px; border: 1px solid; font-family: var(--ff-body); font-size: 15px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.15s ease; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 28px; border-radius: 10px; border: 1px solid; font-family: var(--ff-body); font-size: 16px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.15s ease; }
   .btn-primary { background: var(--cm-bronze); color: var(--cm-navy); border-color: var(--cm-bronze); }
   .btn-primary:hover { background: var(--cm-ivory); border-color: var(--cm-ivory); transform: translateY(-1px); }
   .btn-ghost { background: transparent; color: var(--cm-peri); border-color: var(--cm-rule); }
   .btn-ghost:hover { border-color: var(--cm-peri); }
 
   /* PILLARS */
-  .pillars { margin-bottom: 88px; }
-  .section-eyebrow { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); display: block; margin-bottom: 14px; }
-  .section-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: clamp(28px, 3.5vw, 38px); line-height: 1.1; color: var(--cm-ivory); margin-bottom: 36px; letter-spacing: -0.005em; }
+  .pillars { margin-bottom: 96px; }
+  .section-eyebrow { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); display: block; margin-bottom: 16px; }
+  .section-title {
+    font-family: var(--ff-display);
+    font-style: normal;        /* was italic */
+    font-weight: 500;
+    font-size: clamp(30px, 3.8vw, 40px);
+    line-height: 1.12;
+    color: var(--cm-ivory);
+    margin-bottom: 40px;
+    letter-spacing: -0.005em;
+    max-width: 22ch;
+  }
+  .section-title em { font-style: italic; color: var(--cm-peri); }
   .pillar-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
   @media (min-width: 720px) { .pillar-grid { grid-template-columns: repeat(3, 1fr); } }
-  .pillar { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 28px 26px; }
-  .pillar-num { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--cm-bronze); margin-bottom: 16px; }
-  .pillar h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; line-height: 1.2; color: var(--cm-ivory); margin-bottom: 12px; }
-  .pillar p { font-size: 14px; line-height: 1.6; color: var(--cm-ivory-dim); }
+  .pillar { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 30px 28px; }
+  .pillar-num { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.14em; color: var(--cm-bronze); margin-bottom: 18px; }
+  .pillar h3 {
+    font-family: var(--ff-display);
+    font-style: normal;        /* was italic */
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 1.22;
+    color: var(--cm-ivory);
+    margin-bottom: 14px;
+  }
+  .pillar p { font-size: 15px; line-height: 1.65; color: var(--cm-ivory-dim); }
 
   /* HOW */
-  .how { margin-bottom: 88px; }
+  .how { margin-bottom: 96px; }
   .how-list { list-style: none; counter-reset: how; }
-  .how-list li { counter-increment: how; position: relative; padding: 22px 0 22px 64px; border-bottom: 1px solid var(--cm-rule); }
+  .how-list li { counter-increment: how; position: relative; padding: 24px 0 24px 68px; border-bottom: 1px solid var(--cm-rule); }
   .how-list li:last-child { border-bottom: none; }
   .how-list li::before {
     content: counter(how, decimal-leading-zero);
-    position: absolute; left: 0; top: 24px;
-    font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--cm-bronze);
+    position: absolute; left: 0; top: 27px;
+    font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.1em; color: var(--cm-bronze);
   }
-  .how-list h4 { font-family: var(--ff-body); font-weight: 500; font-size: 17px; color: var(--cm-ivory); margin-bottom: 6px; }
-  .how-list p { font-size: 14px; line-height: 1.55; color: var(--cm-ivory-dim); max-width: 56ch; }
+  .how-list h4 { font-family: var(--ff-body); font-weight: 500; font-size: 19px; color: var(--cm-ivory); margin-bottom: 8px; }
+  .how-list p { font-size: 15px; line-height: 1.6; color: var(--cm-ivory-dim); max-width: 58ch; }
 
   /* TRUST + FINAL CTA */
-  .trust { padding: 44px 32px; background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 14px; text-align: center; }
-  .trust h2 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: clamp(26px, 3vw, 32px); line-height: 1.15; color: var(--cm-ivory); margin-bottom: 14px; max-width: 26ch; margin-left: auto; margin-right: auto; }
-  .trust p { color: var(--cm-ivory-dim); margin: 0 auto 28px; max-width: 50ch; font-size: 15px; line-height: 1.55; }
+  .trust { padding: 48px 36px; background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 14px; text-align: center; }
+  .trust h2 {
+    font-family: var(--ff-display);
+    font-style: normal;        /* was italic */
+    font-weight: 500;
+    font-size: clamp(28px, 3.2vw, 34px);
+    line-height: 1.18;
+    color: var(--cm-ivory);
+    margin-bottom: 16px;
+    max-width: 26ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .trust p { color: var(--cm-ivory-dim); margin: 0 auto 32px; max-width: 50ch; font-size: 16px; line-height: 1.6; }
   .trust .cta-row { justify-content: center; }
-  .trust-meta { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--cm-ivory-faint); line-height: 1.7; }
+  .trust-meta { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--cm-ivory-faint); line-height: 1.75; }
 
-  footer { padding: 32px 0 28px; color: var(--cm-ivory-faint); font-size: 12px; text-align: center; border-top: 1px solid var(--cm-rule); margin-top: 56px; }
+  footer { padding: 36px 0 30px; color: var(--cm-ivory-faint); font-size: 13px; text-align: center; border-top: 1px solid var(--cm-rule); margin-top: 60px; }
 </style>
 </head>
 <body>
@@ -119,7 +160,7 @@
     <section class="hero">
       <span class="eyebrow">Welcome · A new way to think about your condo</span>
       <h1>A private exchange for every condo in <em>San Francisco</em>.</h1>
-      <p class="hero-sub">Condo Market SF is a private marketplace for the city's condos. Set a number you'd actually take, see real market data on every building, connect with verified buyers only when there's real interest. No listing, no MLS, no pressure to leave.</p>
+      <p class="hero-sub">A private marketplace for SF condos. Set a price you'd actually take. See real market data on every building. Get connected with verified buyers — only when there's real interest. No listing. No MLS.</p>
       <div class="cta-row">
         <a href="/claim/" class="btn btn-primary">Claim your unit →</a>
         <a href="/buildings/" class="btn btn-ghost">Explore buildings first</a>
@@ -133,17 +174,17 @@
         <article class="pillar">
           <div class="pillar-num">01 · Private Pricing</div>
           <h3>Float your number</h3>
-          <p>Set a make-me-move price on your unit, visible only to verified SF buyers signed into Condo Market. No public listing, no sign in the lobby, no commitment to leave. The number can sit forever.</p>
+          <p>Set a make-me-move price visible only to verified buyers. No public listing. No sign in the lobby. The price can sit forever.</p>
         </article>
         <article class="pillar">
           <div class="pillar-num">02 · Market Intelligence</div>
           <h3>See what's really moving</h3>
-          <p>Real transaction data on every condo building in SF — what's selling, what's not, by floor, view, and bedroom count. The kind of intel your agent has access to but rarely shares.</p>
+          <p>Real transaction data on every SF condo building — sales by floor, view, and bedroom count. The intel your agent has but rarely shares.</p>
         </article>
         <article class="pillar">
           <div class="pillar-num">03 · Verified Demand</div>
           <h3>Buyers, only when serious</h3>
-          <p>If a verified buyer signals interest at your number, Tim emails you. You decide whether to engage — accept, counter, or decline. Tim handles the contract and escrow only if you say yes.</p>
+          <p>When a verified buyer signals interest at your price, Tim emails you. Accept, counter, or decline. Tim handles the contract and escrow only if you say yes.</p>
         </article>
       </div>
     </section>
@@ -154,26 +195,26 @@
       <ol class="how-list">
         <li>
           <h4>Claim your unit</h4>
-          <p>Pick your building, type your unit, type the name on title. Tim manually reviews each claim against the title record on file — typically within a few hours during business hours.</p>
+          <p>Pick your building, type your unit, type the name on title. Tim reviews each claim against title — usually within a few hours during business hours.</p>
         </li>
         <li>
-          <h4>Set your make-me-move number (or skip it)</h4>
-          <p>You don't have to set a number to claim. If you do, it's visible only to verified buyers — never on Zillow, MLS, or anywhere public. Change it anytime, hide it anytime, never use it at all.</p>
+          <h4>Set your make-me-move price (or skip it)</h4>
+          <p>Optional. If you do set one, it's visible only to verified buyers — never on Zillow, MLS, or anywhere public. Change it anytime, hide it anytime.</p>
         </li>
         <li>
-          <h4>Wait. The platform sits quietly between you and demand.</h4>
-          <p>Most of the time, nothing happens. Which is exactly the point — you carry no cost, no obligation, no listing.</p>
+          <h4>The platform sits quietly between you and demand</h4>
+          <p>Most of the time, nothing happens. That's the point — no cost, no obligation, no listing.</p>
         </li>
         <li>
-          <h4>If a buyer hits your number, decide</h4>
-          <p>Tim sends you a one-line email when a verified buyer signs a Letter of Intent at your price. You decide on your own time. If you say yes, Tim handles the Residential Purchase Agreement and escrow as your licensed agent. Same close as any traditional sale.</p>
+          <h4>If a buyer hits your price, decide</h4>
+          <p>Tim emails you when a verified buyer signs a Letter of Intent at your price. You decide on your own time. If yes, Tim handles the Residential Purchase Agreement and escrow as your licensed agent — same close as any traditional sale.</p>
         </li>
       </ol>
     </section>
 
     <section class="trust">
       <h2>Built by a San Francisco agent, for San Francisco owners.</h2>
-      <p>Condo Market SF is independent, brokerage-neutral, and built specifically for SF condos. Tim runs the platform, reviews every claim, and handles every transaction personally.</p>
+      <p>Independent. Brokerage-neutral. Built specifically for SF condos. Tim runs the platform, reviews every claim, and handles every transaction personally.</p>
       <div class="cta-row">
         <a href="/claim/" class="btn btn-primary">Claim your unit →</a>
         <a href="/buildings/" class="btn btn-ghost">See the buildings</a>
