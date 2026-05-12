@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Contact Warehouse · Condo Market SF Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:        #0f131d;
+    --bg-panel:       #1a1f2e;
+    --bg-panel-2:     #232a3a;
+    --line:           rgba(232,227,216,0.14);
+    --line-soft:      rgba(232,227,216,0.08);
+    --ivory:          #e8e3d8;
+    --ivory-78:       rgba(232,227,216,0.78);
+    --ivory-60:       rgba(232,227,216,0.60);
+    --ivory-36:       rgba(232,227,216,0.36);
+    --periwinkle:     #9fb4d8;
+    --periwinkle-soft: rgba(159,180,216,0.18);
+    --bronze:         #d4a574;
+    --bronze-soft:    rgba(212,165,116,0.18);
+    --green:          #7eb88a;
+    --red:            #e08484;
+    --amber:          #d4a574;
+    --serif:          'Playfair Display', Georgia, serif;
+    --sans:           'DM Sans', -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+    --mono:           'JetBrains Mono', ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-deep); color: var(--ivory); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  body { min-height: 100vh; }
+  a { color: var(--periwinkle); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; font-size: 14px; }
+
+  /* ===== Layout ===== */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px 96px; }
+  .topbar { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+  .brand { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 22px; letter-spacing: -0.01em; }
+  .brand span { color: var(--periwinkle); }
+  .brand small { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ivory-60); margin-left: 8px; }
+  .topbar-right { display: flex; gap: 18px; align-items: baseline; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ivory-60); }
+  .topbar-right a { color: var(--ivory-60); }
+
+  /* ===== Header / Building selector ===== */
+  .pagehead { margin-bottom: 32px; }
+  .eyebrow { display: inline-block; padding: 4px 12px; border: 1px solid var(--bronze-soft); border-radius: 999px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bronze); margin-bottom: 14px; }
+  h1.title { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 34px; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; }
+  h1.title em { color: var(--periwinkle); }
+  p.subtitle { color: var(--ivory-78); font-size: 14px; max-width: 720px; margin: 0; }
+  p.subtitle code { font-family: var(--mono); font-size: 12px; padding: 2px 6px; background: rgba(159,180,216,0.08); border-radius: 4px; color: var(--periwinkle); }
+
+  /* ===== Building selector + actions row ===== */
+  .controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; margin: 28px 0 20px; padding: 18px 20px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; }
+  .control { display: flex; flex-direction: column; gap: 6px; }
+  .control label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ivory-60); }
+  .control select, .control input { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; color: var(--ivory); min-width: 240px; }
+  .control select:focus, .control input:focus { outline: none; border-color: var(--periwinkle); }
+  .control.grow { flex: 1; min-width: 200px; }
+  .control.grow input { min-width: 0; width: 100%; }
+  .control .meta { font-family: var(--mono); font-size: 10px; color: var(--ivory-36); margin-top: 2px; }
+
+  .actions { display: flex; gap: 10px; margin-left: auto; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid transparent; transition: background 0.15s, border-color 0.15s; }
+  .btn-primary { background: var(--bronze); color: #1a1f2e; }
+  .btn-primary:hover { background: #c5996a; }
+  .btn-secondary { background: transparent; border-color: var(--line); color: var(--ivory); }
+  .btn-secondary:hover { border-color: var(--periwinkle); color: var(--periwinkle); }
+  .btn-danger { background: transparent; border-color: rgba(224,132,132,0.4); color: var(--red); }
+  .btn-danger:hover { background: rgba(224,132,132,0.08); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* ===== Stats strip ===== */
+  .stats { display: flex; gap: 0; margin-bottom: 20px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .stat { flex: 1; padding: 16px 20px; border-right: 1px solid var(--line-soft); }
+  .stat:last-child { border-right: none; }
+  .stat-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ivory-60); margin-bottom: 4px; }
+  .stat-value { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 28px; line-height: 1; color: var(--ivory); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.red { color: var(--red); }
+
+  /* ===== Table ===== */
+  .tablewrap { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .tabletop { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--line-soft); }
+  .tabletop-left { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ivory-60); }
+  .tabletop-right { display: flex; gap: 8px; }
+  table.contacts { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.contacts thead th { text-align: left; padding: 11px 16px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ivory-60); border-bottom: 1px solid var(--line-soft); background: rgba(0,0,0,0.15); }
+  table.contacts tbody td { padding: 11px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.contacts tbody tr:hover { background: rgba(159,180,216,0.04); }
+  table.contacts tbody tr:last-child td { border-bottom: none; }
+  td.email { font-family: var(--mono); font-size: 12px; word-break: break-all; max-width: 260px; }
+  td.email a { color: var(--ivory); }
+  td.name { color: var(--ivory); }
+  td.phone { font-family: var(--mono); font-size: 12px; color: var(--ivory-78); }
+  td.status { white-space: nowrap; }
+  td.last { font-family: var(--mono); font-size: 11px; color: var(--ivory-60); white-space: nowrap; }
+  td.source { font-family: var(--mono); font-size: 11px; color: var(--ivory-60); }
+
+  /* ===== Badges ===== */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.5; margin-right: 4px; }
+  .badge.unverified { background: rgba(232,227,216,0.08); color: var(--ivory-60); }
+  .badge.valid { background: rgba(126,184,138,0.14); color: var(--green); }
+  .badge.bounced { background: rgba(224,132,132,0.14); color: var(--red); }
+  .badge.complained { background: rgba(224,132,132,0.14); color: var(--red); }
+  .badge.invalid { background: rgba(224,132,132,0.14); color: var(--red); }
+  .badge.unsub { background: rgba(232,227,216,0.10); color: var(--ivory-78); border: 1px solid var(--line); }
+  .badge.holder { background: rgba(159,180,216,0.14); color: var(--periwinkle); }
+  .badge.delivered { background: rgba(126,184,138,0.14); color: var(--green); }
+  .badge.sent { background: rgba(159,180,216,0.14); color: var(--periwinkle); }
+  .badge.failed { background: rgba(224,132,132,0.14); color: var(--red); }
+  .badge.primary { background: rgba(212,165,116,0.18); color: var(--bronze); border: 1px solid rgba(212,165,116,0.34); }
+  .badge.dnc { background: rgba(224,132,132,0.18); color: var(--red); border: 1px solid rgba(224,132,132,0.34); font-weight: 600; }
+  .wave-pill { display: inline-block; padding: 1px 7px; border-radius: 4px; font-family: var(--mono); font-size: 10px; background: rgba(159,180,216,0.10); color: var(--periwinkle); margin-right: 6px; }
+
+  /* ===== Pagination ===== */
+  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--line-soft); font-family: var(--mono); font-size: 11px; color: var(--ivory-60); }
+  .pagination button { background: transparent; border: 1px solid var(--line); color: var(--ivory); padding: 5px 12px; border-radius: 6px; }
+  .pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .pagination button:hover:not(:disabled) { border-color: var(--periwinkle); color: var(--periwinkle); }
+  .pagination .pages { display: flex; gap: 8px; }
+
+  /* ===== Empty state ===== */
+  .empty { padding: 60px 24px; text-align: center; color: var(--ivory-60); }
+  .empty h3 { font-family: var(--serif); font-style: italic; font-size: 22px; margin: 0 0 8px; color: var(--ivory); }
+  .empty p { margin: 0; max-width: 480px; margin: 0 auto; }
+
+  /* ===== Loading ===== */
+  .loading { padding: 40px; text-align: center; color: var(--ivory-60); font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .loading::after { content: '…'; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots { 0%, 20% { opacity: 0; } 100% { opacity: 1; } }
+
+  /* ===== Modal ===== */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center; padding: 60px 20px; z-index: 100; overflow-y: auto; }
+  .modal-backdrop[hidden] { display: none !important; }
+  .modal { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; max-width: 720px; width: 100%; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+  .modal-head { padding: 22px 28px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .modal-head h2 { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 22px; margin: 0 0 4px; }
+  .modal-head .close { background: transparent; border: none; color: var(--ivory-60); font-size: 22px; line-height: 1; padding: 4px 8px; }
+  .modal-head .close:hover { color: var(--ivory); }
+  .modal-body { padding: 22px 28px; }
+  .modal-foot { padding: 16px 28px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px; background: rgba(0,0,0,0.18); }
+  .modal-row { margin-bottom: 16px; }
+  .modal-row label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ivory-60); margin-bottom: 6px; }
+  .modal-row input[type="text"], .modal-row input[type="password"], .modal-row input[type="file"] { width: 100%; background: var(--bg-deep); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; color: var(--ivory); }
+  .modal-row input:focus { outline: none; border-color: var(--periwinkle); }
+  .modal-row p.help { font-size: 12px; color: var(--ivory-60); margin: 6px 0 0; }
+  .modal-row p.warn { font-size: 12px; color: var(--amber); margin: 6px 0 0; }
+
+  /* ===== Column mapping table ===== */
+  .mapping-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .mapping-table th, .mapping-table td { padding: 7px 10px; border-bottom: 1px solid var(--line-soft); text-align: left; }
+  .mapping-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ivory-60); }
+  .mapping-table td.csv-header { font-family: var(--mono); color: var(--ivory); }
+  .mapping-table td.sample { color: var(--ivory-60); font-family: var(--mono); font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mapping-table select { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; color: var(--ivory); font-size: 12px; min-width: 130px; }
+
+  /* ===== Preview table ===== */
+  .preview-wrap { margin-top: 16px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .preview-head { padding: 8px 12px; background: rgba(0,0,0,0.18); font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ivory-60); border-bottom: 1px solid var(--line-soft); }
+  .preview-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .preview-table th, .preview-table td { padding: 6px 10px; border-bottom: 1px solid var(--line-soft); text-align: left; color: var(--ivory-78); }
+  .preview-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ivory-60); }
+  .preview-table tr:last-child td { border-bottom: none; }
+  .preview-table .pcell { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ===== Toast ===== */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 20px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); z-index: 200; max-width: 420px; }
+  .toast[hidden] { display: none !important; }
+  .toast.success { border-color: rgba(126,184,138,0.4); }
+  .toast.error   { border-color: rgba(224,132,132,0.4); }
+  .toast .t-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ivory-60); margin-bottom: 4px; }
+  .toast .t-msg { font-size: 13px; color: var(--ivory); }
+
+  /* ===== Auth gate ===== */
+  .gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+  .gate-card { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 40px 36px; max-width: 440px; text-align: center; }
+  .gate-card h2 { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 24px; margin: 0 0 12px; }
+  .gate-card p { color: var(--ivory-78); font-size: 14px; margin: 0 0 20px; }
+</style>
+</head>
+<body>
+
+<!-- ===== Auth gate (shown until verified admin) ===== -->
+<div id="gate" class="gate" hidden>
+  <div class="gate-card">
+    <h2 id="gateTitle">Admin only</h2>
+    <p id="gateMsg">Verifying access…</p>
+    <p><a href="/claim/" id="gateCta">Sign in to claim your unit</a></p>
+  </div>
+</div>
+
+<!-- ===== Main UI (shown only after admin verification) ===== -->
+<div id="app" class="wrap" hidden>
+
+  <div class="topbar">
+    <div class="brand">Condo <span>Market</span> · sf <small>admin</small></div>
+    <div class="topbar-right">
+      <a href="/dashboard/">Dashboard</a>
+      <a href="/admin/">Admin home</a>
+      <span id="whoami">…</span>
+    </div>
+  </div>
+
+  <div class="pagehead">
+    <span class="eyebrow">Contact Warehouse</span>
+    <h1 class="title">Skip-traced contacts, indexed <em>per building</em>.</h1>
+    <p class="subtitle">Upload CSVs of skip-traced contact data for a specific building. Duplicates are deduplicated against prior uploads (one row per <code>email + building</code>). All sends route through this thread — there's no send button here on purpose.</p>
+  </div>
+
+  <div class="controls">
+    <div class="control">
+      <label for="buildingSelect">Building</label>
+      <select id="buildingSelect"><option value="">Loading…</option></select>
+    </div>
+    <div class="control grow">
+      <label for="searchBox">Search</label>
+      <input id="searchBox" type="search" placeholder="email, name, phone, address…">
+    </div>
+    <div class="control">
+      <label for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="">All</option>
+        <option value="unverified">Unverified</option>
+        <option value="valid">Valid</option>
+        <option value="invalid">Invalid format</option>
+        <option value="bounced">Bounced</option>
+        <option value="complained">Complained</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" id="btnUpload">+ Upload CSV</button>
+      <button class="btn btn-secondary" id="btnExport">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Emails</div><div class="stat-value" id="statTotal">—</div></div>
+    <div class="stat"><div class="stat-label">People</div><div class="stat-value" id="statPeople" style="color:var(--periwinkle);">—</div></div>
+    <div class="stat"><div class="stat-label">Primary known</div><div class="stat-value green" id="statPrimary">—</div></div>
+    <div class="stat"><div class="stat-label">Sendable</div><div class="stat-value green" id="statSendable">—</div></div>
+    <div class="stat"><div class="stat-label">Bounced</div><div class="stat-value red" id="statBounced">—</div></div>
+    <div class="stat"><div class="stat-label">Unsubscribed</div><div class="stat-value amber" id="statUnsub">—</div></div>
+    <div class="stat"><div class="stat-label">Account holders</div><div class="stat-value" id="statHolders" style="color:var(--periwinkle);">—</div></div>
+    <div class="stat"><div class="stat-label">Do not contact</div><div class="stat-value red" id="statDNC">—</div></div>
+  </div>
+
+  <div class="tablewrap">
+    <div class="tabletop">
+      <div class="tabletop-left" id="tableTopLeft">Select a building to begin.</div>
+      <div class="tabletop-right">
+        <button class="btn btn-secondary btn-sm" id="btnManageUploads">Manage uploads</button>
+      </div>
+    </div>
+    <div id="tableBody"><div class="empty"><h3>No building selected</h3><p>Pick a building from the dropdown above to view its contacts.</p></div></div>
+    <div class="pagination" id="pagination" hidden>
+      <span id="pageInfo">—</span>
+      <div class="pages">
+        <button id="prevPage">‹ Prev</button>
+        <button id="nextPage">Next ›</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== Upload CSV modal ===== -->
+<div class="modal-backdrop" id="modalUpload" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Upload skip-traced CSV</h2>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--ivory-60); letter-spacing:0.06em;">For building: <span id="uploadBuildingName">—</span></div>
+      </div>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-row">
+        <label>Source label <span style="color:var(--ivory-36); text-transform:none; letter-spacing:0;">(optional, e.g. "BatchSkipTrace 2026-05")</span></label>
+        <input type="text" id="sourceLabel" placeholder="">
+      </div>
+
+      <div class="modal-row">
+        <label>CSV file</label>
+        <input type="file" id="csvFile" accept=".csv,text/csv">
+        <p class="help">First row must be column headers. We'll show a column-mapping step next.</p>
+      </div>
+
+      <div id="mappingSection" hidden>
+        <div class="modal-row">
+          <label>Column mapping <span style="color:var(--ivory-36); text-transform:none; letter-spacing:0;">(map each CSV column to a contact field)</span></label>
+          <table class="mapping-table" id="mappingTable">
+            <thead><tr><th>CSV column</th><th>Sample value</th><th>Maps to</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="help"><strong style="color:var(--ivory);">Tip:</strong> Map multiple columns to <code style="font-family:var(--mono);color:var(--periwinkle);">email</code> to expand rows with multiple emails (Email 1 / Email 2 / Email 3) into separate contact records. Unmapped columns are stored in <code style="font-family:var(--mono);color:var(--periwinkle);">extra</code> JSON for later inspection.</p>
+        </div>
+        <div class="preview-wrap" id="previewWrap" hidden>
+          <div class="preview-head" id="previewHead">Preview · first 5 rows</div>
+          <div id="previewTableContainer"></div>
+        </div>
+      </div>
+
+      <div id="uploadResult" hidden></div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" data-close>Cancel</button>
+      <button class="btn btn-primary" id="btnDoImport" disabled>Import contacts</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Manage uploads modal ===== -->
+<div class="modal-backdrop" id="modalUploads" hidden>
+  <div class="modal" style="max-width: 820px;">
+    <div class="modal-head">
+      <div>
+        <h2>Manage CSV uploads</h2>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--ivory-60); letter-spacing:0.06em;">For building: <span id="uploadsBuildingName">—</span></div>
+      </div>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div id="uploadsList"><div class="loading">Loading uploads</div></div>
+      <p class="help" style="margin-top:16px; font-size:12px; color:var(--ivory-60);">Deleting an upload removes <strong style="color:var(--red);">all contact rows that originated from that file</strong>. Contacts created by other uploads or manual entry remain. <strong style="color:var(--ivory);">Requires deletion password.</strong></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Delete confirmation modal ===== -->
+<div class="modal-backdrop" id="modalDelete" hidden>
+  <div class="modal" style="max-width: 520px;">
+    <div class="modal-head">
+      <div>
+        <h2>Confirm deletion</h2>
+      </div>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 16px; color:var(--ivory-78);" id="deleteMessage">—</p>
+      <div class="modal-row">
+        <label>Deletion password</label>
+        <input type="password" id="deletePassword" autocomplete="off" placeholder="Enter password">
+        <p class="help">Confirm twice. Default policy requires the password verbatim.</p>
+      </div>
+      <div class="modal-row">
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-family:var(--sans); font-size:13px; color:var(--ivory-78);">
+          <input type="checkbox" id="deleteConfirm1"> I understand this cannot be undone.
+        </label>
+      </div>
+      <div class="modal-row">
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-family:var(--sans); font-size:13px; color:var(--ivory-78);">
+          <input type="checkbox" id="deleteConfirm2"> I confirm I want to delete this batch.
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" data-close>Cancel</button>
+      <button class="btn btn-danger" id="btnDoDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast" hidden>
+  <div class="t-title" id="toastTitle">Status</div>
+  <div class="t-msg" id="toastMsg">—</div>
+</div>
+
+<!-- ===== Scripts ===== -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script type="module">
+  import { sb } from '/assets/cm-supabase.js';
+
+  // ============================================================
+  // State
+  // ============================================================
+  const state = {
+    user: null,
+    isAdmin: false,
+    buildings: [],            // [{building_slug, display_name, contact_count}]
+    selectedBuilding: null,   // slug
+    selectedDisplayName: null,
+    contacts: [],
+    page: 0,
+    pageSize: 50,
+    totalCount: 0,
+    filterStatus: '',
+    searchTerm: '',
+    // Upload modal state
+    csvData: null,            // Papa.parse result
+    csvHeaders: [],
+    mapping: {},              // { csvHeader: targetField }
+    sampleRows: [],
+    dncNames: [],             // [{last_name, first_name}] preloaded for preview flagging
+    // Pending deletion
+    pendingDelete: null,
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  // ============================================================
+  // Auth gate
+  // ============================================================
+  async function checkAuth() {
+    $('gate').hidden = false;
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) {
+      $('gateTitle').textContent = 'Sign in required';
+      $('gateMsg').textContent = 'You must be signed in as the platform admin to access the Contact Warehouse.';
+      return false;
+    }
+    state.user = session.user;
+    const { data: profile, error } = await sb
+      .from('profiles')
+      .select('id, role, referral_code')
+      .eq('id', session.user.id)
+      .maybeSingle();
+    if (error || !profile || profile.role !== 'admin') {
+      $('gateTitle').textContent = 'Admin access required';
+      $('gateMsg').textContent = `Your account (${session.user.email}) does not have admin role on this platform.`;
+      $('gateCta').textContent = 'Back to dashboard';
+      $('gateCta').href = '/dashboard/';
+      return false;
+    }
+    state.isAdmin = true;
+    $('whoami').textContent = session.user.email;
+    $('gate').hidden = true;
+    $('app').hidden = false;
+    return true;
+  }
+
+  // ============================================================
+  // Toasts
+  // ============================================================
+  function toast(title, msg, kind = '') {
+    const el = $('toast');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    $('toastTitle').textContent = title;
+    $('toastMsg').textContent = msg;
+    el.hidden = false;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.hidden = true, 5000);
+  }
+
+  // ============================================================
+  // Load buildings dropdown
+  // ============================================================
+  async function loadBuildings() {
+    const { data, error } = await sb.rpc('get_known_building_slugs');
+    if (error) {
+      toast('Failed to load buildings', error.message, 'error');
+      return;
+    }
+    state.buildings = data || [];
+    const sel = $('buildingSelect');
+    sel.innerHTML = '<option value="">— Select a building —</option>' +
+      state.buildings.map(b => {
+        const label = `${b.display_name} (${b.contact_count} contacts)`;
+        return `<option value="${b.building_slug}">${label}</option>`;
+      }).join('');
+  }
+
+  // ============================================================
+  // Load contacts for selected building
+  // ============================================================
+  async function loadContacts() {
+    if (!state.selectedBuilding) return;
+    $('tableBody').innerHTML = '<div class="loading">Loading contacts</div>';
+    const from = state.page * state.pageSize;
+    const to   = from + state.pageSize - 1;
+
+    let q = sb.from('admin_building_contacts_v')
+      .select('*', { count: 'exact' })
+      .eq('building_slug', state.selectedBuilding)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (state.filterStatus) q = q.eq('email_status', state.filterStatus);
+    if (state.searchTerm) {
+      const s = state.searchTerm.replace(/[%_]/g, '');
+      // Search across email, names, phone, property_address
+      q = q.or(`email.ilike.%${s}%,first_name.ilike.%${s}%,last_name.ilike.%${s}%,phone.ilike.%${s}%,property_address.ilike.%${s}%`);
+    }
+
+    const { data, error, count } = await q;
+    if (error) {
+      $('tableBody').innerHTML = `<div class="empty"><h3>Query failed</h3><p>${error.message}</p></div>`;
+      return;
+    }
+    state.contacts = data || [];
+    state.totalCount = count || 0;
+    renderContacts();
+    loadStats();
+  }
+
+  async function loadStats() {
+    if (!state.selectedBuilding) return;
+    const { data, error } = await sb.rpc('building_contact_stats', { p_building_slug: state.selectedBuilding });
+    if (error || !data || data.length === 0) {
+      // Fail silently — leave the previous values up. The RPC requires admin role.
+      return;
+    }
+    const s = data[0];
+    $('statTotal').textContent    = s.email_count ?? 0;
+    $('statPeople').textContent   = s.person_count ?? 0;
+    $('statPrimary').textContent  = s.primary_known_count ?? 0;
+    $('statSendable').textContent = s.sendable_email_count ?? 0;
+    $('statBounced').textContent  = s.bounced_count ?? 0;
+    $('statUnsub').textContent    = s.unsubscribed_count ?? 0;
+    $('statHolders').textContent  = s.account_holder_count ?? 0;
+    $('statDNC').textContent      = s.do_not_contact_count ?? 0;
+  }
+
+  function renderContacts() {
+    const body = $('tableBody');
+    if (state.contacts.length === 0) {
+      body.innerHTML = '<div class="empty"><h3>No contacts yet</h3><p>Upload a skip-traced CSV for this building to populate the warehouse.</p></div>';
+      $('pagination').hidden = true;
+      $('tableTopLeft').textContent = `${state.selectedDisplayName} · 0 contacts`;
+      return;
+    }
+    const rows = state.contacts.map(c => {
+      const statusBadge = `<span class="badge ${c.email_status}">${c.email_status}</span>`;
+      const flagBadges = [
+        c.is_primary ? '<span class="badge primary">primary</span>' : '',
+        c.is_do_not_contact ? '<span class="badge dnc">DNC</span>' : '',
+        c.is_bounced && !['bounced','complained','invalid'].includes(c.email_status) ? '<span class="badge bounced">bounced</span>' : '',
+        c.is_unsubscribed ? '<span class="badge unsub">unsub</span>' : '',
+        c.is_account_holder ? '<span class="badge holder">user</span>' : '',
+      ].filter(Boolean).join('');
+      const lastWave = c.last_wave_sent
+        ? `<span class="wave-pill">W${c.last_wave_sent}</span><span class="badge ${c.last_delivery_status || 'sent'}">${c.last_delivery_status || 'sent'}</span>`
+        : '<span style="color:var(--ivory-36);">—</span>';
+      const fullName = [c.first_name, c.last_name].filter(Boolean).join(' ') || '<span style="color:var(--ivory-36);">—</span>';
+      const sourceLabel = c.source_label || c.source_filename || (c.source_upload_id ? `upload #${c.source_upload_id}` : '—');
+      return `<tr>
+        <td class="email"><a href="mailto:${c.email}">${c.email}</a></td>
+        <td class="name">${fullName}</td>
+        <td class="phone">${c.phone || '<span style="color:var(--ivory-36);">—</span>'}</td>
+        <td class="status">${statusBadge}${flagBadges}</td>
+        <td class="last">${lastWave}</td>
+        <td class="source">${sourceLabel}</td>
+      </tr>`;
+    }).join('');
+    body.innerHTML = `<table class="contacts"><thead><tr>
+      <th>Email</th><th>Name</th><th>Phone</th><th>Status</th><th>Last send</th><th>Source</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+
+    $('pagination').hidden = false;
+    const first = state.page * state.pageSize + 1;
+    const last  = Math.min(first + state.contacts.length - 1, state.totalCount);
+    $('pageInfo').textContent = `${first}–${last} of ${state.totalCount}`;
+    $('prevPage').disabled = state.page === 0;
+    $('nextPage').disabled = last >= state.totalCount;
+    $('tableTopLeft').textContent = `${state.selectedDisplayName} · ${state.totalCount} contacts`;
+  }
+
+  // ============================================================
+  // CSV upload flow
+  // ============================================================
+  async function openUploadModal() {
+    if (!state.selectedBuilding) {
+      toast('Pick a building', 'Select a building first, then upload.');
+      return;
+    }
+    $('uploadBuildingName').textContent = state.selectedDisplayName;
+    $('csvFile').value = '';
+    $('sourceLabel').value = '';
+    $('mappingSection').hidden = true;
+    $('previewWrap').hidden = true;
+    $('uploadResult').hidden = true;
+    $('btnDoImport').disabled = true;
+    state.csvData = null;
+    state.csvHeaders = [];
+    state.mapping = {};
+
+    // Preload DNC names so renderPreview can flag matches in the first-5 sample.
+    // Falls back gracefully if the table is empty or query fails.
+    try {
+      const { data: dncRows } = await sb.from('do_not_contact_names').select('last_name, first_name');
+      state.dncNames = (dncRows || []).map(r => ({
+        last_name:  (r.last_name  || '').toLowerCase().trim(),
+        first_name: (r.first_name || '').toLowerCase().trim(),  // '' = wildcard
+      }));
+    } catch { state.dncNames = []; }
+
+    $('modalUpload').hidden = false;
+  }
+
+  function matchesDnc(firstName, lastName) {
+    if (!state.dncNames || !lastName) return false;
+    const ln = String(lastName).toLowerCase().trim();
+    const fn = String(firstName || '').toLowerCase().trim();
+    return state.dncNames.some(r => r.last_name === ln && (r.first_name === '' || r.first_name === fn));
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.hidden = true);
+  }
+
+  $('csvFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      preview: 50, // only need a sample for mapping; full parse happens on Import
+      complete: (results) => {
+        state.csvData = results;
+        state.csvHeaders = results.meta.fields || [];
+        state.sampleRows = results.data.slice(0, 5);
+        renderMapping();
+        $('mappingSection').hidden = false;
+        $('btnDoImport').disabled = true;
+      },
+      error: (err) => toast('CSV parse error', err.message, 'error'),
+    });
+  });
+
+  const FIELD_OPTIONS = [
+    { value: 'skip',             label: '— skip —' },
+    { value: 'email',            label: 'email (required, can be multi)' },
+    { value: 'first_name',       label: 'first_name' },
+    { value: 'last_name',        label: 'last_name' },
+    { value: 'phone',            label: 'phone' },
+    { value: 'property_address', label: 'property_address' },
+    { value: 'unit_number',      label: 'unit_number' },
+    { value: 'extra',            label: 'extra (JSON catch-all)' },
+  ];
+
+  function autoMap(header) {
+    const h = header.toLowerCase().trim();
+    // Email columns: "Email", "Email 1", "Email 2", "Owner Email", "E-mail Address", etc.
+    if (/^(owner\s+)?e[- ]?mail(\s*(address|\d+))?$/.test(h)) return 'email';
+    // First name: "First", "First Name", "Owner First Name", "FirstName"
+    if (/^(owner\s+)?(first|first[\s_]?name)$/.test(h)) return 'first_name';
+    // Last name: "Last", "Last Name", "Owner Last Name", "Surname"
+    if (/^(owner\s+)?(last|last[\s_]?name|surname)$/.test(h)) return 'last_name';
+    // Phone: prefer first phone column. "Phone", "Phone 1 Number", "Mobile Phone", "Cell"
+    // Skip "Phone Type", "Phone DNC", etc.
+    if (/^(phone(\s*1)?(\s+number)?|mobile(\s+phone)?|cell(\s+phone)?)$/.test(h)) return 'phone';
+    // Property address (use property, not mailing — mailing is usually the owner's other home)
+    if (h === 'property address' || h === 'property_address' || h === 'site address' || h === 'address') return 'property_address';
+    // Unit number
+    if (/^(unit(\s*number)?|apt|apartment|suite|ste|#)$/.test(h)) return 'unit_number';
+    return 'extra';
+  }
+
+  function renderMapping() {
+    const tbody = document.querySelector('#mappingTable tbody');
+    tbody.innerHTML = state.csvHeaders.map((h, i) => {
+      const guess = autoMap(h);
+      state.mapping[h] = guess;
+      const sample = state.sampleRows[0]?.[h] || '';
+      const options = FIELD_OPTIONS.map(o =>
+        `<option value="${o.value}"${o.value === guess ? ' selected' : ''}>${o.label}</option>`
+      ).join('');
+      return `<tr>
+        <td class="csv-header">${h}</td>
+        <td class="sample" title="${(sample+'').replace(/"/g,'&quot;')}">${sample}</td>
+        <td><select data-csvcol="${encodeURIComponent(h)}">${options}</select></td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('select').forEach(s => {
+      s.addEventListener('change', (e) => {
+        const col = decodeURIComponent(e.target.dataset.csvcol);
+        state.mapping[col] = e.target.value;
+        renderPreview();
+      });
+    });
+    renderPreview();
+  }
+
+  function expandRow(row) {
+    const emailCols = Object.entries(state.mapping).filter(([_,v]) => v === 'email').map(([k]) => k);
+    const otherFields = ['first_name','last_name','phone','property_address','unit_number'];
+    const extraCols = Object.entries(state.mapping).filter(([_,v]) => v === 'extra').map(([k]) => k);
+    const out = [];
+    for (const ecol of emailCols) {
+      const raw = (row[ecol] || '').toString().trim().toLowerCase();
+      if (!raw) continue;
+      // Format check — anything that doesn't look like an email is marked invalid (still inserted so Tim can see)
+      const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(raw);
+      const c = { email: raw, email_status: valid ? 'unverified' : 'invalid' };
+      for (const f of otherFields) {
+        const csvCol = Object.entries(state.mapping).find(([_,v]) => v === f)?.[0];
+        if (csvCol) c[f] = (row[csvCol] || '').toString().trim() || null;
+      }
+      if (extraCols.length > 0) {
+        const extra = {};
+        for (const ec of extraCols) {
+          const v = row[ec];
+          if (v != null && v !== '') extra[ec] = v;
+        }
+        if (Object.keys(extra).length > 0) c.extra = extra;
+      }
+      out.push(c);
+    }
+    return out;
+  }
+
+  function renderPreview() {
+    const previewContacts = state.sampleRows.flatMap(expandRow);
+    const hasEmail = Object.values(state.mapping).includes('email');
+    $('btnDoImport').disabled = !hasEmail;
+    if (!hasEmail) {
+      $('previewWrap').hidden = true;
+      $('previewHead').textContent = '⚠ Map at least one column to "email" to enable import';
+      $('previewWrap').hidden = false;
+      $('previewTableContainer').innerHTML = '';
+      return;
+    }
+    if (previewContacts.length === 0) {
+      $('previewHead').textContent = 'Preview · no valid rows in first 5';
+      $('previewTableContainer').innerHTML = '';
+      $('previewWrap').hidden = false;
+      return;
+    }
+    const cols = ['email','first_name','last_name','phone','property_address','unit_number','email_status'];
+    const head = '<thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '<th>extra</th><th>flags</th></tr></thead>';
+    let dncMatchCount = 0;
+    const body = '<tbody>' + previewContacts.slice(0,10).map(c => {
+      const dnc = matchesDnc(c.first_name, c.last_name);
+      if (dnc) dncMatchCount++;
+      const rowStyle = dnc ? ' style="background:rgba(224,132,132,0.06);"' : '';
+      const flagCell = dnc ? '<span class="badge dnc">DNC</span>' : '<span style="color:var(--ivory-36);">—</span>';
+      return `<tr${rowStyle}>` +
+        cols.map(col => `<td class="pcell">${c[col] != null ? String(c[col]) : '<span style="color:var(--ivory-36);">—</span>'}</td>`).join('') +
+        `<td class="pcell">${c.extra ? `<span style="color:var(--ivory-60);">${Object.keys(c.extra).length} fields</span>` : '<span style="color:var(--ivory-36);">—</span>'}</td>` +
+        `<td class="pcell">${flagCell}</td>` +
+      '</tr>';
+    }).join('') + '</tbody>';
+    const dncNote = dncMatchCount > 0 ? ` · <span style="color:var(--red);">${dncMatchCount} DNC match${dncMatchCount===1?'':'es'} flagged</span>` : '';
+    $('previewHead').innerHTML = `Preview · ${previewContacts.length} contact${previewContacts.length===1?'':'s'} from first 5 CSV rows${dncNote}`;
+    $('previewTableContainer').innerHTML = `<table class="preview-table">${head}${body}</table>`;
+    $('previewWrap').hidden = false;
+  }
+
+  async function doImport() {
+    if (!state.selectedBuilding) return;
+    $('btnDoImport').disabled = true;
+    $('btnDoImport').textContent = 'Importing…';
+
+    const fileInput = $('csvFile');
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    // Full parse (no preview limit)
+    const parsed = await new Promise((resolve, reject) => {
+      Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: resolve, error: reject,
+      });
+    });
+    const allRows = parsed.data || [];
+    const expanded = allRows.flatMap(expandRow);
+
+    // Dedupe within batch (by email — case already lowered)
+    const seen = new Set();
+    const dedupedBatch = [];
+    let dupSkipped = 0;
+    let invalidCount = 0;
+    for (const c of expanded) {
+      if (seen.has(c.email)) { dupSkipped++; continue; }
+      seen.add(c.email);
+      if (c.email_status === 'invalid') invalidCount++;
+      dedupedBatch.push(c);
+    }
+
+    // MX validation — free deliverability check via Cloudflare DNS-over-HTTPS.
+    // For each unique domain, look up MX records. Mark emails on dead domains as
+    // 'invalid' so they get skipped at send time and counted in the upload's
+    // row_count_invalid. Cuts ~5-10% off cold-list bounce rates.
+    const uniqueDomains = new Set();
+    for (const c of dedupedBatch) {
+      const at = c.email.lastIndexOf('@');
+      if (at > 0) uniqueDomains.add(c.email.slice(at + 1));
+    }
+    $('btnDoImport').textContent = `Checking ${uniqueDomains.size} domains…`;
+    const domainValidity = new Map();
+    await Promise.all([...uniqueDomains].map(async (d) => {
+      try {
+        const resp = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(d)}&type=MX`, {
+          headers: { 'Accept': 'application/dns-json' },
+        });
+        if (!resp.ok) { domainValidity.set(d, true); return; } // network failure — fail open
+        const j = await resp.json();
+        const hasMx = Array.isArray(j.Answer) && j.Answer.some((a) => a.type === 15);
+        domainValidity.set(d, hasMx);
+      } catch {
+        domainValidity.set(d, true); // fail open on network errors
+      }
+    }));
+    let mxFailedCount = 0;
+    for (const c of dedupedBatch) {
+      const at = c.email.lastIndexOf('@');
+      if (at <= 0) continue;
+      const d = c.email.slice(at + 1);
+      if (domainValidity.get(d) === false && c.email_status !== 'invalid') {
+        c.email_status = 'invalid';
+        c.notes = (c.notes ? c.notes + '; ' : '') + 'no MX records for domain';
+        invalidCount++;
+        mxFailedCount++;
+      }
+    }
+    $('btnDoImport').textContent = 'Importing…';
+
+    // Create csv_uploads row
+    const { data: uploadRow, error: uploadErr } = await sb.from('csv_uploads').insert({
+      filename:     file.name,
+      building_slug: state.selectedBuilding,
+      source_label: $('sourceLabel').value.trim() || null,
+      uploaded_by:  state.user.id,
+    }).select().single();
+    if (uploadErr) {
+      $('uploadResult').hidden = false;
+      $('uploadResult').innerHTML = `<p class="warn">Upload metadata insert failed: ${uploadErr.message}</p>`;
+      $('btnDoImport').disabled = false;
+      $('btnDoImport').textContent = 'Import contacts';
+      return;
+    }
+
+    // Bulk insert in chunks of 200 to stay under PostgREST limits
+    const rowsForDb = dedupedBatch.map(c => ({
+      email:             c.email,
+      first_name:        c.first_name ?? null,
+      last_name:         c.last_name ?? null,
+      phone:             c.phone ?? null,
+      property_address:  c.property_address ?? null,
+      building_slug:     state.selectedBuilding,
+      unit_number:       c.unit_number ?? null,
+      source_upload_id:  uploadRow.id,
+      email_status:      c.email_status,
+      notes:             c.notes ?? null,
+      extra:             c.extra ?? null,
+    }));
+
+    let inserted = 0;
+    let collidedExisting = 0;
+    const chunkSize = 200;
+    for (let i = 0; i < rowsForDb.length; i += chunkSize) {
+      const chunk = rowsForDb.slice(i, i + chunkSize);
+      // Use upsert with ignoreDuplicates so existing (email, building_slug) rows are silently skipped
+      const { data, error } = await sb.from('building_contacts').upsert(chunk, {
+        onConflict: 'email,building_slug',
+        ignoreDuplicates: true,
+      }).select('id');
+      if (error) {
+        $('uploadResult').hidden = false;
+        $('uploadResult').innerHTML = `<p class="warn">Insert failed at chunk ${i}: ${error.message}</p>`;
+        $('btnDoImport').disabled = false;
+        $('btnDoImport').textContent = 'Import contacts';
+        return;
+      }
+      inserted += data?.length || 0;
+    }
+    collidedExisting = rowsForDb.length - inserted;
+
+    // Re-query do_not_contact_emails to count how many of this upload's rows
+    // got auto-cascaded into the DNC list by the building_contacts_enforce_dnc
+    // trigger. Useful so Tim can see e.g. "3 Gueco rows blocked" at a glance.
+    let dncCascaded = 0;
+    try {
+      const dncEmails = new Set();
+      const importedEmails = rowsForDb.map(r => r.email);
+      for (let i = 0; i < importedEmails.length; i += 100) {
+        const chunk = importedEmails.slice(i, i + 100);
+        const { data: dncHit } = await sb.from('do_not_contact_emails').select('email').in('email', chunk);
+        (dncHit || []).forEach(r => dncEmails.add(r.email));
+      }
+      dncCascaded = dncEmails.size;
+    } catch { /* non-fatal */ }
+
+    // Update csv_uploads with final counts
+    await sb.from('csv_uploads').update({
+      row_count_inserted: inserted,
+      row_count_skipped:  collidedExisting + dupSkipped,
+      row_count_invalid:  invalidCount,
+    }).eq('id', uploadRow.id);
+
+    $('uploadResult').hidden = false;
+    $('uploadResult').innerHTML = `
+      <div style="padding:16px; background:rgba(126,184,138,0.08); border:1px solid rgba(126,184,138,0.3); border-radius:8px;">
+        <div style="font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--green); margin-bottom:8px;">Import complete</div>
+        <div style="font-size:13px; color:var(--ivory); line-height:1.6;">
+          <strong>${inserted}</strong> new contacts inserted ·
+          <strong>${collidedExisting}</strong> already in warehouse ·
+          <strong>${dupSkipped}</strong> intra-file duplicates ·
+          <strong>${invalidCount}</strong> invalid (format + MX)
+          ${mxFailedCount > 0 ? `<br><span style="color:var(--ivory-78);">↳ ${mxFailedCount} of those failed MX-record lookup (dead domains)</span>` : ''}
+          ${dncCascaded > 0 ? `<br><strong style="color:var(--red);">${dncCascaded}</strong> auto-blocked via do-not-contact rules` : ''}
+        </div>
+        <div style="font-family:var(--mono); font-size:10px; color:var(--ivory-60); margin-top:8px;">Upload ID: ${uploadRow.id}</div>
+      </div>
+    `;
+    $('btnDoImport').disabled = false;
+    $('btnDoImport').textContent = 'Import contacts';
+    toast('Imported', `${inserted} new contacts added to ${state.selectedDisplayName}`, 'success');
+
+    // Refresh the main view
+    state.page = 0;
+    await loadContacts();
+    await loadBuildings(); // refresh contact counts in dropdown
+    // re-select current building in the dropdown after refresh
+    $('buildingSelect').value = state.selectedBuilding;
+  }
+
+  // ============================================================
+  // Manage uploads modal
+  // ============================================================
+  async function openUploadsModal() {
+    if (!state.selectedBuilding) {
+      toast('Pick a building', 'Select a building first.');
+      return;
+    }
+    $('uploadsBuildingName').textContent = state.selectedDisplayName;
+    $('uploadsList').innerHTML = '<div class="loading">Loading uploads</div>';
+    $('modalUploads').hidden = false;
+
+    const { data, error } = await sb.from('csv_uploads')
+      .select('*')
+      .eq('building_slug', state.selectedBuilding)
+      .order('uploaded_at', { ascending: false });
+    if (error) {
+      $('uploadsList').innerHTML = `<div class="empty"><p>${error.message}</p></div>`;
+      return;
+    }
+    if (!data || data.length === 0) {
+      $('uploadsList').innerHTML = '<div class="empty"><p>No uploads yet for this building.</p></div>';
+      return;
+    }
+    $('uploadsList').innerHTML = `<table class="contacts" style="font-size:12px;">
+      <thead><tr>
+        <th>Uploaded</th><th>Filename</th><th>Source label</th><th>Inserted / Skipped / Invalid</th><th></th>
+      </tr></thead><tbody>
+      ${data.map(u => `<tr>
+        <td class="last">${new Date(u.uploaded_at).toLocaleString()}</td>
+        <td class="email">${u.filename || '<span style="color:var(--ivory-36);">—</span>'}</td>
+        <td class="source">${u.source_label || '<span style="color:var(--ivory-36);">—</span>'}</td>
+        <td class="phone">${u.row_count_inserted || 0} / ${u.row_count_skipped || 0} / ${u.row_count_invalid || 0}</td>
+        <td><button class="btn btn-danger btn-sm" data-delete-upload="${u.id}" data-upload-name="${u.filename || 'upload #'+u.id}" data-inserted="${u.row_count_inserted||0}">Delete</button></td>
+      </tr>`).join('')}
+      </tbody></table>`;
+    document.querySelectorAll('[data-delete-upload]').forEach(b => {
+      b.addEventListener('click', (e) => {
+        const id = parseInt(e.target.dataset.deleteUpload, 10);
+        const name = e.target.dataset.uploadName;
+        const inserted = e.target.dataset.inserted;
+        promptDeleteUpload(id, name, inserted);
+      });
+    });
+  }
+
+  function promptDeleteUpload(uploadId, name, insertedCount) {
+    state.pendingDelete = { type: 'upload', id: uploadId, name };
+    $('deleteMessage').innerHTML = `Delete upload <strong style="color:var(--ivory);">"${name}"</strong> and its <strong style="color:var(--red);">${insertedCount} contact rows</strong> for building <strong style="color:var(--ivory);">${state.selectedDisplayName}</strong>.`;
+    $('deletePassword').value = '';
+    $('deleteConfirm1').checked = false;
+    $('deleteConfirm2').checked = false;
+    $('modalDelete').hidden = false;
+  }
+
+  async function doDelete() {
+    if (!state.pendingDelete) return;
+    const pw = $('deletePassword').value;
+    const c1 = $('deleteConfirm1').checked;
+    const c2 = $('deleteConfirm2').checked;
+    if (pw !== 'Claude1234') {
+      toast('Password incorrect', 'Re-enter the deletion password.', 'error');
+      return;
+    }
+    if (!c1 || !c2) {
+      toast('Both confirmations required', 'Check both boxes to proceed.', 'error');
+      return;
+    }
+    const { id } = state.pendingDelete;
+    // Delete child rows first (RLS will block non-admins; csv_uploads ON DELETE SET NULL means
+    // contacts would remain — we want them deleted, so explicit delete first)
+    const { error: childErr } = await sb.from('building_contacts')
+      .delete()
+      .eq('source_upload_id', id);
+    if (childErr) {
+      toast('Delete failed (contacts)', childErr.message, 'error');
+      return;
+    }
+    const { error: parentErr } = await sb.from('csv_uploads').delete().eq('id', id);
+    if (parentErr) {
+      toast('Delete failed (upload row)', parentErr.message, 'error');
+      return;
+    }
+    toast('Deleted', `Upload batch removed.`, 'success');
+    state.pendingDelete = null;
+    closeAllModals();
+    await loadContacts();
+    await loadBuildings();
+    $('buildingSelect').value = state.selectedBuilding;
+    if (!$('modalUploads').hidden) openUploadsModal();
+  }
+
+  // ============================================================
+  // CSV export
+  // ============================================================
+  async function exportCsv() {
+    if (!state.selectedBuilding) {
+      toast('Pick a building', 'Select a building first.');
+      return;
+    }
+    // Fetch all rows (no pagination) — admin endpoint, RLS-enforced
+    const { data, error } = await sb.from('admin_building_contacts_v')
+      .select('email,first_name,last_name,phone,property_address,unit_number,email_status,is_bounced,is_unsubscribed,is_account_holder,source_label,last_wave_sent,last_delivery_status,created_at')
+      .eq('building_slug', state.selectedBuilding)
+      .order('created_at', { ascending: false });
+    if (error) {
+      toast('Export failed', error.message, 'error');
+      return;
+    }
+    const csv = Papa.unparse(data || []);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${state.selectedBuilding}_contacts_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Exported', `${data.length} rows downloaded.`, 'success');
+  }
+
+  // ============================================================
+  // Wire up event listeners
+  // ============================================================
+  $('buildingSelect').addEventListener('change', (e) => {
+    state.selectedBuilding = e.target.value || null;
+    const b = state.buildings.find(x => x.building_slug === state.selectedBuilding);
+    state.selectedDisplayName = b?.display_name || null;
+    state.page = 0;
+    if (state.selectedBuilding) loadContacts();
+    else { $('tableBody').innerHTML = '<div class="empty"><h3>No building selected</h3><p>Pick a building from the dropdown above.</p></div>'; $('pagination').hidden = true; }
+  });
+
+  $('searchBox').addEventListener('input', (e) => {
+    clearTimeout($('searchBox')._t);
+    $('searchBox')._t = setTimeout(() => {
+      state.searchTerm = e.target.value.trim();
+      state.page = 0;
+      loadContacts();
+    }, 250);
+  });
+
+  $('statusFilter').addEventListener('change', (e) => {
+    state.filterStatus = e.target.value;
+    state.page = 0;
+    loadContacts();
+  });
+
+  $('prevPage').addEventListener('click', () => { if (state.page > 0) { state.page--; loadContacts(); } });
+  $('nextPage').addEventListener('click', () => { state.page++; loadContacts(); });
+
+  $('btnUpload').addEventListener('click', openUploadModal);
+  $('btnExport').addEventListener('click', exportCsv);
+  $('btnManageUploads').addEventListener('click', openUploadsModal);
+  $('btnDoImport').addEventListener('click', doImport);
+  $('btnDoDelete').addEventListener('click', doDelete);
+
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeAllModals));
+  document.querySelectorAll('.modal-backdrop').forEach(m => {
+    m.addEventListener('click', (e) => { if (e.target === m) closeAllModals(); });
+  });
+
+  // ============================================================
+  // Boot
+  // ============================================================
+  (async () => {
+    const ok = await checkAuth();
+    if (!ok) return;
+    await loadBuildings();
+  })();
+</script>
+</body>
+</html>
