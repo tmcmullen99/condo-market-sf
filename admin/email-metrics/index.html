@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Campaigns · Admin · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
+<style>
+  :root {
+    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
+    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-bronze: #d4a574; --cm-gain: #8fb97a; --cm-amber: #d9a44b; --cm-loss: #c97865;
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    font-family: var(--ff-body); font-weight: 400; font-size: 15px;
+    line-height: 1.55; min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
+  .wordmark em { color: var(--cm-peri); }
+  .meta { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  .meta .admin-pill { background: var(--cm-peri); color: var(--cm-navy); padding: 4px 10px; border-radius: 4px; font-weight: 500; }
+  .meta a { color: var(--cm-ivory-dim); text-decoration: none; }
+  .meta a:hover { color: var(--cm-ivory); }
+
+  main { padding: 44px 0 96px; }
+  h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(36px, 5vw, 52px); line-height: 1.05; margin-bottom: 10px; }
+  h1 em { color: var(--cm-peri); font-style: italic; }
+  .subtitle { color: var(--cm-ivory-dim); font-size: 15px; margin-bottom: 40px; max-width: 60ch; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 40px; }
+  .metric { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 18px 20px; }
+  .metric-label { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
+  .metric-val { font-family: var(--ff-display); font-weight: 500; font-size: 30px; color: var(--cm-ivory); line-height: 1; }
+  .metric-val.peri { color: var(--cm-peri); }
+  .metric-val.bronze { color: var(--cm-bronze); }
+  .metric-val.gain { color: var(--cm-gain); }
+  .metric-val.amber { color: var(--cm-amber); }
+  .metric-val.loss { color: var(--cm-loss); }
+  .metric-sub { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-faint); margin-top: 4px; }
+
+  .section { margin-bottom: 48px; }
+  .section-head { margin-bottom: 18px; }
+  .section h2 { font-family: var(--ff-display); font-weight: 500; font-size: 26px; color: var(--cm-ivory); }
+  .section h2 em { color: var(--cm-peri); font-style: italic; }
+  .section-sub { font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory-dim); letter-spacing: 0.04em; margin-top: 6px; }
+
+  .table-host { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; overflow: hidden; }
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.tbl th, table.tbl td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--cm-rule); }
+  table.tbl th { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500; }
+  table.tbl tbody tr:last-child td { border-bottom: none; }
+  table.tbl td { color: var(--cm-ivory); }
+  table.tbl td.num, table.tbl th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--ff-mono); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px;
+  }
+  .pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .pill.good { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
+  .pill.good::before { background: var(--cm-gain); }
+  .pill.warn { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
+  .pill.warn::before { background: var(--cm-amber); }
+  .pill.bad  { background: rgba(201, 120, 101, 0.12); color: var(--cm-loss); }
+  .pill.bad::before  { background: var(--cm-loss); }
+  .pill.muted { background: rgba(232, 227, 216, 0.06); color: var(--cm-ivory-dim); }
+  .pill.muted::before { background: var(--cm-ivory-faint); }
+
+  /* Funnel viz */
+  .funnel-row { display: grid; grid-template-columns: 100px 1fr 90px 70px; gap: 14px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--cm-rule); font-size: 14px; }
+  .funnel-row:last-child { border-bottom: none; }
+  .funnel-label { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .funnel-bar-host { height: 16px; background: rgba(232, 227, 216, 0.06); border-radius: 4px; overflow: hidden; position: relative; }
+  .funnel-bar { height: 100%; background: var(--cm-peri); border-radius: 4px; transition: width 400ms ease; }
+  .funnel-bar.gain { background: var(--cm-gain); }
+  .funnel-bar.bronze { background: var(--cm-bronze); }
+  .funnel-bar.amber { background: var(--cm-amber); }
+  .funnel-bar.loss { background: var(--cm-loss); }
+  .funnel-bar.peri { background: var(--cm-peri); }
+  .funnel-num { font-family: var(--ff-mono); font-size: 14px; text-align: right; color: var(--cm-ivory); font-variant-numeric: tabular-nums; }
+  .funnel-pct { font-family: var(--ff-mono); font-size: 12px; text-align: right; color: var(--cm-ivory-dim); font-variant-numeric: tabular-nums; }
+
+  /* Planner */
+  .planner { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 880px) { .planner { grid-template-columns: 1fr; } }
+  .planner-card { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 22px 24px; }
+  .planner-card h3 { font-family: var(--ff-display); font-weight: 500; font-size: 20px; color: var(--cm-ivory); margin-bottom: 14px; }
+  .planner-card h3 em { color: var(--cm-peri); font-style: italic; }
+  .planner-input { display: grid; grid-template-columns: 1fr 110px; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px dashed rgba(232,227,216,0.08); font-size: 14px; }
+  .planner-input:last-child { border-bottom: none; }
+  .planner-input label { color: var(--cm-ivory-dim); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .planner-input input {
+    background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 6px;
+    padding: 7px 10px; color: var(--cm-ivory); font-family: var(--ff-mono); font-size: 14px;
+    text-align: right; width: 100%;
+  }
+  .planner-input input:focus { outline: none; border-color: var(--cm-peri); }
+  .planner-result { display: grid; grid-template-columns: 1fr 110px; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px dashed rgba(232,227,216,0.08); }
+  .planner-result:last-child { border-bottom: none; }
+  .planner-result .lbl { color: var(--cm-ivory-dim); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .planner-result .val { color: var(--cm-bronze); font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; text-align: right; }
+  .planner-result .val.peri { color: var(--cm-peri); }
+  .planner-result .val.gain { color: var(--cm-gain); }
+
+  .empty-row td { text-align: center; color: var(--cm-ivory-dim); padding: 36px; font-style: italic; }
+
+  .note {
+    background: rgba(159, 180, 216, 0.05); border-left: 3px solid var(--cm-peri);
+    border-radius: 6px; padding: 14px 18px; margin: 18px 0;
+    font-size: 14px; color: var(--cm-ivory); line-height: 1.55;
+  }
+  .note.warn { background: rgba(217, 164, 75, 0.05); border-left-color: var(--cm-amber); }
+  .note.bad  { background: rgba(201, 120, 101, 0.05); border-left-color: var(--cm-loss); }
+  .note strong { color: var(--cm-bronze); }
+  .note.warn strong { color: var(--cm-amber); }
+  .note.bad strong { color: var(--cm-loss); }
+
+  .loading { text-align: center; color: var(--cm-ivory-dim); font-style: italic; padding: 60px 0; }
+
+  .auth-gate { padding: 80px 0; text-align: center; }
+  .auth-gate h2 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 26px; margin-bottom: 12px; }
+  .auth-gate p { color: var(--cm-ivory-dim); margin-bottom: 22px; }
+  .auth-gate button {
+    background: var(--cm-peri); color: var(--cm-navy); border: none;
+    padding: 12px 26px; border-radius: 8px; font-family: var(--ff-body);
+    font-size: 15px; font-weight: 500; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap masthead-row">
+    <a class="wordmark" href="/admin/">Condo <em>Market</em> · sf</a>
+    <div class="meta">
+      <span class="admin-pill">Admin</span>
+      <a href="/admin/">Overview</a>
+      <a href="/admin/contacts/">Contacts</a>
+      <a href="/admin/outreach.html">Outreach</a>
+      <span>Email Campaigns</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <h1>Email <em>Campaigns</em></h1>
+    <p class="subtitle">Wave-by-wave funnel for cold-drip launch invitations. Includes deliverability health by domain, warehouse classification, and the send-volume projection model.</p>
+
+    <div id="auth-gate" class="auth-gate" style="display:none;">
+      <h2>Admin sign-in required</h2>
+      <p>This page shows email campaign metrics. Sign in to your admin account to continue.</p>
+      <button data-cm-auth="login">Sign in</button>
+    </div>
+
+    <div id="metrics-content" style="display:none;">
+
+      <!-- KPI cards -->
+      <div class="metrics" id="kpi-grid">
+        <div class="loading">Loading metrics…</div>
+      </div>
+
+      <!-- Wave funnel -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Wave <em>funnel</em></h2>
+          <div class="section-sub">Sent → delivered → opened → clicked → conversion (per wave).</div>
+        </div>
+        <div class="table-host" id="wave-funnel-host">
+          <div class="loading">Loading…</div>
+        </div>
+      </section>
+
+      <!-- Domain health -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Domain <em>health</em></h2>
+          <div class="section-sub">Top recipient domains, sorted by sends. Bounce rate above 5% is a deliverability warning.</div>
+        </div>
+        <div class="table-host">
+          <table class="tbl" id="domain-tbl">
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th class="num">Sent</th>
+                <th class="num">Delivered</th>
+                <th class="num">Bounced</th>
+                <th class="num">Opened</th>
+                <th class="num">Bounce rate</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Warehouse health -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Warehouse <em>health</em></h2>
+          <div class="section-sub">Contact ingestion status and email-kind classification. Personal-domain emails are the safe-to-send segment.</div>
+        </div>
+        <div class="table-host">
+          <table class="tbl" id="warehouse-tbl">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th class="num">Total</th>
+                <th class="num">Personal</th>
+                <th class="num">Workplace</th>
+                <th class="num">Edu</th>
+                <th class="num">Dead</th>
+                <th class="num">Bounced</th>
+                <th class="num">Sendable now</th>
+              </tr>
+            </thead>
+            <tbody><tr class="empty-row"><td colspan="8">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="warehouse-recommendation"></div>
+      </section>
+
+      <!-- Send plan / projection -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Send <em>plan</em> · projection model</h2>
+          <div class="section-sub">Adjust inputs to model days-to-complete for wave 1 across all 64 SF condo buildings. Defaults follow new-domain warmup best practice.</div>
+        </div>
+        <div class="planner">
+          <div class="planner-card">
+            <h3>Inputs <em>·</em> assumptions</h3>
+            <div class="planner-input"><label>Target buildings</label><input type="number" id="in-buildings" value="64" min="1" max="200"></div>
+            <div class="planner-input"><label>Avg contacts / building</label><input type="number" id="in-contacts-per" value="30" min="1" max="500"></div>
+            <div class="planner-input"><label>Personal-only filter</label><input type="number" id="in-personal-pct" value="71" min="0" max="100"></div>
+            <div class="planner-input"><label>Day-1 send budget</label><input type="number" id="in-day1" value="200" min="10" max="10000"></div>
+            <div class="planner-input"><label>Daily ramp multiplier</label><input type="number" id="in-ramp" value="1.5" min="1.0" max="3.0" step="0.1"></div>
+            <div class="planner-input"><label>Daily ceiling</label><input type="number" id="in-ceiling" value="2000" min="100" max="50000"></div>
+            <div class="planner-input"><label>Wave spacing (days)</label><input type="number" id="in-wave-gap" value="7" min="1" max="30"></div>
+          </div>
+          <div class="planner-card">
+            <h3>Projection <em>·</em> output</h3>
+            <div class="planner-result"><span class="lbl">Total sendable list</span><span class="val peri" id="out-list">—</span></div>
+            <div class="planner-result"><span class="lbl">Wave 1 finishes day</span><span class="val" id="out-wave1">—</span></div>
+            <div class="planner-result"><span class="lbl">Wave 4 (last) finishes day</span><span class="val gain" id="out-wave4">—</span></div>
+            <div class="planner-result"><span class="lbl">Total days end-to-end</span><span class="val gain" id="out-total-days">—</span></div>
+            <div class="planner-result"><span class="lbl">Calendar finish</span><span class="val peri" id="out-finish-date">—</span></div>
+            <div class="planner-result"><span class="lbl">Total emails sent</span><span class="val" id="out-total-emails">—</span></div>
+          </div>
+        </div>
+        <div class="note">
+          <strong>Warmup curve.</strong> Default is the industry-standard new-domain ramp: day 1 = 200, ×1.5 per day, ceiling at 2,000/day. This protects sender reputation. Aggressive ramping (×2.0 or higher) risks Gmail/Yahoo throttling for new domains. Reduce <em>day-1 send budget</em> if you've seen any complaint events fire.
+        </div>
+        <div class="note warn" id="scrub-recommendation"></div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { CM, sb } from '/assets/cm-supabase.js';
+
+  const $ = (sel) => document.querySelector(sel);
+
+  function fmtPct(n, total) {
+    if (!total) return '0.0%';
+    return ((100 * n) / total).toFixed(1) + '%';
+  }
+  function fmtInt(n) {
+    return new Intl.NumberFormat('en-US').format(n || 0);
+  }
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function bounceClassFor(pct) {
+    if (pct >= 5) return 'bad';
+    if (pct >= 2) return 'warn';
+    return 'good';
+  }
+  function bounceLabelFor(pct) {
+    if (pct >= 5) return 'High bounce';
+    if (pct >= 2) return 'Watch';
+    return 'Healthy';
+  }
+
+  async function loadAll() {
+    // 1. Pull all launch_invitations rows (small set — wave 1 only currently)
+    const { data: invites, error: invitesErr } = await sb
+      .from('launch_invitations')
+      .select('*');
+    if (invitesErr) {
+      console.error('invites query failed', invitesErr);
+      $('#kpi-grid').innerHTML = `<div class="note bad"><strong>Query failed:</strong> ${escapeHtml(invitesErr.message)}</div>`;
+      return;
+    }
+    const rows = invites || [];
+
+    // 2. Pull suppression lists for the unsub denominator
+    const [{ count: unsubCount }, { count: bouncedCount }, { count: dncCount }] = await Promise.all([
+      sb.from('unsubscribed_emails').select('email', { head: true, count: 'exact' }),
+      sb.from('bounced_emails').select('email', { head: true, count: 'exact' }),
+      sb.from('do_not_contact_emails').select('email', { head: true, count: 'exact' }),
+    ]);
+
+    // 3. Pull warehouse breakdown
+    const { data: warehouse } = await sb
+      .from('building_contacts')
+      .select('building_slug, email_kind, email_status');
+
+    renderKpi(rows, unsubCount || 0, bouncedCount || 0, dncCount || 0);
+    renderWaveFunnel(rows);
+    renderDomainTable(rows);
+    renderWarehouseTable(warehouse || []);
+    renderRecommendations(rows, warehouse || []);
+    updatePlannerOnce(warehouse || []);
+  }
+
+  function renderKpi(rows, unsubCount, bouncedListCount, dncCount) {
+    const total      = rows.length;
+    const delivered  = rows.filter(r => r.delivery_status === 'delivered').length;
+    const bounced    = rows.filter(r => r.delivery_status === 'bounced').length;
+    const complained = rows.filter(r => r.delivery_status === 'complained').length;
+    const opened     = rows.filter(r => r.opened_count > 0).length;
+    const clicked    = rows.filter(r => r.click_count > 0).length;
+
+    const html = `
+      <div class="metric"><div class="metric-label">Total sent</div><div class="metric-val">${fmtInt(total)}</div></div>
+      <div class="metric"><div class="metric-label">Delivered</div><div class="metric-val gain">${fmtPct(delivered, total)}</div><div class="metric-sub">${fmtInt(delivered)} of ${fmtInt(total)}</div></div>
+      <div class="metric"><div class="metric-label">Opened</div><div class="metric-val peri">${fmtPct(opened, delivered || total)}</div><div class="metric-sub">${fmtInt(opened)} unique opens</div></div>
+      <div class="metric"><div class="metric-label">Clicked</div><div class="metric-val bronze">${fmtPct(clicked, opened || delivered || total)}</div><div class="metric-sub">${fmtInt(clicked)} click-throughs</div></div>
+      <div class="metric"><div class="metric-label">Bounced</div><div class="metric-val ${bounced/total*100 >= 5 ? 'loss' : bounced/total*100 >= 2 ? 'amber' : 'gain'}">${fmtPct(bounced, total)}</div><div class="metric-sub">${fmtInt(bounced)} bounces</div></div>
+      <div class="metric"><div class="metric-label">Unsubscribed</div><div class="metric-val loss">${fmtPct(complained, total)}</div><div class="metric-sub">${fmtInt(complained)} complaints</div></div>
+    `;
+    $('#kpi-grid').innerHTML = html;
+  }
+
+  function renderWaveFunnel(rows) {
+    const waves = [1, 2, 3, 4];
+    let html = '';
+    let hasData = false;
+
+    for (const w of waves) {
+      const waveRows = rows.filter(r => r.wave_number === w);
+      if (waveRows.length === 0) continue;
+      hasData = true;
+      const sent       = waveRows.length;
+      const delivered  = waveRows.filter(r => r.delivery_status === 'delivered').length;
+      const bounced    = waveRows.filter(r => r.delivery_status === 'bounced').length;
+      const opened     = waveRows.filter(r => r.opened_count > 0).length;
+      const clicked    = waveRows.filter(r => r.click_count > 0).length;
+      const complained = waveRows.filter(r => r.delivery_status === 'complained').length;
+
+      const max = sent;
+      const bar = (n, klass) => `<div class="funnel-bar-host"><div class="funnel-bar ${klass}" style="width:${max ? (100*n/max).toFixed(1) : 0}%"></div></div>`;
+
+      html += `
+        <div style="padding:18px 22px; border-bottom: 1px solid var(--cm-rule);">
+          <div style="font-family:var(--ff-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--cm-peri);margin-bottom:14px;">Wave ${w}</div>
+          <div class="funnel-row"><span class="funnel-label">Sent</span>${bar(sent, 'peri')}<span class="funnel-num">${fmtInt(sent)}</span><span class="funnel-pct">100%</span></div>
+          <div class="funnel-row"><span class="funnel-label">Delivered</span>${bar(delivered, 'gain')}<span class="funnel-num">${fmtInt(delivered)}</span><span class="funnel-pct">${fmtPct(delivered, sent)}</span></div>
+          <div class="funnel-row"><span class="funnel-label">Opened</span>${bar(opened, 'peri')}<span class="funnel-num">${fmtInt(opened)}</span><span class="funnel-pct">${fmtPct(opened, delivered || sent)}</span></div>
+          <div class="funnel-row"><span class="funnel-label">Clicked</span>${bar(clicked, 'bronze')}<span class="funnel-num">${fmtInt(clicked)}</span><span class="funnel-pct">${fmtPct(clicked, opened || delivered || sent)}</span></div>
+          <div class="funnel-row"><span class="funnel-label">Bounced</span>${bar(bounced, 'loss')}<span class="funnel-num">${fmtInt(bounced)}</span><span class="funnel-pct">${fmtPct(bounced, sent)}</span></div>
+          <div class="funnel-row"><span class="funnel-label">Complained</span>${bar(complained, 'amber')}<span class="funnel-num">${fmtInt(complained)}</span><span class="funnel-pct">${fmtPct(complained, sent)}</span></div>
+        </div>`;
+    }
+    if (!hasData) html = '<div class="empty-row" style="padding:36px;text-align:center;color:var(--cm-ivory-dim);font-style:italic;">No campaign sends recorded yet.</div>';
+    $('#wave-funnel-host').innerHTML = html;
+  }
+
+  function renderDomainTable(rows) {
+    const byDomain = new Map();
+    for (const r of rows) {
+      const d = (r.email || '').split('@')[1]?.toLowerCase() || '(no domain)';
+      if (!byDomain.has(d)) byDomain.set(d, { sent: 0, delivered: 0, bounced: 0, opened: 0 });
+      const x = byDomain.get(d);
+      x.sent++;
+      if (r.delivery_status === 'delivered') x.delivered++;
+      if (r.delivery_status === 'bounced')   x.bounced++;
+      if (r.opened_count > 0)                x.opened++;
+    }
+    const sorted = [...byDomain.entries()]
+      .sort((a, b) => b[1].sent - a[1].sent)
+      .slice(0, 25);
+
+    let html = '';
+    for (const [d, x] of sorted) {
+      const bpct = x.sent ? (100 * x.bounced / x.sent) : 0;
+      const cls = bounceClassFor(bpct);
+      const label = bounceLabelFor(bpct);
+      html += `
+        <tr>
+          <td>${escapeHtml(d)}</td>
+          <td class="num">${fmtInt(x.sent)}</td>
+          <td class="num">${fmtInt(x.delivered)}</td>
+          <td class="num">${fmtInt(x.bounced)}</td>
+          <td class="num">${fmtInt(x.opened)}</td>
+          <td class="num">${bpct.toFixed(1)}%</td>
+          <td><span class="pill ${cls}">${label}</span></td>
+        </tr>`;
+    }
+    if (!html) html = '<tr class="empty-row"><td colspan="7">No domains to show yet.</td></tr>';
+    $('#domain-tbl tbody').innerHTML = html;
+  }
+
+  function renderWarehouseTable(warehouse) {
+    const byBuilding = new Map();
+    for (const w of warehouse) {
+      const b = w.building_slug;
+      if (!byBuilding.has(b)) byBuilding.set(b, { total:0, personal:0, workplace:0, edu:0, dead:0, bounced:0, sendable:0 });
+      const x = byBuilding.get(b);
+      x.total++;
+      if (w.email_kind === 'personal') x.personal++;
+      else if (w.email_kind === 'workplace') x.workplace++;
+      else if (w.email_kind === 'edu') x.edu++;
+      else if (w.email_kind === 'dead_provider') x.dead++;
+      if (w.email_status === 'bounced' || w.email_status === 'complained') x.bounced++;
+      else if (w.email_kind === 'personal' && (w.email_status === 'unverified' || !w.email_status)) x.sendable++;
+    }
+    const sorted = [...byBuilding.entries()].sort((a, b) => b[1].total - a[1].total);
+    let html = '';
+    const fmtSlug = (s) => s.replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+    for (const [b, x] of sorted) {
+      html += `
+        <tr>
+          <td>${escapeHtml(fmtSlug(b))}</td>
+          <td class="num">${fmtInt(x.total)}</td>
+          <td class="num"><span style="color:var(--cm-gain)">${fmtInt(x.personal)}</span></td>
+          <td class="num"><span style="color:var(--cm-amber)">${fmtInt(x.workplace)}</span></td>
+          <td class="num">${fmtInt(x.edu)}</td>
+          <td class="num"><span style="color:var(--cm-loss)">${fmtInt(x.dead)}</span></td>
+          <td class="num"><span style="color:var(--cm-loss)">${fmtInt(x.bounced)}</span></td>
+          <td class="num"><strong>${fmtInt(x.sendable)}</strong></td>
+        </tr>`;
+    }
+    if (!html) html = '<tr class="empty-row"><td colspan="8">No contacts in warehouse yet.</td></tr>';
+    $('#warehouse-tbl tbody').innerHTML = html;
+  }
+
+  function renderRecommendations(rows, warehouse) {
+    const wave1 = rows.filter(r => r.wave_number === 1);
+    const bounced = wave1.filter(r => r.delivery_status === 'bounced').length;
+    const bouncePct = wave1.length ? (100 * bounced / wave1.length) : 0;
+
+    let host = $('#warehouse-recommendation');
+    let html = '';
+    if (bouncePct >= 5) {
+      html += `<div class="note bad" style="margin-top:18px;"><strong>Deliverability warning.</strong> Wave 1 bounce rate is ${bouncePct.toFixed(1)}% (healthy is &lt;2%). Send the next batches with the <code>personal-only</code> filter on — the warehouse breakdown above shows the segment is safe at ~1-3% bounce. Continuing at the current rate risks Gmail/Yahoo routing future sends to spam permanently.</div>`;
+    } else if (bouncePct >= 2) {
+      html += `<div class="note warn" style="margin-top:18px;"><strong>Watch the bounce rate.</strong> Currently ${bouncePct.toFixed(1)}% — borderline. Consider scrubbing workplace and dead-provider domains before scaling beyond the current building.</div>`;
+    }
+    host.innerHTML = html;
+
+    // Scrub recommendation in planner
+    const totalWarehouse = warehouse.length;
+    const sendable = warehouse.filter(w => w.email_kind === 'personal' && (w.email_status === 'unverified' || !w.email_status)).length;
+    let scrubHtml = '';
+    if (totalWarehouse > 0) {
+      const skip = totalWarehouse - sendable;
+      scrubHtml = `<strong>Scrubbing math:</strong> warehouse has ${fmtInt(totalWarehouse)} contacts; ${fmtInt(sendable)} are personal-domain + unsent (safe). The remaining ${fmtInt(skip)} are workplace, edu, dead, or already bounced/complained. <strong>Recommendation:</strong> default to personal-only sending until 7 days of clean reputation (delivered &gt;95%, bounced &lt;2%). For paid scrubbing of the full list, NeverBounce/ZeroBounce cost ~$0.008/email — about $${(totalWarehouse * 0.008).toFixed(2)} for the current warehouse.`;
+    }
+    $('#scrub-recommendation').innerHTML = scrubHtml;
+  }
+
+  // ---- Planner / projection ----
+  function recalcPlanner(warehouse) {
+    const buildings   = +$('#in-buildings').value || 64;
+    const perBuilding = +$('#in-contacts-per').value || 30;
+    const personalPct = (+$('#in-personal-pct').value || 71) / 100;
+    const day1        = +$('#in-day1').value || 200;
+    const ramp        = +$('#in-ramp').value || 1.5;
+    const ceiling     = +$('#in-ceiling').value || 2000;
+    const waveGap     = +$('#in-wave-gap').value || 7;
+
+    const totalRaw     = buildings * perBuilding;
+    const totalSendable = Math.round(totalRaw * personalPct);
+
+    // Simulate the daily ramp
+    let remaining = totalSendable;
+    let day = 0;
+    let todays = day1;
+    while (remaining > 0 && day < 365) {
+      day++;
+      const send = Math.min(remaining, Math.floor(todays));
+      remaining -= send;
+      todays = Math.min(ceiling, todays * ramp);
+    }
+    const wave1Day = day;
+    const wave4Day = wave1Day + (3 * waveGap);
+    const totalEmails = totalSendable * 4;
+
+    const finishDate = new Date(Date.now() + wave4Day * 86400000);
+    const finishStr  = finishDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    $('#out-list').textContent          = fmtInt(totalSendable);
+    $('#out-wave1').textContent         = wave1Day + ' d';
+    $('#out-wave4').textContent         = wave4Day + ' d';
+    $('#out-total-days').textContent    = wave4Day + ' d';
+    $('#out-finish-date').textContent   = finishStr;
+    $('#out-total-emails').textContent  = fmtInt(totalEmails);
+  }
+
+  function updatePlannerOnce(warehouse) {
+    // Wire input listeners (once)
+    if (!updatePlannerOnce._wired) {
+      ['#in-buildings','#in-contacts-per','#in-personal-pct','#in-day1','#in-ramp','#in-ceiling','#in-wave-gap']
+        .forEach(s => $(s).addEventListener('input', () => recalcPlanner(warehouse)));
+      updatePlannerOnce._wired = true;
+    }
+    recalcPlanner(warehouse);
+  }
+
+  // ---- Auth gate + boot ----
+  async function init() {
+    const user = await CM.getUser();
+    if (!user) {
+      $('#auth-gate').style.display = 'block';
+      return;
+    }
+    const profile = await CM.getMyProfile();
+    if (!profile || profile.role !== 'admin') {
+      $('#auth-gate').style.display = 'block';
+      $('#auth-gate h2').textContent = 'Admin access required';
+      $('#auth-gate p').textContent  = 'This page is restricted to admin accounts.';
+      $('#auth-gate button').style.display = 'none';
+      return;
+    }
+    $('#metrics-content').style.display = 'block';
+    await loadAll();
+  }
+
+  init().catch(err => {
+    console.error('init failed', err);
+    $('#auth-gate').style.display = 'block';
+    $('#auth-gate p').textContent = 'Could not load page: ' + (err.message || err);
+  });
+</script>
+
+</body>
+</html>
