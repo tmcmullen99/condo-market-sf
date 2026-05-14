@@ -227,3 +227,12 @@ if (getCurrentBuildingSlug()) {
     console.warn('cm-building-intel: load failed', err);
   });
 }
+
+// Per-building Make Me Move section + email-click modal — loaded on the same
+// pages as the action bar. The mmm module self-mounts and bails on non-building
+// pages and on buildings with no active make_me_move rows.
+if (getCurrentBuildingSlug()) {
+  import('/assets/cm-mmm.js').catch((err) => {
+    console.warn('cm-mmm: load failed', err);
+  });
+}
