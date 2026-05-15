@@ -95,7 +95,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.2</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.3</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -106,6 +106,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
       <a class="tab" data-tab="home" href="#home">Home</a>
       <a class="tab" data-tab="people" href="#people">People</a>
       <a class="tab" data-tab="hoa" href="#hoa">HOAs</a>
+      <a class="tab" data-tab="partners" href="#partners">Partners</a>
       <a class="tab" data-tab="email" href="#email">Email</a>
       <a class="tab" data-tab="queue" href="#queue">Queue</a>
       <a class="tab" data-tab="buildings" href="#buildings">Buildings</a>
@@ -321,7 +322,7 @@ function routeFromHash() {
   const hash = location.hash.replace('#', '') || 'home';
   const [tab, ...rest] = hash.split('/');
   $$('#nav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  const renderers = { home: renderHome, people: renderPeople, hoa: renderHoa, email: renderEmail, queue: renderQueue, buildings: renderBuildings, mmm: renderMmm, analytics: renderAnalytics, settings: renderSettings };
+  const renderers = { home: renderHome, people: renderPeople, hoa: renderHoa, partners: renderPartners, email: renderEmail, queue: renderQueue, buildings: renderBuildings, mmm: renderMmm, analytics: renderAnalytics, settings: renderSettings };
   const renderer = renderers[tab] || renderHome;
   const c = $('#content');
   c.innerHTML = '<div class="p-8 text-center"><div class="spinner"></div></div>';
@@ -497,6 +498,364 @@ async function renderHoa() {
     <div class="placeholder mt-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>HOA pitch page editor, full CRM, recurring schedules</div>`;
 }
 
+// ===== PARTNERS — PM firm partnership pipeline =====
+// Sprint 1 build (2026-05-15). Reuses hoa_companies for firm info;
+// partnership_outreach + partnership_outreach_events for state + history;
+// email_templates (category='partnership') for the 4 cadence emails.
+
+let _partnersCache = null;
+
+// Cadence state machine: which template advances to which next state, and how far out
+const PARTNERSHIP_CADENCE = {
+  partnership_initial_cold:   { next_status: 'emailed',         next_action_type: 'send_follow_up_1', days_until_next: 4  },
+  partnership_follow_up_1:    { next_status: 'followed_up_1',   next_action_type: 'send_follow_up_2', days_until_next: 7  },
+  partnership_follow_up_2:    { next_status: 'followed_up_2',   next_action_type: 'wait',             days_until_next: null },
+  partnership_reply_engaged:  { next_status: 'replied',         next_action_type: 'wait',             days_until_next: null },
+};
+
+const NEXT_ACTION_TO_SLUG = {
+  send_initial:      'partnership_initial_cold',
+  send_follow_up_1:  'partnership_follow_up_1',
+  send_follow_up_2:  'partnership_follow_up_2',
+  send_reply:        'partnership_reply_engaged',
+};
+
+async function renderPartners() {
+  $('#content').innerHTML = `
+    <div class="flex items-baseline justify-between mb-4 flex-wrap gap-3">
+      <h1 class="font-display text-3xl italic">Partners <span class="text-cream/50 text-sm font-sans italic">— PM firm partnership pipeline</span></h1>
+      <div class="text-xs text-cream/55">33% broker-to-broker · 1% of every sale price</div>
+    </div>
+    <div id="partners-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
+    <h2 class="font-display text-xl mb-3">Pipeline</h2>
+    <div id="partners-pipeline"><div class="p-8 text-center"><div class="spinner"></div></div></div>
+    <div id="partners-templates" class="mt-8"></div>
+  `;
+  await loadPartnersData();
+}
+
+async function loadPartnersData() {
+  const [outR, coR, tplR, evR] = await Promise.all([
+    _sb.from('partnership_outreach').select('*').order('priority',{ascending:true}),
+    _sb.from('hoa_companies').select('*'),
+    _sb.from('email_templates').select('*').eq('category','partnership').eq('is_active',true).order('slug'),
+    _sb.from('partnership_outreach_events').select('*').order('occurred_at',{ascending:false}),
+  ]);
+  if (outR.error) throw outR.error;
+  if (coR.error) throw coR.error;
+  if (tplR.error) throw tplR.error;
+
+  const outreach = outR.data || [];
+  const companies = coR.data || [];
+  const templates = tplR.data || [];
+  const events = evR.data || [];
+  const companyMap = Object.fromEntries(companies.map(c => [c.id, c]));
+  const eventsByOutreach = events.reduce((acc, e) => { (acc[e.outreach_id] ||= []).push(e); return acc; }, {});
+
+  _partnersCache = { outreach, companies, companyMap, templates, events, eventsByOutreach };
+  renderPartnersStats();
+  renderPartnersPipeline();
+  renderPartnersTemplates();
+}
+
+function renderPartnersStats() {
+  const { outreach, templates } = _partnersCache;
+  const total = outreach.length;
+  const active = outreach.filter(o => !['declined','dormant','agreement_signed'].includes(o.status)).length;
+  const needsEmail = outreach.filter(o => o.contact_first_name && !o.contact_email && !['declined','dormant'].includes(o.status)).length;
+  const weekFromNow = new Date(Date.now() + 7*86400000);
+  const dueThisWeek = outreach.filter(o => o.next_action_at && new Date(o.next_action_at) <= weekFromNow && !['declined','dormant'].includes(o.status)).length;
+
+  const tiles = [
+    ['In pipeline', total, `${active} active · ${total - active} closed`],
+    ['Need email lookup', needsEmail, needsEmail ? 'verify via Apollo' : 'all set'],
+    ['Due this week', dueThisWeek, dueThisWeek ? 'click rows below' : 'queue is clear'],
+    ['Templates loaded', templates.length, 'partnership category'],
+  ];
+  $('#partners-stats').innerHTML = tiles.map(([l,n,sub]) =>
+    `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-3xl">${esc(String(n))}</div><div class="text-xs text-cream/55 mt-1">${esc(sub)}</div></div>`
+  ).join('');
+}
+
+function partnerStatusTag(status) {
+  if (['agreement_signed','meeting_held','meeting_scheduled','replied','agreement_sent'].includes(status)) return 'tag-good';
+  if (['declined','dormant'].includes(status)) return 'tag-bad';
+  return 'tag-warn';
+}
+
+function renderPartnersPipeline() {
+  const { outreach, companyMap, eventsByOutreach } = _partnersCache;
+
+  if (!outreach.length) {
+    $('#partners-pipeline').innerHTML = '<div class="placeholder">No partnership outreach rows yet.</div>';
+    return;
+  }
+
+  $('#partners-pipeline').innerHTML = outreach.map(o => {
+    const firm = companyMap[o.company_id];
+    const events = eventsByOutreach[o.id] || [];
+    const lastEvent = events[0];
+    const canCompose = !['declined','dormant','on_hold','researching'].includes(o.status);
+    const needsEmail = o.contact_first_name && !o.contact_email;
+    const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
+    const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
+
+    return `
+    <div class="card mb-3" data-row="${esc(o.id)}">
+      <div class="flex items-baseline justify-between gap-4 flex-wrap mb-2">
+        <div class="flex items-baseline gap-3 flex-wrap">
+          <span class="font-mono text-xs text-cream/45">#${o.priority}</span>
+          <span class="font-display text-lg">${esc(firm?.name || '?')}</span>
+          ${o.contact_full_name ? `<span class="text-cream/70 text-sm">${esc(o.contact_full_name)}${o.contact_title ? ` · ${esc(o.contact_title)}` : ''}</span>` : `<span class="text-cream/45 text-xs italic">no decision-maker contact set</span>`}
+          <span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">Compose →</button>` : ''}
+          <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
+        </div>
+      </div>
+      <div class="flex gap-3 flex-wrap text-xs text-cream/60">
+        ${o.contact_email
+          ? `<span class="font-mono text-cream/75">${esc(o.contact_email)}</span>`
+          : o.contact_first_name
+            ? `<span class="text-brick">⚠ no email — <a href="${esc(apolloUrl)}" target="_blank" class="underline">Apollo lookup</a> · <button class="underline text-gold" data-toggle="set-email" data-row="${esc(o.id)}">set email →</button></span>`
+            : `<span class="text-cream/40 italic">no decision-maker yet</span>`}
+        ${o.next_action_at ? `<span>Next: ${esc((o.next_action_type||'').replace(/_/g,' '))} <span class="text-cream/40">(${esc(relTime(o.next_action_at))})</span></span>` : ''}
+        ${lastEvent ? `<span>Last touch: ${esc(lastEvent.event_type.replace(/_/g,' '))} <span class="text-cream/40">(${esc(relTime(lastEvent.occurred_at))})</span></span>` : ''}
+        ${events.length ? `<span class="text-cream/40">${events.length} event${events.length !== 1 ? 's' : ''}</span>` : ''}
+        ${o.notes ? `<span class="text-cream/40 italic">"${esc(o.notes.length > 90 ? o.notes.slice(0,90) + '…' : o.notes)}"</span>` : ''}
+      </div>
+      <div class="partners-set-email mt-3" id="set-email-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-composer mt-3" id="composer-${esc(o.id)}" style="display:none"></div>
+    </div>
+    `;
+  }).join('');
+
+  $$('[data-toggle="composer"]', $('#partners-pipeline')).forEach(b =>
+    b.addEventListener('click', () => togglePartnerPanel('composer', b.dataset.row, renderPartnerComposer))
+  );
+  $$('[data-toggle="set-email"]', $('#partners-pipeline')).forEach(b =>
+    b.addEventListener('click', () => togglePartnerPanel('set-email', b.dataset.row, renderPartnerSetEmail))
+  );
+}
+
+function togglePartnerPanel(kind, rowId, renderer) {
+  const target = $(`#${kind}-${rowId}`);
+  if (!target) return;
+  // If already open, just close
+  if (target.style.display === 'block') {
+    target.style.display = 'none';
+    target.innerHTML = '';
+    return;
+  }
+  // Close all other panels first
+  $$('.partners-composer, .partners-set-email').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
+  target.style.display = 'block';
+  renderer(rowId, target);
+}
+
+function renderPartnerSetEmail(outreachId, container) {
+  const { outreach } = _partnersCache;
+  const o = outreach.find(x => x.id === outreachId);
+  container.innerHTML = `
+    <div class="border-t border-cream/10 pt-3 flex gap-2 items-center flex-wrap">
+      <input type="email" placeholder="firstname@firmdomain.com" class="!w-72" id="set-email-input-${esc(outreachId)}" value="${esc(o.contact_email || '')}">
+      <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-email">Save</button>
+      <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-email">Cancel</button>
+      <div id="set-email-msg-${esc(outreachId)}" class="text-xs"></div>
+    </div>
+  `;
+  $(`[data-row="${outreachId}"][data-action="save-email"]`, container).addEventListener('click', async () => {
+    const email = $(`#set-email-input-${outreachId}`).value.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      $(`#set-email-msg-${outreachId}`).innerHTML = '<span class="text-brick">Invalid email</span>';
+      return;
+    }
+    const { error } = await _sb.from('partnership_outreach').update({ contact_email: email, updated_at: new Date().toISOString() }).eq('id', outreachId);
+    if (error) {
+      $(`#set-email-msg-${outreachId}`).innerHTML = `<span class="text-brick">${esc(error.message)}</span>`;
+      return;
+    }
+    $(`#set-email-msg-${outreachId}`).innerHTML = '<span class="text-sage">✓ Saved — refreshing</span>';
+    setTimeout(() => loadPartnersData(), 500);
+  });
+  $(`[data-row="${outreachId}"][data-action="cancel-email"]`, container).addEventListener('click', () => {
+    container.style.display = 'none';
+    container.innerHTML = '';
+  });
+  $(`#set-email-input-${outreachId}`).focus();
+}
+
+function renderPartnerTemplate(text, vars) {
+  return String(text || '').replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null && vars[k] !== '') ? String(vars[k]) : `{${k}}`);
+}
+
+function renderPartnerComposer(outreachId, container) {
+  const { outreach, templates, companyMap } = _partnersCache;
+  const o = outreach.find(x => x.id === outreachId);
+  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
+  const firm = companyMap[o.company_id];
+
+  const defaultSlug = NEXT_ACTION_TO_SLUG[o.next_action_type] || 'partnership_initial_cold';
+
+  const mergedVars = {
+    first_name: o.contact_first_name || '',
+    firm_name: firm?.name || '',
+    ...(o.custom_vars || {}),
+  };
+
+  const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
+
+  container.innerHTML = `
+    <div class="border-t border-cream/10 pt-4">
+      <div class="mb-3 flex gap-2 flex-wrap items-center">
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50">Template</span>
+        ${templates.map(t => `
+          <button class="btn ${t.slug === defaultSlug ? 'btn-primary' : 'btn-secondary'} btn-sm" data-tpl="${esc(t.slug)}" data-row="${esc(o.id)}">${esc(t.name.replace('Partnership · ', ''))}</button>
+        `).join('')}
+      </div>
+      <div id="composer-body-${esc(o.id)}"></div>
+      <div class="mt-4 pt-3 border-t border-cream/10 text-[11px] text-cream/45">
+        <span class="font-mono">custom_vars active:</span>
+        ${Object.entries(o.custom_vars || {}).map(([k,v]) => `<code class="font-mono">${esc(k)}=${esc(String(v).slice(0,40))}${String(v).length>40?'…':''}</code>`).join(' · ') || '<span class="italic">none</span>'}
+        <a href="${esc(supabaseRowUrl)}" target="_blank" class="text-gold underline ml-2">edit row →</a>
+      </div>
+    </div>
+  `;
+
+  $$(`[data-row="${o.id}"][data-tpl]`, container).forEach(b => {
+    b.addEventListener('click', () => {
+      $$(`[data-row="${o.id}"][data-tpl]`, container).forEach(btn => {
+        btn.classList.toggle('btn-primary', btn === b);
+        btn.classList.toggle('btn-secondary', btn !== b);
+      });
+      renderPartnerComposerBody(o.id, b.dataset.tpl, mergedVars);
+    });
+  });
+  renderPartnerComposerBody(o.id, defaultSlug, mergedVars);
+}
+
+function renderPartnerComposerBody(outreachId, templateSlug, mergedVars) {
+  const { templates, outreach } = _partnersCache;
+  const t = templates.find(tt => tt.slug === templateSlug);
+  if (!t) return;
+  const o = outreach.find(x => x.id === outreachId);
+
+  const subject = renderPartnerTemplate(t.subject, mergedVars);
+  const bodyText = renderPartnerTemplate(t.body_text || '', mergedVars);
+  const bodyHtml = renderPartnerTemplate(t.body_html || '', mergedVars);
+
+  const unresolvedMatches = [
+    ...String(subject).matchAll(/\{(\w+)\}/g),
+    ...String(bodyText).matchAll(/\{(\w+)\}/g),
+  ].map(m => m[1]);
+  const unresolved = [...new Set(unresolvedMatches)];
+
+  const noEmail = !o.contact_email;
+  const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(outreachId)}`;
+  const gmailUrl = o.contact_email
+    ? `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(o.contact_email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`
+    : null;
+
+  const body = $(`#composer-body-${outreachId}`);
+  body.innerHTML = `
+    ${unresolved.length ? `<div class="flash flash-err !py-2 !mb-3 !text-xs">Unresolved merge vars: ${unresolved.map(v => `<code class="font-mono">{${esc(v)}}</code>`).join(', ')}. <a href="${esc(supabaseRowUrl)}" target="_blank" class="underline">Fix in custom_vars →</a></div>` : ''}
+    <div class="mb-2 text-xs"><span class="text-cream/50">To:</span> ${o.contact_email ? `<span class="font-mono text-cream">${esc(o.contact_email)}</span>` : '<span class="text-brick">⚠ no recipient — preview only; resolve before sending</span>'}</div>
+    <div class="mb-2 text-xs"><span class="text-cream/50">Subject:</span> <span class="font-mono text-cream">${esc(subject)}</span></div>
+    <pre class="font-sans text-sm text-cream/90 bg-navy p-4 rounded border border-cream/10 whitespace-pre-wrap mb-3" style="font-family:'DM Sans',sans-serif">${esc(bodyText)}</pre>
+    <div class="flex gap-2 flex-wrap">
+      <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="copy">Copy email</button>
+      ${gmailUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(gmailUrl)}">Open in Gmail ↗</a>` : ''}
+      <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="mark-sent" ${noEmail || unresolved.length ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>Mark as Sent →</button>
+    </div>
+    <div id="composer-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
+  `;
+
+  $(`[data-row="${outreachId}"][data-action="copy"]`).addEventListener('click', async () => {
+    const plain = `Subject: ${subject}\n\n${bodyText}`;
+    try {
+      if (navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+        const item = new ClipboardItem({
+          'text/html': new Blob([`<p><strong>Subject:</strong> ${esc(subject)}</p>${bodyHtml}`], { type: 'text/html' }),
+          'text/plain': new Blob([plain], { type: 'text/plain' }),
+        });
+        await navigator.clipboard.write([item]);
+      } else {
+        await navigator.clipboard.writeText(plain);
+      }
+      $(`#composer-msg-${outreachId}`).innerHTML = '<span class="text-sage">✓ Copied (rich + plain). Paste into Gmail. Click "Mark as Sent" when delivered.</span>';
+    } catch (e) {
+      $(`#composer-msg-${outreachId}`).innerHTML = `<span class="text-brick">Copy failed: ${esc(e.message)} — use "Open in Gmail" instead</span>`;
+    }
+  });
+
+  if (!noEmail && !unresolved.length) {
+    $(`[data-row="${outreachId}"][data-action="mark-sent"]`).addEventListener('click', async () => {
+      const transition = PARTNERSHIP_CADENCE[templateSlug];
+      const nextWhen = transition?.days_until_next ? `in ${transition.days_until_next} days` : 'never (final touch)';
+      if (!confirm(`Log this send to ${o.contact_email}?\n\nStatus → ${transition?.next_status || '(no change)'}\nNext follow-up: ${nextWhen}`)) return;
+      await markPartnerEmailAsSent(outreachId, templateSlug, subject, bodyText);
+    });
+  }
+}
+
+async function markPartnerEmailAsSent(outreachId, templateSlug, subject, body) {
+  const transition = PARTNERSHIP_CADENCE[templateSlug];
+  const msgEl = $(`#composer-msg-${outreachId}`);
+
+  // 1) Append event
+  const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
+    outreach_id: outreachId,
+    event_type: 'email_sent',
+    template_slug: templateSlug,
+    subject,
+    body,
+    metadata: { logged_via: 'admin_partners_tab', logged_at: new Date().toISOString() },
+  });
+  if (evErr) {
+    msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
+    return;
+  }
+
+  // 2) Advance state if we have a known transition
+  if (transition) {
+    const now = new Date();
+    const next = transition.days_until_next ? new Date(now.getTime() + transition.days_until_next * 86400000) : null;
+    const { error: updErr } = await _sb.from('partnership_outreach').update({
+      status: transition.next_status,
+      last_action_at: now.toISOString(),
+      next_action_at: next ? next.toISOString() : null,
+      next_action_type: transition.next_action_type,
+      updated_at: now.toISOString(),
+    }).eq('id', outreachId);
+    if (updErr) {
+      msgEl.innerHTML = `<span class="text-amber">Event logged, but state advance failed: ${esc(updErr.message)}</span>`;
+      return;
+    }
+  }
+
+  msgEl.innerHTML = '<span class="text-sage">✓ Sent + logged. Refreshing pipeline…</span>';
+  setTimeout(() => loadPartnersData(), 700);
+}
+
+function renderPartnersTemplates() {
+  const { templates } = _partnersCache;
+  $('#partners-templates').innerHTML = `
+    <h2 class="font-display text-xl mb-3">Templates <span class="text-cream/50 text-sm font-sans italic">— ${templates.length} active</span></h2>
+    <div class="card !p-0 overflow-hidden"><table>
+      <thead><tr><th>Slug</th><th>Name</th><th>Subject</th><th>Merge vars</th></tr></thead>
+      <tbody>${templates.map(t => `<tr>
+        <td><span class="font-mono text-xs text-cream/70">${esc(t.slug)}</span></td>
+        <td>${esc(t.name)}</td>
+        <td class="text-sm text-cream/80">${esc(t.subject)}</td>
+        <td class="text-[11px] text-cream/55 font-mono">${(t.merge_vars||[]).map(v => esc(v)).join(', ') || '—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <div class="text-xs text-cream/40 mt-3">Edit templates in <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=email_templates" target="_blank" class="underline text-gold">Supabase → email_templates</a> (filter category=partnership)</div>
+  `;
+}
+
+// ===== EMAIL / QUEUE / BUILDINGS / MMM / ANALYTICS / SETTINGS =====
 async function renderEmail() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email</h1><div id="email"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
   const { data: templates, error } = await _sb.from('email_templates').select('*').eq('is_active', true);
@@ -594,7 +953,7 @@ async function renderSettings() {
 
 // ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.2 booted');
+console.log('[ADMIN] v5.3 booted');
 </script>
 </body>
 </html>
