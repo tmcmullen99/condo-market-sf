@@ -38,20 +38,41 @@ tr:hover td{background:rgba(232,227,216,.02)}
 .action-prop{background:linear-gradient(180deg,rgba(212,165,116,.06),#1a1f2e);border:1px solid rgba(212,165,116,.4);border-radius:10px;padding:18px 22px;margin-top:14px}
 .debug-banner{position:fixed;top:0;left:0;right:0;background:#d88080;color:#0f131d;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:100;display:none}
 .debug-banner.show{display:block}
+.screen{display:none;min-height:100vh}
+.screen.show{display:block}
+.screen.show.center{display:flex;align-items:center;justify-content:center;padding:24px}
 </style>
 </head>
 <body>
 
 <div id="error-banner" class="debug-banner"></div>
 
-<div id="boot-screen" class="min-h-screen flex flex-col items-center justify-center px-6">
-  <div class="font-display italic text-4xl mb-4">Condo <span class="text-bluegray">Market</span></div>
-  <div class="text-cream/60 text-sm mb-6">Loading admin…</div>
-  <div class="spinner"></div>
-  <div id="boot-status" class="font-mono text-[11px] text-cream/40 mt-6 max-w-md text-center"></div>
+<!-- Anon key setup screen — shown only on first run -->
+<div id="setup-screen" class="screen center">
+  <div class="card max-w-xl w-full">
+    <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
+    <p class="text-cream/60 text-sm mb-4">First-time setup — paste your Supabase anon key below. This is a one-time step; the key is stored in your browser's localStorage and never has to be touched in the file again.</p>
+    <div class="text-cream/55 text-xs mb-4">Get the key from <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/api" target="_blank" class="text-gold underline">API settings → anon public</a>. Starts with <span class="font-mono">eyJ...</span></div>
+    <form id="setup-form" class="space-y-3">
+      <textarea name="key" rows="4" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required class="font-mono text-xs" autofocus></textarea>
+      <button type="submit" class="btn btn-primary w-full justify-center">Save & continue</button>
+      <div id="setup-msg" class="text-xs"></div>
+    </form>
+  </div>
 </div>
 
-<div id="auth-screen" hidden class="min-h-screen flex items-center justify-center px-6">
+<!-- Boot screen — initial loading state -->
+<div id="boot-screen" class="screen center">
+  <div class="text-center">
+    <div class="font-display italic text-4xl mb-4">Condo <span class="text-bluegray">Market</span></div>
+    <div class="text-cream/60 text-sm mb-6">Loading admin…</div>
+    <div class="spinner"></div>
+    <div id="boot-status" class="font-mono text-[11px] text-cream/40 mt-6 max-w-md"></div>
+  </div>
+</div>
+
+<!-- Auth (sign-in) screen -->
+<div id="auth-screen" class="screen center">
   <div class="card max-w-md w-full">
     <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
     <p class="text-cream/60 text-sm mb-6">Admin sign in</p>
@@ -61,22 +82,20 @@ tr:hover td{background:rgba(232,227,216,.02)}
       <button type="submit" id="signin-btn" class="btn btn-primary w-full justify-center">Sign in</button>
       <div id="signin-msg" class="text-xs mt-2"></div>
     </form>
-    <details class="mt-6 text-cream/50 text-xs">
-      <summary class="cursor-pointer">Forgot password / sign-in not working?</summary>
-      <div class="mt-2 space-y-2">
-        <p>Reset your password at <a href="https://www.sanfranciscocondomarket.com/sign-in/" class="text-gold underline" target="_blank">the main sign-in page</a>, then return here.</p>
-        <p>Or sign in via the main site first, then come back to this admin tab.</p>
-      </div>
-    </details>
+    <div class="mt-6 flex justify-between text-xs">
+      <a href="https://www.sanfranciscocondomarket.com/sign-in/" target="_blank" class="text-cream/50 hover:text-gold">Reset password</a>
+      <button id="reset-anon-key" class="text-cream/50 hover:text-brick">Reset anon key</button>
+    </div>
   </div>
 </div>
 
-<div id="app" hidden>
+<!-- Main app -->
+<div id="app" class="screen">
   <header class="border-b border-cream/10">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.1</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.2</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -99,46 +118,186 @@ tr:hover td{background:rgba(232,227,216,.02)}
 </div>
 
 <script type="module">
-// ===== Global error catcher — shows ALL errors visibly =====
+// ===== Error reporting =====
 const errBanner = document.getElementById('error-banner');
 function showError(msg, source) {
-  console.error('[ADMIN ERROR]', source, msg);
-  errBanner.textContent = `${source || 'error'}: ${msg}`;
+  console.error('[ADMIN]', source || 'err', msg);
+  errBanner.textContent = `${source || 'err'}: ${msg}`;
   errBanner.classList.add('show');
-  setTimeout(() => errBanner.classList.remove('show'), 15000);
 }
 window.addEventListener('error', e => showError(e.message + ' @ ' + e.filename + ':' + e.lineno, 'js'));
 window.addEventListener('unhandledrejection', e => showError(String(e.reason?.message || e.reason), 'promise'));
 
-const bootStatus = document.getElementById('boot-status');
-const setBoot = (msg) => { console.log('[BOOT]', msg); if (bootStatus) bootStatus.textContent = msg; };
+const setBoot = (msg) => { console.log('[BOOT]', msg); const el = document.getElementById('boot-status'); if (el) el.textContent = msg; };
 
-setBoot('Loading Supabase client…');
-
-let createClient;
-try {
-  ({ createClient } = await import('https://esm.sh/@supabase/supabase-js@2'));
-} catch (e) {
-  showError('Failed to load Supabase JS from esm.sh: ' + e.message, 'cdn');
-  throw e;
+// ===== Screen toggling (uses .show class — survives Tailwind cascade) =====
+function showScreen(which) {
+  ['setup-screen','boot-screen','auth-screen','app'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === which || (which === 'app' && id === 'app')) {
+      el.classList.add('show');
+      if (id !== 'app') el.classList.add('center');
+    } else {
+      el.classList.remove('show');
+    }
+  });
 }
 
-setBoot('Initializing client…');
-
-// ⚠️ REPLACE THIS WITH YOUR ANON KEY FROM https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/api ⚠️
+// ===== Anon key — stored in localStorage, captured via UI =====
+const ANON_KEY_STORAGE = 'cms_admin_anon_key_v1';
 const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+let SUPABASE_ANON_KEY = localStorage.getItem(ANON_KEY_STORAGE) || '';
 
-if (SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg') {
-  showError('SUPABASE_ANON_KEY placeholder not replaced in /admin/index.html', 'config');
-}
-
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+// Setup form handler
+document.getElementById('setup-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const key = String(fd.get('key') || '').trim();
+  const msg = document.getElementById('setup-msg');
+  if (!key.startsWith('eyJ') || key.length < 100) {
+    msg.textContent = 'That doesn\'t look like a valid Supabase anon key (should start with "eyJ" and be ~200+ chars).';
+    msg.className = 'text-xs text-brick';
+    return;
+  }
+  localStorage.setItem(ANON_KEY_STORAGE, key);
+  msg.textContent = 'Saved. Reloading…';
+  msg.className = 'text-xs text-sage';
+  setTimeout(() => location.reload(), 500);
 });
 
-window.__sb = sb; // expose for DevTools debugging: window.__sb.auth.getSession()
+document.getElementById('reset-anon-key').addEventListener('click', () => {
+  if (!confirm('Clear stored anon key and restart setup?')) return;
+  localStorage.removeItem(ANON_KEY_STORAGE);
+  location.reload();
+});
 
+// ===== Boot sequence =====
+async function boot() {
+  // Step 1: if no anon key, show setup screen
+  if (!SUPABASE_ANON_KEY || !SUPABASE_ANON_KEY.startsWith('eyJ')) {
+    showScreen('setup-screen');
+    return;
+  }
+
+  showScreen('boot-screen');
+  setBoot('Loading Supabase JS…');
+
+  let createClient;
+  try {
+    ({ createClient } = await import('https://esm.sh/@supabase/supabase-js@2'));
+  } catch (e) {
+    showError('Failed to load Supabase JS: ' + e.message, 'cdn');
+    return;
+  }
+
+  setBoot('Initializing client…');
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  window.__sb = sb;
+  window.__SUPABASE_ANON_KEY = SUPABASE_ANON_KEY; // for fetch() to admin-command
+
+  await initAdmin(sb);
+}
+
+let currentUser = null;
+let currentSession = null;
+let _sb = null;
+
+async function initAdmin(sb) {
+  _sb = sb;
+
+  // Auth state listener (reactive)
+  sb.auth.onAuthStateChange((event, session) => {
+    console.log('[AUTH]', event, session ? 'session ✓' : 'no session');
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+      if (session) loadProfileAndShow(session);
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null; currentSession = null;
+      showScreen('auth-screen');
+    }
+  });
+
+  // Wire sign-in form
+  document.getElementById('signin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const email = String(fd.get('email') || '').trim();
+    const password = String(fd.get('password') || '');
+    const btn = document.getElementById('signin-btn');
+    const msg = document.getElementById('signin-msg');
+    msg.textContent = ''; msg.className = 'text-xs mt-2';
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Signing in…';
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        msg.textContent = `❌ ${error.message} (HTTP ${error.status || '?'})`;
+        msg.className = 'text-xs mt-2 text-brick';
+        btn.disabled = false; btn.textContent = 'Sign in';
+        console.error('[SIGNIN]', error);
+        return;
+      }
+      msg.textContent = '✓ Signed in. Loading admin…';
+      msg.className = 'text-xs mt-2 text-sage';
+    } catch (e) {
+      msg.textContent = '❌ ' + e.message;
+      msg.className = 'text-xs mt-2 text-brick';
+      btn.disabled = false; btn.textContent = 'Sign in';
+      console.error('[SIGNIN throw]', e);
+    }
+  });
+
+  // Wire sign-out
+  document.getElementById('signout-btn').addEventListener('click', async () => {
+    try { await sb.auth.signOut(); } catch(_) {}
+    location.reload();
+  });
+
+  // Wire nav
+  document.querySelectorAll('#nav .tab').forEach(t => t.addEventListener('click', e => { e.preventDefault(); location.hash = t.dataset.tab; }));
+  window.addEventListener('hashchange', routeFromHash);
+
+  // Initial auth check
+  setBoot('Checking auth…');
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error) {
+      showError('getSession: ' + error.message, 'auth');
+      showScreen('auth-screen');
+      return;
+    }
+    if (session) {
+      setBoot('Session found, loading profile…');
+      await loadProfileAndShow(session);
+    } else {
+      setBoot('No session — showing sign-in.');
+      showScreen('auth-screen');
+    }
+  } catch (e) {
+    showError('boot failed: ' + e.message, 'boot');
+    showScreen('auth-screen');
+  }
+}
+
+async function loadProfileAndShow(session) {
+  try {
+    const { data: profile, error } = await _sb.from('profiles').select('id,email,full_name,role').eq('id', session.user.id).maybeSingle();
+    if (error) { showError('profile: ' + error.message + (error.code === '42501' ? ' (RLS denied — check anon key matches project)' : ''), 'profile'); showScreen('auth-screen'); return; }
+    if (!profile) { showError('Your account has no profile row.', 'profile'); await _sb.auth.signOut(); return; }
+    if (profile.role !== 'admin') { showError(`Admin role required (you are: ${profile.role}).`, 'authz'); await _sb.auth.signOut(); return; }
+    currentUser = { ...session.user, ...profile };
+    currentSession = session;
+    document.getElementById('user-email').textContent = profile.email;
+    showScreen('app');
+    routeFromHash();
+  } catch (e) {
+    showError('profile load: ' + e.message, 'profile');
+    showScreen('auth-screen');
+  }
+}
+
+// ===== Helpers =====
 const $ = (s,c=document) => c.querySelector(s);
 const $$ = (s,c=document) => Array.from(c.querySelectorAll(s));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -156,113 +315,9 @@ const relTime = (iso) => {
   const d = Math.floor(h/24);     return future ? `in ${d}d` : `${d}d ago`;
 };
 
-let currentUser = null;
-let currentSession = null;
-
-// ===== Screen state =====
-function showScreen(which) {
-  document.getElementById('boot-screen').hidden = (which !== 'boot');
-  document.getElementById('auth-screen').hidden = (which !== 'auth');
-  document.getElementById('app').hidden = (which !== 'app');
-}
-
-// ===== Auth =====
-async function loadProfileAndShow(session) {
-  setBoot('Loading admin profile…');
-  try {
-    const { data: profile, error } = await sb.from('profiles').select('id,email,full_name,role').eq('id', session.user.id).maybeSingle();
-    if (error) throw error;
-    if (!profile) {
-      showError('Your account has no profile row. Contact admin.', 'auth');
-      await sb.auth.signOut();
-      showScreen('auth');
-      return;
-    }
-    if (profile.role !== 'admin') {
-      showError(`Admin access required (your role: ${profile.role}).`, 'auth');
-      await sb.auth.signOut();
-      showScreen('auth');
-      return;
-    }
-    currentUser = { ...session.user, ...profile };
-    currentSession = session;
-    $('#user-email').textContent = profile.email;
-    showScreen('app');
-    routeFromHash();
-  } catch (e) {
-    showError('Profile load failed: ' + e.message, 'auth');
-    showScreen('auth');
-  }
-}
-
-// Auth state listener (reactive — fires on sign-in, sign-out, token refresh)
-sb.auth.onAuthStateChange((event, session) => {
-  console.log('[AUTH]', event, session ? 'session present' : 'no session');
-  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-    if (session) loadProfileAndShow(session);
-  } else if (event === 'SIGNED_OUT') {
-    currentUser = null; currentSession = null;
-    showScreen('auth');
-  }
-});
-
-// Initial auth check (runs once at boot)
-setBoot('Checking auth…');
-try {
-  const { data: { session }, error } = await sb.auth.getSession();
-  if (error) {
-    showError('getSession error: ' + error.message, 'auth');
-    showScreen('auth');
-  } else if (session) {
-    setBoot('Session found, loading profile…');
-    await loadProfileAndShow(session);
-  } else {
-    setBoot('No session — showing sign-in.');
-    showScreen('auth');
-  }
-} catch (e) {
-  showError('Boot failed: ' + e.message, 'boot');
-  showScreen('auth');
-}
-
-// ===== Sign in =====
-$('#signin-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const email = String(fd.get('email') || '').trim();
-  const password = String(fd.get('password') || '');
-  const btn = $('#signin-btn');
-  const msg = $('#signin-msg');
-  msg.textContent = ''; msg.className = 'text-xs mt-2';
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Signing in…';
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      msg.textContent = '❌ ' + error.message + ' (status: ' + (error.status || '?') + ')';
-      msg.className = 'text-xs mt-2 text-brick';
-      btn.disabled = false; btn.textContent = 'Sign in';
-      console.error('[SIGNIN ERROR]', error);
-      return;
-    }
-    msg.textContent = '✓ Signed in. Loading admin…';
-    msg.className = 'text-xs mt-2 text-sage';
-    // onAuthStateChange will fire SIGNED_IN and call loadProfileAndShow
-  } catch (e) {
-    msg.textContent = '❌ Network/code error: ' + e.message;
-    msg.className = 'text-xs mt-2 text-brick';
-    btn.disabled = false; btn.textContent = 'Sign in';
-    console.error('[SIGNIN THROW]', e);
-  }
-});
-
-$('#signout-btn').addEventListener('click', async () => {
-  try { await sb.auth.signOut(); } catch (e) { console.error(e); }
-  location.reload();
-});
-
 // ===== Router =====
 function routeFromHash() {
-  if (document.getElementById('app').hidden) return;
+  if (!document.getElementById('app').classList.contains('show')) return;
   const hash = location.hash.replace('#', '') || 'home';
   const [tab, ...rest] = hash.split('/');
   $$('#nav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
@@ -271,11 +326,10 @@ function routeFromHash() {
   const c = $('#content');
   c.innerHTML = '<div class="p-8 text-center"><div class="spinner"></div></div>';
   Promise.resolve().then(() => renderer(rest)).catch(e => {
-    showError(`${tab} tab failed: ${e.message}`, 'render');
-    c.innerHTML = `<div class="flash flash-err">Couldn't render ${esc(tab)} tab: ${esc(e.message)}<br><span class="text-xs opacity-70">${esc(e.stack || '')}</span></div>`;
+    showError(`${tab}: ${e.message}`, 'render');
+    c.innerHTML = `<div class="flash flash-err">${esc(tab)} tab failed: ${esc(e.message)}</div>`;
   });
 }
-window.addEventListener('hashchange', routeFromHash);
 
 // ===== HOME =====
 async function renderHome() {
@@ -313,18 +367,16 @@ async function renderHome() {
   $('#cmd-run').addEventListener('click', runCommand);
   $('#cmd-input').addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') runCommand(); });
   $$('[data-prompt]').forEach(b => b.addEventListener('click', () => { $('#cmd-input').value = b.dataset.prompt; $('#cmd-input').focus(); }));
-
-  // Load each independently — one failure doesn't kill the others
   loadHomeStats().catch(e => { $('#home-stats').innerHTML = `<div class="card col-span-full"><div class="text-brick text-xs">stats: ${esc(e.message)}</div></div>`; });
   loadHomeTasks().catch(e => { $('#home-tasks').innerHTML = `<div class="card"><div class="text-brick text-xs">tasks: ${esc(e.message)}</div></div>`; });
 }
 
 async function loadHomeStats() {
   const target = $('#home-stats'); if (!target) return;
-  target.innerHTML = ['Loading…','','',''].map(()=>`<div class="card"><div class="spinner"></div></div>`).join('');
+  target.innerHTML = [0,1,2,3].map(()=>`<div class="card"><div class="spinner"></div></div>`).join('');
   const [statsR, capR] = await Promise.allSettled([
-    sb.from('v_platform_stats').select('*').maybeSingle(),
-    sb.from('v_send_capacity_by_city').select('*').eq('city_slug','san-francisco').maybeSingle(),
+    _sb.from('v_platform_stats').select('*').maybeSingle(),
+    _sb.from('v_send_capacity_by_city').select('*').eq('city_slug','san-francisco').maybeSingle(),
   ]);
   const stats = statsR.status === 'fulfilled' ? (statsR.value?.data || {}) : {};
   const cap = capR.status === 'fulfilled' ? (capR.value?.data || {}) : {};
@@ -338,7 +390,7 @@ async function loadHomeStats() {
 
 async function loadHomeTasks() {
   const target = $('#home-tasks'); if (!target) return;
-  const { data: tasks, error } = await sb.from('v_admin_inbox').select('*').order('priority',{ascending:false}).order('due_at',{ascending:true,nullsFirst:false}).limit(5);
+  const { data: tasks, error } = await _sb.from('v_admin_inbox').select('*').order('priority',{ascending:false}).order('due_at',{ascending:true,nullsFirst:false}).limit(5);
   if (error) throw error;
   if (!tasks || !tasks.length) { target.innerHTML = '<div class="placeholder">No open tasks. Inbox is clear.</div>'; return; }
   target.innerHTML = `<h3 class="font-display text-base mb-3">Top priorities (${tasks.length})</h3><div class="space-y-2">${tasks.map(t => `
@@ -355,13 +407,13 @@ async function loadHomeTasks() {
       <button class="btn btn-secondary btn-sm" data-task-done="${esc(t.id)}">Done</button>
     </div>`).join('')}</div>`;
   $$('[data-task-done]', target).forEach(b => b.addEventListener('click', async () => {
-    await sb.from('admin_tasks').update({ status:'done', completed_at:new Date().toISOString() }).eq('id', b.dataset.taskDone);
+    await _sb.from('admin_tasks').update({ status:'done', completed_at:new Date().toISOString() }).eq('id', b.dataset.taskDone);
     loadHomeTasks();
   }));
 }
 
 async function runCommand() {
-  const input = $('#cmd-input'); const text = input.value.trim();
+  const text = $('#cmd-input').value.trim();
   if (text.length < 3) return;
   const result = $('#cmd-result');
   result.innerHTML = '<div class="card flex items-center gap-3"><div class="spinner"></div><span class="text-cream/60 text-sm">Thinking…</span></div>';
@@ -370,7 +422,7 @@ async function runCommand() {
     if (!token) { result.innerHTML = '<div class="flash flash-err">Not authenticated.</div>'; return; }
     const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-command`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ command: text })
     });
     const json = await resp.json();
@@ -384,7 +436,7 @@ async function runCommand() {
 
 function renderActionProposal(a, durationMs) {
   const result = $('#cmd-result');
-  if (!a) { result.innerHTML = '<div class="flash flash-err">Empty response from Claude.</div>'; return; }
+  if (!a) { result.innerHTML = '<div class="flash flash-err">Empty response.</div>'; return; }
   const warningsHtml = (a.warnings || []).length ? `<div class="text-brick text-xs mt-2">⚠ ${a.warnings.map(esc).join(' · ')}</div>` : '';
   let bodyHtml = '';
   if (a.intent === 'clarify') {
@@ -392,201 +444,121 @@ function renderActionProposal(a, durationMs) {
   } else if (a.intent === 'info') {
     bodyHtml = `<div class="text-cream/80">${esc(a.summary)}</div>${a.explanation ? `<div class="text-xs text-cream/60 mt-2">${esc(a.explanation)}</div>` : ''}`;
   } else if (a.intent === 'query' && a.sql) {
-    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
-      ${a.explanation ? `<div class="text-xs text-cream/60 mb-3">${esc(a.explanation)}</div>` : ''}
-      <pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 overflow-x-auto whitespace-pre-wrap">${esc(a.sql)}</pre>
-      <div class="mt-3 flex gap-2">
-        <a class="btn btn-primary btn-sm" target="_blank" href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/sql/new?content=${encodeURIComponent(a.sql)}">Open in SQL editor</a>
-        <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
-      </div>`;
+    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>${a.explanation ? `<div class="text-xs text-cream/60 mb-3">${esc(a.explanation)}</div>` : ''}<pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 overflow-x-auto whitespace-pre-wrap">${esc(a.sql)}</pre><div class="mt-3 flex gap-2"><a class="btn btn-primary btn-sm" target="_blank" href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/sql/new?content=${encodeURIComponent(a.sql)}">Open in SQL editor</a><button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button></div>`;
   } else if (a.intent === 'send_email' && a.email) {
-    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
-      <div class="text-xs text-cream/60 mb-3">${esc(a.explanation || '')}</div>
-      <div class="space-y-1 text-sm">
-        <div><span class="text-cream/50">Template:</span> <span class="font-mono text-gold">${esc(a.email.template_slug)}</span></div>
-        <div><span class="text-cream/50">Recipients:</span> ${esc(a.email.recipient_description || JSON.stringify(a.email.recipient_config))}</div>
-        ${a.email.estimated_recipients != null ? `<div><span class="text-cream/50">Estimated count:</span> <span class="font-mono">${fmtNum(a.email.estimated_recipients)}</span></div>` : ''}
-        <div><span class="text-cream/50">Campaign key:</span> <span class="font-mono text-xs">${esc(a.email.campaign_key)}</span></div>
-        ${a.email.merge_vars ? `<div><span class="text-cream/50">Merge vars:</span> <span class="font-mono text-xs">${esc(JSON.stringify(a.email.merge_vars))}</span></div>` : ''}
-      </div>
-      <div class="mt-3 flex gap-2">
-        <button class="btn btn-secondary btn-sm" disabled title="Sprint B">Draft to me first (Sprint B)</button>
-        <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
-      </div>`;
+    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div><div class="text-xs text-cream/60 mb-3">${esc(a.explanation || '')}</div><div class="space-y-1 text-sm"><div><span class="text-cream/50">Template:</span> <span class="font-mono text-gold">${esc(a.email.template_slug)}</span></div><div><span class="text-cream/50">Recipients:</span> ${esc(a.email.recipient_description || JSON.stringify(a.email.recipient_config))}</div>${a.email.estimated_recipients != null ? `<div><span class="text-cream/50">Estimated count:</span> <span class="font-mono">${fmtNum(a.email.estimated_recipients)}</span></div>` : ''}</div><div class="mt-3 flex gap-2"><button class="btn btn-secondary btn-sm" disabled>Draft to me first (Sprint B)</button><button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button></div>`;
   } else if (a.intent === 'create_task' && a.task) {
-    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
-      <div class="space-y-1 text-sm mt-3">
-        <div><span class="text-cream/50">Title:</span> ${esc(a.task.title)}</div>
-        ${a.task.description ? `<div><span class="text-cream/50">Description:</span> ${esc(a.task.description)}</div>` : ''}
-        <div><span class="text-cream/50">Type:</span> <span class="font-mono">${esc(a.task.task_type)}</span></div>
-        <div><span class="text-cream/50">Priority:</span> <span class="font-mono">${esc(a.task.priority)}</span></div>
-        ${a.task.due_at ? `<div><span class="text-cream/50">Due:</span> ${esc(fmtDate(a.task.due_at))} (${esc(relTime(a.task.due_at))})</div>` : ''}
-      </div>
-      <div class="mt-3 flex gap-2">
-        <button class="btn btn-primary btn-sm" id="create-task-btn">Create task</button>
-        <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
-      </div>`;
+    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div><div class="space-y-1 text-sm mt-3"><div><span class="text-cream/50">Title:</span> ${esc(a.task.title)}</div>${a.task.description ? `<div><span class="text-cream/50">Description:</span> ${esc(a.task.description)}</div>` : ''}<div><span class="text-cream/50">Priority:</span> <span class="font-mono">${esc(a.task.priority)}</span></div>${a.task.due_at ? `<div><span class="text-cream/50">Due:</span> ${esc(fmtDate(a.task.due_at))} (${esc(relTime(a.task.due_at))})</div>` : ''}</div><div class="mt-3 flex gap-2"><button class="btn btn-primary btn-sm" id="create-task-btn">Create task</button><button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button></div>`;
   } else {
-    bodyHtml = `<div class="text-cream/80">${esc(a.summary || 'Unsupported intent.')}</div><pre class="font-mono text-[10px] mt-2 text-cream/40 overflow-x-auto">${esc(JSON.stringify(a, null, 2))}</pre>`;
+    bodyHtml = `<div class="text-cream/80">${esc(a.summary || 'Unsupported.')}</div><pre class="font-mono text-[10px] mt-2 text-cream/40 overflow-x-auto">${esc(JSON.stringify(a, null, 2))}</pre>`;
   }
-  result.innerHTML = `<div class="action-prop">
-    <div class="flex items-center gap-2 mb-2 flex-wrap">
-      <span class="tag tag-${a.confidence==='high'?'good':a.confidence==='low'?'bad':'warn'}">${esc(a.confidence||'?')} confidence</span>
-      <span class="font-mono text-[10px] text-cream/40">${esc(a.intent)} · ${durationMs}ms</span>
-    </div>
-    ${bodyHtml}
-    ${warningsHtml}
-  </div>`;
+  result.innerHTML = `<div class="action-prop"><div class="flex items-center gap-2 mb-2 flex-wrap"><span class="tag tag-${a.confidence==='high'?'good':a.confidence==='low'?'bad':'warn'}">${esc(a.confidence||'?')} confidence</span><span class="font-mono text-[10px] text-cream/40">${esc(a.intent)} · ${durationMs}ms</span></div>${bodyHtml}${warningsHtml}</div>`;
   const cancel = $('#cancel-action'); if (cancel) cancel.addEventListener('click', () => { result.innerHTML = ''; });
   const ct = $('#create-task-btn'); if (ct) ct.addEventListener('click', async () => {
     const t = a.task;
-    const { error } = await sb.from('admin_tasks').insert({
-      title: t.title, description: t.description, task_type: t.task_type || 'manual',
-      priority: t.priority || 'normal', due_at: t.due_at || null
-    });
+    const { error } = await _sb.from('admin_tasks').insert({ title: t.title, description: t.description, task_type: t.task_type || 'manual', priority: t.priority || 'normal', due_at: t.due_at || null });
     if (error) { result.innerHTML = `<div class="flash flash-err">${esc(error.message)}</div>`; return; }
     result.innerHTML = `<div class="flash flash-ok">Task created.</div>`;
     loadHomeTasks();
   });
 }
 
-// ===== Simple tab placeholders (Sprint B will flesh these out) =====
-function makeStubTab(title, description) {
-  return async () => {
-    $('#content').innerHTML = `
-      <h1 class="font-display text-3xl italic mb-2">${esc(title)}</h1>
-      <p class="text-cream/60 text-sm mb-6">${esc(description)}</p>
-      <div class="placeholder">
-        <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>
-        <div>Full ${esc(title)} interface ships next. Use the <a href="#home" class="text-gold underline">Home</a> Claude command for now.</div>
-      </div>
-    `;
-  };
-}
-
+// ===== Other tabs (lazy load + try/catch) =====
 async function renderPeople() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">People</h1><div id="ppl"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data, error, count } = await sb.from('v_person_overview').select('*', { count: 'exact' }).order('last_emailed_at',{ascending:false,nullsFirst:false}).limit(50);
-    if (error) throw error;
-    $('#ppl').innerHTML = `
-      <div class="text-xs text-cream/60 mb-3">${fmtNum(count||0)} people · showing first 50</div>
-      <div class="card !p-0 overflow-hidden"><table>
-      <thead><tr><th>Person</th><th>Buildings</th><th>Emails</th><th>Last emailed</th></tr></thead>
-      <tbody>${(data||[]).map(p => `<tr>
-        <td><div class="font-medium">${esc(p.full_name || p.primary_email)}</div><div class="font-mono text-[11px] text-cream/50">${esc(p.primary_email)}</div></td>
-        <td class="text-cream/80">${esc((p.building_slugs||[]).slice(0,2).join(', ')) || '—'} <span class="text-[11px] text-cream/45 font-mono">${p.owned_building_count||0} bldg</span></td>
-        <td>${fmtNum(p.emails_received)}<div class="text-[11px] text-cream/45">${p.emails_received > 0 ? fmtPct(p.emails_opened, p.emails_received) : '—'} open</div></td>
-        <td class="font-mono text-xs text-cream/70">${esc(relTime(p.last_emailed_at))}</td>
-      </tr>`).join('')}</tbody></table></div>`;
-  } catch (e) {
-    $('#ppl').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data, error, count } = await _sb.from('v_person_overview').select('*', { count: 'exact' }).order('last_emailed_at',{ascending:false,nullsFirst:false}).limit(50);
+  if (error) throw error;
+  $('#ppl').innerHTML = `
+    <div class="text-xs text-cream/60 mb-3">${fmtNum(count||0)} people · showing first 50</div>
+    <div class="card !p-0 overflow-hidden"><table>
+    <thead><tr><th>Person</th><th>Buildings</th><th>Emails</th><th>Last emailed</th></tr></thead>
+    <tbody>${(data||[]).map(p => `<tr>
+      <td><div class="font-medium">${esc(p.full_name || p.primary_email)}</div><div class="font-mono text-[11px] text-cream/50">${esc(p.primary_email)}</div></td>
+      <td class="text-cream/80">${esc((p.building_slugs||[]).slice(0,2).join(', ')) || '—'} <span class="text-[11px] text-cream/45 font-mono">${p.owned_building_count||0} bldg</span></td>
+      <td>${fmtNum(p.emails_received)}<div class="text-[11px] text-cream/45">${p.emails_received > 0 ? fmtPct(p.emails_opened, p.emails_received) : '—'} open</div></td>
+      <td class="font-mono text-xs text-cream/70">${esc(relTime(p.last_emailed_at))}</td>
+    </tr>`).join('')}</tbody></table></div>`;
 }
 
 async function renderHoa() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">HOA Pipeline</h1><div id="hoa"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data, error } = await sb.from('v_hoa_pipeline').select('*').order('urgency_rank',{ascending:true}).limit(100);
-    if (error) throw error;
-    $('#hoa').innerHTML = `<div class="space-y-2">${(data||[]).map(h => `
-      <div class="card !p-3">
-        <div class="flex flex-wrap items-baseline gap-3">
-          <span class="font-mono text-sm font-medium">${esc(h.building_slug)}</span>
-          <span class="tag ${h.status==='won'?'tag-good':h.status==='declined'?'tag-bad':'tag-warn'}">${esc(h.status.replace('_',' '))}</span>
-          ${h.next_action_at ? `<span class="font-mono text-[10px] text-cream/50">next: ${esc(relTime(h.next_action_at))}</span>` : ''}
-          ${h.contact_count > 0 ? `<span class="tag">${h.contact_count} contact${h.contact_count!==1?'s':''}</span>` : ''}
-        </div>
-        ${h.primary_contact_email ? `<div class="text-sm text-cream/70 mt-1">${esc(h.primary_contact_name||'')} · ${esc(h.primary_contact_email)}</div>` : ''}
-      </div>`).join('')}</div>
-      <div class="placeholder mt-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>HOA pitch page editor, full CRM, recurring schedules</div>`;
-  } catch (e) {
-    $('#hoa').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data, error } = await _sb.from('v_hoa_pipeline').select('*').order('urgency_rank',{ascending:true}).limit(100);
+  if (error) throw error;
+  $('#hoa').innerHTML = `<div class="space-y-2">${(data||[]).map(h => `
+    <div class="card !p-3">
+      <div class="flex flex-wrap items-baseline gap-3">
+        <span class="font-mono text-sm font-medium">${esc(h.building_slug)}</span>
+        <span class="tag ${h.status==='won'?'tag-good':h.status==='declined'?'tag-bad':'tag-warn'}">${esc(h.status.replace('_',' '))}</span>
+        ${h.next_action_at ? `<span class="font-mono text-[10px] text-cream/50">next: ${esc(relTime(h.next_action_at))}</span>` : ''}
+        ${h.contact_count > 0 ? `<span class="tag">${h.contact_count} contact${h.contact_count!==1?'s':''}</span>` : ''}
+      </div>
+      ${h.primary_contact_email ? `<div class="text-sm text-cream/70 mt-1">${esc(h.primary_contact_name||'')} · ${esc(h.primary_contact_email)}</div>` : ''}
+    </div>`).join('')}</div>
+    <div class="placeholder mt-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>HOA pitch page editor, full CRM, recurring schedules</div>`;
 }
 
 async function renderEmail() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email</h1><div id="email"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data: templates, error } = await sb.from('email_templates').select('*').eq('is_active', true);
-    if (error) throw error;
-    $('#email').innerHTML = `<div class="card !p-0 mb-6"><table>
-      <thead><tr><th>Template</th><th>Category</th><th>Subject</th></tr></thead>
-      <tbody>${(templates||[]).map(t => `<tr><td><div class="font-medium">${esc(t.name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(t.slug)}</div></td><td><span class="tag">${esc(t.category)}</span></td><td class="text-sm text-cream/80">${esc(t.subject)}</td></tr>`).join('')}</tbody></table></div>
-      <div class="placeholder"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>Template editor, recipient builder, manual send, recurring schedules, automation rules</div>`;
-  } catch (e) {
-    $('#email').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data: templates, error } = await _sb.from('email_templates').select('*').eq('is_active', true);
+  if (error) throw error;
+  $('#email').innerHTML = `<div class="card !p-0 mb-6"><table>
+    <thead><tr><th>Template</th><th>Category</th><th>Subject</th></tr></thead>
+    <tbody>${(templates||[]).map(t => `<tr><td><div class="font-medium">${esc(t.name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(t.slug)}</div></td><td><span class="tag">${esc(t.category)}</span></td><td class="text-sm text-cream/80">${esc(t.subject)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="placeholder"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>Template editor, recipient builder, manual send, recurring schedules, automation rules</div>`;
 }
 
 async function renderQueue() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Queue</h1><div id="q"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data, error } = await sb.from('v_send_capacity_by_city').select('*');
-    if (error) throw error;
-    $('#q').innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${(data||[]).map(c => `
-      <div class="card">
-        <div class="flex items-baseline justify-between mb-2"><div class="font-display text-lg">${esc(c.display_name)}</div><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></div>
-        <div class="grid grid-cols-2 gap-3 text-sm">
-          <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Sent today</div><div class="font-display text-2xl">${fmtNum(c.sent_today||0)}/${fmtNum(c.daily_cap||0)}</div></div>
-          <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Pending</div><div class="font-display text-2xl text-bluegray">${fmtNum(c.pending_total||0)}</div></div>
-        </div>
-      </div>`).join('')}</div>`;
-  } catch (e) {
-    $('#q').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data, error } = await _sb.from('v_send_capacity_by_city').select('*');
+  if (error) throw error;
+  $('#q').innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${(data||[]).map(c => `
+    <div class="card">
+      <div class="flex items-baseline justify-between mb-2"><div class="font-display text-lg">${esc(c.display_name)}</div><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></div>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Sent today</div><div class="font-display text-2xl">${fmtNum(c.sent_today||0)}/${fmtNum(c.daily_cap||0)}</div></div>
+        <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Pending</div><div class="font-display text-2xl text-bluegray">${fmtNum(c.pending_total||0)}</div></div>
+      </div>
+    </div>`).join('')}</div>`;
 }
 
 async function renderBuildings() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Buildings <span class="text-cream/50 text-sm font-sans italic">— penetration & engagement</span></h1><div id="b"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data, error } = await sb.from('v_building_penetration').select('*').not('unit_count','is',null).order('signed_up',{ascending:false,nullsFirst:false}).order('open_rate_pct',{ascending:false,nullsFirst:false}).limit(50);
-    if (error) throw error;
-    $('#b').innerHTML = `<div class="card !p-0"><table>
-      <thead><tr><th>Building</th><th>Units</th><th>Coverage</th><th>Sent</th><th>Open %</th><th>Signups</th><th>MMMs</th></tr></thead>
-      <tbody>${(data||[]).map(b => `<tr>
-        <td><div class="font-medium">${esc(b.display_name||b.slug)}</div><div class="font-mono text-[11px] text-cream/50">${esc(b.slug)}</div></td>
-        <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
-        <td>${b.unit_coverage_pct != null ? `<span class="${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span>` : '—'}</td>
-        <td>${fmtNum(b.emails_sent_unique)}</td>
-        <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '—'}</td>
-        <td>${fmtNum(b.signed_up)}</td>
-        <td>${fmtNum(b.active_mmms)}</td>
-      </tr>`).join('')}</tbody></table></div>`;
-  } catch (e) {
-    $('#b').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data, error } = await _sb.from('v_building_penetration').select('*').not('unit_count','is',null).order('signed_up',{ascending:false,nullsFirst:false}).order('open_rate_pct',{ascending:false,nullsFirst:false}).limit(50);
+  if (error) throw error;
+  $('#b').innerHTML = `<div class="card !p-0"><table>
+    <thead><tr><th>Building</th><th>Units</th><th>Coverage</th><th>Sent</th><th>Open %</th><th>Signups</th><th>MMMs</th></tr></thead>
+    <tbody>${(data||[]).map(b => `<tr>
+      <td><div class="font-medium">${esc(b.display_name||b.slug)}</div><div class="font-mono text-[11px] text-cream/50">${esc(b.slug)}</div></td>
+      <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
+      <td>${b.unit_coverage_pct != null ? `<span class="${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span>` : '—'}</td>
+      <td>${fmtNum(b.emails_sent_unique)}</td>
+      <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '—'}</td>
+      <td>${fmtNum(b.signed_up)}</td>
+      <td>${fmtNum(b.active_mmms)}</td>
+    </tr>`).join('')}</tbody></table></div>`;
 }
 
 async function renderMmm() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Make Me Move</h1><div id="m"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data, error } = await sb.from('make_me_move').select('id,building_slug,unit_address,target_price,is_active,set_at').order('is_active',{ascending:false}).order('set_at',{ascending:false});
-    if (error) throw error;
-    $('#m').innerHTML = `<div class="card !p-0"><table>
-      <thead><tr><th>Building · Unit</th><th>Price</th><th>Active</th><th>Set</th></tr></thead>
-      <tbody>${(data||[]).map(m => `<tr class="${m.is_active?'':'opacity-50'}">
-        <td><div class="font-medium">${esc(m.building_slug)} · #${esc(m.unit_address)}</div></td>
-        <td class="font-display text-lg ${m.is_active?'text-gold':''}">${fmtMoney(m.target_price)}</td>
-        <td>${m.is_active?'<span class="tag tag-good">active</span>':'<span class="tag">inactive</span>'}</td>
-        <td class="font-mono text-xs">${esc(relTime(m.set_at))}</td>
-      </tr>`).join('')}</tbody></table></div>`;
-  } catch (e) {
-    $('#m').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data, error } = await _sb.from('make_me_move').select('id,building_slug,unit_address,target_price,is_active,set_at').order('is_active',{ascending:false}).order('set_at',{ascending:false});
+  if (error) throw error;
+  $('#m').innerHTML = `<div class="card !p-0"><table>
+    <thead><tr><th>Building · Unit</th><th>Price</th><th>Active</th><th>Set</th></tr></thead>
+    <tbody>${(data||[]).map(m => `<tr class="${m.is_active?'':'opacity-50'}">
+      <td><div class="font-medium">${esc(m.building_slug)} · #${esc(m.unit_address)}</div></td>
+      <td class="font-display text-lg ${m.is_active?'text-gold':''}">${fmtMoney(m.target_price)}</td>
+      <td>${m.is_active?'<span class="tag tag-good">active</span>':'<span class="tag">inactive</span>'}</td>
+      <td class="font-mono text-xs">${esc(relTime(m.set_at))}</td>
+    </tr>`).join('')}</tbody></table></div>`;
 }
 
 async function renderAnalytics() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Analytics</h1><div id="a"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  try {
-    const { data: stats, error } = await sb.from('v_platform_stats').select('*').maybeSingle();
-    if (error) throw error;
-    const s = stats || {};
-    const tiles = [['Buildings',s.total_buildings],['People',s.total_people],['Accounts',s.active_accounts],['Sent (all)',s.emails_sent_total],['Opens',s.emails_opened_total],['Active MMMs',s.active_mmms],['Approved claims',s.approved_unit_claims],['Open tasks',s.open_tasks],['Overdue',s.overdue_tasks],['Sent (24h)',s.emails_sent_24h]];
-    $('#a').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-5 gap-2">${tiles.map(([l,n]) => `<div class="card !p-3"><div class="font-mono text-[9px] tracking-[0.1em] uppercase text-cream/50 mb-1">${esc(l)}</div><div class="font-display text-xl">${fmtNum(n)}</div></div>`).join('')}</div>`;
-  } catch (e) {
-    $('#a').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
-  }
+  const { data: stats, error } = await _sb.from('v_platform_stats').select('*').maybeSingle();
+  if (error) throw error;
+  const s = stats || {};
+  const tiles = [['Buildings',s.total_buildings],['People',s.total_people],['Accounts',s.active_accounts],['Sent (all)',s.emails_sent_total],['Opens',s.emails_opened_total],['Active MMMs',s.active_mmms],['Approved claims',s.approved_unit_claims],['Open tasks',s.open_tasks],['Overdue',s.overdue_tasks],['Sent (24h)',s.emails_sent_24h]];
+  $('#a').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-5 gap-2">${tiles.map(([l,n]) => `<div class="card !p-3"><div class="font-mono text-[9px] tracking-[0.1em] uppercase text-cream/50 mb-1">${esc(l)}</div><div class="font-display text-xl">${fmtNum(n)}</div></div>`).join('')}</div>`;
 }
 
 async function renderSettings() {
@@ -602,7 +574,7 @@ async function renderSettings() {
       <div class="text-sm text-cream/70 mb-3">The Claude command interface requires <span class="font-mono text-gold">ANTHROPIC_API_KEY</span> set as a Supabase Edge Functions secret.</div>
       <ol class="text-sm space-y-1 list-decimal pl-5 text-cream/80">
         <li>Open <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/functions" target="_blank" class="text-gold underline">Edge Functions secrets</a></li>
-        <li>Add secret <span class="font-mono">ANTHROPIC_API_KEY</span> with your Anthropic key</li>
+        <li>Add secret <span class="font-mono">ANTHROPIC_API_KEY</span> with your Anthropic key (starts with sk-ant-)</li>
       </ol>
     </div>
     <div class="card">
@@ -620,7 +592,9 @@ async function renderSettings() {
   `;
 }
 
-console.log('[ADMIN] init complete, version 5.1');
+// ===== Kick off =====
+boot();
+console.log('[ADMIN] v5.2 booted');
 </script>
 </body>
 </html>
