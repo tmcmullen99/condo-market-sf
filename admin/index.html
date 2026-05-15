@@ -95,7 +95,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.4</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.5</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -505,6 +505,10 @@ async function renderHoa() {
 //
 // Sprint 2 (2026-05-15): adds /partners/<firm_slug>/portfolio sub-route
 // for per-firm portfolio overview (v_partner_portfolio view).
+//
+// Sprint 3 (2026-05-15): adds "Copy public link" + "Open ↗" buttons in the
+// portfolio header that point at the public /partners/?firm=<slug> page
+// (driven by v_partner_portfolio_public, anon-readable).
 
 let _partnersCache = null;
 
@@ -522,6 +526,9 @@ const NEXT_ACTION_TO_SLUG = {
   send_follow_up_2:  'partnership_follow_up_2',
   send_reply:        'partnership_reply_engaged',
 };
+
+// Public partner page URL builder (Sprint 3)
+const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/?firm=${encodeURIComponent(slug)}`;
 
 async function renderPartners(rest) {
   rest = Array.isArray(rest) ? rest : [];
@@ -869,6 +876,7 @@ function renderPartnersTemplates() {
 // ===== PARTNER PORTFOLIO — Sprint 2 sub-view at #partners/<firm_slug>/portfolio =====
 // Per-firm dashboard: aggregate revenue opportunity + per-building stats.
 // Reads from v_partner_portfolio view (joined building_sales 12mo + MMM + contacts + ownership).
+// Sprint 3: header now includes "Copy public link" + "Open ↗" pointing at the public partner page.
 
 async function renderPartnerPortfolio(firmSlug) {
   $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
@@ -898,10 +906,8 @@ async function renderPartnerPortfolio(firmSlug) {
   const totalSales    = rows.reduce((s,r) => s + Number(r.sales_count_12mo || 0), 0);
   const totalMMM      = rows.reduce((s,r) => s + Number(r.active_mmm_count || 0), 0);
   const totalUnits    = rows.reduce((s,r) => s + Number(r.unit_count || 0), 0);
-  const totalContacts = rows.reduce((s,r) => s + Number(r.contacts_total || 0), 0);
-  const totalOwners   = rows.reduce((s,r) => s + Number(r.ownership_records || 0), 0);
 
-  const composeHref = `#partners`;
+  const publicUrl = PUBLIC_PARTNER_URL(firm.slug);
 
   $('#content').innerHTML = `
     <div class="mb-3 text-xs text-cream/50">
@@ -912,9 +918,15 @@ async function renderPartnerPortfolio(firmSlug) {
       <span class="font-mono uppercase tracking-wider text-gold">portfolio</span>
     </div>
 
-    <div class="mb-6">
-      <h1 class="font-display text-3xl italic mb-1">${esc(firm.name)} <span class="text-cream/50 text-sm font-sans italic">— portfolio overview</span></h1>
-      <p class="text-cream/60 text-sm">${rows.length} building${rows.length !== 1 ? 's' : ''} · ${fmtNum(totalUnits)} units total · last-12-month basis</p>
+    <div class="mb-6 flex items-baseline justify-between flex-wrap gap-3">
+      <div>
+        <h1 class="font-display text-3xl italic mb-1">${esc(firm.name)} <span class="text-cream/50 text-sm font-sans italic">— portfolio overview</span></h1>
+        <p class="text-cream/60 text-sm">${rows.length} building${rows.length !== 1 ? 's' : ''} · ${fmtNum(totalUnits)} units total · last-12-month basis</p>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <button class="btn btn-primary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy public link</button>
+        <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Open public ↗</a>
+      </div>
     </div>
 
     <!-- Aggregate stat tiles -->
@@ -995,6 +1007,30 @@ async function renderPartnerPortfolio(firmSlug) {
       View definition: <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&view=v_partner_portfolio" target="_blank" class="text-gold underline">v_partner_portfolio</a>.
     </div>
   `;
+
+  // Wire "Copy public link" button (Sprint 3)
+  const copyBtn = $('[data-action="copy-public-link"]');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const slug = copyBtn.dataset.slug;
+      const url = PUBLIC_PARTNER_URL(slug);
+      const original = copyBtn.textContent;
+      try {
+        await navigator.clipboard.writeText(url);
+        copyBtn.textContent = '✓ Copied';
+        copyBtn.classList.remove('btn-primary');
+        copyBtn.classList.add('btn-secondary');
+        setTimeout(() => {
+          copyBtn.textContent = original;
+          copyBtn.classList.remove('btn-secondary');
+          copyBtn.classList.add('btn-primary');
+        }, 2000);
+      } catch (e) {
+        copyBtn.textContent = '✗ Copy failed';
+        setTimeout(() => { copyBtn.textContent = original; }, 2000);
+      }
+    });
+  }
 }
 
 // ===== EMAIL / QUEUE / BUILDINGS / MMM / ANALYTICS / SETTINGS =====
@@ -1095,7 +1131,7 @@ async function renderSettings() {
 
 // ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.4 booted');
+console.log('[ADMIN] v5.5 booted');
 </script>
 </body>
 </html>
