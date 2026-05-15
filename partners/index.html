@@ -129,7 +129,7 @@ body { background: #0f131d; color: #e8e3d8; font-family: 'DM Sans', sans-serif; 
 // (anon public key, starts with eyJ...)
 // =====================================================================
 const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
 
 // Calendar booking URL — swap with Tim's real calendar link when available
 const SCHEDULE_URL = 'mailto:tim@mcmullen.properties?subject=Condo%20Market%20Partnership%20-%2015%20min%20call';
@@ -152,10 +152,19 @@ const fmtMoneyShort = (n) => {
 const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
 // =====================================================================
-// Read slug from URL
+// Read slug — pretty path first (/partners/<slug>/), then legacy ?firm=
 // =====================================================================
-const params = new URLSearchParams(location.search);
-const slug = params.get('firm') || params.get('slug');
+function extractSlug() {
+  // Path-based: /partners/action-property-management/ or /partners/action-property-management
+  const pathMatch = location.pathname.match(/^\/partners\/([a-z0-9-]+)\/?$/i);
+  if (pathMatch && pathMatch[1] !== 'index.html') return pathMatch[1];
+
+  // Query-param fallback: /partners/?firm=action-property-management
+  const params = new URLSearchParams(location.search);
+  return params.get('firm') || params.get('slug') || null;
+}
+
+const slug = extractSlug();
 
 if (!slug) {
   renderNoSlug();
