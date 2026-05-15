@@ -95,7 +95,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.3</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.4</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -502,6 +502,9 @@ async function renderHoa() {
 // Sprint 1 build (2026-05-15). Reuses hoa_companies for firm info;
 // partnership_outreach + partnership_outreach_events for state + history;
 // email_templates (category='partnership') for the 4 cadence emails.
+//
+// Sprint 2 (2026-05-15): adds /partners/<firm_slug>/portfolio sub-route
+// for per-firm portfolio overview (v_partner_portfolio view).
 
 let _partnersCache = null;
 
@@ -520,7 +523,13 @@ const NEXT_ACTION_TO_SLUG = {
   send_reply:        'partnership_reply_engaged',
 };
 
-async function renderPartners() {
+async function renderPartners(rest) {
+  rest = Array.isArray(rest) ? rest : [];
+  const [firmSlug, subview] = rest;
+  if (firmSlug && subview === 'portfolio') {
+    return renderPartnerPortfolio(firmSlug);
+  }
+
   $('#content').innerHTML = `
     <div class="flex items-baseline justify-between mb-4 flex-wrap gap-3">
       <h1 class="font-display text-3xl italic">Partners <span class="text-cream/50 text-sm font-sans italic">— PM firm partnership pipeline</span></h1>
@@ -599,6 +608,7 @@ function renderPartnersPipeline() {
     const needsEmail = o.contact_first_name && !o.contact_email;
     const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
     const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
+    const portfolioHref = firm?.slug ? `#partners/${firm.slug}/portfolio` : '#partners';
 
     return `
     <div class="card mb-3" data-row="${esc(o.id)}">
@@ -611,6 +621,7 @@ function renderPartnersPipeline() {
         </div>
         <div class="flex items-center gap-2">
           ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">Compose →</button>` : ''}
+          <a class="btn btn-secondary btn-sm" href="${esc(portfolioHref)}">Portfolio →</a>
           <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
         </div>
       </div>
@@ -855,6 +866,137 @@ function renderPartnersTemplates() {
   `;
 }
 
+// ===== PARTNER PORTFOLIO — Sprint 2 sub-view at #partners/<firm_slug>/portfolio =====
+// Per-firm dashboard: aggregate revenue opportunity + per-building stats.
+// Reads from v_partner_portfolio view (joined building_sales 12mo + MMM + contacts + ownership).
+
+async function renderPartnerPortfolio(firmSlug) {
+  $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
+
+  const [firmR, rowsR] = await Promise.all([
+    _sb.from('hoa_companies').select('*').eq('slug', firmSlug).maybeSingle(),
+    _sb.from('v_partner_portfolio').select('*').eq('firm_slug', firmSlug).order('projected_referral_12mo', { ascending: false }),
+  ]);
+
+  if (firmR.error) throw firmR.error;
+  if (rowsR.error) throw rowsR.error;
+
+  const firm = firmR.data;
+  const rows = rowsR.data || [];
+
+  if (!firm) {
+    $('#content').innerHTML = `
+      <div class="mb-3 text-xs text-cream/50"><a href="#partners" class="hover:text-gold">← Partners pipeline</a></div>
+      <div class="flash flash-err">Firm "${esc(firmSlug)}" not found in hoa_companies. Check the slug.</div>
+    `;
+    return;
+  }
+
+  // Client-side aggregate reduce across building rows
+  const totalVolume   = rows.reduce((s,r) => s + Number(r.total_volume_12mo || 0), 0);
+  const totalReferral = rows.reduce((s,r) => s + Number(r.projected_referral_12mo || 0), 0);
+  const totalSales    = rows.reduce((s,r) => s + Number(r.sales_count_12mo || 0), 0);
+  const totalMMM      = rows.reduce((s,r) => s + Number(r.active_mmm_count || 0), 0);
+  const totalUnits    = rows.reduce((s,r) => s + Number(r.unit_count || 0), 0);
+  const totalContacts = rows.reduce((s,r) => s + Number(r.contacts_total || 0), 0);
+  const totalOwners   = rows.reduce((s,r) => s + Number(r.ownership_records || 0), 0);
+
+  const composeHref = `#partners`;
+
+  $('#content').innerHTML = `
+    <div class="mb-3 text-xs text-cream/50">
+      <a href="#partners" class="hover:text-gold">← Partners pipeline</a>
+      <span class="text-cream/30 mx-2">/</span>
+      <span class="font-mono uppercase tracking-wider">${esc(firm.name)}</span>
+      <span class="text-cream/30 mx-2">/</span>
+      <span class="font-mono uppercase tracking-wider text-gold">portfolio</span>
+    </div>
+
+    <div class="mb-6">
+      <h1 class="font-display text-3xl italic mb-1">${esc(firm.name)} <span class="text-cream/50 text-sm font-sans italic">— portfolio overview</span></h1>
+      <p class="text-cream/60 text-sm">${rows.length} building${rows.length !== 1 ? 's' : ''} · ${fmtNum(totalUnits)} units total · last-12-month basis</p>
+    </div>
+
+    <!-- Aggregate stat tiles -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="card">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Volume (12mo)</div>
+        <div class="font-display text-3xl">${fmtMoney(totalVolume)}</div>
+        <div class="text-xs text-cream/55 mt-1">across this portfolio</div>
+      </div>
+      <div class="card border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.06),#1a1f2e);">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold mb-2">Projected 1% Referral</div>
+        <div class="font-display text-3xl text-gold">${fmtMoney(totalReferral)}</div>
+        <div class="text-xs text-cream/55 mt-1">raw addressable, last 12 months</div>
+      </div>
+      <div class="card">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Sales (12mo)</div>
+        <div class="font-display text-3xl">${fmtNum(totalSales)}</div>
+        <div class="text-xs text-cream/55 mt-1">closed transactions</div>
+      </div>
+      <div class="card">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Active MMMs</div>
+        <div class="font-display text-3xl">${fmtNum(totalMMM)}</div>
+        <div class="text-xs text-cream/55 mt-1">homeowners signaling sell intent</div>
+      </div>
+    </div>
+
+    <!-- Building table -->
+    <h2 class="font-display text-xl mb-3">Buildings</h2>
+    ${rows.length ? `
+      <div class="card !p-0 mb-6 overflow-x-auto"><table>
+        <thead><tr>
+          <th>Building</th>
+          <th>Units</th>
+          <th>Sales 12mo</th>
+          <th>Median Price</th>
+          <th>Median $/sf</th>
+          <th>12mo Volume</th>
+          <th>Proj Referral</th>
+          <th>MMMs</th>
+          <th>Owners on File</th>
+          <th>Last Sale</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td>
+                <div class="font-medium">${esc(r.building_name || r.building_slug)}</div>
+                <div class="text-[11px] text-cream/55">${esc(r.neighborhood || '—')}${r.year_built ? ` · ${esc(String(r.year_built))}` : ''}</div>
+                ${r.hoa_outreach_status && r.hoa_outreach_status !== 'untouched' ? `<span class="tag ${r.hoa_outreach_status==='won'?'tag-good':r.hoa_outreach_status==='declined'?'tag-bad':''} !text-[8px] !mt-1">HOA: ${esc(r.hoa_outreach_status.replace('_',' '))}</span>` : ''}
+              </td>
+              <td class="font-display text-base">${fmtNum(r.unit_count)}</td>
+              <td>${fmtNum(r.sales_count_12mo)}</td>
+              <td class="font-mono text-xs">${r.median_sale_price_12mo ? fmtMoney(r.median_sale_price_12mo) : '—'}</td>
+              <td class="font-mono text-xs">${r.median_ppsf_12mo ? '$' + Math.round(r.median_ppsf_12mo) : '—'}</td>
+              <td class="font-mono text-xs">${Number(r.total_volume_12mo) > 0 ? fmtMoney(r.total_volume_12mo) : '—'}</td>
+              <td class="font-mono text-sm ${Number(r.projected_referral_12mo) > 0 ? 'text-gold' : 'text-cream/40'}">${Number(r.projected_referral_12mo) > 0 ? fmtMoney(r.projected_referral_12mo) : '—'}</td>
+              <td>${r.active_mmm_count > 0 ? `<span class="tag tag-good">${r.active_mmm_count}</span>` : '<span class="text-cream/40">—</span>'}</td>
+              <td>${fmtNum(r.ownership_records)}${r.contacts_total > 0 ? ` <span class="text-[10px] text-cream/45">(${fmtNum(r.contacts_total)} contacts)</span>` : ''}</td>
+              <td class="font-mono text-xs text-cream/70">${r.latest_sale_date ? esc(fmtDate(r.latest_sale_date)) : '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table></div>
+    ` : `<div class="placeholder">No buildings linked to <span class="font-display italic">${esc(firm.name)}</span> in hoa_outreach yet. Link buildings by setting their <span class="font-mono">company_id</span> in <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=hoa_outreach" target="_blank" class="text-gold underline">hoa_outreach</a>.</div>`}
+
+    ${rows.length ? `
+    <div class="card mb-6" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
+      <h3 class="font-display text-lg mb-2">What this means in the call</h3>
+      <div class="text-sm text-cream/80 space-y-2">
+        <p>Last 12 months: <strong class="text-gold">${fmtMoney(totalVolume)}</strong> in closed-sale volume across ${esc(firm.name)}'s portfolio. At a 1% broker-to-broker referral, that's <strong class="text-gold">${fmtMoney(totalReferral)}</strong> in raw addressable revenue if Condo Market had been the partner broker on every transaction.</p>
+        <p class="text-cream/65 text-xs">Realistic capture depends on what fraction of transactions actually route through Condo Market vs other brokers. The honest framing: <em>"If we'd had a partnership in place last year, here's the upper bound — discuss how much of that you think we'd realistically capture."</em></p>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="text-xs text-cream/40 mt-3 pb-8">
+      Data sources: building_sales (recording-date-indexed, 12mo trailing) · make_me_move (active claims) · building_contacts (skip-trace + verified) · unit_ownership (current owners).
+      View definition: <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&view=v_partner_portfolio" target="_blank" class="text-gold underline">v_partner_portfolio</a>.
+    </div>
+  `;
+}
+
 // ===== EMAIL / QUEUE / BUILDINGS / MMM / ANALYTICS / SETTINGS =====
 async function renderEmail() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email</h1><div id="email"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
@@ -953,7 +1095,7 @@ async function renderSettings() {
 
 // ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.3 booted');
+console.log('[ADMIN] v5.4 booted');
 </script>
 </body>
 </html>
