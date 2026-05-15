@@ -23,7 +23,7 @@
 .btn-sm{padding:5px 12px;font-size:12px}
 .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(232,227,216,.08);color:rgba(232,227,216,.7);margin-right:4px}
 .tag-good{background:rgba(124,157,106,.15);color:#b8d4a8}.tag-bad{background:rgba(216,128,128,.15);color:#e8a8a8}.tag-warn{background:rgba(212,165,116,.15);color:#d4a574}
-input[type=text],input[type=email],input[type=number],input[type=datetime-local],input[type=search],select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
+input,select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#d4a574}
 table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#232a3d}
 th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,227,216,.55);font-weight:400;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(232,227,216,.1)}
@@ -35,26 +35,39 @@ tr:hover td{background:rgba(232,227,216,.02)}
 .flash-ok{background:rgba(124,157,106,.12);border:1px solid rgba(124,157,106,.4);color:#b8d4a8}
 .flash-err{background:rgba(216,128,128,.12);border:1px solid rgba(216,128,128,.4);color:#e8a8a8}
 .placeholder{background:#1a1f2e;border:1px dashed rgba(232,227,216,.14);border-radius:10px;padding:32px;text-align:center;color:rgba(232,227,216,.5);font-size:13px}
-.drawer{position:fixed;top:0;right:0;width:100%;max-width:680px;height:100vh;background:#0f131d;border-left:1px solid rgba(232,227,216,.15);overflow-y:auto;z-index:50;box-shadow:-12px 0 40px rgba(0,0,0,.5);padding:24px 28px}
-.drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49}
 .action-prop{background:linear-gradient(180deg,rgba(212,165,116,.06),#1a1f2e);border:1px solid rgba(212,165,116,.4);border-radius:10px;padding:18px 22px;margin-top:14px}
-::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:#0f131d}::-webkit-scrollbar-thumb{background:#232a3d;border-radius:5px}::-webkit-scrollbar-thumb:hover{background:#353e52}
+.debug-banner{position:fixed;top:0;left:0;right:0;background:#d88080;color:#0f131d;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:100;display:none}
+.debug-banner.show{display:block}
 </style>
 </head>
 <body>
 
-<div id="loading" class="fixed inset-0 flex items-center justify-center"><div class="spinner"></div></div>
+<div id="error-banner" class="debug-banner"></div>
+
+<div id="boot-screen" class="min-h-screen flex flex-col items-center justify-center px-6">
+  <div class="font-display italic text-4xl mb-4">Condo <span class="text-bluegray">Market</span></div>
+  <div class="text-cream/60 text-sm mb-6">Loading admin…</div>
+  <div class="spinner"></div>
+  <div id="boot-status" class="font-mono text-[11px] text-cream/40 mt-6 max-w-md text-center"></div>
+</div>
 
 <div id="auth-screen" hidden class="min-h-screen flex items-center justify-center px-6">
   <div class="card max-w-md w-full">
     <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
     <p class="text-cream/60 text-sm mb-6">Admin sign in</p>
     <form id="signin-form" class="space-y-3">
-      <input type="email" name="email" placeholder="tim@mcmullen.properties" required autocomplete="email">
-      <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
-      <button type="submit" class="btn btn-primary w-full justify-center">Sign in</button>
-      <p id="signin-error" class="text-brick text-xs mt-2 hidden"></p>
+      <input type="email" name="email" placeholder="email" required autocomplete="email" value="tim@mcmullen.properties">
+      <input type="password" name="password" placeholder="password" required autocomplete="current-password">
+      <button type="submit" id="signin-btn" class="btn btn-primary w-full justify-center">Sign in</button>
+      <div id="signin-msg" class="text-xs mt-2"></div>
     </form>
+    <details class="mt-6 text-cream/50 text-xs">
+      <summary class="cursor-pointer">Forgot password / sign-in not working?</summary>
+      <div class="mt-2 space-y-2">
+        <p>Reset your password at <a href="https://www.sanfranciscocondomarket.com/sign-in/" class="text-gold underline" target="_blank">the main sign-in page</a>, then return here.</p>
+        <p>Or sign in via the main site first, then come back to this admin tab.</p>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -63,7 +76,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.1</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -71,32 +84,68 @@ tr:hover td{background:rgba(232,227,216,.02)}
       </div>
     </div>
     <nav class="max-w-7xl mx-auto px-6 flex gap-0 overflow-x-auto" id="nav">
-      <a class="tab" data-tab="home">Home</a>
-      <a class="tab" data-tab="people">People</a>
-      <a class="tab" data-tab="hoa">HOAs</a>
-      <a class="tab" data-tab="email">Email</a>
-      <a class="tab" data-tab="queue">Queue</a>
-      <a class="tab" data-tab="buildings">Buildings</a>
-      <a class="tab" data-tab="mmm">MMM</a>
-      <a class="tab" data-tab="analytics">Analytics</a>
-      <a class="tab" data-tab="settings">Settings</a>
+      <a class="tab" data-tab="home" href="#home">Home</a>
+      <a class="tab" data-tab="people" href="#people">People</a>
+      <a class="tab" data-tab="hoa" href="#hoa">HOAs</a>
+      <a class="tab" data-tab="email" href="#email">Email</a>
+      <a class="tab" data-tab="queue" href="#queue">Queue</a>
+      <a class="tab" data-tab="buildings" href="#buildings">Buildings</a>
+      <a class="tab" data-tab="mmm" href="#mmm">MMM</a>
+      <a class="tab" data-tab="analytics" href="#analytics">Analytics</a>
+      <a class="tab" data-tab="settings" href="#settings">Settings</a>
     </nav>
   </header>
   <main id="content" class="max-w-7xl mx-auto px-6 py-8"></main>
 </div>
 
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// ===== Global error catcher — shows ALL errors visibly =====
+const errBanner = document.getElementById('error-banner');
+function showError(msg, source) {
+  console.error('[ADMIN ERROR]', source, msg);
+  errBanner.textContent = `${source || 'error'}: ${msg}`;
+  errBanner.classList.add('show');
+  setTimeout(() => errBanner.classList.remove('show'), 15000);
+}
+window.addEventListener('error', e => showError(e.message + ' @ ' + e.filename + ':' + e.lineno, 'js'));
+window.addEventListener('unhandledrejection', e => showError(String(e.reason?.message || e.reason), 'promise'));
 
+const bootStatus = document.getElementById('boot-status');
+const setBoot = (msg) => { console.log('[BOOT]', msg); if (bootStatus) bootStatus.textContent = msg; };
+
+setBoot('Loading Supabase client…');
+
+let createClient;
+try {
+  ({ createClient } = await import('https://esm.sh/@supabase/supabase-js@2'));
+} catch (e) {
+  showError('Failed to load Supabase JS from esm.sh: ' + e.message, 'cdn');
+  throw e;
+}
+
+setBoot('Initializing client…');
+
+// ⚠️ REPLACE THIS WITH YOUR ANON KEY FROM https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/api ⚠️
 const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+if (SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg') {
+  showError('SUPABASE_ANON_KEY placeholder not replaced in /admin/index.html', 'config');
+}
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
+window.__sb = sb; // expose for DevTools debugging: window.__sb.auth.getSession()
+
 const $ = (s,c=document) => c.querySelector(s);
 const $$ = (s,c=document) => Array.from(c.querySelectorAll(s));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtNum = (n) => n == null ? '—' : Number(n).toLocaleString('en-US');
 const fmtMoney = (n) => n == null ? '—' : '$' + Math.round(Number(n)).toLocaleString('en-US');
 const fmtPct = (num, denom) => !denom ? '—' : ((num/denom)*100).toFixed(num/denom < 0.01 ? 1 : 0) + '%';
+const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 const relTime = (iso) => {
   if (!iso) return '—';
   const ms = Date.now() - new Date(iso).getTime();
@@ -106,76 +155,147 @@ const relTime = (iso) => {
   const h = Math.floor(m/60);     if (h < 24) return future ? `in ${h}h` : `${h}h ago`;
   const d = Math.floor(h/24);     return future ? `in ${d}d` : `${d}d ago`;
 };
-const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 
 let currentUser = null;
-let currentTab = 'home';
+let currentSession = null;
 
-// ========================= AUTH =========================
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { showSignIn(); return false; }
-  const { data: profile } = await sb.from('profiles').select('id, email, full_name, role').eq('id', session.user.id).maybeSingle();
-  if (!profile || profile.role !== 'admin') {
-    await sb.auth.signOut();
-    showSignIn('Admin access required.');
-    return false;
+// ===== Screen state =====
+function showScreen(which) {
+  document.getElementById('boot-screen').hidden = (which !== 'boot');
+  document.getElementById('auth-screen').hidden = (which !== 'auth');
+  document.getElementById('app').hidden = (which !== 'app');
+}
+
+// ===== Auth =====
+async function loadProfileAndShow(session) {
+  setBoot('Loading admin profile…');
+  try {
+    const { data: profile, error } = await sb.from('profiles').select('id,email,full_name,role').eq('id', session.user.id).maybeSingle();
+    if (error) throw error;
+    if (!profile) {
+      showError('Your account has no profile row. Contact admin.', 'auth');
+      await sb.auth.signOut();
+      showScreen('auth');
+      return;
+    }
+    if (profile.role !== 'admin') {
+      showError(`Admin access required (your role: ${profile.role}).`, 'auth');
+      await sb.auth.signOut();
+      showScreen('auth');
+      return;
+    }
+    currentUser = { ...session.user, ...profile };
+    currentSession = session;
+    $('#user-email').textContent = profile.email;
+    showScreen('app');
+    routeFromHash();
+  } catch (e) {
+    showError('Profile load failed: ' + e.message, 'auth');
+    showScreen('auth');
   }
-  currentUser = { ...session.user, ...profile };
-  $('#user-email').textContent = profile.email;
-  showApp();
-  return true;
-}
-function showSignIn(err) {
-  $('#loading').hidden = true; $('#app').hidden = true; $('#auth-screen').hidden = false;
-  if (err) { $('#signin-error').textContent = err; $('#signin-error').classList.remove('hidden'); }
-}
-function showApp() {
-  $('#loading').hidden = true; $('#auth-screen').hidden = true; $('#app').hidden = false;
-  routeFromHash();
 }
 
+// Auth state listener (reactive — fires on sign-in, sign-out, token refresh)
+sb.auth.onAuthStateChange((event, session) => {
+  console.log('[AUTH]', event, session ? 'session present' : 'no session');
+  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+    if (session) loadProfileAndShow(session);
+  } else if (event === 'SIGNED_OUT') {
+    currentUser = null; currentSession = null;
+    showScreen('auth');
+  }
+});
+
+// Initial auth check (runs once at boot)
+setBoot('Checking auth…');
+try {
+  const { data: { session }, error } = await sb.auth.getSession();
+  if (error) {
+    showError('getSession error: ' + error.message, 'auth');
+    showScreen('auth');
+  } else if (session) {
+    setBoot('Session found, loading profile…');
+    await loadProfileAndShow(session);
+  } else {
+    setBoot('No session — showing sign-in.');
+    showScreen('auth');
+  }
+} catch (e) {
+  showError('Boot failed: ' + e.message, 'boot');
+  showScreen('auth');
+}
+
+// ===== Sign in =====
 $('#signin-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const fd = new FormData(e.target);
-  const { error } = await sb.auth.signInWithPassword({ email: fd.get('email'), password: fd.get('password') });
-  if (error) { $('#signin-error').textContent = error.message; $('#signin-error').classList.remove('hidden'); return; }
-  await checkAuth();
+  const email = String(fd.get('email') || '').trim();
+  const password = String(fd.get('password') || '');
+  const btn = $('#signin-btn');
+  const msg = $('#signin-msg');
+  msg.textContent = ''; msg.className = 'text-xs mt-2';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Signing in…';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      msg.textContent = '❌ ' + error.message + ' (status: ' + (error.status || '?') + ')';
+      msg.className = 'text-xs mt-2 text-brick';
+      btn.disabled = false; btn.textContent = 'Sign in';
+      console.error('[SIGNIN ERROR]', error);
+      return;
+    }
+    msg.textContent = '✓ Signed in. Loading admin…';
+    msg.className = 'text-xs mt-2 text-sage';
+    // onAuthStateChange will fire SIGNED_IN and call loadProfileAndShow
+  } catch (e) {
+    msg.textContent = '❌ Network/code error: ' + e.message;
+    msg.className = 'text-xs mt-2 text-brick';
+    btn.disabled = false; btn.textContent = 'Sign in';
+    console.error('[SIGNIN THROW]', e);
+  }
 });
-$('#signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
 
-// ========================= ROUTER =========================
+$('#signout-btn').addEventListener('click', async () => {
+  try { await sb.auth.signOut(); } catch (e) { console.error(e); }
+  location.reload();
+});
+
+// ===== Router =====
 function routeFromHash() {
+  if (document.getElementById('app').hidden) return;
   const hash = location.hash.replace('#', '') || 'home';
   const [tab, ...rest] = hash.split('/');
-  currentTab = tab;
   $$('#nav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   const renderers = { home: renderHome, people: renderPeople, hoa: renderHoa, email: renderEmail, queue: renderQueue, buildings: renderBuildings, mmm: renderMmm, analytics: renderAnalytics, settings: renderSettings };
   const renderer = renderers[tab] || renderHome;
-  renderer(rest);
+  const c = $('#content');
+  c.innerHTML = '<div class="p-8 text-center"><div class="spinner"></div></div>';
+  Promise.resolve().then(() => renderer(rest)).catch(e => {
+    showError(`${tab} tab failed: ${e.message}`, 'render');
+    c.innerHTML = `<div class="flash flash-err">Couldn't render ${esc(tab)} tab: ${esc(e.message)}<br><span class="text-xs opacity-70">${esc(e.stack || '')}</span></div>`;
+  });
 }
-$$('#nav .tab').forEach(t => t.addEventListener('click', e => { e.preventDefault(); location.hash = t.dataset.tab; }));
 window.addEventListener('hashchange', routeFromHash);
 
-// ========================= HOME (Claude command + key stats) =========================
+// ===== HOME =====
 async function renderHome() {
   const c = $('#content');
   c.innerHTML = `
     <section class="mb-8">
-      <h1 class="font-display text-4xl italic mb-1">Welcome back, Tim.</h1>
+      <h1 class="font-display text-4xl italic mb-1">Welcome back, ${esc(currentUser?.full_name?.split(' ')[0] || 'Tim')}.</h1>
       <p class="text-cream/60 text-sm">Ask Claude. Pull data. Draft campaigns. Manage everything from here.</p>
     </section>
 
     <section class="card mb-8 border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase">⚡ Claude Command</span>
-        <span class="text-cream/40 text-xs">— natural language interface to your entire platform</span>
+        <span class="text-cream/40 text-xs">— natural language interface to your platform</span>
       </div>
       <textarea id="cmd-input" rows="3" placeholder="Try: 'Send a Just Sold email to all Madrone owners about Unit 421 for $1.85M', or 'Show me top buildings by open rate this week'" class="!bg-navy"></textarea>
       <div class="flex items-center justify-between mt-3 gap-3 flex-wrap">
         <div class="flex gap-2 flex-wrap text-xs">
           <button class="btn btn-secondary btn-sm" data-prompt="How many active MMM listings do we have right now?">Stats query</button>
-          <button class="btn btn-secondary btn-sm" data-prompt="Show me all owners at 480 Mission Bay Blvd N with high open rates">People query</button>
+          <button class="btn btn-secondary btn-sm" data-prompt="Show me all owners at 480 Mission Bay Blvd N">People query</button>
           <button class="btn btn-secondary btn-sm" data-prompt="What's the open rate of wave 3 compared to wave 2?">CRO query</button>
           <button class="btn btn-secondary btn-sm" data-prompt="Create a task to follow up with the Madrone HOA tomorrow at 2pm">Create task</button>
         </div>
@@ -186,39 +306,45 @@ async function renderHome() {
 
     <section class="mb-8">
       <h2 class="font-display text-xl mb-4">Today</h2>
-      <div id="home-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Loading…</div><div class="spinner"></div></div>
-      </div>
+      <div id="home-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
       <div id="home-tasks"></div>
     </section>
   `;
-  // Wire up command interface
   $('#cmd-run').addEventListener('click', runCommand);
   $('#cmd-input').addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') runCommand(); });
   $$('[data-prompt]').forEach(b => b.addEventListener('click', () => { $('#cmd-input').value = b.dataset.prompt; $('#cmd-input').focus(); }));
-  // Load stats
-  loadHomeStats();
-  loadHomeTasks();
+
+  // Load each independently — one failure doesn't kill the others
+  loadHomeStats().catch(e => { $('#home-stats').innerHTML = `<div class="card col-span-full"><div class="text-brick text-xs">stats: ${esc(e.message)}</div></div>`; });
+  loadHomeTasks().catch(e => { $('#home-tasks').innerHTML = `<div class="card"><div class="text-brick text-xs">tasks: ${esc(e.message)}</div></div>`; });
 }
 
 async function loadHomeStats() {
-  const { data: stats } = await sb.from('v_platform_stats').select('*').maybeSingle();
-  const { data: cap } = await sb.from('v_send_capacity_by_city').select('*').eq('city_slug','san-francisco').maybeSingle();
-  if (!stats) return;
-  $('#home-stats').innerHTML = [
+  const target = $('#home-stats'); if (!target) return;
+  target.innerHTML = ['Loading…','','',''].map(()=>`<div class="card"><div class="spinner"></div></div>`).join('');
+  const [statsR, capR] = await Promise.allSettled([
+    sb.from('v_platform_stats').select('*').maybeSingle(),
+    sb.from('v_send_capacity_by_city').select('*').eq('city_slug','san-francisco').maybeSingle(),
+  ]);
+  const stats = statsR.status === 'fulfilled' ? (statsR.value?.data || {}) : {};
+  const cap = capR.status === 'fulfilled' ? (capR.value?.data || {}) : {};
+  target.innerHTML = [
     ['Total people', fmtNum(stats.total_people), `${fmtNum(stats.active_accounts)} accounts`],
     ['Active MMMs', fmtNum(stats.active_mmms), `${fmtNum(stats.open_offers)} open offers`],
     ['Open tasks', fmtNum(stats.open_tasks), stats.overdue_tasks > 0 ? `<span class="text-brick">${stats.overdue_tasks} overdue</span>` : 'on track'],
-    ['Today\'s capacity', `${fmtNum(cap?.sent_today||0)}/${fmtNum(cap?.daily_cap||0)}`, `${fmtNum(cap?.remaining_today||0)} remaining`],
+    ['Today\'s capacity', `${fmtNum(cap.sent_today||0)}/${fmtNum(cap.daily_cap||0)}`, `${fmtNum(cap.remaining_today||0)} remaining`],
   ].map(([l,n,sub]) => `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-3xl">${n}</div><div class="text-xs text-cream/55 mt-1">${sub}</div></div>`).join('');
 }
+
 async function loadHomeTasks() {
-  const { data: tasks } = await sb.from('v_admin_inbox').select('*').order('priority',{ascending:false}).order('due_at',{ascending:true,nullsFirst:false}).limit(5);
-  if (!tasks || !tasks.length) { $('#home-tasks').innerHTML = '<div class="placeholder">No open tasks. Inbox is clear.</div>'; return; }
-  $('#home-tasks').innerHTML = `<h3 class="font-display text-base mb-3">Top priorities (${tasks.length})</h3><div class="space-y-2">${tasks.map(t => `
+  const target = $('#home-tasks'); if (!target) return;
+  const { data: tasks, error } = await sb.from('v_admin_inbox').select('*').order('priority',{ascending:false}).order('due_at',{ascending:true,nullsFirst:false}).limit(5);
+  if (error) throw error;
+  if (!tasks || !tasks.length) { target.innerHTML = '<div class="placeholder">No open tasks. Inbox is clear.</div>'; return; }
+  target.innerHTML = `<h3 class="font-display text-base mb-3">Top priorities (${tasks.length})</h3><div class="space-y-2">${tasks.map(t => `
     <div class="card flex items-center justify-between gap-4">
       <div class="flex-1 min-w-0">
-        <div class="flex gap-2 items-baseline mb-1">
+        <div class="flex gap-2 items-baseline mb-1 flex-wrap">
           <span class="tag ${t.priority==='urgent'?'tag-bad':t.priority==='high'?'tag-warn':''}">${esc(t.priority)}</span>
           <span class="font-mono text-[10px] tracking-[0.1em] uppercase text-cream/50">${esc(t.task_type)}</span>
           ${t.due_at ? `<span class="font-mono text-[10px] text-cream/40">${esc(relTime(t.due_at))}</span>` : ''}
@@ -228,23 +354,23 @@ async function loadHomeTasks() {
       </div>
       <button class="btn btn-secondary btn-sm" data-task-done="${esc(t.id)}">Done</button>
     </div>`).join('')}</div>`;
-  $$('[data-task-done]').forEach(b => b.addEventListener('click', async () => {
+  $$('[data-task-done]', target).forEach(b => b.addEventListener('click', async () => {
     await sb.from('admin_tasks').update({ status:'done', completed_at:new Date().toISOString() }).eq('id', b.dataset.taskDone);
     loadHomeTasks();
   }));
 }
 
 async function runCommand() {
-  const input = $('#cmd-input');
-  const text = input.value.trim();
+  const input = $('#cmd-input'); const text = input.value.trim();
   if (text.length < 3) return;
   const result = $('#cmd-result');
   result.innerHTML = '<div class="card flex items-center gap-3"><div class="spinner"></div><span class="text-cream/60 text-sm">Thinking…</span></div>';
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const token = currentSession?.access_token;
+    if (!token) { result.innerHTML = '<div class="flash flash-err">Not authenticated.</div>'; return; }
     const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-command`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
       body: JSON.stringify({ command: text })
     });
     const json = await resp.json();
@@ -268,25 +394,23 @@ function renderActionProposal(a, durationMs) {
   } else if (a.intent === 'query' && a.sql) {
     bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
       ${a.explanation ? `<div class="text-xs text-cream/60 mb-3">${esc(a.explanation)}</div>` : ''}
-      <pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 overflow-x-auto">${esc(a.sql)}</pre>
+      <pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 overflow-x-auto whitespace-pre-wrap">${esc(a.sql)}</pre>
       <div class="mt-3 flex gap-2">
-        <button class="btn btn-primary btn-sm" id="run-sql-btn">Execute query</button>
+        <a class="btn btn-primary btn-sm" target="_blank" href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/sql/new?content=${encodeURIComponent(a.sql)}">Open in SQL editor</a>
         <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
-      </div>
-      <div id="sql-result" class="mt-3"></div>`;
+      </div>`;
   } else if (a.intent === 'send_email' && a.email) {
     bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
       <div class="text-xs text-cream/60 mb-3">${esc(a.explanation || '')}</div>
       <div class="space-y-1 text-sm">
         <div><span class="text-cream/50">Template:</span> <span class="font-mono text-gold">${esc(a.email.template_slug)}</span></div>
         <div><span class="text-cream/50">Recipients:</span> ${esc(a.email.recipient_description || JSON.stringify(a.email.recipient_config))}</div>
-        ${a.email.estimated_recipients !== null && a.email.estimated_recipients !== undefined ? `<div><span class="text-cream/50">Estimated count:</span> <span class="font-mono">${fmtNum(a.email.estimated_recipients)}</span></div>` : ''}
+        ${a.email.estimated_recipients != null ? `<div><span class="text-cream/50">Estimated count:</span> <span class="font-mono">${fmtNum(a.email.estimated_recipients)}</span></div>` : ''}
         <div><span class="text-cream/50">Campaign key:</span> <span class="font-mono text-xs">${esc(a.email.campaign_key)}</span></div>
         ${a.email.merge_vars ? `<div><span class="text-cream/50">Merge vars:</span> <span class="font-mono text-xs">${esc(JSON.stringify(a.email.merge_vars))}</span></div>` : ''}
       </div>
       <div class="mt-3 flex gap-2">
-        <button class="btn btn-secondary btn-sm" id="draft-to-me">Draft to me first</button>
-        <button class="btn btn-primary btn-sm" id="send-real" disabled title="Sprint B: full send pipeline">Send (disabled in v1.0)</button>
+        <button class="btn btn-secondary btn-sm" disabled title="Sprint B">Draft to me first (Sprint B)</button>
         <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
       </div>`;
   } else if (a.intent === 'create_task' && a.task) {
@@ -303,555 +427,200 @@ function renderActionProposal(a, durationMs) {
         <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
       </div>`;
   } else {
-    bodyHtml = `<div class="text-cream/80">${esc(a.summary || 'Unsupported intent.')}</div><pre class="font-mono text-[10px] mt-2 text-cream/40">${esc(JSON.stringify(a, null, 2))}</pre>`;
+    bodyHtml = `<div class="text-cream/80">${esc(a.summary || 'Unsupported intent.')}</div><pre class="font-mono text-[10px] mt-2 text-cream/40 overflow-x-auto">${esc(JSON.stringify(a, null, 2))}</pre>`;
   }
   result.innerHTML = `<div class="action-prop">
-    <div class="flex items-center gap-2 mb-2">
+    <div class="flex items-center gap-2 mb-2 flex-wrap">
       <span class="tag tag-${a.confidence==='high'?'good':a.confidence==='low'?'bad':'warn'}">${esc(a.confidence||'?')} confidence</span>
       <span class="font-mono text-[10px] text-cream/40">${esc(a.intent)} · ${durationMs}ms</span>
     </div>
     ${bodyHtml}
     ${warningsHtml}
   </div>`;
-  // Wire action buttons
   const cancel = $('#cancel-action'); if (cancel) cancel.addEventListener('click', () => { result.innerHTML = ''; });
-  const runSqlBtn = $('#run-sql-btn'); if (runSqlBtn) runSqlBtn.addEventListener('click', async () => {
-    const out = $('#sql-result'); out.innerHTML = '<div class="spinner"></div>';
-    // Use Supabase rpc-style: we don't have a generic SQL endpoint from PostgREST. Best path: use postgrest via direct table queries OR use a dedicated edge function. v1: show SQL only, ask Tim to copy to SQL editor.
-    out.innerHTML = `<div class="flash flash-ok">Open this in <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/sql/new" target="_blank" class="text-gold underline">SQL editor</a> to run. <span class="text-xs">(Sprint B will add inline execution.)</span></div>`;
-  });
-  const createTaskBtn = $('#create-task-btn'); if (createTaskBtn) createTaskBtn.addEventListener('click', async () => {
+  const ct = $('#create-task-btn'); if (ct) ct.addEventListener('click', async () => {
     const t = a.task;
     const { error } = await sb.from('admin_tasks').insert({
       title: t.title, description: t.description, task_type: t.task_type || 'manual',
       priority: t.priority || 'normal', due_at: t.due_at || null
     });
     if (error) { result.innerHTML = `<div class="flash flash-err">${esc(error.message)}</div>`; return; }
-    result.innerHTML = `<div class="flash flash-ok">Task created. <a href="#home" class="underline">Refresh home</a> to see it.</div>`;
+    result.innerHTML = `<div class="flash flash-ok">Task created.</div>`;
     loadHomeTasks();
   });
-  const draftBtn = $('#draft-to-me'); if (draftBtn) draftBtn.addEventListener('click', () => {
-    result.innerHTML = `<div class="flash flash-ok">Sprint B: this will queue a single email to tim@mcmullen.properties with the rendered template + merge vars, using your existing send-vip-invite function.</div>`;
-  });
 }
 
-// ========================= PEOPLE =========================
-async function renderPeople(rest) {
-  if (rest && rest[0]) return renderPersonDetail(rest[0]);
-  const c = $('#content');
-  const params = new URLSearchParams(location.search);
-  const q = params.get('q') || '';
-  const hasAccount = params.get('account') || 'all';
-  const sort = params.get('sort') || 'last_emailed_desc';
-  const page = parseInt(params.get('page') || '0', 10);
-  c.innerHTML = `
-    <div class="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
-      <h1 class="font-display text-3xl italic">People</h1>
-      <form id="people-filter" class="flex gap-2 flex-wrap items-center">
-        <input type="search" name="q" value="${esc(q)}" placeholder="email, name…" class="!w-56">
-        <select name="account">
-          <option value="all" ${hasAccount==='all'?'selected':''}>all</option>
-          <option value="yes" ${hasAccount==='yes'?'selected':''}>has account</option>
-          <option value="no" ${hasAccount==='no'?'selected':''}>no account</option>
-        </select>
-        <select name="sort">
-          <option value="last_emailed_desc" ${sort==='last_emailed_desc'?'selected':''}>Last emailed</option>
-          <option value="opens_desc" ${sort==='opens_desc'?'selected':''}>Most opens</option>
-          <option value="email_asc" ${sort==='email_asc'?'selected':''}>Email A→Z</option>
-          <option value="created_desc" ${sort==='created_desc'?'selected':''}>Newest</option>
-        </select>
-        <button class="btn btn-primary btn-sm">Apply</button>
-      </form>
-    </div>
-    <div id="people-meta" class="text-xs text-cream/60 mb-3"></div>
-    <div id="people-tbl" class="card !p-0 overflow-hidden"><div class="p-8 text-center"><div class="spinner"></div></div></div>
-  `;
-  $('#people-filter').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const sp = new URLSearchParams();
-    if (fd.get('q')) sp.set('q', fd.get('q'));
-    if (fd.get('account') !== 'all') sp.set('account', fd.get('account'));
-    if (fd.get('sort') !== 'last_emailed_desc') sp.set('sort', fd.get('sort'));
-    location.search = sp.toString() ? '?' + sp : '';
-  });
-  // Query
-  let qry = sb.from('v_person_overview').select('*', { count: 'exact' });
-  if (q) qry = qry.or(`primary_email.ilike.%${q}%,full_name.ilike.%${q}%,last_name.ilike.%${q}%`);
-  if (hasAccount === 'yes') qry = qry.not('profile_id','is',null);
-  else if (hasAccount === 'no') qry = qry.is('profile_id', null);
-  if (sort === 'last_emailed_desc') qry = qry.order('last_emailed_at',{ascending:false,nullsFirst:false});
-  else if (sort === 'opens_desc') qry = qry.order('emails_opened',{ascending:false});
-  else if (sort === 'email_asc') qry = qry.order('primary_email',{ascending:true});
-  else if (sort === 'created_desc') qry = qry.order('created_at',{ascending:false});
-  qry = qry.range(page*50, page*50+49);
-  const { data, count } = await qry;
-  const totalPages = Math.max(1, Math.ceil((count||0)/50));
-  $('#people-meta').innerHTML = `${fmtNum(count||0)} people · page ${page+1}/${totalPages}`;
-  const rows = (data||[]).map(p => {
-    const opens = p.emails_received > 0 ? fmtPct(p.emails_opened, p.emails_received) : '—';
-    const tags = [
-      p.has_account ? '<span class="tag tag-good">account</span>' : '',
-      p.is_bounced ? '<span class="tag tag-bad">bounced</span>' : '',
-      p.is_unsubscribed ? '<span class="tag tag-bad">unsub</span>' : '',
-      p.is_dnc ? '<span class="tag tag-bad">DNC</span>' : '',
-      p.is_corporate ? '<span class="tag">corp</span>' : '',
-    ].filter(Boolean).join('');
-    const blds = (p.building_slugs||[]).slice(0,2).join(', ') + ((p.building_slugs||[]).length>2 ? ` +${p.building_slugs.length-2}` : '');
-    return `<tr>
-      <td><a href="#people/${esc(p.person_id)}" class="font-medium text-cream hover:text-gold">${esc(p.full_name || p.primary_email)}</a><div class="font-mono text-[11px] text-cream/50">${esc(p.primary_email)}</div></td>
-      <td class="text-cream/80">${esc(blds)||'—'}<div class="text-[11px] text-cream/45 font-mono">${p.owned_building_count} bldg</div></td>
-      <td>${fmtNum(p.emails_received)}<div class="text-[11px] text-cream/45 font-mono">${opens} open</div></td>
-      <td class="font-mono text-xs text-cream/70">${esc(relTime(p.last_emailed_at))}</td>
-      <td>${tags||'—'}</td>
-    </tr>`;
-  }).join('');
-  $('#people-tbl').innerHTML = `<table>
-    <thead><tr><th>Person</th><th>Buildings</th><th>Emails</th><th>Last emailed</th><th>Flags</th></tr></thead>
-    <tbody>${rows || '<tr><td colspan="5" class="text-center text-cream/50 p-8">No match.</td></tr>'}</tbody>
-  </table>
-  <div class="flex justify-between items-center p-4 border-t border-cream/10 text-xs text-cream/60">
-    <span class="font-mono">Page ${page+1} of ${totalPages}</span>
-    <div class="flex gap-2">
-      ${page > 0 ? `<a class="btn btn-secondary btn-sm" href="?${new URLSearchParams({...Object.fromEntries(new URLSearchParams(location.search)),page:String(page-1)}).toString()}">← Prev</a>` : ''}
-      ${page+1 < totalPages ? `<a class="btn btn-secondary btn-sm" href="?${new URLSearchParams({...Object.fromEntries(new URLSearchParams(location.search)),page:String(page+1)}).toString()}">Next →</a>` : ''}
-    </div>
-  </div>`;
-}
-
-async function renderPersonDetail(personId) {
-  const c = $('#content');
-  c.innerHTML = '<div class="p-8 text-center"><div class="spinner"></div></div>';
-  const [{ data: person }, { data: ownership }, { data: activity }] = await Promise.all([
-    sb.from('v_person_overview').select('*').eq('person_id', personId).maybeSingle(),
-    sb.from('unit_ownership').select('*').eq('person_id', personId).order('created_at',{ascending:false}),
-    sb.from('v_person_activity').select('*').eq('person_id', personId).order('occurred_at',{ascending:false}).limit(100),
-  ]);
-  if (!person) { c.innerHTML = '<div class="placeholder">Person not found.<br><a href="#people" class="text-gold underline">← Back to People</a></div>'; return; }
-  const buildingSlugs = [...new Set((ownership||[]).map(o => o.building_slug))];
-  const { data: bRows } = buildingSlugs.length ? await sb.from('buildings').select('slug,display_name').in('slug', buildingSlugs) : { data: [] };
-  const bNames = Object.fromEntries((bRows||[]).map(b => [b.slug, b.display_name]));
-  const flags = [
-    person.has_account ? '<span class="tag tag-good">account</span>' : '',
-    person.is_bounced ? '<span class="tag tag-bad">bounced</span>' : '',
-    person.is_unsubscribed ? '<span class="tag tag-bad">unsub</span>' : '',
-    person.is_dnc ? '<span class="tag tag-bad">DNC</span>' : '',
-    person.is_corporate ? '<span class="tag">corp</span>' : '',
-  ].filter(Boolean).join('');
-  const iconMap = { email_sent:'✉', email_opened:'●', email_clicked:'↗', email_bounced:'!', email_unsubscribed:'×', account_created:'★', unit_claimed:'◆', mmm_set:'$', offer_made:'→' };
-  const colorMap = { email_sent:'#7a8ab0', email_opened:'#9fb4d8', email_clicked:'#d4a574', email_bounced:'#d88080', email_unsubscribed:'#a85f5f', account_created:'#7c9d6a', unit_claimed:'#b89860', mmm_set:'#d4a574', offer_made:'#a89048' };
-  c.innerHTML = `
-    <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
-      <div>
-        <a href="#people" class="text-xs text-cream/50 hover:text-cream font-mono">← back to people</a>
-        <h1 class="font-display text-3xl italic mt-1">${esc(person.full_name || person.primary_email)}</h1>
-        <p class="text-cream/60 text-sm mt-1">
-          <a href="mailto:${esc(person.primary_email)}" class="hover:text-gold">${esc(person.primary_email)}</a>
-          ${person.phone ? ` · ${esc(person.phone)}` : ''}
-          · ${esc(person.city_name || 'Unknown city')}
-        </p>
-        ${flags ? `<div class="mt-2">${flags}</div>` : ''}
+// ===== Simple tab placeholders (Sprint B will flesh these out) =====
+function makeStubTab(title, description) {
+  return async () => {
+    $('#content').innerHTML = `
+      <h1 class="font-display text-3xl italic mb-2">${esc(title)}</h1>
+      <p class="text-cream/60 text-sm mb-6">${esc(description)}</p>
+      <div class="placeholder">
+        <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>
+        <div>Full ${esc(title)} interface ships next. Use the <a href="#home" class="text-gold underline">Home</a> Claude command for now.</div>
       </div>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      ${[['Buildings', fmtNum(person.owned_building_count)],['Emails received',fmtNum(person.emails_received)],['Opens',`${fmtNum(person.emails_opened)} (${fmtPct(person.emails_opened,person.emails_received)})`],['Clicks',`${fmtNum(person.emails_clicked)} (${fmtPct(person.emails_clicked,person.emails_received)})`]].map(([l,n]) => `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-2xl">${n}</div></div>`).join('')}
-    </div>
-    <h2 class="font-display text-lg mb-3">Ownership</h2>
-    <div class="space-y-2 mb-6">${(ownership||[]).length ? ownership.map(o => `<div class="card !p-3 border-l-4 border-l-amber"><div class="font-medium">${esc(bNames[o.building_slug]||o.building_slug)}${o.unit_identifier?` · Unit ${esc(o.unit_identifier)}`:''}</div><div class="text-xs text-cream/50 mt-1 font-mono">${esc(o.ownership_type)} · ${esc(o.confidence)} · ${esc(o.source||'')} · ${esc(relTime(o.created_at))}</div></div>`).join('') : '<div class="placeholder">No ownership records.</div>'}</div>
-    <h2 class="font-display text-lg mb-3">Activity timeline <span class="text-xs text-cream/50 font-sans">(${(activity||[]).length} events)</span></h2>
-    <div class="space-y-1">${(activity||[]).map(a => {
-      const ic = iconMap[a.activity_type] || '•'; const co = colorMap[a.activity_type] || '#666';
-      return `<div class="card !p-3 flex items-center gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs" style="background:${co};color:#0f131d">${ic}</span><div class="flex-1"><div class="text-sm">${esc(a.summary)}</div><div class="font-mono text-[10px] text-cream/45 mt-0.5">${esc(a.activity_type)} · ${esc(relTime(a.occurred_at))} · ${esc(fmtDate(a.occurred_at))}</div></div></div>`;
-    }).join('') || '<div class="placeholder">No activity recorded.</div>'}</div>
-  `;
+    `;
+  };
 }
 
-// ========================= HOA =========================
+async function renderPeople() {
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">People</h1><div id="ppl"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data, error, count } = await sb.from('v_person_overview').select('*', { count: 'exact' }).order('last_emailed_at',{ascending:false,nullsFirst:false}).limit(50);
+    if (error) throw error;
+    $('#ppl').innerHTML = `
+      <div class="text-xs text-cream/60 mb-3">${fmtNum(count||0)} people · showing first 50</div>
+      <div class="card !p-0 overflow-hidden"><table>
+      <thead><tr><th>Person</th><th>Buildings</th><th>Emails</th><th>Last emailed</th></tr></thead>
+      <tbody>${(data||[]).map(p => `<tr>
+        <td><div class="font-medium">${esc(p.full_name || p.primary_email)}</div><div class="font-mono text-[11px] text-cream/50">${esc(p.primary_email)}</div></td>
+        <td class="text-cream/80">${esc((p.building_slugs||[]).slice(0,2).join(', ')) || '—'} <span class="text-[11px] text-cream/45 font-mono">${p.owned_building_count||0} bldg</span></td>
+        <td>${fmtNum(p.emails_received)}<div class="text-[11px] text-cream/45">${p.emails_received > 0 ? fmtPct(p.emails_opened, p.emails_received) : '—'} open</div></td>
+        <td class="font-mono text-xs text-cream/70">${esc(relTime(p.last_emailed_at))}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch (e) {
+    $('#ppl').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
+}
+
 async function renderHoa() {
-  const c = $('#content');
-  c.innerHTML = `<div class="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
-    <h1 class="font-display text-3xl italic">HOA Outreach</h1>
-    <div class="flex gap-2"><button id="add-hoa-company" class="btn btn-secondary btn-sm">+ Add Company</button></div>
-  </div>
-  <div id="hoa-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const [{ data: pipeline }, { data: companies }] = await Promise.all([
-    sb.from('v_hoa_pipeline').select('*').order('urgency_rank',{ascending:true}).order('last_contacted_at',{ascending:true,nullsFirst:true}),
-    sb.from('v_hoa_company_rollup').select('*'),
-  ]);
-  const statusCounts = {};
-  (pipeline||[]).forEach(p => statusCounts[p.status] = (statusCounts[p.status]||0)+1);
-  const STATUS = {untouched:'#454e62',targeted:'#7a8ab0',emailed:'#9fb4d8',meeting_scheduled:'#b89860',meeting_held:'#d4a574',won:'#7c9d6a',declined:'#a85f5f',dormant:'#5a5560'};
-  const STATUS_ORDER = ['untouched','targeted','emailed','meeting_scheduled','meeting_held','won','declined','dormant'];
-  $('#hoa-content').innerHTML = `
-    <div class="flex flex-wrap gap-2 mb-6">${STATUS_ORDER.map(s => { const n=statusCounts[s]||0; return `<div class="card !p-3 flex items-center gap-2" style="border-left:3px solid ${STATUS[s]};opacity:${n?1:0.4}"><span class="font-display text-lg" style="color:${STATUS[s]}">${n}</span><span class="font-mono text-[10px] tracking-[0.08em] uppercase text-cream/70">${esc(s.replace('_',' '))}</span></div>`}).join('')}</div>
-    ${(companies||[]).length ? `<h2 class="font-display text-lg mb-3">Property Management Companies <span class="text-xs text-cream/50 font-sans">(${companies.length})</span></h2>
-    <div class="card !p-0 mb-6"><table><thead><tr><th>Company</th><th>Contact</th><th>Buildings</th><th>Won</th><th>In meeting</th><th>Emailed</th><th>Pending</th></tr></thead><tbody>${companies.map(c => `<tr><td><div class="font-medium">${esc(c.company_name)}</div>${c.website ? `<a href="${esc(c.website)}" target="_blank" class="font-mono text-[11px] text-bluegray hover:text-gold">${esc(c.website)} ↗</a>` : ''}</td><td class="text-sm">${esc(c.primary_contact_name||'—')}${c.primary_contact_email ? `<div class="font-mono text-[11px] text-cream/50">${esc(c.primary_contact_email)}</div>` : ''}</td><td><span class="font-display text-lg">${fmtNum(c.buildings_in_pipeline)}</span></td><td><span class="text-sage">${fmtNum(c.buildings_won)}</span></td><td><span class="text-gold">${fmtNum(c.buildings_meeting)}</span></td><td>${fmtNum(c.buildings_emailed)}</td><td>${fmtNum(c.buildings_pending)}</td></tr>`).join('')}</tbody></table></div>` : ''}
-    <h2 class="font-display text-lg mb-3">Pipeline <span class="text-xs text-cream/50 font-sans">(${(pipeline||[]).length} buildings)</span></h2>
-    <div class="space-y-2">${(pipeline||[]).map(h => {
-      const next = h.next_action_at ? (new Date(h.next_action_at) < new Date() ? `<span class="font-mono text-[11px] text-brick">OVERDUE · ${esc(relTime(h.next_action_at))}</span>` : `<span class="font-mono text-[11px] text-bluegray">${esc(relTime(h.next_action_at))}</span>`) : '<span class="font-mono text-[11px] text-cream/40 italic">unscheduled</span>';
-      return `<div class="card !p-0 flex overflow-hidden"><div class="w-1 flex-shrink-0" style="background:${STATUS[h.status]||'#666'}"></div><div class="flex-1 p-3"><div class="flex flex-wrap items-baseline gap-3"><span class="font-mono text-sm font-medium">${esc(h.building_slug)}</span><span class="font-mono text-[10px] tracking-[0.1em] uppercase" style="color:${STATUS[h.status]}">${esc(h.status.replace('_',' '))}</span>${next}${h.last_contacted_at ? `<span class="font-mono text-[10px] text-cream/40">last: ${esc(relTime(h.last_contacted_at))}</span>` : '<span class="font-mono text-[10px] text-brick/60 italic">never contacted</span>'}${h.contact_count > 0 ? `<span class="tag">${h.contact_count} contact${h.contact_count!==1?'s':''}</span>` : ''}${h.open_tasks > 0 ? `<span class="tag tag-warn">${h.open_tasks} task${h.open_tasks!==1?'s':''}</span>` : ''}</div>${h.primary_contact_email||h.primary_contact_name ? `<div class="text-sm text-cream/70 mt-1">${esc(h.primary_contact_name||'')}${h.primary_contact_email ? ` · <a href="mailto:${esc(h.primary_contact_email)}" class="text-bluegray hover:text-gold">${esc(h.primary_contact_email)}</a>` : ''}${h.primary_contact_role ? ` · <em class="text-cream/50">${esc(h.primary_contact_role)}</em>` : ''}</div>` : '<div class="text-sm text-brick/70 italic mt-1">no contact info — needs research</div>'}${h.company_name ? `<div class="text-[11px] text-cream/50 mt-1">→ ${esc(h.company_name)}</div>` : ''}</div><div class="flex items-center gap-1 px-3"><button class="btn btn-secondary btn-sm" data-edit-hoa="${esc(h.building_slug)}">Edit</button></div></div>`;
-    }).join('')}</div>
-    <div class="mt-8 placeholder">
-      <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>
-      <div>HOA pitch page editor · Recurring email schedules per HOA · Meeting prep templates</div>
-    </div>
-  `;
-  $$('[data-edit-hoa]').forEach(b => b.addEventListener('click', () => openHoaEditor(b.dataset.editHoa)));
-  $('#add-hoa-company').addEventListener('click', openCompanyEditor);
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">HOA Pipeline</h1><div id="hoa"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data, error } = await sb.from('v_hoa_pipeline').select('*').order('urgency_rank',{ascending:true}).limit(100);
+    if (error) throw error;
+    $('#hoa').innerHTML = `<div class="space-y-2">${(data||[]).map(h => `
+      <div class="card !p-3">
+        <div class="flex flex-wrap items-baseline gap-3">
+          <span class="font-mono text-sm font-medium">${esc(h.building_slug)}</span>
+          <span class="tag ${h.status==='won'?'tag-good':h.status==='declined'?'tag-bad':'tag-warn'}">${esc(h.status.replace('_',' '))}</span>
+          ${h.next_action_at ? `<span class="font-mono text-[10px] text-cream/50">next: ${esc(relTime(h.next_action_at))}</span>` : ''}
+          ${h.contact_count > 0 ? `<span class="tag">${h.contact_count} contact${h.contact_count!==1?'s':''}</span>` : ''}
+        </div>
+        ${h.primary_contact_email ? `<div class="text-sm text-cream/70 mt-1">${esc(h.primary_contact_name||'')} · ${esc(h.primary_contact_email)}</div>` : ''}
+      </div>`).join('')}</div>
+      <div class="placeholder mt-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>HOA pitch page editor, full CRM, recurring schedules</div>`;
+  } catch (e) {
+    $('#hoa').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
 }
 
-async function openHoaEditor(slug) {
-  const { data: hoa } = await sb.from('hoa_outreach').select('*').eq('building_slug', slug).maybeSingle();
-  const { data: contacts } = await sb.from('hoa_contacts').select('*').eq('building_slug', slug).order('is_primary',{ascending:false});
-  const { data: companies } = await sb.from('hoa_companies').select('id, name').order('name');
-  if (!hoa) { alert('HOA row not found.'); return; }
-  const backdrop = document.createElement('div'); backdrop.className = 'drawer-backdrop';
-  const drawer = document.createElement('div'); drawer.className = 'drawer';
-  drawer.innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="font-display text-2xl italic">${esc(slug)}</h2>
-      <button class="btn btn-secondary btn-sm" id="hoa-close">Close</button>
-    </div>
-    <form id="hoa-edit-form" class="space-y-3">
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Status</span>
-        <select name="status">${['untouched','targeted','emailed','meeting_scheduled','meeting_held','won','declined','dormant'].map(s => `<option ${hoa.status===s?'selected':''} value="${s}">${s.replace('_',' ')}</option>`).join('')}</select>
-      </label>
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Company</span>
-        <select name="company_id"><option value="">— none —</option>${(companies||[]).map(c => `<option value="${c.id}" ${hoa.company_id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
-      </label>
-      <div class="grid grid-cols-2 gap-3">
-        <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Next action</span><input type="datetime-local" name="next_action_at" value="${hoa.next_action_at ? new Date(hoa.next_action_at).toISOString().slice(0,16) : ''}"></label>
-        <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Last contacted</span><input type="datetime-local" name="last_contacted_at" value="${hoa.last_contacted_at ? new Date(hoa.last_contacted_at).toISOString().slice(0,16) : ''}"></label>
-      </div>
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Notes</span><textarea name="notes" rows="3">${esc(hoa.notes||'')}</textarea></label>
-      <button class="btn btn-primary">Save</button>
-    </form>
-    <h3 class="font-display text-lg mt-6 mb-2">Contacts <span class="text-xs text-cream/50 font-sans">(${(contacts||[]).length})</span></h3>
-    <div class="space-y-2 mb-3">${(contacts||[]).map(ct => `<div class="card !p-3 flex items-center justify-between"><div><div class="font-medium">${esc(ct.full_name)}${ct.is_primary?' <span class="tag tag-good">primary</span>':''}</div><div class="text-xs text-cream/60">${esc(ct.role.replace('_',' '))}${ct.email ? ` · ${esc(ct.email)}` : ''}${ct.phone ? ` · ${esc(ct.phone)}` : ''}</div></div><button class="btn btn-danger btn-sm" data-del-contact="${ct.id}">Delete</button></div>`).join('') || '<div class="placeholder !p-4 text-xs">No contacts yet.</div>'}</div>
-    <form id="add-contact-form" class="space-y-2 card">
-      <div class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60 mb-2">Add contact</div>
-      <div class="grid grid-cols-2 gap-2">
-        <input type="text" name="full_name" placeholder="Name" required>
-        <select name="role">${['board_president','board_member','board_treasurer','board_secretary','property_manager','building_manager','concierge','other'].map(r => `<option value="${r}">${r.replace('_',' ')}</option>`).join('')}</select>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <input type="email" name="email" placeholder="Email">
-        <input type="text" name="phone" placeholder="Phone">
-      </div>
-      <label class="flex items-center gap-2 text-xs"><input type="checkbox" name="is_primary"> Set as primary</label>
-      <button class="btn btn-primary btn-sm">Add contact</button>
-    </form>
-    <div class="placeholder mt-6">
-      <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>
-      <div>HOA pitch page editor + public preview at /hoa-pitch/${esc(slug)}/</div>
-    </div>
-  `;
-  document.body.append(backdrop, drawer);
-  const close = () => { backdrop.remove(); drawer.remove(); };
-  backdrop.addEventListener('click', close);
-  $('#hoa-close', drawer).addEventListener('click', close);
-  $('#hoa-edit-form', drawer).addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const updates = {
-      status: fd.get('status'),
-      company_id: fd.get('company_id') || null,
-      next_action_at: fd.get('next_action_at') || null,
-      last_contacted_at: fd.get('last_contacted_at') || null,
-      notes: fd.get('notes') || null,
-    };
-    const { error } = await sb.from('hoa_outreach').update(updates).eq('building_slug', slug);
-    if (error) { alert('Save failed: ' + error.message); return; }
-    close(); renderHoa();
-  });
-  $('#add-contact-form', drawer).addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const { error } = await sb.from('hoa_contacts').insert({
-      building_slug: slug,
-      full_name: fd.get('full_name'),
-      role: fd.get('role'),
-      email: fd.get('email') || null,
-      phone: fd.get('phone') || null,
-      is_primary: fd.get('is_primary') === 'on',
-    });
-    if (error) { alert('Add failed: ' + error.message); return; }
-    close(); openHoaEditor(slug);
-  });
-  $$('[data-del-contact]', drawer).forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Delete this contact?')) return;
-    await sb.from('hoa_contacts').delete().eq('id', b.dataset.delContact);
-    close(); openHoaEditor(slug);
-  }));
-}
-
-async function openCompanyEditor() {
-  const backdrop = document.createElement('div'); backdrop.className = 'drawer-backdrop';
-  const drawer = document.createElement('div'); drawer.className = 'drawer';
-  drawer.innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="font-display text-2xl italic">Add HOA Company</h2>
-      <button class="btn btn-secondary btn-sm" id="co-close">Close</button>
-    </div>
-    <form id="co-form" class="space-y-3">
-      <input type="text" name="name" placeholder="Company name (e.g. Action Property Management)" required>
-      <input type="text" name="primary_contact_name" placeholder="Primary contact name">
-      <input type="email" name="primary_contact_email" placeholder="Primary contact email">
-      <input type="text" name="primary_contact_phone" placeholder="Phone">
-      <input type="text" name="website" placeholder="https://...">
-      <input type="number" name="buildings_managed_est" placeholder="Approx buildings managed">
-      <textarea name="notes" rows="3" placeholder="Notes"></textarea>
-      <button class="btn btn-primary">Create company</button>
-    </form>
-  `;
-  document.body.append(backdrop, drawer);
-  const close = () => { backdrop.remove(); drawer.remove(); };
-  backdrop.addEventListener('click', close);
-  $('#co-close', drawer).addEventListener('click', close);
-  $('#co-form', drawer).addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const { error } = await sb.from('hoa_companies').insert({
-      name: fd.get('name'),
-      primary_contact_name: fd.get('primary_contact_name') || null,
-      primary_contact_email: fd.get('primary_contact_email') || null,
-      primary_contact_phone: fd.get('primary_contact_phone') || null,
-      website: fd.get('website') || null,
-      buildings_managed_est: fd.get('buildings_managed_est') ? Number(fd.get('buildings_managed_est')) : null,
-      notes: fd.get('notes') || null,
-    });
-    if (error) { alert('Create failed: ' + error.message); return; }
-    close(); renderHoa();
-  });
-}
-
-// ========================= EMAIL =========================
 async function renderEmail() {
-  const c = $('#content');
-  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Marketing</h1><div id="email-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const [{ data: templates }, { data: schedules }, { data: rules }] = await Promise.all([
-    sb.from('email_templates').select('*').eq('is_active', true).order('category').order('name'),
-    sb.from('email_schedules').select('*, email_templates(slug,name)').order('next_run_at',{ascending:true,nullsFirst:false}),
-    sb.from('automation_rules').select('*, email_templates(slug,name)').order('trigger_count',{ascending:false}),
-  ]);
-  $('#email-content').innerHTML = `
-    <h2 class="font-display text-lg mb-3">Templates <span class="text-xs text-cream/50 font-sans">(${(templates||[]).length})</span></h2>
-    <div class="card !p-0 mb-6"><table><thead><tr><th>Template</th><th>Category</th><th>Subject</th><th>Merge vars</th></tr></thead><tbody>${(templates||[]).map(t => `<tr><td><div class="font-medium">${esc(t.name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(t.slug)}</div></td><td><span class="tag">${esc(t.category)}</span></td><td class="text-sm text-cream/80">${esc(t.subject)}</td><td class="font-mono text-[10px] text-cream/50">${esc(JSON.stringify(t.merge_vars))}</td></tr>`).join('') || '<tr><td colspan="4" class="text-center text-cream/50 p-8">No templates.</td></tr>'}</tbody></table></div>
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email</h1><div id="email"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data: templates, error } = await sb.from('email_templates').select('*').eq('is_active', true);
+    if (error) throw error;
+    $('#email').innerHTML = `<div class="card !p-0 mb-6"><table>
+      <thead><tr><th>Template</th><th>Category</th><th>Subject</th></tr></thead>
+      <tbody>${(templates||[]).map(t => `<tr><td><div class="font-medium">${esc(t.name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(t.slug)}</div></td><td><span class="tag">${esc(t.category)}</span></td><td class="text-sm text-cream/80">${esc(t.subject)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="placeholder"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>Template editor, recipient builder, manual send, recurring schedules, automation rules</div>`;
+  } catch (e) {
+    $('#email').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
+}
 
-    <h2 class="font-display text-lg mb-3">Recurring schedules <span class="text-xs text-cream/50 font-sans">(${(schedules||[]).length})</span></h2>
-    ${(schedules||[]).length ? `<div class="card !p-0 mb-6"><table><thead><tr><th>Name</th><th>Template</th><th>Recipients</th><th>Cron</th><th>Next run</th><th>Active</th></tr></thead><tbody>${schedules.map(s => `<tr><td>${esc(s.name)}</td><td class="font-mono text-xs">${esc(s.email_templates?.slug||'?')}</td><td class="text-sm">${esc(s.recipient_description||'—')}</td><td class="font-mono text-xs">${esc(s.cron_expression||'—')}</td><td class="font-mono text-xs">${esc(relTime(s.next_run_at))}</td><td>${s.is_active?'<span class="tag tag-good">on</span>':'<span class="tag">off</span>'}</td></tr>`).join('')}</tbody></table></div>` : `<div class="placeholder mb-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>No recurring schedules yet. The schema is ready; the cron processor + UI ships next.</div>`}
+async function renderQueue() {
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Queue</h1><div id="q"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data, error } = await sb.from('v_send_capacity_by_city').select('*');
+    if (error) throw error;
+    $('#q').innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${(data||[]).map(c => `
+      <div class="card">
+        <div class="flex items-baseline justify-between mb-2"><div class="font-display text-lg">${esc(c.display_name)}</div><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></div>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Sent today</div><div class="font-display text-2xl">${fmtNum(c.sent_today||0)}/${fmtNum(c.daily_cap||0)}</div></div>
+          <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Pending</div><div class="font-display text-2xl text-bluegray">${fmtNum(c.pending_total||0)}</div></div>
+        </div>
+      </div>`).join('')}</div>`;
+  } catch (e) {
+    $('#q').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
+}
 
-    <h2 class="font-display text-lg mb-3">Automation rules <span class="text-xs text-cream/50 font-sans">(${(rules||[]).length})</span></h2>
-    ${(rules||[]).length ? `<div class="card !p-0 mb-6"><table><thead><tr><th>Name</th><th>Trigger</th><th>Template</th><th>Recipients</th><th>Triggered</th></tr></thead><tbody>${rules.map(r => `<tr><td>${esc(r.name)}</td><td class="font-mono text-xs">${esc(r.trigger_type)}</td><td class="font-mono text-xs">${esc(r.email_templates?.slug||'?')}</td><td>${esc(r.recipient_strategy)}</td><td>${fmtNum(r.trigger_count)}</td></tr>`).join('')}</tbody></table></div>` : `<div class="placeholder mb-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>No automation rules yet. Build "new_sale → just_sold email to building owners" here.</div>`}
+async function renderBuildings() {
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Buildings <span class="text-cream/50 text-sm font-sans italic">— penetration & engagement</span></h1><div id="b"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data, error } = await sb.from('v_building_penetration').select('*').not('unit_count','is',null).order('signed_up',{ascending:false,nullsFirst:false}).order('open_rate_pct',{ascending:false,nullsFirst:false}).limit(50);
+    if (error) throw error;
+    $('#b').innerHTML = `<div class="card !p-0"><table>
+      <thead><tr><th>Building</th><th>Units</th><th>Coverage</th><th>Sent</th><th>Open %</th><th>Signups</th><th>MMMs</th></tr></thead>
+      <tbody>${(data||[]).map(b => `<tr>
+        <td><div class="font-medium">${esc(b.display_name||b.slug)}</div><div class="font-mono text-[11px] text-cream/50">${esc(b.slug)}</div></td>
+        <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
+        <td>${b.unit_coverage_pct != null ? `<span class="${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span>` : '—'}</td>
+        <td>${fmtNum(b.emails_sent_unique)}</td>
+        <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '—'}</td>
+        <td>${fmtNum(b.signed_up)}</td>
+        <td>${fmtNum(b.active_mmms)}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch (e) {
+    $('#b').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
+}
 
-    <div class="placeholder">
-      <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B priorities</div>
-      <div class="text-cream/70 text-sm">Template editor with live preview · Recipient builder UI · Manual send-now form · Automation rule builder · "New Sale" trigger integration · Per-HOA email schedules</div>
-      <div class="mt-4">For now: use Claude command on <a href="#home" class="text-gold underline">Home</a> with prompts like "draft a Just Sold email to all owners at 480 Mission Bay Blvd N about unit 421 for $1.85M"</div>
+async function renderMmm() {
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Make Me Move</h1><div id="m"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data, error } = await sb.from('make_me_move').select('id,building_slug,unit_address,target_price,is_active,set_at').order('is_active',{ascending:false}).order('set_at',{ascending:false});
+    if (error) throw error;
+    $('#m').innerHTML = `<div class="card !p-0"><table>
+      <thead><tr><th>Building · Unit</th><th>Price</th><th>Active</th><th>Set</th></tr></thead>
+      <tbody>${(data||[]).map(m => `<tr class="${m.is_active?'':'opacity-50'}">
+        <td><div class="font-medium">${esc(m.building_slug)} · #${esc(m.unit_address)}</div></td>
+        <td class="font-display text-lg ${m.is_active?'text-gold':''}">${fmtMoney(m.target_price)}</td>
+        <td>${m.is_active?'<span class="tag tag-good">active</span>':'<span class="tag">inactive</span>'}</td>
+        <td class="font-mono text-xs">${esc(relTime(m.set_at))}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch (e) {
+    $('#m').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
+}
+
+async function renderAnalytics() {
+  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Analytics</h1><div id="a"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  try {
+    const { data: stats, error } = await sb.from('v_platform_stats').select('*').maybeSingle();
+    if (error) throw error;
+    const s = stats || {};
+    const tiles = [['Buildings',s.total_buildings],['People',s.total_people],['Accounts',s.active_accounts],['Sent (all)',s.emails_sent_total],['Opens',s.emails_opened_total],['Active MMMs',s.active_mmms],['Approved claims',s.approved_unit_claims],['Open tasks',s.open_tasks],['Overdue',s.overdue_tasks],['Sent (24h)',s.emails_sent_24h]];
+    $('#a').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-5 gap-2">${tiles.map(([l,n]) => `<div class="card !p-3"><div class="font-mono text-[9px] tracking-[0.1em] uppercase text-cream/50 mb-1">${esc(l)}</div><div class="font-display text-xl">${fmtNum(n)}</div></div>`).join('')}</div>`;
+  } catch (e) {
+    $('#a').innerHTML = `<div class="flash flash-err">${esc(e.message)}</div>`;
+  }
+}
+
+async function renderSettings() {
+  $('#content').innerHTML = `
+    <h1 class="font-display text-3xl italic mb-4">Settings</h1>
+    <div class="card mb-6">
+      <h2 class="font-display text-lg mb-3">Signed in as</h2>
+      <div class="text-sm text-cream/80 font-mono">${esc(currentUser?.email)}</div>
+      <div class="text-xs text-cream/50 mt-1">id: ${esc(currentUser?.id)}</div>
+    </div>
+    <div class="card mb-6">
+      <h2 class="font-display text-lg mb-3">Edge function setup</h2>
+      <div class="text-sm text-cream/70 mb-3">The Claude command interface requires <span class="font-mono text-gold">ANTHROPIC_API_KEY</span> set as a Supabase Edge Functions secret.</div>
+      <ol class="text-sm space-y-1 list-decimal pl-5 text-cream/80">
+        <li>Open <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/functions" target="_blank" class="text-gold underline">Edge Functions secrets</a></li>
+        <li>Add secret <span class="font-mono">ANTHROPIC_API_KEY</span> with your Anthropic key</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2 class="font-display text-lg mb-3">Sprint B priorities</h2>
+      <div class="text-sm text-cream/75 space-y-2">
+        <div>1. Inline SQL execution for Claude command queries</div>
+        <div>2. "Draft to me first" email send pipeline</div>
+        <div>3. New-sale automation engine</div>
+        <div>4. Recurring email scheduler</div>
+        <div>5. HOA pitch page editor + public route</div>
+        <div>6. Email template editor with live preview</div>
+        <div>7. Manual send-now form</div>
+      </div>
     </div>
   `;
 }
 
-// ========================= QUEUE =========================
-async function renderQueue() {
-  const c = $('#content');
-  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Queue</h1><div id="q-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const [{ data: byCity }, { data: byCamp }, { data: caps }, { data: recent }] = await Promise.all([
-    sb.from('v_send_capacity_by_city').select('*'),
-    sb.from('v_email_queue_by_campaign').select('*').limit(20),
-    sb.from('email_send_caps').select('*').order('effective_from'),
-    sb.from('email_queue').select('id,campaign_key,recipient_email,status,scheduled_for,sent_at,skip_reason,last_error').order('updated_at',{ascending:false}).limit(20),
-  ]);
-  $('#q-content').innerHTML = `
-    <h2 class="font-display text-lg mb-3">Per-city capacity</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">${(byCity||[]).map(c => {
-      const util = c.daily_cap > 0 ? Math.round((c.sent_today/c.daily_cap)*100) : 0;
-      const color = util > 80 ? '#d88080' : util > 50 ? '#d4a574' : '#7c9d6a';
-      return `<div class="card"><div class="flex items-baseline justify-between mb-2"><div class="font-display text-lg">${esc(c.display_name)}</div><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></div><div class="grid grid-cols-2 gap-3 text-sm"><div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Sent today</div><div class="font-display text-2xl" style="color:${color}">${fmtNum(c.sent_today)}/${fmtNum(c.daily_cap)} <span class="text-xs font-sans">(${util}%)</span></div></div><div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Pending</div><div class="font-display text-2xl text-bluegray">${fmtNum(c.pending_total)}</div></div></div></div>`;
-    }).join('')}</div>
-    <h2 class="font-display text-lg mb-3">By campaign</h2>
-    ${(byCamp||[]).length ? `<div class="card !p-0 mb-6"><table><thead><tr><th>Campaign</th><th>Total</th><th>Pending</th><th>Sent</th><th>Failed</th><th>Last sent</th></tr></thead><tbody>${byCamp.map(c => `<tr><td class="font-mono text-xs">${esc(c.campaign_key)}</td><td>${fmtNum(c.total)}</td><td>${fmtNum(c.pending)}</td><td>${fmtNum(c.sent)}</td><td>${fmtNum(c.failed)}</td><td class="font-mono text-xs">${esc(relTime(c.last_sent_at))}</td></tr>`).join('')}</tbody></table></div>` : '<div class="placeholder mb-6">No campaigns in queue yet.</div>'}
-    <h2 class="font-display text-lg mb-3">Warmup curves</h2>
-    <div class="card !p-0 mb-6"><table><thead><tr><th>City</th><th>Effective</th><th>Daily cap</th><th>Cool-down</th><th>Notes</th></tr></thead><tbody>${(caps||[]).map(c => `<tr><td class="font-mono text-xs">${esc(c.city_id ? '(city)' : '(global)')}</td><td>${esc(fmtDate(c.effective_from))}</td><td class="font-display">${fmtNum(c.daily_cap)}</td><td>${esc(c.per_person_min_days)}d</td><td class="text-xs text-cream/70">${esc(c.notes||'')}</td></tr>`).join('')}</tbody></table></div>
-    <h2 class="font-display text-lg mb-3">Recent activity</h2>
-    ${(recent||[]).length ? `<div class="card !p-0"><table><thead><tr><th>Recipient</th><th>Campaign</th><th>Status</th><th>When</th><th>Note</th></tr></thead><tbody>${recent.map(r => `<tr><td class="font-mono text-xs">${esc(r.recipient_email)}</td><td class="font-mono text-xs">${esc(r.campaign_key)}</td><td><span class="tag ${r.status==='sent'?'tag-good':r.status==='failed'?'tag-bad':''}">${esc(r.status)}</span></td><td class="font-mono text-xs">${esc(r.sent_at?relTime(r.sent_at):relTime(r.scheduled_for))}</td><td class="text-xs text-cream/60">${esc(r.skip_reason||r.last_error||'')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="placeholder">No queue activity yet.</div>'}
-  `;
-}
-
-// ========================= BUILDINGS =========================
-async function renderBuildings() {
-  const c = $('#content');
-  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Buildings <span class="text-cream/50 text-sm font-sans italic">— penetration & engagement</span></h1><div id="b-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data } = await sb.from('v_building_penetration').select('*').not('unit_count', 'is', null).order('signed_up',{ascending:false,nullsFirst:false}).order('open_rate_pct',{ascending:false,nullsFirst:false});
-  $('#b-content').innerHTML = `
-    <div class="card !p-0"><table><thead><tr><th>Building</th><th>Units</th><th>Coverage</th><th>Sent</th><th>Open rate</th><th>Signups</th><th>Claims</th><th>MMMs</th></tr></thead>
-    <tbody>${(data||[]).map(b => `<tr><td><div class="font-medium">${esc(b.display_name||b.slug)}</div><div class="font-mono text-[11px] text-cream/50">${esc(b.slug)}${b.neighborhood?` · ${esc(b.neighborhood)}`:''}</div></td>
-    <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
-    <td>${b.unit_coverage_pct !== null ? `<span class="font-display ${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span><div class="font-mono text-[11px] text-cream/40">${fmtNum(b.units_covered)}/${fmtNum(b.unit_count)}</div>` : '—'}</td>
-    <td>${fmtNum(b.emails_sent_unique)}</td>
-    <td>${b.open_rate_pct !== null ? `<span class="font-display ${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : 'text-cream/60'}">${b.open_rate_pct}%</span>` : '—'}</td>
-    <td>${fmtNum(b.signed_up)}</td>
-    <td>${fmtNum(b.approved_claims)}</td>
-    <td>${fmtNum(b.active_mmms)}</td>
-    </tr>`).join('')}</tbody></table></div>
-  `;
-}
-
-// ========================= MMM =========================
-async function renderMmm() {
-  const c = $('#content');
-  c.innerHTML = `<div class="flex items-baseline justify-between mb-4"><h1 class="font-display text-3xl italic">Make Me Move</h1><button id="add-mmm" class="btn btn-primary btn-sm">+ Add MMM</button></div><div id="mmm-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data } = await sb.from('make_me_move').select('id,user_id,building_slug,unit_address,target_price,is_active,notes,set_at,updated_at').order('is_active',{ascending:false}).order('set_at',{ascending:false});
-  const { data: buildings } = await sb.from('buildings').select('slug,display_name').order('display_name');
-  const { data: profiles } = await sb.from('profiles').select('id,email,full_name').order('full_name',{nullsFirst:false});
-  const bMap = Object.fromEntries((buildings||[]).map(b => [b.slug, b.display_name||b.slug]));
-  const pMap = Object.fromEntries((profiles||[]).map(p => [p.id, p.full_name || p.email]));
-  $('#mmm-content').innerHTML = `<div class="card !p-0"><table><thead><tr><th>Building · Unit</th><th>Owner</th><th>Price</th><th>Active</th><th>Set</th><th></th></tr></thead><tbody>${(data||[]).map(m => `<tr class="${m.is_active?'':'opacity-50'}"><td><div class="font-medium">${esc(bMap[m.building_slug]||m.building_slug)} · #${esc(m.unit_address)}</div><div class="font-mono text-[11px] text-cream/50">${esc(m.building_slug)}</div></td><td class="text-sm">${esc(pMap[m.user_id]||m.user_id)}</td><td class="font-display text-lg ${m.is_active?'text-gold':''}">${fmtMoney(m.target_price)}</td><td>${m.is_active?'<span class="tag tag-good">active</span>':'<span class="tag">inactive</span>'}</td><td class="font-mono text-xs">${esc(relTime(m.set_at))}</td><td><button class="btn btn-secondary btn-sm" data-edit-mmm="${m.id}">Edit</button> <button class="btn btn-danger btn-sm" data-del-mmm="${m.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
-  $$('[data-del-mmm]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Delete MMM?')) return;
-    await sb.from('make_me_move').delete().eq('id', b.dataset.delMmm);
-    renderMmm();
-  }));
-  $$('[data-edit-mmm]').forEach(b => b.addEventListener('click', () => openMmmEditor(b.dataset.editMmm, buildings, profiles)));
-  $('#add-mmm').addEventListener('click', () => openMmmEditor(null, buildings, profiles));
-}
-
-async function openMmmEditor(id, buildings, profiles) {
-  let mmm = { user_id:'', building_slug:'', unit_address:'', target_price:'', is_active: true, notes:'' };
-  if (id) { const { data } = await sb.from('make_me_move').select('*').eq('id', id).maybeSingle(); if (data) mmm = data; }
-  const backdrop = document.createElement('div'); backdrop.className = 'drawer-backdrop';
-  const drawer = document.createElement('div'); drawer.className = 'drawer';
-  drawer.innerHTML = `
-    <div class="flex items-center justify-between mb-4"><h2 class="font-display text-2xl italic">${id?'Edit':'Add'} MMM</h2><button class="btn btn-secondary btn-sm" id="m-close">Close</button></div>
-    <form id="m-form" class="space-y-3">
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Building</span><select name="building_slug" required><option value="">— choose —</option>${(buildings||[]).map(b => `<option value="${esc(b.slug)}" ${mmm.building_slug===b.slug?'selected':''}>${esc(b.display_name||b.slug)}</option>`).join('')}</select></label>
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Unit</span><input type="text" name="unit_address" value="${esc(mmm.unit_address)}" required maxlength="32"></label>
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Owner</span><select name="user_id" required><option value="">— choose —</option>${(profiles||[]).map(p => `<option value="${esc(p.id)}" ${mmm.user_id===p.id?'selected':''}>${esc(p.full_name||p.email)}</option>`).join('')}</select></label>
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Target price (USD)</span><input type="number" name="target_price" value="${esc(mmm.target_price)}" required min="1"></label>
-      <label class="flex items-center gap-2"><input type="checkbox" name="is_active" ${mmm.is_active?'checked':''}> Active (visible on building page)</label>
-      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Notes</span><textarea name="notes" rows="2">${esc(mmm.notes||'')}</textarea></label>
-      <button class="btn btn-primary">${id?'Save':'Create'}</button>
-    </form>
-  `;
-  document.body.append(backdrop, drawer);
-  const close = () => { backdrop.remove(); drawer.remove(); };
-  backdrop.addEventListener('click', close);
-  $('#m-close', drawer).addEventListener('click', close);
-  $('#m-form', drawer).addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const payload = {
-      user_id: fd.get('user_id'),
-      building_slug: fd.get('building_slug'),
-      unit_address: fd.get('unit_address'),
-      target_price: Number(fd.get('target_price')),
-      is_active: fd.get('is_active') === 'on',
-      notes: fd.get('notes') || null,
-    };
-    const op = id ? sb.from('make_me_move').update(payload).eq('id', id) : sb.from('make_me_move').insert(payload);
-    const { error } = await op;
-    if (error) { alert(error.message); return; }
-    close(); renderMmm();
-  });
-}
-
-// ========================= ANALYTICS =========================
-async function renderAnalytics() {
-  const c = $('#content');
-  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Analytics</h1><div id="a-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const [{ data: stats }, { data: cities }, { data: funnel }, { data: waves }] = await Promise.all([
-    sb.from('v_platform_stats').select('*').maybeSingle(),
-    sb.from('v_city_stats').select('*').order('people_count',{ascending:false}),
-    sb.from('v_funnel_drop').select('*').order('rank'),
-    sb.from('v_wave_performance').select('*'),
-  ]);
-  const s = stats || {};
-  const tiles = [['Active cities',s.active_cities],['Buildings',s.total_buildings],['Published',s.published_buildings],['Catalogued',s.catalogued_buildings],['People',s.total_people],['Accounts',s.active_accounts],['Ownership',s.total_ownership_records],['Sent (all)',s.emails_sent_total],['Opens',s.emails_opened_total],['Clicks',s.emails_clicked_total],['Sent (24h)',s.emails_sent_24h],['Sent (7d)',s.emails_sent_7d],['Bounced',s.total_bounced],['Unsubs',s.total_unsubscribed],['Active MMMs',s.active_mmms],['Approved claims',s.approved_unit_claims],['Pending claims',s.pending_unit_claims],['Open offers',s.open_offers],['Open tasks',s.open_tasks],['Overdue',s.overdue_tasks]];
-  $('#a-content').innerHTML = `
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6">${tiles.map(([l,n]) => `<div class="card !p-3"><div class="font-mono text-[9px] tracking-[0.1em] uppercase text-cream/50 mb-1">${esc(l)}</div><div class="font-display text-xl">${fmtNum(n)}</div></div>`).join('')}</div>
-    <h2 class="font-display text-lg mb-3">Per-city</h2>
-    <div class="card !p-0 mb-6"><table><thead><tr><th>City</th><th>Status</th><th>Buildings</th><th>People</th><th>Accounts</th><th>Launched</th></tr></thead><tbody>${(cities||[]).map(c => `<tr><td><div class="font-medium">${esc(c.display_name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(c.slug)}</div>
-    </div></td>
-<td><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></td>
-<td>${fmtNum(c.buildings_count)}</td>
-<td>${fmtNum(c.people_count)}</td>
-<td>${fmtNum(c.accounts_count)}</td>
-<td class="font-mono text-xs">${c.launched_at ? esc(fmtDate(c.launched_at)) : '—'}</td>
-</tr>`).join('')}</tbody></table></div>
-
-    <h2 class="font-display text-lg mb-3">Funnel drop-off</h2>
-    <div class="card !p-0 mb-6"><table><thead><tr><th>Stage</th><th>Count</th><th>Drop from previous</th></tr></thead>
-    <tbody>${(funnel||[]).map(f => `<tr><td class="font-mono text-xs uppercase tracking-wider">${esc(f.stage)}</td><td class="font-display text-lg">${fmtNum(f.n)}</td><td>${f.drop_pct !== null ? `<span class="${f.drop_pct >= 90 ? 'text-brick' : f.drop_pct >= 50 ? 'text-amber' : 'text-cream/60'}">−${f.drop_pct}%</span><div class="font-mono text-[10px] text-cream/40">from ${fmtNum(f.prev_n)}</div>` : '—'}</td></tr>`).join('')}</tbody></table></div>
-
-    <h2 class="font-display text-lg mb-3">Wave-over-wave</h2>
-    <div class="card !p-0"><table><thead><tr><th>Wave</th><th>Sent</th><th>Delivered</th><th>Opened</th><th>Open rate</th><th>CTR-of-opens</th><th>Bounce</th></tr></thead>
-    <tbody>${(waves||[]).map(w => `<tr><td class="font-display text-lg">${fmtNum(w.wave_number)}</td><td>${fmtNum(w.total)}</td><td>${fmtNum(w.delivered)}</td><td>${fmtNum(w.opened)}</td><td>${w.open_rate_pct !== null ? `<span class="${w.open_rate_pct >= 25 ? 'text-sage' : w.open_rate_pct >= 15 ? 'text-amber' : 'text-cream/60'}">${w.open_rate_pct}%</span>` : '—'}</td><td>${w.ctr_pct_of_opens !== null ? `${w.ctr_pct_of_opens}%` : '—'}</td><td>${w.bounce_rate_pct !== null ? `<span class="${w.bounce_rate_pct > 5 ? 'text-brick' : ''}">${w.bounce_rate_pct}%</span>` : '—'}</td></tr>`).join('')}</tbody></table></div>
-  `;
-}
-
-// ========================= SETTINGS =========================
-async function renderSettings() {
-  const c = $('#content');
-  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Settings</h1><div id="s-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const [{ data: cities }, { data: caps }] = await Promise.all([
-    sb.from('cities').select('*').order('slug'),
-    sb.from('email_send_caps').select('*').order('city_id',{nullsFirst:true}).order('effective_from'),
-  ]);
-  $('#s-content').innerHTML = `
-    <section class="mb-8">
-      <h2 class="font-display text-lg mb-3">Cities</h2>
-      <div class="card !p-0 mb-3"><table><thead><tr><th>Slug</th><th>Name</th><th>State</th><th>Status</th><th>Domain</th><th>Brand</th></tr></thead><tbody>${(cities||[]).map(c => `<tr><td class="font-mono text-xs">${esc(c.slug)}</td><td>${esc(c.display_name)}</td><td>${esc(c.state)}</td><td><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></td><td class="text-xs">${esc(c.domain||'—')}</td><td><span class="font-mono text-xs" style="color:${c.brand_color||'#666'}">${esc(c.brand_color||'—')}</span></td></tr>`).join('')}</tbody></table></div>
-      <details class="card">
-        <summary class="cursor-pointer font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">+ Onboard new city</summary>
-        <div class="mt-3 text-sm text-cream/70">Run via SQL editor:</div>
-        <pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 mt-2 overflow-x-auto">SELECT public.setup_city(
-  p_slug              => 'oakland',
-  p_display_name      => 'Oakland',
-  p_state             => 'CA',
-  p_domain            => 'oaklandcondomarket.com',
-  p_brand_color       => '#4a7c7e',
-  p_initial_daily_cap => 100
-);</pre>
-        <div class="text-xs text-cream/50 mt-2">Returns next-steps checklist as JSON. Idempotent — safe to re-run.</div>
-      </details>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="font-display text-lg mb-3">Send caps</h2>
-      <div class="card !p-0"><table><thead><tr><th>Scope</th><th>Effective</th><th>Daily cap</th><th>Cool-down</th><th>Notes</th></tr></thead><tbody>${(caps||[]).map(c => `<tr><td class="font-mono text-xs">${c.city_id ? esc((cities||[]).find(ci => ci.id === c.city_id)?.slug || c.city_id) : '(global)'}</td><td class="font-mono text-xs">${esc(fmtDate(c.effective_from))}</td><td class="font-display text-lg">${fmtNum(c.daily_cap)}</td><td>${esc(c.per_person_min_days)}d</td><td class="text-xs text-cream/70">${esc(c.notes||'')}</td></tr>`).join('')}</tbody></table></div>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="font-display text-lg mb-3">Edge function secrets</h2>
-      <div class="card">
-        <div class="text-sm text-cream/70 mb-3">The Claude command interface on Home requires <span class="font-mono text-gold">ANTHROPIC_API_KEY</span> set as a Supabase Edge Functions secret.</div>
-        <ol class="text-sm space-y-1 list-decimal pl-5 text-cream/80">
-          <li>Open <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/functions" target="_blank" class="text-gold underline">Edge Functions secrets</a></li>
-          <li>Click <strong>Add new secret</strong></li>
-          <li>Name: <span class="font-mono text-gold">ANTHROPIC_API_KEY</span></li>
-          <li>Value: your Anthropic key (starts with <span class="font-mono">sk-ant-</span>)</li>
-          <li>Save. Optional: also set <span class="font-mono text-gold">CLAUDE_MODEL</span> (defaults to <span class="font-mono">claude-sonnet-4-6</span>)</li>
-        </ol>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="font-display text-lg mb-3">Pending Sprint B work</h2>
-      <div class="card text-sm text-cream/75 space-y-2">
-        <div>1. <strong>Automation engine</strong> — detect new sales → fire <span class="font-mono text-gold">just_sold</span> emails to building owners</div>
-        <div>2. <strong>Recurring scheduler</strong> — cron processor for <span class="font-mono">email_schedules</span> + UI builder</div>
-        <div>3. <strong>HOA pitch page editor</strong> — rich editor for <span class="font-mono">hoa_pitches.body_markdown</span> + public route at <span class="font-mono">/hoa-pitch/{slug}/</span></div>
-        <div>4. <strong>Email template editor</strong> — in-admin editor with merge-var picker + live preview</div>
-        <div>5. <strong>Manual send-now form</strong> — UI wrapping <span class="font-mono">enqueue_emails()</span> with recipient picker</div>
-        <div>6. <strong>Inline SQL execution</strong> — dedicated read-only SQL edge function so Claude command queries execute in-app instead of opening SQL editor</div>
-        <div>7. <strong>"Draft to me first"</strong> — wire into send-vip-invite for single-recipient preview before blasting</div>
-      </div>
-    </section>
-  `;
-}
-
-// ========================= INIT =========================
-checkAuth();
+console.log('[ADMIN] init complete, version 5.1');
 </script>
 </body>
 </html>
