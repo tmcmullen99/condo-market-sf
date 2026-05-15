@@ -95,7 +95,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.5</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.6</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -499,16 +499,11 @@ async function renderHoa() {
 }
 
 // ===== PARTNERS — PM firm partnership pipeline =====
-// Sprint 1 build (2026-05-15). Reuses hoa_companies for firm info;
-// partnership_outreach + partnership_outreach_events for state + history;
-// email_templates (category='partnership') for the 4 cadence emails.
-//
-// Sprint 2 (2026-05-15): adds /partners/<firm_slug>/portfolio sub-route
-// for per-firm portfolio overview (v_partner_portfolio view).
-//
-// Sprint 3 (2026-05-15): adds "Copy public link" + "Open ↗" buttons in the
-// portfolio header that point at the public /partners/?firm=<slug> page
-// (driven by v_partner_portfolio_public, anon-readable).
+// Sprint 1-4 build (2026-05-15).
+// Sprint 4: PUBLIC_PARTNER_URL now generates pretty paths (/partners/<slug>/)
+// matching the _redirects rewrite; renderPartnerComposer injects
+// public_portfolio_url as a default merge var so cold-email templates
+// auto-link to each prospect's live portfolio page.
 
 let _partnersCache = null;
 
@@ -527,8 +522,8 @@ const NEXT_ACTION_TO_SLUG = {
   send_reply:        'partnership_reply_engaged',
 };
 
-// Public partner page URL builder (Sprint 3)
-const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/?firm=${encodeURIComponent(slug)}`;
+// Public partner page URL builder — Sprint 4 uses pretty paths
+const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/${encodeURIComponent(slug)}/`;
 
 async function renderPartners(rest) {
   rest = Array.isArray(rest) ? rest : [];
@@ -716,9 +711,12 @@ function renderPartnerComposer(outreachId, container) {
 
   const defaultSlug = NEXT_ACTION_TO_SLUG[o.next_action_type] || 'partnership_initial_cold';
 
+  // Sprint 4: public_portfolio_url is a default merge var so templates
+  // auto-anchor to the firm's live portfolio page. custom_vars can override.
   const mergedVars = {
     first_name: o.contact_first_name || '',
     firm_name: firm?.name || '',
+    public_portfolio_url: firm?.slug ? PUBLIC_PARTNER_URL(firm.slug) : '',
     ...(o.custom_vars || {}),
   };
 
@@ -877,6 +875,7 @@ function renderPartnersTemplates() {
 // Per-firm dashboard: aggregate revenue opportunity + per-building stats.
 // Reads from v_partner_portfolio view (joined building_sales 12mo + MMM + contacts + ownership).
 // Sprint 3: header now includes "Copy public link" + "Open ↗" pointing at the public partner page.
+// Sprint 4: uses pretty PUBLIC_PARTNER_URL (path-based).
 
 async function renderPartnerPortfolio(firmSlug) {
   $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
@@ -1131,7 +1130,7 @@ async function renderSettings() {
 
 // ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.5 booted');
+console.log('[ADMIN] v5.6 booted');
 </script>
 </body>
 </html>
