@@ -3,1066 +3,856 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin · Condo Market SF</title>
-<meta name="robots" content="noindex">
-<link rel="icon" href="/favicon.svg">
+<meta name="robots" content="noindex,nofollow">
+<title>Condo Market · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script type="module" src="/assets/cm-auth-nav.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0f131d',navy2:'#1a1f2e',navy3:'#232a3d',cream:'#e8e3d8',bluegray:'#9fb4d8',gold:'#d4a574',sage:'#7c9d6a',brick:'#d88080',amber:'#b89860'},fontFamily:{display:['Playfair Display','Georgia','serif'],sans:['DM Sans','-apple-system','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
 <style>
-  :root {
-    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
-    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
-    --cm-ivory-faint: rgba(232, 227, 216, 0.36);
-    --cm-rule: rgba(232, 227, 216, 0.14);
-    --cm-bronze: #d4a574;
-    --cm-gain: #8fb97a;
-    --cm-amber: #d9a44b;
-    --cm-loss: #c97865;
-    --cm-ff-display: 'Playfair Display', Georgia, serif;
-    --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
-    --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--cm-navy-deep); color: var(--cm-ivory);
-    font-family: var(--cm-ff-body); font-weight: 300;
-    line-height: 1.55; min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
-  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
-  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
-  .wordmark em { color: var(--cm-peri); }
-  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
-  .meta .admin-pill { background: var(--cm-peri); color: var(--cm-navy); padding: 4px 10px; border-radius: 4px; font-weight: 500; }
-  main { padding: 56px 0 96px; }
-  h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(36px, 5vw, 52px); line-height: 1.05; margin-bottom: 8px; }
-  h1 .accent { color: var(--cm-peri); }
-  .subtitle { color: var(--cm-ivory-dim); font-size: 15px; margin-bottom: 48px; }
-
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 48px; }
-  .metric { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; }
-  .metric-label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
-  .metric-val { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 32px; color: var(--cm-ivory); line-height: 1; }
-  .metric-val.peri { color: var(--cm-peri); }
-  .metric-val.bronze { color: var(--cm-bronze); }
-  .metric-val.gain { color: var(--cm-gain); }
-  .metric-val.amber { color: var(--cm-amber); }
-
-  .section { margin-bottom: 48px; }
-  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-  .section h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 26px; color: var(--cm-ivory); }
-  .section h2 em { color: var(--cm-peri); }
-  .section-sub { font-family: var(--cm-ff-mono); font-size: 11px; color: var(--cm-ivory-dim); letter-spacing: 0.05em; }
-
-  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .filter {
-    background: var(--cm-navy); color: var(--cm-ivory);
-    border: 1px solid var(--cm-rule); border-radius: 6px;
-    padding: 7px 12px; font-family: var(--cm-ff-mono);
-    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-    cursor: pointer;
-  }
-  .filter:focus { outline: none; border-color: var(--cm-peri); }
-
-  .table-host { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; overflow: hidden; }
-  .table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .table th, .table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--cm-rule); }
-  .table th { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); font-weight: 500; }
-  .table tbody tr:last-child td { border-bottom: none; }
-  .table td { color: var(--cm-ivory); }
-
-  /* Offer row expand */
-  .table tr.offer-tr { cursor: pointer; transition: background 150ms ease; }
-  .table tr.offer-tr:hover { background: rgba(159, 180, 216, 0.04); }
-  .table tr.offer-tr.is-expanded { background: rgba(212, 165, 116, 0.04); }
-  .offer-amount-cell {
-    font-family: var(--cm-ff-display); font-style: italic; font-weight: 600;
-    color: var(--cm-bronze); font-size: 16px;
-  }
-  .offer-status {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 3px 9px; border-radius: 999px;
-  }
-  .offer-status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
-  .offer-status-pending { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
-  .offer-status-pending::before { background: var(--cm-amber); }
-  .offer-status-accepted { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
-  .offer-status-accepted::before { background: var(--cm-gain); }
-  .offer-status-declined { background: rgba(201, 120, 101, 0.12); color: var(--cm-loss); }
-  .offer-status-declined::before { background: var(--cm-loss); }
-  .offer-status-withdrawn, .offer-status-expired { background: rgba(232, 227, 216, 0.08); color: var(--cm-ivory-dim); }
-  .offer-status-withdrawn::before, .offer-status-expired::before { background: var(--cm-ivory-faint); }
-
-  .offer-detail { background: rgba(15, 19, 29, 0.4); }
-  .offer-detail-content {
-    padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-  }
-  @media (max-width: 720px) { .offer-detail-content { grid-template-columns: 1fr; } }
-  .offer-detail-block .dl-label {
-    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--cm-peri); margin-bottom: 6px;
-  }
-  .offer-detail-block .dl-value {
-    font-size: 14px; color: var(--cm-ivory); line-height: 1.55; margin-bottom: 14px;
-  }
-  .offer-detail-block .dl-value.italic {
-    font-style: italic;
-    border-left: 2px solid var(--cm-rule);
-    padding-left: 12px; padding-block: 2px;
-    color: var(--cm-ivory-dim);
-  }
-  .offer-detail-actions {
-    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;
-    grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--cm-rule);
-  }
-  .btn-mini {
-    padding: 8px 16px; border-radius: 999px; font-family: var(--cm-ff-body);
-    font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid;
-    transition: all 150ms ease;
-  }
-  .btn-mini-accept { background: var(--cm-gain); color: var(--cm-navy); border-color: var(--cm-gain); }
-  .btn-mini-accept:hover { opacity: 0.85; }
-  .btn-mini-decline { background: transparent; color: var(--cm-loss); border-color: rgba(201, 120, 101, 0.4); }
-  .btn-mini-decline:hover { background: rgba(201, 120, 101, 0.1); }
-  .btn-mini-expire { background: transparent; color: var(--cm-ivory-dim); border-color: var(--cm-rule); }
-  .btn-mini-expire:hover { background: rgba(232, 227, 216, 0.04); color: var(--cm-ivory); }
-
-  .empty-row td {
-    text-align: center; color: var(--cm-ivory-dim); padding: 36px;
-    font-style: italic;
-  }
-
-  /* ─── User row expand (Phase A) ────────────────────────────────────── */
-  .table tr.user-tr { cursor: pointer; transition: background 150ms ease; }
-  .table tr.user-tr:hover { background: rgba(159, 180, 216, 0.04); }
-  .table tr.user-tr.is-expanded { background: rgba(159, 180, 216, 0.06); }
-  .table tr.user-tr .chev {
-    display: inline-block; width: 14px; margin-right: 6px;
-    color: var(--cm-ivory-dim); transition: transform 0.18s; font-style: normal;
-  }
-  .table tr.user-tr.is-expanded .chev { transform: rotate(90deg); color: var(--cm-peri); }
-  .user-detail { background: rgba(15, 19, 29, 0.4); }
-  .user-detail-content {
-    padding: 22px 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
-  }
-  @media (max-width: 720px) { .user-detail-content { grid-template-columns: 1fr; } }
-  .user-detail h4 {
-    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--cm-ivory-dim);
-    margin-bottom: 14px; font-weight: 500;
-  }
-  .user-profile dl { margin: 0; }
-  .user-profile .dl-row {
-    display: grid; grid-template-columns: 110px 1fr; gap: 8px;
-    padding: 5px 0; font-size: 13px; align-items: baseline;
-  }
-  .user-profile .dl-key {
-    font-family: var(--cm-ff-mono); font-size: 10px; color: var(--cm-ivory-dim);
-    letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .user-profile .dl-val { color: var(--cm-ivory); word-break: break-word; }
-  .user-profile .dl-val .role-pill {
-    display: inline-block; padding: 2px 8px; border-radius: 999px;
-    font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    background: rgba(159, 180, 216, 0.12); color: var(--cm-peri);
-    border: 1px solid rgba(159, 180, 216, 0.3);
-  }
-  .user-profile .dl-val .role-pill.is-admin {
-    background: rgba(212, 165, 116, 0.12); color: var(--cm-bronze);
-    border-color: rgba(212, 165, 116, 0.3);
-  }
-  .user-stats-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-  }
-  @media (max-width: 540px) { .user-stats-grid { grid-template-columns: repeat(2, 1fr); } }
-  .user-stat-tile {
-    background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule);
-    border-radius: 8px; padding: 14px 14px;
-  }
-  .user-stat-tile .stat-num {
-    font-family: var(--cm-ff-display); font-style: italic; font-weight: 500;
-    font-size: 22px; line-height: 1; color: var(--cm-ivory); margin-bottom: 5px;
-  }
-  .user-stat-tile .stat-lbl {
-    font-family: var(--cm-ff-mono); font-size: 9px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--cm-ivory-dim);
-  }
-  .user-activity {
-    grid-column: 1 / -1; padding-top: 18px;
-    border-top: 1px solid var(--cm-rule); margin-top: 4px;
-  }
-  .user-activity-list { max-height: 420px; overflow-y: auto; padding-right: 6px; }
-  .user-activity-list::-webkit-scrollbar { width: 6px; }
-  .user-activity-list::-webkit-scrollbar-track { background: transparent; }
-  .user-activity-list::-webkit-scrollbar-thumb { background: var(--cm-rule); border-radius: 3px; }
-  .user-activity-item {
-    display: grid; grid-template-columns: 26px 1fr auto; gap: 12px;
-    padding: 12px 0; border-bottom: 1px solid rgba(232, 227, 216, 0.06);
-    align-items: start;
-  }
-  .user-activity-item:last-child { border-bottom: none; }
-  .user-activity-icon {
-    width: 26px; height: 26px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(159, 180, 216, 0.10); color: var(--cm-peri); font-size: 13px;
-  }
-  .user-activity-icon.signup    { background: rgba(232, 227, 216, 0.08); color: var(--cm-ivory-dim); }
-  .user-activity-icon.offer     { background: rgba(212, 165, 116, 0.12); color: var(--cm-bronze); }
-  .user-activity-icon.listing   { background: rgba(143, 185, 122, 0.12); color: var(--cm-gain); }
-  .user-activity-icon.watchlist { background: rgba(159, 180, 216, 0.12); color: var(--cm-peri); }
-  .user-activity-icon.signature { background: rgba(179, 157, 219, 0.12); color: #b39ddb; }
-  .user-activity-icon.referral  { background: rgba(217, 164, 75, 0.12); color: var(--cm-amber); }
-  .user-activity-title {
-    font-size: 13px; color: var(--cm-ivory); line-height: 1.45;
-  }
-  .user-activity-body {
-    font-size: 11px; color: var(--cm-ivory-dim); margin-top: 3px;
-  }
-  .user-activity-ts {
-    font-family: var(--cm-ff-mono); font-size: 10px;
-    color: var(--cm-ivory-dim); letter-spacing: 0.04em;
-    white-space: nowrap; padding-top: 2px;
-  }
-  .user-activity-empty {
-    padding: 24px; text-align: center; color: var(--cm-ivory-faint);
-    font-style: italic; font-family: var(--cm-ff-display); font-size: 14px;
-  }
-  .user-detail-loading {
-    padding: 32px; text-align: center; color: var(--cm-ivory-dim);
-    font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.1em;
-  }
-  .user-detail-error {
-    padding: 24px; text-align: center; color: var(--cm-loss);
-    font-size: 13px;
-  }
-
-  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-  .tool-card { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 22px 24px; text-decoration: none; color: var(--cm-ivory); transition: all 0.15s; display: block; }
-  .tool-card:hover { border-color: var(--cm-peri); background: rgba(159, 180, 216, 0.08); }
-  .tool-card .t-name { font-family: var(--cm-ff-display); font-style: italic; font-size: 18px; margin-bottom: 4px; }
-  .tool-card .t-desc { color: var(--cm-ivory-dim); font-size: 13px; }
-  .tool-card.coming { opacity: 0.5; pointer-events: none; }
-  .tool-card.coming::after { content: 'Soon'; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri); border: 1px solid var(--cm-peri); padding: 2px 8px; border-radius: 4px; margin-left: 8px; display: inline-block; vertical-align: middle; }
-
-  .gate { text-align: center; padding: 120px 20px; }
-  .gate h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 32px; margin-bottom: 14px; color: var(--cm-ivory); }
-  .gate p { color: var(--cm-ivory-dim); font-size: 16px; max-width: 44ch; margin: 0 auto 28px; }
-  .btn { display: inline-block; padding: 13px 28px; border-radius: 999px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; border: 1px solid; transition: all 0.15s; }
-  .btn-p { background: var(--cm-peri); color: var(--cm-navy); border-color: var(--cm-peri); }
-  #loading { text-align: center; padding: 120px 20px; color: var(--cm-ivory-dim); }
+*{box-sizing:border-box}body{background:#0f131d;color:#e8e3d8;font-family:'DM Sans',sans-serif;min-height:100vh;margin:0}
+.font-display{font-family:'Playfair Display',Georgia,serif}.font-mono{font-family:'JetBrains Mono',monospace}
+.tab{padding:12px 14px;color:rgba(232,227,216,0.5);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}
+.tab:hover{color:#e8e3d8}.tab.active{color:#d4a574;border-bottom-color:#d4a574}
+.card{background:#1a1f2e;border:1px solid rgba(232,227,216,0.12);border-radius:10px;padding:18px 20px}
+.btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn-primary{background:#d4a574;color:#0f131d;border-color:#d4a574}.btn-primary:hover{opacity:.88}
+.btn-secondary{background:transparent;color:rgba(232,227,216,.78);border-color:rgba(232,227,216,.25)}.btn-secondary:hover{background:rgba(232,227,216,.06);color:#e8e3d8;border-color:rgba(232,227,216,.4)}
+.btn-danger{background:transparent;color:#d88080;border-color:rgba(216,128,128,.45)}.btn-danger:hover{background:rgba(216,128,128,.08);color:#e8a8a8}
+.btn-sm{padding:5px 12px;font-size:12px}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(232,227,216,.08);color:rgba(232,227,216,.7);margin-right:4px}
+.tag-good{background:rgba(124,157,106,.15);color:#b8d4a8}.tag-bad{background:rgba(216,128,128,.15);color:#e8a8a8}.tag-warn{background:rgba(212,165,116,.15);color:#d4a574}
+input[type=text],input[type=email],input[type=number],input[type=datetime-local],input[type=search],select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#d4a574}
+table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#232a3d}
+th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,227,216,.55);font-weight:400;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(232,227,216,.1)}
+td{padding:12px 14px;vertical-align:top;border-top:1px solid rgba(232,227,216,.06)}
+tr:hover td{background:rgba(232,227,216,.02)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(232,227,216,.2);border-top-color:#d4a574;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.flash{padding:12px 18px;border-radius:8px;margin-bottom:18px;font-size:14px}
+.flash-ok{background:rgba(124,157,106,.12);border:1px solid rgba(124,157,106,.4);color:#b8d4a8}
+.flash-err{background:rgba(216,128,128,.12);border:1px solid rgba(216,128,128,.4);color:#e8a8a8}
+.placeholder{background:#1a1f2e;border:1px dashed rgba(232,227,216,.14);border-radius:10px;padding:32px;text-align:center;color:rgba(232,227,216,.5);font-size:13px}
+.drawer{position:fixed;top:0;right:0;width:100%;max-width:680px;height:100vh;background:#0f131d;border-left:1px solid rgba(232,227,216,.15);overflow-y:auto;z-index:50;box-shadow:-12px 0 40px rgba(0,0,0,.5);padding:24px 28px}
+.drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49}
+.action-prop{background:linear-gradient(180deg,rgba(212,165,116,.06),#1a1f2e);border:1px solid rgba(212,165,116,.4);border-radius:10px;padding:18px 22px;margin-top:14px}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:#0f131d}::-webkit-scrollbar-thumb{background:#232a3d;border-radius:5px}::-webkit-scrollbar-thumb:hover{background:#353e52}
 </style>
 </head>
 <body>
-<header class="masthead">
-  <div class="wrap">
-    <div class="masthead-row">
-      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
-      <div class="meta">
-        <span class="admin-pill">Admin</span>
-        <a href="/admin/outreach.html" style="color:var(--cm-ivory-dim);text-decoration:none;">Buildings</a>
-        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
-        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
-      </div>
-    </div>
+
+<div id="loading" class="fixed inset-0 flex items-center justify-center"><div class="spinner"></div></div>
+
+<div id="auth-screen" hidden class="min-h-screen flex items-center justify-center px-6">
+  <div class="card max-w-md w-full">
+    <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
+    <p class="text-cream/60 text-sm mb-6">Admin sign in</p>
+    <form id="signin-form" class="space-y-3">
+      <input type="email" name="email" placeholder="tim@mcmullen.properties" required autocomplete="email">
+      <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
+      <button type="submit" class="btn btn-primary w-full justify-center">Sign in</button>
+      <p id="signin-error" class="text-brick text-xs mt-2 hidden"></p>
+    </form>
   </div>
-</header>
+</div>
 
-<main>
-  <div class="wrap">
-    <div id="loading">Loading admin console…</div>
-
-    <div id="admin-content" style="display:none;">
-      <h1>Admin <span class="accent">console</span></h1>
-      <div class="subtitle">Signed in as <strong id="f-admin-email">—</strong></div>
-
-      <!-- ─── Metrics row ─── -->
-      <div class="metrics">
-        <div class="metric">
-          <div class="metric-label">Total offers</div>
-          <div class="metric-val peri" id="f-offer-count">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Pending</div>
-          <div class="metric-val amber" id="f-pending-count">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Accepted · 7 days</div>
-          <div class="metric-val gain" id="f-accepted-week">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Total $ volume</div>
-          <div class="metric-val bronze" id="f-volume">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Registered users</div>
-          <div class="metric-val" id="f-user-count">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">MMM listings</div>
-          <div class="metric-val" id="f-listing-count">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Pending claims</div>
-          <div class="metric-val amber" id="f-pending-claims">—</div>
-        </div>
+<div id="app" hidden>
+  <header class="border-b border-cream/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5</span>
       </div>
-
-      <!-- ─── Approval queue (Sprint B-2B) ─── -->
-      <div class="section">
-        <div class="section-head">
-          <h2>Approval <em>queue</em></h2>
-          <span class="section-sub">Auto-verified claims approve instantly. Manual review needed for names that didn't fuzzy-match title records (trusts, LLCs, misspellings).</span>
-        </div>
-        <div class="table-host">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Claimed by</th>
-                <th>Building · Unit</th>
-                <th>MMM</th>
-                <th>Title record</th>
-                <th style="text-align:right;">Submitted</th>
-                <th style="text-align:right;">Action</th>
-              </tr>
-            </thead>
-            <tbody id="claims-tbody">
-              <tr class="empty-row"><td colspan="6">Loading…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ─── Offers queue ─── -->
-      <div class="section">
-        <div class="section-head">
-          <h2>Offers <em>queue</em></h2>
-          <div class="filters">
-            <select class="filter" id="f-filter-status">
-              <option value="">All statuses</option>
-              <option value="pending" selected>Pending only</option>
-              <option value="accepted">Accepted</option>
-              <option value="declined">Declined</option>
-              <option value="withdrawn">Withdrawn</option>
-              <option value="expired">Expired</option>
-            </select>
-            <select class="filter" id="f-filter-building">
-              <option value="">All buildings</option>
-            </select>
-          </div>
-        </div>
-        <div class="table-host">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Building</th>
-                <th>Buyer</th>
-                <th style="text-align:right;">Amount</th>
-                <th>Status</th>
-                <th>Submitted</th>
-              </tr>
-            </thead>
-            <tbody id="offers-tbody">
-              <tr class="empty-row"><td colspan="5">Loading offers…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ─── Users table (Phase A — click row to drill in) ─── -->
-      <div class="section">
-        <div class="section-head">
-          <h2>Users · <em>click to expand</em></h2>
-          <span class="section-sub" id="users-count">—</span>
-        </div>
-        <div class="table-host">
-          <table class="table">
-            <thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Referral code</th><th>Referred by</th></tr></thead>
-            <tbody id="users-tbody">
-              <tr class="empty-row"><td colspan="5">Loading…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ─── Tools ─── -->
-      <div class="section">
-        <div class="section-head"><h2>Admin <em>tools</em></h2></div>
-        <div class="tools-grid">
-          <a class="tool-card" href="/admin/outreach.html">
-            <div class="t-name">Buildings CRM</div>
-            <div class="t-desc">Building-by-building pipeline · contacts · timeline · pitch emails.</div>
-          </a>
-          <a class="tool-card" href="/tools/">
-            <div class="t-name">Bulk CSV Image Downloader</div>
-            <div class="t-desc">Extract building images from a Webflow CMS CSV export.</div>
-          </a>
-          <div class="tool-card coming">
-            <div class="t-name">Invite a VIP</div>
-            <div class="t-desc">Send a dark letter-style invite to a high-value prospect.</div>
-          </div>
-          <div class="tool-card coming">
-            <div class="t-name">Make-Me-Move queue</div>
-            <div class="t-desc">All MMM listings — match with incoming offers.</div>
-          </div>
-        </div>
+      <div class="flex items-center gap-3 text-xs text-cream/60">
+        <span id="user-email" class="font-mono"></span>
+        <button id="signout-btn" class="btn btn-secondary btn-sm">Sign out</button>
       </div>
     </div>
-
-    <div id="not-authorized" class="gate" style="display:none;">
-      <h2>Not <em style="color:var(--cm-peri);">authorized</em></h2>
-      <p>You need to be signed in as an admin to view this page.</p>
-      <a class="btn btn-p" href="/buildings/">Return to home →</a>
-    </div>
-
-    <div id="signed-out" class="gate" style="display:none;">
-      <h2>Sign in to continue</h2>
-      <p>This area is for administrators only.</p>
-      <a class="btn btn-p" href="#signin" data-cm-auth="login">Sign in</a>
-    </div>
-  </div>
-</main>
+    <nav class="max-w-7xl mx-auto px-6 flex gap-0 overflow-x-auto" id="nav">
+      <a class="tab" data-tab="home">Home</a>
+      <a class="tab" data-tab="people">People</a>
+      <a class="tab" data-tab="hoa">HOAs</a>
+      <a class="tab" data-tab="email">Email</a>
+      <a class="tab" data-tab="queue">Queue</a>
+      <a class="tab" data-tab="buildings">Buildings</a>
+      <a class="tab" data-tab="mmm">MMM</a>
+      <a class="tab" data-tab="analytics">Analytics</a>
+      <a class="tab" data-tab="settings">Settings</a>
+    </nav>
+  </header>
+  <main id="content" class="max-w-7xl mx-auto px-6 py-8"></main>
+</div>
 
 <script type="module">
-  import { CM, sb } from '/assets/cm-supabase.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  let allOffers = [];
-  let allClaims = [];
-  let listingsById = {};
-  const claimsTitleCache = new Map();
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'CHANGE_ME_TO_YOUR_ANON_KEY';
 
-  // Phase A — user drill-down state
-  const userActivityCache = new Map();
-  let referrerEmailMap = {};
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = (s,c=document) => c.querySelector(s);
+const $$ = (s,c=document) => Array.from(c.querySelectorAll(s));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtNum = (n) => n == null ? '—' : Number(n).toLocaleString('en-US');
+const fmtMoney = (n) => n == null ? '—' : '$' + Math.round(Number(n)).toLocaleString('en-US');
+const fmtPct = (num, denom) => !denom ? '—' : ((num/denom)*100).toFixed(num/denom < 0.01 ? 1 : 0) + '%';
+const relTime = (iso) => {
+  if (!iso) return '—';
+  const ms = Date.now() - new Date(iso).getTime();
+  const future = ms < 0, abs = Math.abs(ms);
+  const s = Math.floor(abs/1000); if (s < 60) return future ? `in ${s}s` : `${s}s ago`;
+  const m = Math.floor(s/60);     if (m < 60) return future ? `in ${m}m` : `${m}m ago`;
+  const h = Math.floor(m/60);     if (h < 24) return future ? `in ${h}h` : `${h}h ago`;
+  const d = Math.floor(h/24);     return future ? `in ${d}d` : `${d}d ago`;
+};
+const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 
-  const USER_ACTIVITY_ICON = {
-    signup: '✨',
-    tos:    '📜',
-    offer:  '$',
-    listing:'🏠',
-    watchlist:'★',
-    signature:'✍',
-    referral:'🎁',
-  };
+let currentUser = null;
+let currentTab = 'home';
 
-  function escapeHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
-    );
+// ========================= AUTH =========================
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { showSignIn(); return false; }
+  const { data: profile } = await sb.from('profiles').select('id, email, full_name, role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    await sb.auth.signOut();
+    showSignIn('Admin access required.');
+    return false;
   }
-  function fmtMoney(n) {
-    if (!n) return '$0';
-    return '$' + Math.round(Number(n)).toLocaleString('en-US');
+  currentUser = { ...session.user, ...profile };
+  $('#user-email').textContent = profile.email;
+  showApp();
+  return true;
+}
+function showSignIn(err) {
+  $('#loading').hidden = true; $('#app').hidden = true; $('#auth-screen').hidden = false;
+  if (err) { $('#signin-error').textContent = err; $('#signin-error').classList.remove('hidden'); }
+}
+function showApp() {
+  $('#loading').hidden = true; $('#auth-screen').hidden = true; $('#app').hidden = false;
+  routeFromHash();
+}
+
+$('#signin-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const { error } = await sb.auth.signInWithPassword({ email: fd.get('email'), password: fd.get('password') });
+  if (error) { $('#signin-error').textContent = error.message; $('#signin-error').classList.remove('hidden'); return; }
+  await checkAuth();
+});
+$('#signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+// ========================= ROUTER =========================
+function routeFromHash() {
+  const hash = location.hash.replace('#', '') || 'home';
+  const [tab, ...rest] = hash.split('/');
+  currentTab = tab;
+  $$('#nav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  const renderers = { home: renderHome, people: renderPeople, hoa: renderHoa, email: renderEmail, queue: renderQueue, buildings: renderBuildings, mmm: renderMmm, analytics: renderAnalytics, settings: renderSettings };
+  const renderer = renderers[tab] || renderHome;
+  renderer(rest);
+}
+$$('#nav .tab').forEach(t => t.addEventListener('click', e => { e.preventDefault(); location.hash = t.dataset.tab; }));
+window.addEventListener('hashchange', routeFromHash);
+
+// ========================= HOME (Claude command + key stats) =========================
+async function renderHome() {
+  const c = $('#content');
+  c.innerHTML = `
+    <section class="mb-8">
+      <h1 class="font-display text-4xl italic mb-1">Welcome back, Tim.</h1>
+      <p class="text-cream/60 text-sm">Ask Claude. Pull data. Draft campaigns. Manage everything from here.</p>
+    </section>
+
+    <section class="card mb-8 border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase">⚡ Claude Command</span>
+        <span class="text-cream/40 text-xs">— natural language interface to your entire platform</span>
+      </div>
+      <textarea id="cmd-input" rows="3" placeholder="Try: 'Send a Just Sold email to all Madrone owners about Unit 421 for $1.85M', or 'Show me top buildings by open rate this week'" class="!bg-navy"></textarea>
+      <div class="flex items-center justify-between mt-3 gap-3 flex-wrap">
+        <div class="flex gap-2 flex-wrap text-xs">
+          <button class="btn btn-secondary btn-sm" data-prompt="How many active MMM listings do we have right now?">Stats query</button>
+          <button class="btn btn-secondary btn-sm" data-prompt="Show me all owners at 480 Mission Bay Blvd N with high open rates">People query</button>
+          <button class="btn btn-secondary btn-sm" data-prompt="What's the open rate of wave 3 compared to wave 2?">CRO query</button>
+          <button class="btn btn-secondary btn-sm" data-prompt="Create a task to follow up with the Madrone HOA tomorrow at 2pm">Create task</button>
+        </div>
+        <button id="cmd-run" class="btn btn-primary">Run Command <span class="font-mono text-[10px] opacity-60">⌘↵</span></button>
+      </div>
+      <div id="cmd-result" class="mt-4"></div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-xl mb-4">Today</h2>
+      <div id="home-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Loading…</div><div class="spinner"></div></div>
+      </div>
+      <div id="home-tasks"></div>
+    </section>
+  `;
+  // Wire up command interface
+  $('#cmd-run').addEventListener('click', runCommand);
+  $('#cmd-input').addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') runCommand(); });
+  $$('[data-prompt]').forEach(b => b.addEventListener('click', () => { $('#cmd-input').value = b.dataset.prompt; $('#cmd-input').focus(); }));
+  // Load stats
+  loadHomeStats();
+  loadHomeTasks();
+}
+
+async function loadHomeStats() {
+  const { data: stats } = await sb.from('v_platform_stats').select('*').maybeSingle();
+  const { data: cap } = await sb.from('v_send_capacity_by_city').select('*').eq('city_slug','san-francisco').maybeSingle();
+  if (!stats) return;
+  $('#home-stats').innerHTML = [
+    ['Total people', fmtNum(stats.total_people), `${fmtNum(stats.active_accounts)} accounts`],
+    ['Active MMMs', fmtNum(stats.active_mmms), `${fmtNum(stats.open_offers)} open offers`],
+    ['Open tasks', fmtNum(stats.open_tasks), stats.overdue_tasks > 0 ? `<span class="text-brick">${stats.overdue_tasks} overdue</span>` : 'on track'],
+    ['Today\'s capacity', `${fmtNum(cap?.sent_today||0)}/${fmtNum(cap?.daily_cap||0)}`, `${fmtNum(cap?.remaining_today||0)} remaining`],
+  ].map(([l,n,sub]) => `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-3xl">${n}</div><div class="text-xs text-cream/55 mt-1">${sub}</div></div>`).join('');
+}
+async function loadHomeTasks() {
+  const { data: tasks } = await sb.from('v_admin_inbox').select('*').order('priority',{ascending:false}).order('due_at',{ascending:true,nullsFirst:false}).limit(5);
+  if (!tasks || !tasks.length) { $('#home-tasks').innerHTML = '<div class="placeholder">No open tasks. Inbox is clear.</div>'; return; }
+  $('#home-tasks').innerHTML = `<h3 class="font-display text-base mb-3">Top priorities (${tasks.length})</h3><div class="space-y-2">${tasks.map(t => `
+    <div class="card flex items-center justify-between gap-4">
+      <div class="flex-1 min-w-0">
+        <div class="flex gap-2 items-baseline mb-1">
+          <span class="tag ${t.priority==='urgent'?'tag-bad':t.priority==='high'?'tag-warn':''}">${esc(t.priority)}</span>
+          <span class="font-mono text-[10px] tracking-[0.1em] uppercase text-cream/50">${esc(t.task_type)}</span>
+          ${t.due_at ? `<span class="font-mono text-[10px] text-cream/40">${esc(relTime(t.due_at))}</span>` : ''}
+        </div>
+        <div class="font-medium text-cream">${esc(t.title)}</div>
+        ${t.description ? `<div class="text-xs text-cream/60 mt-1">${esc(t.description)}</div>` : ''}
+      </div>
+      <button class="btn btn-secondary btn-sm" data-task-done="${esc(t.id)}">Done</button>
+    </div>`).join('')}</div>`;
+  $$('[data-task-done]').forEach(b => b.addEventListener('click', async () => {
+    await sb.from('admin_tasks').update({ status:'done', completed_at:new Date().toISOString() }).eq('id', b.dataset.taskDone);
+    loadHomeTasks();
+  }));
+}
+
+async function runCommand() {
+  const input = $('#cmd-input');
+  const text = input.value.trim();
+  if (text.length < 3) return;
+  const result = $('#cmd-result');
+  result.innerHTML = '<div class="card flex items-center gap-3"><div class="spinner"></div><span class="text-cream/60 text-sm">Thinking…</span></div>';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-command`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: text })
+    });
+    const json = await resp.json();
+    if (!json.ok) { result.innerHTML = `<div class="flash flash-err">${esc(json.error || 'Command failed')}</div>`; return; }
+    if (json.parse_error) { result.innerHTML = `<div class="flash flash-err">Claude returned non-JSON: ${esc(json.parse_error)}</div>`; return; }
+    renderActionProposal(json.action, json.duration_ms);
+  } catch (e) {
+    result.innerHTML = `<div class="flash flash-err">Network error: ${esc(e.message)}</div>`;
   }
-  function fmtMoneyShort(n) {
-    n = Number(n);
-    if (n >= 1000000) {
-      const m = n / 1000000;
-      let s = m.toFixed(m >= 10 ? 1 : 2).replace(/\.?0+$/, '');
-      return '$' + s + 'M';
-    }
-    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
-    return '$' + Math.round(n);
+}
+
+function renderActionProposal(a, durationMs) {
+  const result = $('#cmd-result');
+  if (!a) { result.innerHTML = '<div class="flash flash-err">Empty response from Claude.</div>'; return; }
+  const warningsHtml = (a.warnings || []).length ? `<div class="text-brick text-xs mt-2">⚠ ${a.warnings.map(esc).join(' · ')}</div>` : '';
+  let bodyHtml = '';
+  if (a.intent === 'clarify') {
+    bodyHtml = `<div class="text-cream/80">${esc(a.clarification_needed || a.summary)}</div>`;
+  } else if (a.intent === 'info') {
+    bodyHtml = `<div class="text-cream/80">${esc(a.summary)}</div>${a.explanation ? `<div class="text-xs text-cream/60 mt-2">${esc(a.explanation)}</div>` : ''}`;
+  } else if (a.intent === 'query' && a.sql) {
+    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
+      ${a.explanation ? `<div class="text-xs text-cream/60 mb-3">${esc(a.explanation)}</div>` : ''}
+      <pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 overflow-x-auto">${esc(a.sql)}</pre>
+      <div class="mt-3 flex gap-2">
+        <button class="btn btn-primary btn-sm" id="run-sql-btn">Execute query</button>
+        <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
+      </div>
+      <div id="sql-result" class="mt-3"></div>`;
+  } else if (a.intent === 'send_email' && a.email) {
+    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
+      <div class="text-xs text-cream/60 mb-3">${esc(a.explanation || '')}</div>
+      <div class="space-y-1 text-sm">
+        <div><span class="text-cream/50">Template:</span> <span class="font-mono text-gold">${esc(a.email.template_slug)}</span></div>
+        <div><span class="text-cream/50">Recipients:</span> ${esc(a.email.recipient_description || JSON.stringify(a.email.recipient_config))}</div>
+        ${a.email.estimated_recipients !== null && a.email.estimated_recipients !== undefined ? `<div><span class="text-cream/50">Estimated count:</span> <span class="font-mono">${fmtNum(a.email.estimated_recipients)}</span></div>` : ''}
+        <div><span class="text-cream/50">Campaign key:</span> <span class="font-mono text-xs">${esc(a.email.campaign_key)}</span></div>
+        ${a.email.merge_vars ? `<div><span class="text-cream/50">Merge vars:</span> <span class="font-mono text-xs">${esc(JSON.stringify(a.email.merge_vars))}</span></div>` : ''}
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button class="btn btn-secondary btn-sm" id="draft-to-me">Draft to me first</button>
+        <button class="btn btn-primary btn-sm" id="send-real" disabled title="Sprint B: full send pipeline">Send (disabled in v1.0)</button>
+        <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
+      </div>`;
+  } else if (a.intent === 'create_task' && a.task) {
+    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>
+      <div class="space-y-1 text-sm mt-3">
+        <div><span class="text-cream/50">Title:</span> ${esc(a.task.title)}</div>
+        ${a.task.description ? `<div><span class="text-cream/50">Description:</span> ${esc(a.task.description)}</div>` : ''}
+        <div><span class="text-cream/50">Type:</span> <span class="font-mono">${esc(a.task.task_type)}</span></div>
+        <div><span class="text-cream/50">Priority:</span> <span class="font-mono">${esc(a.task.priority)}</span></div>
+        ${a.task.due_at ? `<div><span class="text-cream/50">Due:</span> ${esc(fmtDate(a.task.due_at))} (${esc(relTime(a.task.due_at))})</div>` : ''}
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button class="btn btn-primary btn-sm" id="create-task-btn">Create task</button>
+        <button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button>
+      </div>`;
+  } else {
+    bodyHtml = `<div class="text-cream/80">${esc(a.summary || 'Unsupported intent.')}</div><pre class="font-mono text-[10px] mt-2 text-cream/40">${esc(JSON.stringify(a, null, 2))}</pre>`;
   }
-  function relativeTime(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    const mins = Math.floor((Date.now() - d.getTime()) / 60000);
-    if (mins < 1)    return 'just now';
-    if (mins < 60)   return mins + ' min ago';
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24)    return hrs + ' hr ago';
-    const days = Math.floor(hrs / 24);
-    if (days < 30)   return days + ' day' + (days === 1 ? '' : 's') + ' ago';
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-  function statusLabel(s) {
-    return ({ pending: 'Pending', accepted: 'Accepted', declined: 'Declined', expired: 'Expired', withdrawn: 'Withdrawn' })[s] || s;
-  }
-  function buildingPretty(slug) {
-    if (!slug) return '—';
-    return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  }
-  function unitLabel(l) {
-    if (!l) return '—';
-    return (l.address || '?') + (l.unit_number ? ' #' + l.unit_number : '');
-  }
+  result.innerHTML = `<div class="action-prop">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="tag tag-${a.confidence==='high'?'good':a.confidence==='low'?'bad':'warn'}">${esc(a.confidence||'?')} confidence</span>
+      <span class="font-mono text-[10px] text-cream/40">${esc(a.intent)} · ${durationMs}ms</span>
+    </div>
+    ${bodyHtml}
+    ${warningsHtml}
+  </div>`;
+  // Wire action buttons
+  const cancel = $('#cancel-action'); if (cancel) cancel.addEventListener('click', () => { result.innerHTML = ''; });
+  const runSqlBtn = $('#run-sql-btn'); if (runSqlBtn) runSqlBtn.addEventListener('click', async () => {
+    const out = $('#sql-result'); out.innerHTML = '<div class="spinner"></div>';
+    // Use Supabase rpc-style: we don't have a generic SQL endpoint from PostgREST. Best path: use postgrest via direct table queries OR use a dedicated edge function. v1: show SQL only, ask Tim to copy to SQL editor.
+    out.innerHTML = `<div class="flash flash-ok">Open this in <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/sql/new" target="_blank" class="text-gold underline">SQL editor</a> to run. <span class="text-xs">(Sprint B will add inline execution.)</span></div>`;
+  });
+  const createTaskBtn = $('#create-task-btn'); if (createTaskBtn) createTaskBtn.addEventListener('click', async () => {
+    const t = a.task;
+    const { error } = await sb.from('admin_tasks').insert({
+      title: t.title, description: t.description, task_type: t.task_type || 'manual',
+      priority: t.priority || 'normal', due_at: t.due_at || null
+    });
+    if (error) { result.innerHTML = `<div class="flash flash-err">${esc(error.message)}</div>`; return; }
+    result.innerHTML = `<div class="flash flash-ok">Task created. <a href="#home" class="underline">Refresh home</a> to see it.</div>`;
+    loadHomeTasks();
+  });
+  const draftBtn = $('#draft-to-me'); if (draftBtn) draftBtn.addEventListener('click', () => {
+    result.innerHTML = `<div class="flash flash-ok">Sprint B: this will queue a single email to tim@mcmullen.properties with the rendered template + merge vars, using your existing send-vip-invite function.</div>`;
+  });
+}
 
-  async function render() {
-    const loading = document.getElementById('loading');
-    const adminContent = document.getElementById('admin-content');
-    const notAuth = document.getElementById('not-authorized');
-    const signedOut = document.getElementById('signed-out');
+// ========================= PEOPLE =========================
+async function renderPeople(rest) {
+  if (rest && rest[0]) return renderPersonDetail(rest[0]);
+  const c = $('#content');
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q') || '';
+  const hasAccount = params.get('account') || 'all';
+  const sort = params.get('sort') || 'last_emailed_desc';
+  const page = parseInt(params.get('page') || '0', 10);
+  c.innerHTML = `
+    <div class="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
+      <h1 class="font-display text-3xl italic">People</h1>
+      <form id="people-filter" class="flex gap-2 flex-wrap items-center">
+        <input type="search" name="q" value="${esc(q)}" placeholder="email, name…" class="!w-56">
+        <select name="account">
+          <option value="all" ${hasAccount==='all'?'selected':''}>all</option>
+          <option value="yes" ${hasAccount==='yes'?'selected':''}>has account</option>
+          <option value="no" ${hasAccount==='no'?'selected':''}>no account</option>
+        </select>
+        <select name="sort">
+          <option value="last_emailed_desc" ${sort==='last_emailed_desc'?'selected':''}>Last emailed</option>
+          <option value="opens_desc" ${sort==='opens_desc'?'selected':''}>Most opens</option>
+          <option value="email_asc" ${sort==='email_asc'?'selected':''}>Email A→Z</option>
+          <option value="created_desc" ${sort==='created_desc'?'selected':''}>Newest</option>
+        </select>
+        <button class="btn btn-primary btn-sm">Apply</button>
+      </form>
+    </div>
+    <div id="people-meta" class="text-xs text-cream/60 mb-3"></div>
+    <div id="people-tbl" class="card !p-0 overflow-hidden"><div class="p-8 text-center"><div class="spinner"></div></div></div>
+  `;
+  $('#people-filter').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const sp = new URLSearchParams();
+    if (fd.get('q')) sp.set('q', fd.get('q'));
+    if (fd.get('account') !== 'all') sp.set('account', fd.get('account'));
+    if (fd.get('sort') !== 'last_emailed_desc') sp.set('sort', fd.get('sort'));
+    location.search = sp.toString() ? '?' + sp : '';
+  });
+  // Query
+  let qry = sb.from('v_person_overview').select('*', { count: 'exact' });
+  if (q) qry = qry.or(`primary_email.ilike.%${q}%,full_name.ilike.%${q}%,last_name.ilike.%${q}%`);
+  if (hasAccount === 'yes') qry = qry.not('profile_id','is',null);
+  else if (hasAccount === 'no') qry = qry.is('profile_id', null);
+  if (sort === 'last_emailed_desc') qry = qry.order('last_emailed_at',{ascending:false,nullsFirst:false});
+  else if (sort === 'opens_desc') qry = qry.order('emails_opened',{ascending:false});
+  else if (sort === 'email_asc') qry = qry.order('primary_email',{ascending:true});
+  else if (sort === 'created_desc') qry = qry.order('created_at',{ascending:false});
+  qry = qry.range(page*50, page*50+49);
+  const { data, count } = await qry;
+  const totalPages = Math.max(1, Math.ceil((count||0)/50));
+  $('#people-meta').innerHTML = `${fmtNum(count||0)} people · page ${page+1}/${totalPages}`;
+  const rows = (data||[]).map(p => {
+    const opens = p.emails_received > 0 ? fmtPct(p.emails_opened, p.emails_received) : '—';
+    const tags = [
+      p.has_account ? '<span class="tag tag-good">account</span>' : '',
+      p.is_bounced ? '<span class="tag tag-bad">bounced</span>' : '',
+      p.is_unsubscribed ? '<span class="tag tag-bad">unsub</span>' : '',
+      p.is_dnc ? '<span class="tag tag-bad">DNC</span>' : '',
+      p.is_corporate ? '<span class="tag">corp</span>' : '',
+    ].filter(Boolean).join('');
+    const blds = (p.building_slugs||[]).slice(0,2).join(', ') + ((p.building_slugs||[]).length>2 ? ` +${p.building_slugs.length-2}` : '');
+    return `<tr>
+      <td><a href="#people/${esc(p.person_id)}" class="font-medium text-cream hover:text-gold">${esc(p.full_name || p.primary_email)}</a><div class="font-mono text-[11px] text-cream/50">${esc(p.primary_email)}</div></td>
+      <td class="text-cream/80">${esc(blds)||'—'}<div class="text-[11px] text-cream/45 font-mono">${p.owned_building_count} bldg</div></td>
+      <td>${fmtNum(p.emails_received)}<div class="text-[11px] text-cream/45 font-mono">${opens} open</div></td>
+      <td class="font-mono text-xs text-cream/70">${esc(relTime(p.last_emailed_at))}</td>
+      <td>${tags||'—'}</td>
+    </tr>`;
+  }).join('');
+  $('#people-tbl').innerHTML = `<table>
+    <thead><tr><th>Person</th><th>Buildings</th><th>Emails</th><th>Last emailed</th><th>Flags</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="5" class="text-center text-cream/50 p-8">No match.</td></tr>'}</tbody>
+  </table>
+  <div class="flex justify-between items-center p-4 border-t border-cream/10 text-xs text-cream/60">
+    <span class="font-mono">Page ${page+1} of ${totalPages}</span>
+    <div class="flex gap-2">
+      ${page > 0 ? `<a class="btn btn-secondary btn-sm" href="?${new URLSearchParams({...Object.fromEntries(new URLSearchParams(location.search)),page:String(page-1)}).toString()}">← Prev</a>` : ''}
+      ${page+1 < totalPages ? `<a class="btn btn-secondary btn-sm" href="?${new URLSearchParams({...Object.fromEntries(new URLSearchParams(location.search)),page:String(page+1)}).toString()}">Next →</a>` : ''}
+    </div>
+  </div>`;
+}
 
-    const session = await CM.getSession();
-    loading.style.display = 'none';
+async function renderPersonDetail(personId) {
+  const c = $('#content');
+  c.innerHTML = '<div class="p-8 text-center"><div class="spinner"></div></div>';
+  const [{ data: person }, { data: ownership }, { data: activity }] = await Promise.all([
+    sb.from('v_person_overview').select('*').eq('person_id', personId).maybeSingle(),
+    sb.from('unit_ownership').select('*').eq('person_id', personId).order('created_at',{ascending:false}),
+    sb.from('v_person_activity').select('*').eq('person_id', personId).order('occurred_at',{ascending:false}).limit(100),
+  ]);
+  if (!person) { c.innerHTML = '<div class="placeholder">Person not found.<br><a href="#people" class="text-gold underline">← Back to People</a></div>'; return; }
+  const buildingSlugs = [...new Set((ownership||[]).map(o => o.building_slug))];
+  const { data: bRows } = buildingSlugs.length ? await sb.from('buildings').select('slug,display_name').in('slug', buildingSlugs) : { data: [] };
+  const bNames = Object.fromEntries((bRows||[]).map(b => [b.slug, b.display_name]));
+  const flags = [
+    person.has_account ? '<span class="tag tag-good">account</span>' : '',
+    person.is_bounced ? '<span class="tag tag-bad">bounced</span>' : '',
+    person.is_unsubscribed ? '<span class="tag tag-bad">unsub</span>' : '',
+    person.is_dnc ? '<span class="tag tag-bad">DNC</span>' : '',
+    person.is_corporate ? '<span class="tag">corp</span>' : '',
+  ].filter(Boolean).join('');
+  const iconMap = { email_sent:'✉', email_opened:'●', email_clicked:'↗', email_bounced:'!', email_unsubscribed:'×', account_created:'★', unit_claimed:'◆', mmm_set:'$', offer_made:'→' };
+  const colorMap = { email_sent:'#7a8ab0', email_opened:'#9fb4d8', email_clicked:'#d4a574', email_bounced:'#d88080', email_unsubscribed:'#a85f5f', account_created:'#7c9d6a', unit_claimed:'#b89860', mmm_set:'#d4a574', offer_made:'#a89048' };
+  c.innerHTML = `
+    <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+      <div>
+        <a href="#people" class="text-xs text-cream/50 hover:text-cream font-mono">← back to people</a>
+        <h1 class="font-display text-3xl italic mt-1">${esc(person.full_name || person.primary_email)}</h1>
+        <p class="text-cream/60 text-sm mt-1">
+          <a href="mailto:${esc(person.primary_email)}" class="hover:text-gold">${esc(person.primary_email)}</a>
+          ${person.phone ? ` · ${esc(person.phone)}` : ''}
+          · ${esc(person.city_name || 'Unknown city')}
+        </p>
+        ${flags ? `<div class="mt-2">${flags}</div>` : ''}
+      </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      ${[['Buildings', fmtNum(person.owned_building_count)],['Emails received',fmtNum(person.emails_received)],['Opens',`${fmtNum(person.emails_opened)} (${fmtPct(person.emails_opened,person.emails_received)})`],['Clicks',`${fmtNum(person.emails_clicked)} (${fmtPct(person.emails_clicked,person.emails_received)})`]].map(([l,n]) => `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-2xl">${n}</div></div>`).join('')}
+    </div>
+    <h2 class="font-display text-lg mb-3">Ownership</h2>
+    <div class="space-y-2 mb-6">${(ownership||[]).length ? ownership.map(o => `<div class="card !p-3 border-l-4 border-l-amber"><div class="font-medium">${esc(bNames[o.building_slug]||o.building_slug)}${o.unit_identifier?` · Unit ${esc(o.unit_identifier)}`:''}</div><div class="text-xs text-cream/50 mt-1 font-mono">${esc(o.ownership_type)} · ${esc(o.confidence)} · ${esc(o.source||'')} · ${esc(relTime(o.created_at))}</div></div>`).join('') : '<div class="placeholder">No ownership records.</div>'}</div>
+    <h2 class="font-display text-lg mb-3">Activity timeline <span class="text-xs text-cream/50 font-sans">(${(activity||[]).length} events)</span></h2>
+    <div class="space-y-1">${(activity||[]).map(a => {
+      const ic = iconMap[a.activity_type] || '•'; const co = colorMap[a.activity_type] || '#666';
+      return `<div class="card !p-3 flex items-center gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs" style="background:${co};color:#0f131d">${ic}</span><div class="flex-1"><div class="text-sm">${esc(a.summary)}</div><div class="font-mono text-[10px] text-cream/45 mt-0.5">${esc(a.activity_type)} · ${esc(relTime(a.occurred_at))} · ${esc(fmtDate(a.occurred_at))}</div></div></div>`;
+    }).join('') || '<div class="placeholder">No activity recorded.</div>'}</div>
+  `;
+}
 
-    if (!session?.user) { signedOut.style.display = 'block'; return; }
+// ========================= HOA =========================
+async function renderHoa() {
+  const c = $('#content');
+  c.innerHTML = `<div class="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
+    <h1 class="font-display text-3xl italic">HOA Outreach</h1>
+    <div class="flex gap-2"><button id="add-hoa-company" class="btn btn-secondary btn-sm">+ Add Company</button></div>
+  </div>
+  <div id="hoa-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const [{ data: pipeline }, { data: companies }] = await Promise.all([
+    sb.from('v_hoa_pipeline').select('*').order('urgency_rank',{ascending:true}).order('last_contacted_at',{ascending:true,nullsFirst:true}),
+    sb.from('v_hoa_company_rollup').select('*'),
+  ]);
+  const statusCounts = {};
+  (pipeline||[]).forEach(p => statusCounts[p.status] = (statusCounts[p.status]||0)+1);
+  const STATUS = {untouched:'#454e62',targeted:'#7a8ab0',emailed:'#9fb4d8',meeting_scheduled:'#b89860',meeting_held:'#d4a574',won:'#7c9d6a',declined:'#a85f5f',dormant:'#5a5560'};
+  const STATUS_ORDER = ['untouched','targeted','emailed','meeting_scheduled','meeting_held','won','declined','dormant'];
+  $('#hoa-content').innerHTML = `
+    <div class="flex flex-wrap gap-2 mb-6">${STATUS_ORDER.map(s => { const n=statusCounts[s]||0; return `<div class="card !p-3 flex items-center gap-2" style="border-left:3px solid ${STATUS[s]};opacity:${n?1:0.4}"><span class="font-display text-lg" style="color:${STATUS[s]}">${n}</span><span class="font-mono text-[10px] tracking-[0.08em] uppercase text-cream/70">${esc(s.replace('_',' '))}</span></div>`}).join('')}</div>
+    ${(companies||[]).length ? `<h2 class="font-display text-lg mb-3">Property Management Companies <span class="text-xs text-cream/50 font-sans">(${companies.length})</span></h2>
+    <div class="card !p-0 mb-6"><table><thead><tr><th>Company</th><th>Contact</th><th>Buildings</th><th>Won</th><th>In meeting</th><th>Emailed</th><th>Pending</th></tr></thead><tbody>${companies.map(c => `<tr><td><div class="font-medium">${esc(c.company_name)}</div>${c.website ? `<a href="${esc(c.website)}" target="_blank" class="font-mono text-[11px] text-bluegray hover:text-gold">${esc(c.website)} ↗</a>` : ''}</td><td class="text-sm">${esc(c.primary_contact_name||'—')}${c.primary_contact_email ? `<div class="font-mono text-[11px] text-cream/50">${esc(c.primary_contact_email)}</div>` : ''}</td><td><span class="font-display text-lg">${fmtNum(c.buildings_in_pipeline)}</span></td><td><span class="text-sage">${fmtNum(c.buildings_won)}</span></td><td><span class="text-gold">${fmtNum(c.buildings_meeting)}</span></td><td>${fmtNum(c.buildings_emailed)}</td><td>${fmtNum(c.buildings_pending)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    <h2 class="font-display text-lg mb-3">Pipeline <span class="text-xs text-cream/50 font-sans">(${(pipeline||[]).length} buildings)</span></h2>
+    <div class="space-y-2">${(pipeline||[]).map(h => {
+      const next = h.next_action_at ? (new Date(h.next_action_at) < new Date() ? `<span class="font-mono text-[11px] text-brick">OVERDUE · ${esc(relTime(h.next_action_at))}</span>` : `<span class="font-mono text-[11px] text-bluegray">${esc(relTime(h.next_action_at))}</span>`) : '<span class="font-mono text-[11px] text-cream/40 italic">unscheduled</span>';
+      return `<div class="card !p-0 flex overflow-hidden"><div class="w-1 flex-shrink-0" style="background:${STATUS[h.status]||'#666'}"></div><div class="flex-1 p-3"><div class="flex flex-wrap items-baseline gap-3"><span class="font-mono text-sm font-medium">${esc(h.building_slug)}</span><span class="font-mono text-[10px] tracking-[0.1em] uppercase" style="color:${STATUS[h.status]}">${esc(h.status.replace('_',' '))}</span>${next}${h.last_contacted_at ? `<span class="font-mono text-[10px] text-cream/40">last: ${esc(relTime(h.last_contacted_at))}</span>` : '<span class="font-mono text-[10px] text-brick/60 italic">never contacted</span>'}${h.contact_count > 0 ? `<span class="tag">${h.contact_count} contact${h.contact_count!==1?'s':''}</span>` : ''}${h.open_tasks > 0 ? `<span class="tag tag-warn">${h.open_tasks} task${h.open_tasks!==1?'s':''}</span>` : ''}</div>${h.primary_contact_email||h.primary_contact_name ? `<div class="text-sm text-cream/70 mt-1">${esc(h.primary_contact_name||'')}${h.primary_contact_email ? ` · <a href="mailto:${esc(h.primary_contact_email)}" class="text-bluegray hover:text-gold">${esc(h.primary_contact_email)}</a>` : ''}${h.primary_contact_role ? ` · <em class="text-cream/50">${esc(h.primary_contact_role)}</em>` : ''}</div>` : '<div class="text-sm text-brick/70 italic mt-1">no contact info — needs research</div>'}${h.company_name ? `<div class="text-[11px] text-cream/50 mt-1">→ ${esc(h.company_name)}</div>` : ''}</div><div class="flex items-center gap-1 px-3"><button class="btn btn-secondary btn-sm" data-edit-hoa="${esc(h.building_slug)}">Edit</button></div></div>`;
+    }).join('')}</div>
+    <div class="mt-8 placeholder">
+      <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>
+      <div>HOA pitch page editor · Recurring email schedules per HOA · Meeting prep templates</div>
+    </div>
+  `;
+  $$('[data-edit-hoa]').forEach(b => b.addEventListener('click', () => openHoaEditor(b.dataset.editHoa)));
+  $('#add-hoa-company').addEventListener('click', openCompanyEditor);
+}
 
-    let profile = null;
-    try { profile = await CM.getMyProfile(); } catch (e) {}
-    if (!profile || profile.role !== 'admin') { notAuth.style.display = 'block'; return; }
-
-    adminContent.style.display = 'block';
-    document.getElementById('f-admin-email').textContent = session.user.email;
-
-    await Promise.all([
-      loadCounts(),
-      loadOffers(),
-      loadUsers(),
-      loadClaims(),
-    ]);
-  }
-
-  async function loadCounts() {
-    try {
-      const { count: userCount } = await sb.from('profiles').select('*', { count: 'exact', head: true });
-      document.getElementById('f-user-count').textContent = userCount ?? '—';
-    } catch (e) {}
-    try {
-      const { count: listingCount } = await sb
-        .from('listings').select('*', { count: 'exact', head: true })
-        .neq('status', 'removed');
-      document.getElementById('f-listing-count').textContent = listingCount ?? '—';
-    } catch (e) {}
-  }
-
-  // ─── Approval queue (Sprint B-2B) ────────────────────────────────────
-  async function loadClaims() {
-    const cr = await sb.from('user_units')
-      .select('id, user_id, building_slug, unit_address, claimed_name, evidence_url, status, created_at, review_notes')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
-    if (cr.error) {
-      console.error('[loadClaims]', cr.error);
-      document.getElementById('claims-tbody').innerHTML =
-        '<tr class="empty-row"><td colspan="6">Could not load claims: ' + escapeHtml(cr.error.message) + '</td></tr>';
-      document.getElementById('f-pending-claims').textContent = '?';
-      return;
-    }
-    allClaims = cr.data || [];
-
-    if (allClaims.length > 0) {
-      const userIds = [...new Set(allClaims.map(c => c.user_id).filter(Boolean))];
-
-      try {
-        const { data: profs } = await sb.from('profiles')
-          .select('id, email, full_name').in('id', userIds);
-        const profMap = Object.fromEntries((profs || []).map(p => [p.id, p]));
-        allClaims.forEach(c => { c.profile = profMap[c.user_id] || null; });
-      } catch (e) { /* swallow — email column will show — */ }
-
-      try {
-        const { data: mmmRows } = await sb.from('make_me_move')
-          .select('user_id, building_slug, unit_address, target_price')
-          .in('user_id', userIds);
-        const mmmMap = new Map();
-        (mmmRows || []).forEach(m => {
-          mmmMap.set(m.user_id + '|' + m.building_slug + '|' + m.unit_address, m.target_price);
-        });
-        allClaims.forEach(c => {
-          c.mmm_price = mmmMap.get(c.user_id + '|' + c.building_slug + '|' + c.unit_address) || null;
-        });
-      } catch (e) { /* swallow */ }
-
-      const uniqueUnits = [...new Set(allClaims.map(c => c.building_slug + '|' + c.unit_address))];
-      await Promise.all(uniqueUnits.map(async (k) => {
-        if (claimsTitleCache.has(k)) return;
-        const [slug, unit] = k.split('|');
-        try {
-          const { data: tr } = await sb.rpc('title_record_for_unit', {
-            p_building_slug: slug,
-            p_unit_label:    unit,
-          });
-          claimsTitleCache.set(k, tr || []);
-        } catch (e) { claimsTitleCache.set(k, []); }
-      }));
-    }
-
-    document.getElementById('f-pending-claims').textContent = allClaims.length;
-    renderClaims();
-  }
-
-  function renderClaims() {
-    const tbody = document.getElementById('claims-tbody');
-    if (allClaims.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No claims awaiting review — auto-verified submissions skip this queue.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = allClaims.map(c => {
-      const titles  = claimsTitleCache.get(c.building_slug + '|' + c.unit_address) || [];
-      const profile = c.profile || {};
-      const titleCell = titles.length === 0
-        ? '<span style="color:var(--cm-loss);font-style:italic;font-size:12px;">No title record on file</span>'
-        : titles.map(t => {
-            const owners = escapeHtml(t.owner_name || '—')
-              + (t.owner_name_2 ? ' <span style="color:var(--cm-ivory-dim);">/</span> ' + escapeHtml(t.owner_name_2) : '');
-            const sub = t.sale_date
-              ? '<br><span style="font-family:var(--cm-ff-mono);font-size:10px;color:var(--cm-ivory-dim);">'
-                + escapeHtml(new Date(t.sale_date).toLocaleDateString())
-                + (t.sale_price ? ' · ' + escapeHtml(fmtMoneyShort(t.sale_price)) : '')
-                + '</span>'
-              : '';
-            return '<div style="margin-bottom:6px;font-size:13px;line-height:1.35;">' + owners + sub + '</div>';
-          }).join('');
-      const mmmCell = c.mmm_price
-        ? '<span style="font-family:var(--cm-ff-display);font-style:italic;color:var(--cm-bronze);font-size:15px;">'
-            + fmtMoneyShort(c.mmm_price) + '</span>'
-        : '<span style="color:var(--cm-ivory-faint);">—</span>';
-      const evidenceLine = c.evidence_url
-        ? '<br><a href="' + escapeHtml(c.evidence_url) + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--cm-peri);">evidence ↗</a>'
-        : '';
-      return [
-        '<tr class="claim-tr" data-claim-id="' + escapeHtml(c.id) + '">',
-        '  <td>',
-        '    <strong>' + escapeHtml(c.claimed_name || '—') + '</strong>',
-        '    <br><span style="color:var(--cm-ivory-dim);font-size:12px;font-family:var(--cm-ff-mono);">' + escapeHtml(profile.email || '—') + '</span>',
-        '    ' + evidenceLine,
-        '  </td>',
-        '  <td>',
-        '    <strong>' + escapeHtml(buildingPretty(c.building_slug)) + '</strong>',
-        '    <br><span style="color:var(--cm-peri);font-family:var(--cm-ff-mono);font-size:12px;">' + escapeHtml(c.unit_address || '—') + '</span>',
-        '  </td>',
-        '  <td>' + mmmCell + '</td>',
-        '  <td>' + titleCell + '</td>',
-        '  <td style="text-align:right;font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">' + escapeHtml(relativeTime(c.created_at)) + '</td>',
-        '  <td style="text-align:right;white-space:nowrap;">',
-        '    <button class="btn-mini btn-mini-accept" data-claim-action="approve" data-id="' + escapeHtml(c.id) + '">Approve</button>',
-        '    <button class="btn-mini btn-mini-decline" data-claim-action="reject" data-id="' + escapeHtml(c.id) + '" style="margin-left:6px;">Reject</button>',
-        '  </td>',
-        '</tr>',
-      ].join('\n');
-    }).join('\n');
-  }
-
-  async function approveClaim(claimId) {
-    const session = await CM.getSession();
-    if (!session?.user) { alert('Not signed in'); return false; }
-    const { error } = await sb.from('user_units').update({
-      status:       'approved',
-      reviewed_at:  new Date().toISOString(),
-      reviewed_by:  session.user.id,
-      review_notes: 'Approved by admin via approval queue',
-    }).eq('id', claimId);
-    if (error) { alert('Approve failed: ' + error.message); return false; }
-    return true;
-  }
-
-  async function rejectClaim(claimId) {
-    const notes = prompt('Reason for rejection (will be sent to the homeowner):');
-    if (notes == null || notes.trim() === '') return false;
-    const session = await CM.getSession();
-    if (!session?.user) { alert('Not signed in'); return false; }
-    const { error } = await sb.from('user_units').update({
-      status:       'rejected',
-      reviewed_at:  new Date().toISOString(),
-      reviewed_by:  session.user.id,
-      review_notes: notes.trim(),
-    }).eq('id', claimId);
-    if (error) { alert('Reject failed: ' + error.message); return false; }
-    return true;
-  }
-
-  async function loadOffers() {
-    allOffers = await CM.listAllOffers();
-
-    const lids = [...new Set(allOffers.map(o => o.listing_id).filter(Boolean))];
-    if (lids.length > 0) {
-      try {
-        const { data } = await sb.from('listings')
-          .select('id, address, unit_number, building, price')
-          .in('id', lids);
-        listingsById = {};
-        (data || []).forEach(l => { listingsById[l.id] = l; });
-      } catch (e) {}
-    }
-
-    document.getElementById('f-offer-count').textContent  = allOffers.length;
-    const pending = allOffers.filter(o => o.status === 'pending').length;
-    document.getElementById('f-pending-count').textContent = pending;
-    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const acceptedThisWeek = allOffers.filter(o =>
-      o.status === 'accepted' && new Date(o.created_at).getTime() >= oneWeekAgo
-    ).length;
-    document.getElementById('f-accepted-week').textContent = acceptedThisWeek;
-    const totalVolume = allOffers.reduce((acc, o) => acc + Number(o.offer_amount || 0), 0);
-    document.getElementById('f-volume').textContent = totalVolume > 0 ? fmtMoneyShort(totalVolume) : '$0';
-
-    const buildingSlugs = [...new Set(allOffers.map(o => o.building_slug).filter(Boolean))].sort();
-    const sel = document.getElementById('f-filter-building');
-    sel.innerHTML = '<option value="">All buildings</option>'
-      + buildingSlugs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(buildingPretty(s))}</option>`).join('');
-
-    renderOffers();
-  }
-
-  function renderOffers() {
-    const tbody = document.getElementById('offers-tbody');
-    const statusFilter = document.getElementById('f-filter-status').value;
-    const buildingFilter = document.getElementById('f-filter-building').value;
-
-    let visible = allOffers;
-    if (statusFilter)   visible = visible.filter(o => o.status === statusFilter);
-    if (buildingFilter) visible = visible.filter(o => o.building_slug === buildingFilter);
-
-    if (visible.length === 0) {
-      const msg = allOffers.length === 0
-        ? 'No offers yet — when buyers submit, they appear here.'
-        : 'No offers match the current filter.';
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${escapeHtml(msg)}</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = visible.map(o => {
-      const lst = listingsById[o.listing_id];
-      const buildingCell = buildingPretty(o.building_slug);
-      const buyerCell = (o.buyer_name ? `<strong>${escapeHtml(o.buyer_name)}</strong><br>` : '')
-        + `<span style="color:var(--cm-ivory-dim);font-size:12px;font-family:var(--cm-ff-mono);">${escapeHtml(o.buyer_email)}</span>`;
-      const listingSub = lst
-        ? `<br><span style="color:var(--cm-ivory-dim);font-size:12px;">${escapeHtml(lst.address || '')}${lst.unit_number ? ' #' + escapeHtml(lst.unit_number) : ''}</span>`
-        : '';
-      const detailListing = lst
-        ? escapeHtml((lst.address || '') + (lst.unit_number ? ' #' + lst.unit_number : ''))
-          + (lst.price ? ` <span style="color:var(--cm-ivory-dim);font-family:var(--cm-ff-mono);font-size:12px;">· MMM ${fmtMoney(lst.price)}</span>` : '')
-        : 'Generic building offer (no specific unit)';
-      const photoUrl = lst && lst.cover_photo_path ? CM.getListingPhotoUrl(lst.cover_photo_path) : null;
-      const photoBlock = photoUrl
-        ? `<div style="margin-bottom:14px;"><img src="${escapeHtml(photoUrl)}" alt="Listing photo" style="width:100%;max-width:240px;border-radius:8px;display:block;"></div>`
-        : '';
-      const messageBlock = o.message
-        ? `<div class="dl-label">Message</div><div class="dl-value italic">${escapeHtml(o.message)}</div>`
-        : `<div class="dl-label">Message</div><div class="dl-value" style="color:var(--cm-ivory-faint);">No message included.</div>`;
-      const actionsBlock = o.status === 'pending'
-        ? `<div class="offer-detail-actions">
-            <button class="btn-mini btn-mini-accept" data-action="accept"  data-id="${escapeHtml(o.id)}">Accept</button>
-            <button class="btn-mini btn-mini-decline" data-action="decline" data-id="${escapeHtml(o.id)}">Decline</button>
-            <button class="btn-mini btn-mini-expire" data-action="expire"  data-id="${escapeHtml(o.id)}">Mark expired</button>
-          </div>`
-        : '';
-      return [
-        `<tr class="offer-tr" data-id="${escapeHtml(o.id)}">`,
-        `  <td><strong>${escapeHtml(buildingCell)}</strong>${listingSub}</td>`,
-        `  <td>${buyerCell}</td>`,
-        `  <td style="text-align:right;"><span class="offer-amount-cell">${fmtMoney(o.offer_amount)}</span></td>`,
-        `  <td><span class="offer-status offer-status-${escapeHtml(o.status)}">${escapeHtml(statusLabel(o.status))}</span></td>`,
-        `  <td style="font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${escapeHtml(relativeTime(o.created_at))}</td>`,
-        `</tr>`,
-        `<tr class="offer-detail" data-detail-for="${escapeHtml(o.id)}" style="display:none;"><td colspan="5">`,
-        `  <div class="offer-detail-content">`,
-        `    <div class="offer-detail-block">`,
-        `      ${photoBlock}`,
-        `      <div class="dl-label">Listing</div>`,
-        `      <div class="dl-value">${detailListing}</div>`,
-        `      <div class="dl-label">Building slug</div>`,
-        `      <div class="dl-value" style="font-family:var(--cm-ff-mono);font-size:13px;">${escapeHtml(o.building_slug || '—')}</div>`,
-        `      <div class="dl-label">Submitted</div>`,
-        `      <div class="dl-value">${escapeHtml(new Date(o.created_at).toLocaleString())}</div>`,
-        `    </div>`,
-        `    <div class="offer-detail-block">`,
-        `      <div class="dl-label">Buyer</div>`,
-        `      <div class="dl-value">${escapeHtml(o.buyer_name || '—')}<br><span style="font-family:var(--cm-ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${escapeHtml(o.buyer_email)}</span></div>`,
-        `      ${messageBlock}`,
-        `    </div>`,
-        `    ${actionsBlock}`,
-        `  </div>`,
-        `</td></tr>`,
-      ].join('\n');
-    }).join('\n');
-  }
-
-  // ─── PHASE A: Users with drill-down ─────────────────────────────────────
-  async function loadUsers() {
-    try {
-      const { data: users, error } = await sb
-        .from('profiles')
-        .select('id, email, full_name, phone, created_at, referral_code, referred_by, role, tos_accepted_at, tos_version, points_earned')
-        .order('created_at', { ascending: false })
-        .limit(200);
-      if (error) throw error;
-
-      const referrerIds = [...new Set((users || []).map(u => u.referred_by).filter(Boolean))];
-      referrerEmailMap = {};
-      if (referrerIds.length > 0) {
-        try {
-          const { data: referrers } = await sb.from('profiles').select('id, email').in('id', referrerIds);
-          referrerEmailMap = Object.fromEntries((referrers || []).map(r => [r.id, r.email]));
-        } catch (e) { /* swallow */ }
-      }
-
-      (users || []).forEach(u => {
-        userActivityCache.set(u.id, { profile: u });
-      });
-
-      const tbody = document.getElementById('users-tbody');
-      const countEl = document.getElementById('users-count');
-      if (users && users.length > 0) {
-        tbody.innerHTML = users.map(u => renderUserRow(u)).join('');
-        countEl.textContent = users.length === 200
-          ? 'Showing most recent 200'
-          : `${users.length} user${users.length === 1 ? '' : 's'}`;
-      } else {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No users yet.</td></tr>';
-        countEl.textContent = '';
-      }
-    } catch (e) {
-      console.error('[loadUsers]', e);
-      document.getElementById('users-tbody').innerHTML =
-        '<tr class="empty-row"><td colspan="5">Could not load users.</td></tr>';
-    }
-  }
-
-  function renderUserRow(u) {
-    const referrerEmail = u.referred_by ? referrerEmailMap[u.referred_by] : null;
-    return [
-      `<tr class="user-tr" data-user-id="${escapeHtml(u.id)}">`,
-      `  <td style="font-family:var(--cm-ff-mono);font-size:12px;"><i class="chev">›</i>${escapeHtml(u.email || '—')}</td>`,
-      `  <td>${escapeHtml(u.full_name || '—')}</td>`,
-      `  <td style="color:var(--cm-ivory-dim);font-size:12px;">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>`,
-      `  <td style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(u.referral_code || '—')}</td>`,
-      `  <td style="font-family:var(--cm-ff-mono);color:var(--cm-ivory-dim);font-size:12px;">${escapeHtml(referrerEmail || '—')}</td>`,
-      `</tr>`,
-      `<tr class="user-detail" data-detail-for="${escapeHtml(u.id)}" style="display:none;">`,
-      `  <td colspan="5"><div class="user-detail-loading" data-loading="true">Loading activity…</div></td>`,
-      `</tr>`,
-    ].join('');
-  }
-
-  async function loadUserActivity(userId) {
-    const cached = userActivityCache.get(userId);
-    if (cached && cached.offers !== undefined) return cached;
-
-    const [offersR, listingsR, watchlistR, sigsR, creditsR] = await Promise.all([
-      sb.from('offers')
-        .select('id, building_slug, listing_id, offer_amount, status, current_round, created_at, updated_at')
-        .eq('buyer_user_id', userId).order('created_at', { ascending: false }),
-      sb.from('listings')
-        .select('id, address, unit_number, building, price, status, created_at, updated_at')
-        .eq('user_id', userId).order('created_at', { ascending: false }),
-      sb.from('watchlist')
-        .select('id, building_slug, created_at')
-        .eq('user_id', userId).order('created_at', { ascending: false }),
-      sb.from('petition_signatures')
-        .select('id, building_slug, unit_address, matched_owner_name, signed_at')
-        .eq('signer_user_id', userId).order('signed_at', { ascending: false }),
-      sb.from('referral_credits')
-        .select('id, points_awarded, source, awarded_at, referred_user_id')
-        .eq('referrer_id', userId).order('awarded_at', { ascending: false }),
-    ]);
-
-    const activity = {
-      profile: cached?.profile,
-      offers:     offersR.data    || [],
-      listings:   listingsR.data  || [],
-      watchlist:  watchlistR.data || [],
-      signatures: sigsR.data      || [],
-      credits:    creditsR.data   || [],
+async function openHoaEditor(slug) {
+  const { data: hoa } = await sb.from('hoa_outreach').select('*').eq('building_slug', slug).maybeSingle();
+  const { data: contacts } = await sb.from('hoa_contacts').select('*').eq('building_slug', slug).order('is_primary',{ascending:false});
+  const { data: companies } = await sb.from('hoa_companies').select('id, name').order('name');
+  if (!hoa) { alert('HOA row not found.'); return; }
+  const backdrop = document.createElement('div'); backdrop.className = 'drawer-backdrop';
+  const drawer = document.createElement('div'); drawer.className = 'drawer';
+  drawer.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display text-2xl italic">${esc(slug)}</h2>
+      <button class="btn btn-secondary btn-sm" id="hoa-close">Close</button>
+    </div>
+    <form id="hoa-edit-form" class="space-y-3">
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Status</span>
+        <select name="status">${['untouched','targeted','emailed','meeting_scheduled','meeting_held','won','declined','dormant'].map(s => `<option ${hoa.status===s?'selected':''} value="${s}">${s.replace('_',' ')}</option>`).join('')}</select>
+      </label>
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Company</span>
+        <select name="company_id"><option value="">— none —</option>${(companies||[]).map(c => `<option value="${c.id}" ${hoa.company_id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      </label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Next action</span><input type="datetime-local" name="next_action_at" value="${hoa.next_action_at ? new Date(hoa.next_action_at).toISOString().slice(0,16) : ''}"></label>
+        <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Last contacted</span><input type="datetime-local" name="last_contacted_at" value="${hoa.last_contacted_at ? new Date(hoa.last_contacted_at).toISOString().slice(0,16) : ''}"></label>
+      </div>
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Notes</span><textarea name="notes" rows="3">${esc(hoa.notes||'')}</textarea></label>
+      <button class="btn btn-primary">Save</button>
+    </form>
+    <h3 class="font-display text-lg mt-6 mb-2">Contacts <span class="text-xs text-cream/50 font-sans">(${(contacts||[]).length})</span></h3>
+    <div class="space-y-2 mb-3">${(contacts||[]).map(ct => `<div class="card !p-3 flex items-center justify-between"><div><div class="font-medium">${esc(ct.full_name)}${ct.is_primary?' <span class="tag tag-good">primary</span>':''}</div><div class="text-xs text-cream/60">${esc(ct.role.replace('_',' '))}${ct.email ? ` · ${esc(ct.email)}` : ''}${ct.phone ? ` · ${esc(ct.phone)}` : ''}</div></div><button class="btn btn-danger btn-sm" data-del-contact="${ct.id}">Delete</button></div>`).join('') || '<div class="placeholder !p-4 text-xs">No contacts yet.</div>'}</div>
+    <form id="add-contact-form" class="space-y-2 card">
+      <div class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60 mb-2">Add contact</div>
+      <div class="grid grid-cols-2 gap-2">
+        <input type="text" name="full_name" placeholder="Name" required>
+        <select name="role">${['board_president','board_member','board_treasurer','board_secretary','property_manager','building_manager','concierge','other'].map(r => `<option value="${r}">${r.replace('_',' ')}</option>`).join('')}</select>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <input type="email" name="email" placeholder="Email">
+        <input type="text" name="phone" placeholder="Phone">
+      </div>
+      <label class="flex items-center gap-2 text-xs"><input type="checkbox" name="is_primary"> Set as primary</label>
+      <button class="btn btn-primary btn-sm">Add contact</button>
+    </form>
+    <div class="placeholder mt-6">
+      <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>
+      <div>HOA pitch page editor + public preview at /hoa-pitch/${esc(slug)}/</div>
+    </div>
+  `;
+  document.body.append(backdrop, drawer);
+  const close = () => { backdrop.remove(); drawer.remove(); };
+  backdrop.addEventListener('click', close);
+  $('#hoa-close', drawer).addEventListener('click', close);
+  $('#hoa-edit-form', drawer).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const updates = {
+      status: fd.get('status'),
+      company_id: fd.get('company_id') || null,
+      next_action_at: fd.get('next_action_at') || null,
+      last_contacted_at: fd.get('last_contacted_at') || null,
+      notes: fd.get('notes') || null,
     };
-    userActivityCache.set(userId, activity);
-    return activity;
-  }
-
-  function buildUserTimeline(activity) {
-    const events = [];
-    const p = activity.profile || {};
-
-    if (p.created_at) {
-      events.push({ ts: p.created_at, kind: 'signup', title: 'Joined Condo Market', body: '' });
-    }
-    if (p.tos_accepted_at) {
-      events.push({
-        ts: p.tos_accepted_at, kind: 'tos',
-        title: `Accepted Terms of Service${p.tos_version ? ' v' + p.tos_version : ''}`,
-        body: '',
-      });
-    }
-    activity.offers.forEach(o => {
-      events.push({
-        ts: o.created_at, kind: 'offer',
-        title: `Made ${fmtMoney(o.offer_amount)} offer · ${buildingPretty(o.building_slug)}`,
-        body: o.status !== 'pending' ? `Status: ${o.status}` : '',
-      });
-    });
-    activity.listings.forEach(l => {
-      events.push({
-        ts: l.created_at, kind: 'listing',
-        title: `Created MMM listing · ${unitLabel(l)} · ${fmtMoney(l.price)}`,
-        body: l.status !== 'active' ? `Status: ${l.status}` : '',
-      });
-    });
-    activity.watchlist.forEach(w => {
-      events.push({
-        ts: w.created_at, kind: 'watchlist',
-        title: `Watchlisted ${buildingPretty(w.building_slug)}`,
-        body: '',
-      });
-    });
-    activity.signatures.forEach(s => {
-      events.push({
-        ts: s.signed_at, kind: 'signature',
-        title: `Signed petition · ${buildingPretty(s.building_slug)}${s.unit_address ? ' · ' + s.unit_address : ''}`,
-        body: s.matched_owner_name ? `Public-record owner: ${s.matched_owner_name}` : '',
-      });
-    });
-    activity.credits.forEach(c => {
-      events.push({
-        ts: c.awarded_at, kind: 'referral',
-        title: `Earned ${c.points_awarded} pts referral credit`,
-        body: c.source ? `Source: ${c.source}` : '',
-      });
-    });
-    return events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
-  }
-
-  function renderUserDetail(activity) {
-    const p = activity.profile || {};
-    const referrerEmail = p.referred_by ? referrerEmailMap[p.referred_by] : null;
-    const timeline = buildUserTimeline(activity);
-
-    const tosCell = p.tos_accepted_at
-      ? `v${escapeHtml(p.tos_version || '?')} · ${new Date(p.tos_accepted_at).toLocaleDateString()}`
-      : '<span style="color:var(--cm-ivory-faint);">Not accepted</span>';
-
-    return [
-      `<div class="user-detail-content">`,
-
-      `  <div class="user-profile">`,
-      `    <h4>Profile</h4>`,
-      `    <dl>`,
-      `      <div class="dl-row"><span class="dl-key">Email</span><span class="dl-val" style="font-family:var(--cm-ff-mono);">${escapeHtml(p.email || '—')}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">Name</span><span class="dl-val">${escapeHtml(p.full_name || '—')}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">Phone</span><span class="dl-val">${escapeHtml(p.phone || '—')}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">Role</span><span class="dl-val"><span class="role-pill ${p.role === 'admin' ? 'is-admin' : ''}">${escapeHtml(p.role || 'user')}</span></span></div>`,
-      `      <div class="dl-row"><span class="dl-key">Joined</span><span class="dl-val">${p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">TOS</span><span class="dl-val">${tosCell}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">Their code</span><span class="dl-val" style="font-family:var(--cm-ff-mono);color:var(--cm-peri);">${escapeHtml(p.referral_code || '—')}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">Referred by</span><span class="dl-val" style="font-family:var(--cm-ff-mono);font-size:12px;">${escapeHtml(referrerEmail || '—')}</span></div>`,
-      `      <div class="dl-row"><span class="dl-key">User ID</span><span class="dl-val" style="font-family:var(--cm-ff-mono);font-size:10px;color:var(--cm-ivory-dim);">${escapeHtml(p.id || '—')}</span></div>`,
-      `    </dl>`,
-      `  </div>`,
-
-      `  <div class="user-stats">`,
-      `    <h4>Activity stats</h4>`,
-      `    <div class="user-stats-grid">`,
-      `      <div class="user-stat-tile"><div class="stat-num">${activity.offers.length}</div><div class="stat-lbl">Offers</div></div>`,
-      `      <div class="user-stat-tile"><div class="stat-num">${activity.listings.length}</div><div class="stat-lbl">MMM listings</div></div>`,
-      `      <div class="user-stat-tile"><div class="stat-num">${activity.watchlist.length}</div><div class="stat-lbl">Watchlist</div></div>`,
-      `      <div class="user-stat-tile"><div class="stat-num">${activity.signatures.length}</div><div class="stat-lbl">Petitions</div></div>`,
-      `      <div class="user-stat-tile"><div class="stat-num">${activity.credits.length}</div><div class="stat-lbl">Referrals made</div></div>`,
-      `      <div class="user-stat-tile"><div class="stat-num" style="color:var(--cm-peri);">${p.points_earned || 0}</div><div class="stat-lbl">Total points</div></div>`,
-      `    </div>`,
-      `  </div>`,
-
-      `  <div class="user-activity">`,
-      `    <h4>Activity timeline · ${timeline.length} event${timeline.length === 1 ? '' : 's'}</h4>`,
-      timeline.length === 0
-        ? `    <div class="user-activity-empty">No activity yet.</div>`
-        : `    <div class="user-activity-list">${timeline.map(e => `
-            <div class="user-activity-item">
-              <div class="user-activity-icon ${e.kind}">${USER_ACTIVITY_ICON[e.kind] || '•'}</div>
-              <div>
-                <div class="user-activity-title">${escapeHtml(e.title)}</div>
-                ${e.body ? `<div class="user-activity-body">${escapeHtml(e.body)}</div>` : ''}
-              </div>
-              <div class="user-activity-ts">${escapeHtml(relativeTime(e.ts))}</div>
-            </div>
-          `).join('')}</div>`,
-      `  </div>`,
-      `</div>`,
-    ].join('\n');
-  }
-
-  document.addEventListener('change', (e) => {
-    if (e.target.id === 'f-filter-status' || e.target.id === 'f-filter-building') {
-      renderOffers();
-    }
+    const { error } = await sb.from('hoa_outreach').update(updates).eq('building_slug', slug);
+    if (error) { alert('Save failed: ' + error.message); return; }
+    close(); renderHoa();
   });
-
-  document.addEventListener('click', async (e) => {
-    // Claim approve/reject (Sprint B-2B)
-    const claimBtn = e.target.closest('button[data-claim-action]');
-    if (claimBtn) {
-      const action = claimBtn.dataset.claimAction;
-      const id     = claimBtn.dataset.id;
-      if (!id || !['approve','reject'].includes(action)) return;
-      claimBtn.disabled = true;
-      const orig = claimBtn.textContent;
-      claimBtn.textContent = '…';
-      let ok = false;
-      if (action === 'approve') ok = await approveClaim(id);
-      if (action === 'reject')  ok = await rejectClaim(id);
-      claimBtn.disabled = false;
-      claimBtn.textContent = orig;
-      if (ok) await loadClaims();
-      return;
-    }
-
-    // Offer action buttons (accept/decline/expire)
-    const actionBtn = e.target.closest('button[data-action]');
-    if (actionBtn) {
-      const action = actionBtn.dataset.action;
-      const id = actionBtn.dataset.id;
-      if (!['accept','decline','expire'].includes(action) || !id) return;
-      actionBtn.disabled = true;
-      const orig = actionBtn.textContent;
-      actionBtn.textContent = '…';
-      let result;
-      if (action === 'accept')  result = await CM.acceptOffer(id);
-      if (action === 'decline') result = await CM.declineOffer(id);
-      if (action === 'expire')  result = await CM.updateOfferStatus(id, 'expired');
-      actionBtn.disabled = false;
-      actionBtn.textContent = orig;
-      if (result?.error) { alert(action + ' failed: ' + result.error.message); return; }
-      await loadOffers();
-      return;
-    }
-
-    // Offer row expand
-    const offerRow = e.target.closest('tr.offer-tr');
-    if (offerRow) {
-      const id = offerRow.dataset.id;
-      const detail = document.querySelector(`tr.offer-detail[data-detail-for="${CSS.escape(id)}"]`);
-      if (!detail) return;
-      const isOpen = detail.style.display !== 'none';
-      detail.style.display = isOpen ? 'none' : 'table-row';
-      offerRow.classList.toggle('is-expanded', !isOpen);
-      return;
-    }
-
-    // User row expand (Phase A)
-    const userRow = e.target.closest('tr.user-tr');
-    if (userRow) {
-      const userId = userRow.dataset.userId;
-      const detail = document.querySelector(`tr.user-detail[data-detail-for="${CSS.escape(userId)}"]`);
-      if (!detail) return;
-      const isOpen = detail.style.display !== 'none';
-      if (isOpen) {
-        detail.style.display = 'none';
-        userRow.classList.remove('is-expanded');
-        return;
-      }
-      detail.style.display = 'table-row';
-      userRow.classList.add('is-expanded');
-      const td = detail.querySelector('td');
-      const loadingPane = td.querySelector('.user-detail-loading');
-      if (loadingPane && loadingPane.dataset.loading === 'true') {
-        try {
-          const activity = await loadUserActivity(userId);
-          td.innerHTML = renderUserDetail(activity);
-        } catch (err) {
-          console.error('[loadUserActivity]', err);
-          td.innerHTML = `<div class="user-detail-error">Could not load activity: ${escapeHtml(err.message || 'unknown error')}</div>`;
-        }
-      }
-      return;
-    }
+  $('#add-contact-form', drawer).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const { error } = await sb.from('hoa_contacts').insert({
+      building_slug: slug,
+      full_name: fd.get('full_name'),
+      role: fd.get('role'),
+      email: fd.get('email') || null,
+      phone: fd.get('phone') || null,
+      is_primary: fd.get('is_primary') === 'on',
+    });
+    if (error) { alert('Add failed: ' + error.message); return; }
+    close(); openHoaEditor(slug);
   });
+  $$('[data-del-contact]', drawer).forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Delete this contact?')) return;
+    await sb.from('hoa_contacts').delete().eq('id', b.dataset.delContact);
+    close(); openHoaEditor(slug);
+  }));
+}
 
-  window.addEventListener('cm-ready', render);
-  window.addEventListener('cm-auth-change', render);
+async function openCompanyEditor() {
+  const backdrop = document.createElement('div'); backdrop.className = 'drawer-backdrop';
+  const drawer = document.createElement('div'); drawer.className = 'drawer';
+  drawer.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display text-2xl italic">Add HOA Company</h2>
+      <button class="btn btn-secondary btn-sm" id="co-close">Close</button>
+    </div>
+    <form id="co-form" class="space-y-3">
+      <input type="text" name="name" placeholder="Company name (e.g. Action Property Management)" required>
+      <input type="text" name="primary_contact_name" placeholder="Primary contact name">
+      <input type="email" name="primary_contact_email" placeholder="Primary contact email">
+      <input type="text" name="primary_contact_phone" placeholder="Phone">
+      <input type="text" name="website" placeholder="https://...">
+      <input type="number" name="buildings_managed_est" placeholder="Approx buildings managed">
+      <textarea name="notes" rows="3" placeholder="Notes"></textarea>
+      <button class="btn btn-primary">Create company</button>
+    </form>
+  `;
+  document.body.append(backdrop, drawer);
+  const close = () => { backdrop.remove(); drawer.remove(); };
+  backdrop.addEventListener('click', close);
+  $('#co-close', drawer).addEventListener('click', close);
+  $('#co-form', drawer).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const { error } = await sb.from('hoa_companies').insert({
+      name: fd.get('name'),
+      primary_contact_name: fd.get('primary_contact_name') || null,
+      primary_contact_email: fd.get('primary_contact_email') || null,
+      primary_contact_phone: fd.get('primary_contact_phone') || null,
+      website: fd.get('website') || null,
+      buildings_managed_est: fd.get('buildings_managed_est') ? Number(fd.get('buildings_managed_est')) : null,
+      notes: fd.get('notes') || null,
+    });
+    if (error) { alert('Create failed: ' + error.message); return; }
+    close(); renderHoa();
+  });
+}
+
+// ========================= EMAIL =========================
+async function renderEmail() {
+  const c = $('#content');
+  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Marketing</h1><div id="email-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const [{ data: templates }, { data: schedules }, { data: rules }] = await Promise.all([
+    sb.from('email_templates').select('*').eq('is_active', true).order('category').order('name'),
+    sb.from('email_schedules').select('*, email_templates(slug,name)').order('next_run_at',{ascending:true,nullsFirst:false}),
+    sb.from('automation_rules').select('*, email_templates(slug,name)').order('trigger_count',{ascending:false}),
+  ]);
+  $('#email-content').innerHTML = `
+    <h2 class="font-display text-lg mb-3">Templates <span class="text-xs text-cream/50 font-sans">(${(templates||[]).length})</span></h2>
+    <div class="card !p-0 mb-6"><table><thead><tr><th>Template</th><th>Category</th><th>Subject</th><th>Merge vars</th></tr></thead><tbody>${(templates||[]).map(t => `<tr><td><div class="font-medium">${esc(t.name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(t.slug)}</div></td><td><span class="tag">${esc(t.category)}</span></td><td class="text-sm text-cream/80">${esc(t.subject)}</td><td class="font-mono text-[10px] text-cream/50">${esc(JSON.stringify(t.merge_vars))}</td></tr>`).join('') || '<tr><td colspan="4" class="text-center text-cream/50 p-8">No templates.</td></tr>'}</tbody></table></div>
+
+    <h2 class="font-display text-lg mb-3">Recurring schedules <span class="text-xs text-cream/50 font-sans">(${(schedules||[]).length})</span></h2>
+    ${(schedules||[]).length ? `<div class="card !p-0 mb-6"><table><thead><tr><th>Name</th><th>Template</th><th>Recipients</th><th>Cron</th><th>Next run</th><th>Active</th></tr></thead><tbody>${schedules.map(s => `<tr><td>${esc(s.name)}</td><td class="font-mono text-xs">${esc(s.email_templates?.slug||'?')}</td><td class="text-sm">${esc(s.recipient_description||'—')}</td><td class="font-mono text-xs">${esc(s.cron_expression||'—')}</td><td class="font-mono text-xs">${esc(relTime(s.next_run_at))}</td><td>${s.is_active?'<span class="tag tag-good">on</span>':'<span class="tag">off</span>'}</td></tr>`).join('')}</tbody></table></div>` : `<div class="placeholder mb-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>No recurring schedules yet. The schema is ready; the cron processor + UI ships next.</div>`}
+
+    <h2 class="font-display text-lg mb-3">Automation rules <span class="text-xs text-cream/50 font-sans">(${(rules||[]).length})</span></h2>
+    ${(rules||[]).length ? `<div class="card !p-0 mb-6"><table><thead><tr><th>Name</th><th>Trigger</th><th>Template</th><th>Recipients</th><th>Triggered</th></tr></thead><tbody>${rules.map(r => `<tr><td>${esc(r.name)}</td><td class="font-mono text-xs">${esc(r.trigger_type)}</td><td class="font-mono text-xs">${esc(r.email_templates?.slug||'?')}</td><td>${esc(r.recipient_strategy)}</td><td>${fmtNum(r.trigger_count)}</td></tr>`).join('')}</tbody></table></div>` : `<div class="placeholder mb-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>No automation rules yet. Build "new_sale → just_sold email to building owners" here.</div>`}
+
+    <div class="placeholder">
+      <div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B priorities</div>
+      <div class="text-cream/70 text-sm">Template editor with live preview · Recipient builder UI · Manual send-now form · Automation rule builder · "New Sale" trigger integration · Per-HOA email schedules</div>
+      <div class="mt-4">For now: use Claude command on <a href="#home" class="text-gold underline">Home</a> with prompts like "draft a Just Sold email to all owners at 480 Mission Bay Blvd N about unit 421 for $1.85M"</div>
+    </div>
+  `;
+}
+
+// ========================= QUEUE =========================
+async function renderQueue() {
+  const c = $('#content');
+  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Queue</h1><div id="q-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const [{ data: byCity }, { data: byCamp }, { data: caps }, { data: recent }] = await Promise.all([
+    sb.from('v_send_capacity_by_city').select('*'),
+    sb.from('v_email_queue_by_campaign').select('*').limit(20),
+    sb.from('email_send_caps').select('*').order('effective_from'),
+    sb.from('email_queue').select('id,campaign_key,recipient_email,status,scheduled_for,sent_at,skip_reason,last_error').order('updated_at',{ascending:false}).limit(20),
+  ]);
+  $('#q-content').innerHTML = `
+    <h2 class="font-display text-lg mb-3">Per-city capacity</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">${(byCity||[]).map(c => {
+      const util = c.daily_cap > 0 ? Math.round((c.sent_today/c.daily_cap)*100) : 0;
+      const color = util > 80 ? '#d88080' : util > 50 ? '#d4a574' : '#7c9d6a';
+      return `<div class="card"><div class="flex items-baseline justify-between mb-2"><div class="font-display text-lg">${esc(c.display_name)}</div><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></div><div class="grid grid-cols-2 gap-3 text-sm"><div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Sent today</div><div class="font-display text-2xl" style="color:${color}">${fmtNum(c.sent_today)}/${fmtNum(c.daily_cap)} <span class="text-xs font-sans">(${util}%)</span></div></div><div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Pending</div><div class="font-display text-2xl text-bluegray">${fmtNum(c.pending_total)}</div></div></div></div>`;
+    }).join('')}</div>
+    <h2 class="font-display text-lg mb-3">By campaign</h2>
+    ${(byCamp||[]).length ? `<div class="card !p-0 mb-6"><table><thead><tr><th>Campaign</th><th>Total</th><th>Pending</th><th>Sent</th><th>Failed</th><th>Last sent</th></tr></thead><tbody>${byCamp.map(c => `<tr><td class="font-mono text-xs">${esc(c.campaign_key)}</td><td>${fmtNum(c.total)}</td><td>${fmtNum(c.pending)}</td><td>${fmtNum(c.sent)}</td><td>${fmtNum(c.failed)}</td><td class="font-mono text-xs">${esc(relTime(c.last_sent_at))}</td></tr>`).join('')}</tbody></table></div>` : '<div class="placeholder mb-6">No campaigns in queue yet.</div>'}
+    <h2 class="font-display text-lg mb-3">Warmup curves</h2>
+    <div class="card !p-0 mb-6"><table><thead><tr><th>City</th><th>Effective</th><th>Daily cap</th><th>Cool-down</th><th>Notes</th></tr></thead><tbody>${(caps||[]).map(c => `<tr><td class="font-mono text-xs">${esc(c.city_id ? '(city)' : '(global)')}</td><td>${esc(fmtDate(c.effective_from))}</td><td class="font-display">${fmtNum(c.daily_cap)}</td><td>${esc(c.per_person_min_days)}d</td><td class="text-xs text-cream/70">${esc(c.notes||'')}</td></tr>`).join('')}</tbody></table></div>
+    <h2 class="font-display text-lg mb-3">Recent activity</h2>
+    ${(recent||[]).length ? `<div class="card !p-0"><table><thead><tr><th>Recipient</th><th>Campaign</th><th>Status</th><th>When</th><th>Note</th></tr></thead><tbody>${recent.map(r => `<tr><td class="font-mono text-xs">${esc(r.recipient_email)}</td><td class="font-mono text-xs">${esc(r.campaign_key)}</td><td><span class="tag ${r.status==='sent'?'tag-good':r.status==='failed'?'tag-bad':''}">${esc(r.status)}</span></td><td class="font-mono text-xs">${esc(r.sent_at?relTime(r.sent_at):relTime(r.scheduled_for))}</td><td class="text-xs text-cream/60">${esc(r.skip_reason||r.last_error||'')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="placeholder">No queue activity yet.</div>'}
+  `;
+}
+
+// ========================= BUILDINGS =========================
+async function renderBuildings() {
+  const c = $('#content');
+  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Buildings <span class="text-cream/50 text-sm font-sans italic">— penetration & engagement</span></h1><div id="b-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const { data } = await sb.from('v_building_penetration').select('*').not('unit_count', 'is', null).order('signed_up',{ascending:false,nullsFirst:false}).order('open_rate_pct',{ascending:false,nullsFirst:false});
+  $('#b-content').innerHTML = `
+    <div class="card !p-0"><table><thead><tr><th>Building</th><th>Units</th><th>Coverage</th><th>Sent</th><th>Open rate</th><th>Signups</th><th>Claims</th><th>MMMs</th></tr></thead>
+    <tbody>${(data||[]).map(b => `<tr><td><div class="font-medium">${esc(b.display_name||b.slug)}</div><div class="font-mono text-[11px] text-cream/50">${esc(b.slug)}${b.neighborhood?` · ${esc(b.neighborhood)}`:''}</div></td>
+    <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
+    <td>${b.unit_coverage_pct !== null ? `<span class="font-display ${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span><div class="font-mono text-[11px] text-cream/40">${fmtNum(b.units_covered)}/${fmtNum(b.unit_count)}</div>` : '—'}</td>
+    <td>${fmtNum(b.emails_sent_unique)}</td>
+    <td>${b.open_rate_pct !== null ? `<span class="font-display ${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : 'text-cream/60'}">${b.open_rate_pct}%</span>` : '—'}</td>
+    <td>${fmtNum(b.signed_up)}</td>
+    <td>${fmtNum(b.approved_claims)}</td>
+    <td>${fmtNum(b.active_mmms)}</td>
+    </tr>`).join('')}</tbody></table></div>
+  `;
+}
+
+// ========================= MMM =========================
+async function renderMmm() {
+  const c = $('#content');
+  c.innerHTML = `<div class="flex items-baseline justify-between mb-4"><h1 class="font-display text-3xl italic">Make Me Move</h1><button id="add-mmm" class="btn btn-primary btn-sm">+ Add MMM</button></div><div id="mmm-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const { data } = await sb.from('make_me_move').select('id,user_id,building_slug,unit_address,target_price,is_active,notes,set_at,updated_at').order('is_active',{ascending:false}).order('set_at',{ascending:false});
+  const { data: buildings } = await sb.from('buildings').select('slug,display_name').order('display_name');
+  const { data: profiles } = await sb.from('profiles').select('id,email,full_name').order('full_name',{nullsFirst:false});
+  const bMap = Object.fromEntries((buildings||[]).map(b => [b.slug, b.display_name||b.slug]));
+  const pMap = Object.fromEntries((profiles||[]).map(p => [p.id, p.full_name || p.email]));
+  $('#mmm-content').innerHTML = `<div class="card !p-0"><table><thead><tr><th>Building · Unit</th><th>Owner</th><th>Price</th><th>Active</th><th>Set</th><th></th></tr></thead><tbody>${(data||[]).map(m => `<tr class="${m.is_active?'':'opacity-50'}"><td><div class="font-medium">${esc(bMap[m.building_slug]||m.building_slug)} · #${esc(m.unit_address)}</div><div class="font-mono text-[11px] text-cream/50">${esc(m.building_slug)}</div></td><td class="text-sm">${esc(pMap[m.user_id]||m.user_id)}</td><td class="font-display text-lg ${m.is_active?'text-gold':''}">${fmtMoney(m.target_price)}</td><td>${m.is_active?'<span class="tag tag-good">active</span>':'<span class="tag">inactive</span>'}</td><td class="font-mono text-xs">${esc(relTime(m.set_at))}</td><td><button class="btn btn-secondary btn-sm" data-edit-mmm="${m.id}">Edit</button> <button class="btn btn-danger btn-sm" data-del-mmm="${m.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+  $$('[data-del-mmm]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Delete MMM?')) return;
+    await sb.from('make_me_move').delete().eq('id', b.dataset.delMmm);
+    renderMmm();
+  }));
+  $$('[data-edit-mmm]').forEach(b => b.addEventListener('click', () => openMmmEditor(b.dataset.editMmm, buildings, profiles)));
+  $('#add-mmm').addEventListener('click', () => openMmmEditor(null, buildings, profiles));
+}
+
+async function openMmmEditor(id, buildings, profiles) {
+  let mmm = { user_id:'', building_slug:'', unit_address:'', target_price:'', is_active: true, notes:'' };
+  if (id) { const { data } = await sb.from('make_me_move').select('*').eq('id', id).maybeSingle(); if (data) mmm = data; }
+  const backdrop = document.createElement('div'); backdrop.className = 'drawer-backdrop';
+  const drawer = document.createElement('div'); drawer.className = 'drawer';
+  drawer.innerHTML = `
+    <div class="flex items-center justify-between mb-4"><h2 class="font-display text-2xl italic">${id?'Edit':'Add'} MMM</h2><button class="btn btn-secondary btn-sm" id="m-close">Close</button></div>
+    <form id="m-form" class="space-y-3">
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Building</span><select name="building_slug" required><option value="">— choose —</option>${(buildings||[]).map(b => `<option value="${esc(b.slug)}" ${mmm.building_slug===b.slug?'selected':''}>${esc(b.display_name||b.slug)}</option>`).join('')}</select></label>
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Unit</span><input type="text" name="unit_address" value="${esc(mmm.unit_address)}" required maxlength="32"></label>
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Owner</span><select name="user_id" required><option value="">— choose —</option>${(profiles||[]).map(p => `<option value="${esc(p.id)}" ${mmm.user_id===p.id?'selected':''}>${esc(p.full_name||p.email)}</option>`).join('')}</select></label>
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Target price (USD)</span><input type="number" name="target_price" value="${esc(mmm.target_price)}" required min="1"></label>
+      <label class="flex items-center gap-2"><input type="checkbox" name="is_active" ${mmm.is_active?'checked':''}> Active (visible on building page)</label>
+      <label class="block"><span class="font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">Notes</span><textarea name="notes" rows="2">${esc(mmm.notes||'')}</textarea></label>
+      <button class="btn btn-primary">${id?'Save':'Create'}</button>
+    </form>
+  `;
+  document.body.append(backdrop, drawer);
+  const close = () => { backdrop.remove(); drawer.remove(); };
+  backdrop.addEventListener('click', close);
+  $('#m-close', drawer).addEventListener('click', close);
+  $('#m-form', drawer).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      user_id: fd.get('user_id'),
+      building_slug: fd.get('building_slug'),
+      unit_address: fd.get('unit_address'),
+      target_price: Number(fd.get('target_price')),
+      is_active: fd.get('is_active') === 'on',
+      notes: fd.get('notes') || null,
+    };
+    const op = id ? sb.from('make_me_move').update(payload).eq('id', id) : sb.from('make_me_move').insert(payload);
+    const { error } = await op;
+    if (error) { alert(error.message); return; }
+    close(); renderMmm();
+  });
+}
+
+// ========================= ANALYTICS =========================
+async function renderAnalytics() {
+  const c = $('#content');
+  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Analytics</h1><div id="a-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const [{ data: stats }, { data: cities }, { data: funnel }, { data: waves }] = await Promise.all([
+    sb.from('v_platform_stats').select('*').maybeSingle(),
+    sb.from('v_city_stats').select('*').order('people_count',{ascending:false}),
+    sb.from('v_funnel_drop').select('*').order('rank'),
+    sb.from('v_wave_performance').select('*'),
+  ]);
+  const s = stats || {};
+  const tiles = [['Active cities',s.active_cities],['Buildings',s.total_buildings],['Published',s.published_buildings],['Catalogued',s.catalogued_buildings],['People',s.total_people],['Accounts',s.active_accounts],['Ownership',s.total_ownership_records],['Sent (all)',s.emails_sent_total],['Opens',s.emails_opened_total],['Clicks',s.emails_clicked_total],['Sent (24h)',s.emails_sent_24h],['Sent (7d)',s.emails_sent_7d],['Bounced',s.total_bounced],['Unsubs',s.total_unsubscribed],['Active MMMs',s.active_mmms],['Approved claims',s.approved_unit_claims],['Pending claims',s.pending_unit_claims],['Open offers',s.open_offers],['Open tasks',s.open_tasks],['Overdue',s.overdue_tasks]];
+  $('#a-content').innerHTML = `
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6">${tiles.map(([l,n]) => `<div class="card !p-3"><div class="font-mono text-[9px] tracking-[0.1em] uppercase text-cream/50 mb-1">${esc(l)}</div><div class="font-display text-xl">${fmtNum(n)}</div></div>`).join('')}</div>
+    <h2 class="font-display text-lg mb-3">Per-city</h2>
+    <div class="card !p-0 mb-6"><table><thead><tr><th>City</th><th>Status</th><th>Buildings</th><th>People</th><th>Accounts</th><th>Launched</th></tr></thead><tbody>${(cities||[]).map(c => `<tr><td><div class="font-medium">${esc(c.display_name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(c.slug)}</div>
+    </div></td>
+<td><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></td>
+<td>${fmtNum(c.buildings_count)}</td>
+<td>${fmtNum(c.people_count)}</td>
+<td>${fmtNum(c.accounts_count)}</td>
+<td class="font-mono text-xs">${c.launched_at ? esc(fmtDate(c.launched_at)) : '—'}</td>
+</tr>`).join('')}</tbody></table></div>
+
+    <h2 class="font-display text-lg mb-3">Funnel drop-off</h2>
+    <div class="card !p-0 mb-6"><table><thead><tr><th>Stage</th><th>Count</th><th>Drop from previous</th></tr></thead>
+    <tbody>${(funnel||[]).map(f => `<tr><td class="font-mono text-xs uppercase tracking-wider">${esc(f.stage)}</td><td class="font-display text-lg">${fmtNum(f.n)}</td><td>${f.drop_pct !== null ? `<span class="${f.drop_pct >= 90 ? 'text-brick' : f.drop_pct >= 50 ? 'text-amber' : 'text-cream/60'}">−${f.drop_pct}%</span><div class="font-mono text-[10px] text-cream/40">from ${fmtNum(f.prev_n)}</div>` : '—'}</td></tr>`).join('')}</tbody></table></div>
+
+    <h2 class="font-display text-lg mb-3">Wave-over-wave</h2>
+    <div class="card !p-0"><table><thead><tr><th>Wave</th><th>Sent</th><th>Delivered</th><th>Opened</th><th>Open rate</th><th>CTR-of-opens</th><th>Bounce</th></tr></thead>
+    <tbody>${(waves||[]).map(w => `<tr><td class="font-display text-lg">${fmtNum(w.wave_number)}</td><td>${fmtNum(w.total)}</td><td>${fmtNum(w.delivered)}</td><td>${fmtNum(w.opened)}</td><td>${w.open_rate_pct !== null ? `<span class="${w.open_rate_pct >= 25 ? 'text-sage' : w.open_rate_pct >= 15 ? 'text-amber' : 'text-cream/60'}">${w.open_rate_pct}%</span>` : '—'}</td><td>${w.ctr_pct_of_opens !== null ? `${w.ctr_pct_of_opens}%` : '—'}</td><td>${w.bounce_rate_pct !== null ? `<span class="${w.bounce_rate_pct > 5 ? 'text-brick' : ''}">${w.bounce_rate_pct}%</span>` : '—'}</td></tr>`).join('')}</tbody></table></div>
+  `;
+}
+
+// ========================= SETTINGS =========================
+async function renderSettings() {
+  const c = $('#content');
+  c.innerHTML = `<h1 class="font-display text-3xl italic mb-4">Settings</h1><div id="s-content"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
+  const [{ data: cities }, { data: caps }] = await Promise.all([
+    sb.from('cities').select('*').order('slug'),
+    sb.from('email_send_caps').select('*').order('city_id',{nullsFirst:true}).order('effective_from'),
+  ]);
+  $('#s-content').innerHTML = `
+    <section class="mb-8">
+      <h2 class="font-display text-lg mb-3">Cities</h2>
+      <div class="card !p-0 mb-3"><table><thead><tr><th>Slug</th><th>Name</th><th>State</th><th>Status</th><th>Domain</th><th>Brand</th></tr></thead><tbody>${(cities||[]).map(c => `<tr><td class="font-mono text-xs">${esc(c.slug)}</td><td>${esc(c.display_name)}</td><td>${esc(c.state)}</td><td><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></td><td class="text-xs">${esc(c.domain||'—')}</td><td><span class="font-mono text-xs" style="color:${c.brand_color||'#666'}">${esc(c.brand_color||'—')}</span></td></tr>`).join('')}</tbody></table></div>
+      <details class="card">
+        <summary class="cursor-pointer font-mono text-[10px] tracking-[0.12em] uppercase text-cream/60">+ Onboard new city</summary>
+        <div class="mt-3 text-sm text-cream/70">Run via SQL editor:</div>
+        <pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 mt-2 overflow-x-auto">SELECT public.setup_city(
+  p_slug              => 'oakland',
+  p_display_name      => 'Oakland',
+  p_state             => 'CA',
+  p_domain            => 'oaklandcondomarket.com',
+  p_brand_color       => '#4a7c7e',
+  p_initial_daily_cap => 100
+);</pre>
+        <div class="text-xs text-cream/50 mt-2">Returns next-steps checklist as JSON. Idempotent — safe to re-run.</div>
+      </details>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-lg mb-3">Send caps</h2>
+      <div class="card !p-0"><table><thead><tr><th>Scope</th><th>Effective</th><th>Daily cap</th><th>Cool-down</th><th>Notes</th></tr></thead><tbody>${(caps||[]).map(c => `<tr><td class="font-mono text-xs">${c.city_id ? esc((cities||[]).find(ci => ci.id === c.city_id)?.slug || c.city_id) : '(global)'}</td><td class="font-mono text-xs">${esc(fmtDate(c.effective_from))}</td><td class="font-display text-lg">${fmtNum(c.daily_cap)}</td><td>${esc(c.per_person_min_days)}d</td><td class="text-xs text-cream/70">${esc(c.notes||'')}</td></tr>`).join('')}</tbody></table></div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-lg mb-3">Edge function secrets</h2>
+      <div class="card">
+        <div class="text-sm text-cream/70 mb-3">The Claude command interface on Home requires <span class="font-mono text-gold">ANTHROPIC_API_KEY</span> set as a Supabase Edge Functions secret.</div>
+        <ol class="text-sm space-y-1 list-decimal pl-5 text-cream/80">
+          <li>Open <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/functions" target="_blank" class="text-gold underline">Edge Functions secrets</a></li>
+          <li>Click <strong>Add new secret</strong></li>
+          <li>Name: <span class="font-mono text-gold">ANTHROPIC_API_KEY</span></li>
+          <li>Value: your Anthropic key (starts with <span class="font-mono">sk-ant-</span>)</li>
+          <li>Save. Optional: also set <span class="font-mono text-gold">CLAUDE_MODEL</span> (defaults to <span class="font-mono">claude-sonnet-4-6</span>)</li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="font-display text-lg mb-3">Pending Sprint B work</h2>
+      <div class="card text-sm text-cream/75 space-y-2">
+        <div>1. <strong>Automation engine</strong> — detect new sales → fire <span class="font-mono text-gold">just_sold</span> emails to building owners</div>
+        <div>2. <strong>Recurring scheduler</strong> — cron processor for <span class="font-mono">email_schedules</span> + UI builder</div>
+        <div>3. <strong>HOA pitch page editor</strong> — rich editor for <span class="font-mono">hoa_pitches.body_markdown</span> + public route at <span class="font-mono">/hoa-pitch/{slug}/</span></div>
+        <div>4. <strong>Email template editor</strong> — in-admin editor with merge-var picker + live preview</div>
+        <div>5. <strong>Manual send-now form</strong> — UI wrapping <span class="font-mono">enqueue_emails()</span> with recipient picker</div>
+        <div>6. <strong>Inline SQL execution</strong> — dedicated read-only SQL edge function so Claude command queries execute in-app instead of opening SQL editor</div>
+        <div>7. <strong>"Draft to me first"</strong> — wire into send-vip-invite for single-recipient preview before blasting</div>
+      </div>
+    </section>
+  `;
+}
+
+// ========================= INIT =========================
+checkAuth();
 </script>
 </body>
 </html>
