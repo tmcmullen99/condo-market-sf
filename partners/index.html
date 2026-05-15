@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<title>Loading… · Condo Market Partnership</title>
+<meta name="description" content="A confidential partnership analysis prepared by Condo Market.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy: '#0f131d', navy2: '#1a1f2e', navy3: '#232a3d',
+        cream: '#e8e3d8', bluegray: '#9fb4d8',
+        gold: '#d4a574', sage: '#7c9d6a', brick: '#d88080',
+      },
+      fontFamily: {
+        display: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['DM Sans', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+    }
+  }
+}
+</script>
+
+<style>
+* { box-sizing: border-box }
+body { background: #0f131d; color: #e8e3d8; font-family: 'DM Sans', sans-serif; min-height: 100vh; margin: 0; }
+.font-display { font-family: 'Playfair Display', Georgia, serif }
+.font-mono { font-family: 'JetBrains Mono', monospace }
+
+.spinner {
+  display: inline-block; width: 24px; height: 24px;
+  border: 2px solid rgba(232,227,216,.2); border-top-color: #d4a574;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.card {
+  background: #1a1f2e;
+  border: 1px solid rgba(232,227,216,0.12);
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+
+.btn {
+  padding: 11px 22px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s;
+  border: 1px solid transparent; display: inline-flex; align-items: center;
+  gap: 8px; text-decoration: none;
+}
+.btn-primary { background: #d4a574; color: #0f131d; border-color: #d4a574 }
+.btn-primary:hover { opacity: .9 }
+.btn-secondary { background: transparent; color: rgba(232,227,216,.85); border-color: rgba(232,227,216,.3) }
+.btn-secondary:hover { background: rgba(232,227,216,.06); border-color: rgba(232,227,216,.5) }
+
+.building-card {
+  background: #1a1f2e;
+  border: 1px solid rgba(232,227,216,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color .25s, transform .25s;
+}
+.building-card:hover {
+  border-color: rgba(212,165,116,0.35);
+  transform: translateY(-2px);
+}
+.building-hero {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-color: #232a3d;
+  position: relative;
+}
+.building-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(15,19,29,0) 0%, rgba(15,19,29,0.85) 100%);
+}
+.building-hero.no-image {
+  background: linear-gradient(135deg, #1a1f2e 0%, #232a3d 100%);
+}
+
+.hero-firm-name { font-size: 3rem; line-height: 1.05; }
+.hero-x { font-size: 1rem; }
+.stat-number { font-size: 2.2rem; line-height: 1; }
+
+@media (min-width: 768px) {
+  .hero-firm-name { font-size: 5rem; line-height: 1 }
+  .hero-x { font-size: 1.25rem }
+  .stat-number { font-size: 3rem }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Header strip -->
+<header class="border-b border-cream/10">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="https://www.sanfranciscocondomarket.com" class="font-display italic text-2xl text-cream hover:text-gold transition-colors">
+      Condo <span class="text-bluegray">Market</span>
+    </a>
+    <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/45">San Francisco</div>
+  </div>
+</header>
+
+<!-- Main content (rendered by JS) -->
+<main id="content" class="max-w-6xl mx-auto px-6 py-16">
+  <div class="text-center py-32">
+    <div class="spinner"></div>
+    <div class="text-cream/55 text-sm mt-6">Loading partnership analysis…</div>
+  </div>
+</main>
+
+<script type="module">
+// =====================================================================
+// CONFIG — anon key is public/safe per Supabase RLS model.
+// REPLACE 'YOUR_ANON_KEY_HERE' before deploying. Get the key from:
+// https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/api
+// (anon public key, starts with eyJ...)
+// =====================================================================
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+// Calendar booking URL — swap with Tim's real calendar link when available
+const SCHEDULE_URL = 'mailto:tim@mcmullen.properties?subject=Condo%20Market%20Partnership%20-%2015%20min%20call';
+const EMAIL_URL    = 'mailto:tim@mcmullen.properties?subject=Condo%20Market%20Partnership';
+
+// =====================================================================
+// Helpers
+// =====================================================================
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtNum = (n) => n == null ? '—' : Number(n).toLocaleString('en-US');
+const fmtMoneyShort = (n) => {
+  if (n == null) return '—';
+  n = Number(n);
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1e3) + 'K';
+  return '$' + Math.round(n);
+};
+const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+// =====================================================================
+// Read slug from URL
+// =====================================================================
+const params = new URLSearchParams(location.search);
+const slug = params.get('firm') || params.get('slug');
+
+if (!slug) {
+  renderNoSlug();
+} else {
+  loadPortfolio(slug);
+}
+
+// =====================================================================
+// Render: no slug — someone visits /partners/ without a firm parameter
+// =====================================================================
+function renderNoSlug() {
+  document.title = 'Condo Market — Partnership Analyses';
+  $('#content').innerHTML = `
+    <div class="text-center py-16">
+      <div class="font-display italic text-4xl md:text-5xl mb-5">Partnership analyses,<br>by invitation.</div>
+      <p class="text-cream/70 text-lg max-w-2xl mx-auto leading-relaxed">
+        Condo Market builds confidential portfolio analyses for San Francisco property management firms exploring broker partnerships.
+      </p>
+      <p class="text-cream/55 text-sm mt-6 max-w-xl mx-auto leading-relaxed">
+        If Tim McMullen sent you a link, the URL should include your firm's identifier. If you're a PM firm interested in the data we have on your buildings, get in touch.
+      </p>
+      <div class="mt-10 flex gap-3 justify-center flex-wrap">
+        <a class="btn btn-primary" href="${SCHEDULE_URL}">Get in touch →</a>
+        <a class="btn btn-secondary" href="https://www.sanfranciscocondomarket.com">Visit Condo Market</a>
+      </div>
+    </div>
+  `;
+}
+
+// =====================================================================
+// Render: firm not found in the public view
+// =====================================================================
+function renderNotFound(slug) {
+  document.title = 'Not found · Condo Market';
+  $('#content').innerHTML = `
+    <div class="text-center py-16">
+      <div class="font-display italic text-3xl md:text-4xl mb-4">Hmm — we don't have <span class="text-gold">${esc(slug)}</span> on file.</div>
+      <p class="text-cream/70 text-base max-w-xl mx-auto leading-relaxed">
+        Either the link's URL is mistyped, or this firm isn't linked to any buildings in our system yet.
+      </p>
+      <div class="mt-8">
+        <a class="btn btn-secondary" href="${EMAIL_URL}">Email Tim about it</a>
+      </div>
+    </div>
+  `;
+}
+
+// =====================================================================
+// Load portfolio from Supabase as anon
+// =====================================================================
+async function loadPortfolio(slug) {
+  try {
+    const resp = await fetch(
+      `${SUPABASE_URL}/rest/v1/v_partner_portfolio_public?firm_slug=eq.${encodeURIComponent(slug)}&select=*&order=projected_referral_12mo.desc`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Accept': 'application/json' } }
+    );
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+    }
+
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || !rows.length) {
+      renderNotFound(slug);
+      return;
+    }
+
+    renderPortfolio(rows);
+  } catch (e) {
+    console.error('Load failed:', e);
+    document.title = 'Error · Condo Market';
+    $('#content').innerHTML = `
+      <div class="text-center py-16">
+        <div class="font-display italic text-3xl mb-4">Couldn't load this analysis.</div>
+        <p class="text-cream/70 text-sm font-mono break-all max-w-xl mx-auto">${esc(e.message)}</p>
+        <div class="mt-6"><a class="btn btn-secondary" href="${EMAIL_URL}">Email Tim</a></div>
+      </div>
+    `;
+  }
+}
+
+// =====================================================================
+// Render: full portfolio page
+// =====================================================================
+function renderPortfolio(rows) {
+  const firm = rows[0];
+  const firmName = firm.firm_name;
+
+  // Aggregate via client-side reduce (no extra round-trip)
+  const totalVolume   = rows.reduce((s, r) => s + Number(r.total_volume_12mo || 0), 0);
+  const totalReferral = rows.reduce((s, r) => s + Number(r.projected_referral_12mo || 0), 0);
+  const totalSales    = rows.reduce((s, r) => s + Number(r.sales_count_12mo || 0), 0);
+  const totalUnits    = rows.reduce((s, r) => s + Number(r.unit_count || 0), 0);
+  const totalMMM      = rows.reduce((s, r) => s + Number(r.active_mmm_count || 0), 0);
+
+  document.title = `${firmName} × Condo Market — partnership analysis`;
+
+  $('#content').innerHTML = `
+    <!-- HERO -->
+    <section class="text-center mb-20 mt-12 md:mt-16">
+      <div class="font-mono text-[10px] tracking-[0.18em] uppercase text-gold mb-5">A confidential partnership analysis</div>
+      <h1 class="font-display italic hero-firm-name mb-3">${esc(firmName)}</h1>
+      <div class="font-mono text-cream/45 hero-x tracking-[0.2em] mb-4">×</div>
+      <div class="font-display italic text-3xl md:text-4xl text-bluegray">Condo Market</div>
+      <p class="text-cream/65 text-sm md:text-base mt-8 max-w-xl mx-auto leading-relaxed">
+        ${rows.length} ${esc(firmName)} ${rows.length === 1 ? 'building' : 'buildings'}, the last 12 months of public-record sale activity, and the addressable referral revenue at a standard broker partnership.
+      </p>
+    </section>
+
+    <!-- STAT TILES -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-20">
+      <div class="card text-center">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/55 mb-3">12-month volume</div>
+        <div class="font-display stat-number text-cream">${fmtMoneyShort(totalVolume)}</div>
+        <div class="text-xs text-cream/55 mt-2">across portfolio</div>
+      </div>
+      <div class="card text-center border-gold/40" style="background: linear-gradient(180deg, rgba(212,165,116,0.07), #1a1f2e);">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold mb-3">Projected 1% referral</div>
+        <div class="font-display stat-number text-gold">${fmtMoneyShort(totalReferral)}</div>
+        <div class="text-xs text-cream/55 mt-2">addressable, last 12 mo</div>
+      </div>
+      <div class="card text-center">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/55 mb-3">Transactions</div>
+        <div class="font-display stat-number text-cream">${fmtNum(totalSales)}</div>
+        <div class="text-xs text-cream/55 mt-2">closed sales, 12 mo</div>
+      </div>
+      <div class="card text-center">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/55 mb-3">Total units</div>
+        <div class="font-display stat-number text-cream">${fmtNum(totalUnits)}</div>
+        <div class="text-xs text-cream/55 mt-2">across ${rows.length} ${rows.length === 1 ? 'building' : 'buildings'}</div>
+      </div>
+    </section>
+
+    <!-- BUILDINGS -->
+    <section class="mb-20">
+      <div class="flex items-baseline justify-between gap-3 flex-wrap mb-6">
+        <h2 class="font-display italic text-2xl md:text-3xl">Your portfolio</h2>
+        <div class="text-xs font-mono uppercase tracking-wider text-cream/45">Sorted by projected referral</div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        ${rows.map(renderBuildingCard).join('')}
+      </div>
+    </section>
+
+    <!-- WHAT THIS MEANS -->
+    <section class="mb-20">
+      <h2 class="font-display italic text-2xl md:text-3xl mb-6">What this data shows</h2>
+      <div class="space-y-4 text-cream/85 text-base md:text-lg leading-relaxed max-w-3xl">
+        <p>
+          ${esc(firmName)}'s portfolio closed <strong class="text-gold">${fmtMoneyShort(totalVolume)}</strong> in transaction volume across the last 12 months, ${totalSales} sales total. At a standard 1% broker-to-broker referral, that's <strong class="text-gold">${fmtMoneyShort(totalReferral)}</strong> in raw addressable revenue routable to ${esc(firmName)}.
+        </p>
+        <p>
+          Realistic capture depends on what fraction of those transactions flow through a Condo Market partnership versus other listing brokers. At a modest 25% capture rate, this is <strong class="text-gold">${fmtMoneyShort(totalReferral * 0.25)}</strong>/year in passive revenue to ${esc(firmName)}. At 50%, <strong class="text-gold">${fmtMoneyShort(totalReferral * 0.5)}</strong>.
+        </p>
+        <p class="text-cream/65 text-sm">
+          The data above is sourced from public assessor recordings (the same source the MLS draws from), Condo Market's homeowner-claimed Make-Me-Move listings, and our verified contact database. It's the same data we'd use to source referrals for ${esc(firmName)}'s portfolio if we partnered.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="card text-center py-10 md:py-14 mb-20" style="background: linear-gradient(180deg, rgba(212,165,116,0.07), #1a1f2e); border-color: rgba(212,165,116,0.35);">
+      <div class="font-mono text-[10px] tracking-[0.18em] uppercase text-gold mb-4">Next step</div>
+      <h2 class="font-display italic text-3xl md:text-4xl mb-4">Let's discuss the partnership.</h2>
+      <p class="text-cream/75 text-base max-w-xl mx-auto mb-8 leading-relaxed">
+        A 15-minute call to walk through how the broker-to-broker referral structure works, what we'd commit to on the marketing side, and any clauses you'd want in the agreement.
+      </p>
+      <div class="flex gap-3 justify-center flex-wrap">
+        <a class="btn btn-primary" href="${SCHEDULE_URL}">Schedule a call →</a>
+        <a class="btn btn-secondary" href="${EMAIL_URL}">tim@mcmullen.properties</a>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-cream/10 pt-8 pb-12 text-xs text-cream/45">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 leading-relaxed">
+        <div>
+          <div class="font-mono uppercase tracking-wider text-cream/65 mb-2">Methodology</div>
+          <p>Sales sourced from public assessor recording-date data, last 12 months trailing. Active MMMs reflect homeowner-claimed listings on Condo Market. Owner records reflect Condo Market's verified database.</p>
+        </div>
+        <div>
+          <div class="font-mono uppercase tracking-wider text-cream/65 mb-2">Confidentiality</div>
+          <p>This analysis is prepared for ${esc(firmName)}. The URL is not indexed by search engines and not intended for public sharing.</p>
+        </div>
+        <div>
+          <div class="font-mono uppercase tracking-wider text-cream/65 mb-2">Prepared by</div>
+          <p>Tim McMullen, McMullen Properties LLC<br>CA DRE #02016832<br><a href="mailto:tim@mcmullen.properties" class="text-gold hover:underline">tim@mcmullen.properties</a></p>
+        </div>
+      </div>
+    </footer>
+  `;
+}
+
+// =====================================================================
+// Render: one building card
+// =====================================================================
+function renderBuildingCard(r) {
+  const heroStyle = r.hero_image_url ? `style="background-image: url('${esc(r.hero_image_url)}');"` : '';
+  const heroClass = r.hero_image_url ? '' : 'no-image';
+
+  return `
+    <div class="building-card">
+      <div class="building-hero ${heroClass}" ${heroStyle}></div>
+      <div class="p-5">
+        <div class="mb-4">
+          <h3 class="font-display italic text-xl md:text-2xl mb-1">${esc(r.building_name || r.building_slug)}</h3>
+          <div class="text-[11px] text-cream/55 font-mono uppercase tracking-wider">
+            ${esc(r.neighborhood || '')}${r.year_built ? ` · ${r.year_built}` : ''} · ${fmtNum(r.unit_count)} units
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="text-cream/45 text-[10px] uppercase tracking-wider font-mono mb-1">Sales 12mo</div>
+            <div class="font-display text-xl">${fmtNum(r.sales_count_12mo)}</div>
+          </div>
+          <div>
+            <div class="text-cream/45 text-[10px] uppercase tracking-wider font-mono mb-1">Median</div>
+            <div class="font-display text-xl">${r.median_sale_price_12mo ? fmtMoneyShort(r.median_sale_price_12mo) : '—'}</div>
+          </div>
+          <div>
+            <div class="text-cream/45 text-[10px] uppercase tracking-wider font-mono mb-1">Volume</div>
+            <div class="font-display text-xl">${Number(r.total_volume_12mo) > 0 ? fmtMoneyShort(r.total_volume_12mo) : '—'}</div>
+          </div>
+          <div>
+            <div class="text-cream/45 text-[10px] uppercase tracking-wider font-mono mb-1">Proj 1%</div>
+            <div class="font-display text-xl ${Number(r.projected_referral_12mo) > 0 ? 'text-gold' : 'text-cream/40'}">${Number(r.projected_referral_12mo) > 0 ? fmtMoneyShort(r.projected_referral_12mo) : '—'}</div>
+          </div>
+        </div>
+
+        ${(r.active_mmm_count > 0 || r.ownership_records > 0 || r.latest_sale_date) ? `
+          <div class="mt-4 pt-3 border-t border-cream/10 flex gap-3 flex-wrap text-[11px] text-cream/55">
+            ${r.active_mmm_count > 0 ? `<div>${r.active_mmm_count} active MMM${r.active_mmm_count !== 1 ? 's' : ''}</div>` : ''}
+            ${r.ownership_records > 0 ? `<div>${fmtNum(r.ownership_records)} owners on file</div>` : ''}
+            ${r.latest_sale_date ? `<div>Last sale: ${fmtDate(r.latest_sale_date)}</div>` : ''}
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
