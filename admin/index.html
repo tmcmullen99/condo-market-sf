@@ -28,7 +28,6 @@
 input,select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#d4a574}
 input[type="datetime-local"]{color-scheme:dark}
-/* Sprint 6.5: firm-switcher select in portfolio header */
 .firm-switcher{background:#0f131d;border:1px solid rgba(232,227,216,.25);color:#e8e3d8;padding:8px 14px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;min-width:240px;background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23d4a574' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;appearance:none;-webkit-appearance:none}
 .firm-switcher:hover{border-color:rgba(232,227,216,.4)}
 .firm-switcher:focus{outline:none;border-color:#d4a574}
@@ -48,6 +47,21 @@ tr:hover td{background:rgba(232,227,216,.02)}
 .screen{display:none;min-height:100vh}
 .screen.show{display:block}
 .screen.show.center{display:flex;align-items:center;justify-content:center;padding:24px}
+
+/* Sprint 7.1: Firm Hub layout */
+.hub-header{background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);border:1px solid rgba(232,227,216,.12);border-radius:10px;padding:22px 26px;margin-bottom:24px}
+.hub-section{margin-bottom:24px}
+.hub-section h2{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:20px;margin-bottom:12px;color:#e8e3d8}
+.timeline-event{background:#1a1f2e;border:1px solid rgba(232,227,216,.1);border-radius:8px;padding:14px 18px;margin-bottom:10px;position:relative}
+.timeline-event::before{content:'';position:absolute;left:-1px;top:14px;bottom:14px;width:2px;background:rgba(212,165,116,0.4);border-radius:2px}
+.timeline-event.event-positive::before{background:#7c9d6a}
+.timeline-event.event-negative::before{background:#d88080}
+.material-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(232,227,216,.06);flex-wrap:wrap}
+.material-row:last-child{border-bottom:none}
+.material-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(232,227,216,.55);min-width:130px;flex-shrink:0}
+.material-value{flex:1;min-width:280px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.material-value input{flex:1;min-width:200px}
+.notes-textarea{min-height:140px;line-height:1.55;font-size:14px}
 </style>
 </head>
 <body>
@@ -98,7 +112,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.9</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.10</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -277,6 +291,7 @@ const fmtNum = (n) => n == null ? '—' : Number(n).toLocaleString('en-US');
 const fmtMoney = (n) => n == null ? '—' : '$' + Math.round(Number(n)).toLocaleString('en-US');
 const fmtPct = (num, denom) => !denom ? '—' : ((num/denom)*100).toFixed(num/denom < 0.01 ? 1 : 0) + '%';
 const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+const fmtDateTime = (iso) => !iso ? '—' : new Date(iso).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
 const relTime = (iso) => {
   if (!iso) return '—';
   const ms = Date.now() - new Date(iso).getTime();
@@ -465,11 +480,14 @@ async function renderHoa() {
 }
 
 // ===== PARTNERS — PM firm partnership pipeline =====
-// Sprint 1-6.5 build. v5.9 changes:
-//   - PUBLIC_PARTNER_URL switches from /partners/<slug>/ path format to
-//     /partners/?firm=<slug> query-string format (path routing parked).
-//   - New "Public ↗" button on each pipeline row for one-click access.
-//   - Firm-switcher dropdown in portfolio header (toggle between all 8 firms).
+// Sprint 1-7.1 build. v5.10 changes:
+//   - New route #partners/<slug> → renderPartnerHub (the new primary firm view)
+//   - Pipeline row "Portfolio →" renamed to "Open hub →" (navigates to hub, not portfolio)
+//   - Hub consolidates: header + stats + decision-maker + activity timeline +
+//     pitch materials (inline-editable URLs) + top buildings + research notes
+//   - Existing #partners/<slug>/portfolio still works as a sub-route from the hub
+//   - loadPartnersData split into fetchPartnersData (silent) + loadPartnersData (renders)
+//     so the hub can populate _partnersCache without targeting pipeline DOM elements
 
 let _partnersCache = null;
 
@@ -492,8 +510,6 @@ const ENGAGED_STATUSES = ['replied', 'meeting_scheduled', 'meeting_held', 'agree
 const CAN_BOOK_MEETING = ['replied'];
 const CAN_COMPLETE_MEETING = ['meeting_scheduled'];
 
-// v5.9: query-string URL format (path-based routing via _redirects/Functions parked).
-// Tested working at https://www.sanfranciscocondomarket.com/partners/?firm=<slug>
 const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/?firm=${encodeURIComponent(slug)}`;
 
 async function renderPartners(rest) {
@@ -501,6 +517,10 @@ async function renderPartners(rest) {
   const [firmSlug, subview] = rest;
   if (firmSlug && subview === 'portfolio') {
     return renderPartnerPortfolio(firmSlug);
+  }
+  // Sprint 7.1: bare /<slug> path → hub
+  if (firmSlug) {
+    return renderPartnerHub(firmSlug);
   }
 
   $('#content').innerHTML = `
@@ -516,7 +536,8 @@ async function renderPartners(rest) {
   await loadPartnersData();
 }
 
-async function loadPartnersData() {
+// Sprint 7.1: split data-fetch from rendering so the hub can use the cache too
+async function fetchPartnersData() {
   const [outR, coR, tplR, evR] = await Promise.all([
     _sb.from('partnership_outreach').select('*').order('priority',{ascending:true}),
     _sb.from('hoa_companies').select('*'),
@@ -535,6 +556,10 @@ async function loadPartnersData() {
   const eventsByOutreach = events.reduce((acc, e) => { (acc[e.outreach_id] ||= []).push(e); return acc; }, {});
 
   _partnersCache = { outreach, companies, companyMap, templates, events, eventsByOutreach };
+}
+
+async function loadPartnersData() {
+  await fetchPartnersData();
   renderPartnersStats();
   renderPartnersPipeline();
   renderPartnersTemplates();
@@ -585,7 +610,8 @@ function renderPartnersPipeline() {
     const needsEmail = o.contact_first_name && !o.contact_email;
     const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
     const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
-    const portfolioHref = firm?.slug ? `#partners/${firm.slug}/portfolio` : '#partners';
+    // Sprint 7.1: pipeline row primary nav now points at the hub, not the portfolio
+    const hubHref = firm?.slug ? `#partners/${firm.slug}` : '#partners';
     const publicUrl = firm?.slug ? PUBLIC_PARTNER_URL(firm.slug) : null;
 
     const composeLabel = o.status === 'replied' ? 'Send reply →'
@@ -601,7 +627,7 @@ function renderPartnersPipeline() {
       <div class="flex items-baseline justify-between gap-4 flex-wrap mb-2">
         <div class="flex items-baseline gap-3 flex-wrap">
           <span class="font-mono text-xs text-cream/45">#${o.priority}</span>
-          <span class="font-display text-lg">${esc(firm?.name || '?')}</span>
+          <a class="font-display text-lg hover:text-gold transition-colors" href="${esc(hubHref)}">${esc(firm?.name || '?')}</a>
           ${o.contact_full_name ? `<span class="text-cream/70 text-sm">${esc(o.contact_full_name)}${o.contact_title ? ` · ${esc(o.contact_title)}` : ''}</span>` : `<span class="text-cream/45 text-xs italic">no decision-maker contact set</span>`}
           <span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>
         </div>
@@ -610,7 +636,7 @@ function renderPartnersPipeline() {
           ${canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
           ${canBookMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-booker" data-row="${esc(o.id)}">Meeting booked →</button>` : ''}
           ${canCompleteMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-completer" data-row="${esc(o.id)}">Meeting completed →</button>` : ''}
-          <a class="btn btn-secondary btn-sm" href="${esc(portfolioHref)}">Portfolio →</a>
+          <a class="btn btn-secondary btn-sm" href="${esc(hubHref)}">Open hub →</a>
           ${publicUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Public ↗</a>` : ''}
           <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
         </div>
@@ -635,19 +661,27 @@ function renderPartnersPipeline() {
     `;
   }).join('');
 
-  $$('[data-toggle="composer"]', $('#partners-pipeline')).forEach(b =>
+  wireToggleButtons('#partners-pipeline');
+}
+
+// Helper: wire the inline-panel toggle buttons inside any container. Used by both
+// the pipeline list and the hub since they share the same panel templates.
+function wireToggleButtons(containerSel) {
+  const container = $(containerSel);
+  if (!container) return;
+  $$('[data-toggle="composer"]', container).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('composer', b.dataset.row, renderPartnerComposer))
   );
-  $$('[data-toggle="set-email"]', $('#partners-pipeline')).forEach(b =>
+  $$('[data-toggle="set-email"]', container).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('set-email', b.dataset.row, renderPartnerSetEmail))
   );
-  $$('[data-toggle="reply-logger"]', $('#partners-pipeline')).forEach(b =>
+  $$('[data-toggle="reply-logger"]', container).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('reply-logger', b.dataset.row, renderPartnerReplyLogger))
   );
-  $$('[data-toggle="meeting-booker"]', $('#partners-pipeline')).forEach(b =>
+  $$('[data-toggle="meeting-booker"]', container).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('meeting-booker', b.dataset.row, renderPartnerMeetingBooker))
   );
-  $$('[data-toggle="meeting-completer"]', $('#partners-pipeline')).forEach(b =>
+  $$('[data-toggle="meeting-completer"]', container).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('meeting-completer', b.dataset.row, renderPartnerMeetingCompleter))
   );
 }
@@ -688,7 +722,7 @@ function renderPartnerSetEmail(outreachId, container) {
       return;
     }
     $(`#set-email-msg-${outreachId}`).innerHTML = '<span class="text-sage">✓ Saved — refreshing</span>';
-    setTimeout(() => loadPartnersData(), 500);
+    setTimeout(() => location.reload(), 500);
   });
   $(`[data-row="${outreachId}"][data-action="cancel-email"]`, container).addEventListener('click', () => {
     container.style.display = 'none';
@@ -798,11 +832,8 @@ function renderPartnerReplyLogger(outreachId, container) {
       return;
     }
 
-    const nextLabel = selectedClassification === 'positive'
-      ? 'Compose button will now suggest the reply template.'
-      : 'Pipeline closed for this firm.';
-    msgEl.innerHTML = `<span class="text-sage">✓ Reply logged + status advanced. ${nextLabel} Refreshing…</span>`;
-    setTimeout(() => loadPartnersData(), 800);
+    msgEl.innerHTML = `<span class="text-sage">✓ Reply logged + status advanced. Refreshing…</span>`;
+    setTimeout(() => location.reload(), 800);
   });
 }
 
@@ -890,7 +921,7 @@ function renderPartnerMeetingBooker(outreachId, container) {
     }
 
     msgEl.innerHTML = '<span class="text-sage">✓ Meeting booked + status advanced. Refreshing…</span>';
-    setTimeout(() => loadPartnersData(), 800);
+    setTimeout(() => location.reload(), 800);
   });
 }
 
@@ -991,11 +1022,8 @@ function renderPartnerMeetingCompleter(outreachId, container) {
       return;
     }
 
-    const nextLabel = selectedOutcome === 'positive'
-      ? 'Status advanced to meeting_held. Drive next action manually.'
-      : 'Pipeline closed for this firm.';
-    msgEl.innerHTML = `<span class="text-sage">✓ Outcome logged. ${nextLabel} Refreshing…</span>`;
-    setTimeout(() => loadPartnersData(), 800);
+    msgEl.innerHTML = `<span class="text-sage">✓ Outcome logged. Refreshing…</span>`;
+    setTimeout(() => location.reload(), 800);
   });
 }
 
@@ -1146,8 +1174,8 @@ async function markPartnerEmailAsSent(outreachId, templateSlug, subject, body) {
     }
   }
 
-  msgEl.innerHTML = '<span class="text-sage">✓ Sent + logged. Refreshing pipeline…</span>';
-  setTimeout(() => loadPartnersData(), 700);
+  msgEl.innerHTML = '<span class="text-sage">✓ Sent + logged. Refreshing…</span>';
+  setTimeout(() => location.reload(), 700);
 }
 
 function renderPartnersTemplates() {
@@ -1167,12 +1195,385 @@ function renderPartnersTemplates() {
   `;
 }
 
+// ===== Sprint 7.1: Firm Detail Hub at #partners/<slug> =====
+// Single-page workspace consolidating everything about a PM firm.
+
+async function renderPartnerHub(firmSlug) {
+  $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
+
+  // Populate the partners cache (no rendering side-effects) and fetch portfolio + all-firms in parallel
+  const [_, portfolioR, allFirmsR] = await Promise.all([
+    fetchPartnersData(),
+    _sb.from('v_partner_portfolio').select('*').eq('firm_slug', firmSlug).order('projected_referral_12mo', { ascending: false }),
+    _sb.from('v_partner_portfolio_public').select('firm_slug, firm_name'),
+  ]);
+
+  if (portfolioR.error) throw portfolioR.error;
+  if (allFirmsR.error) throw allFirmsR.error;
+
+  const { companies, outreach, templates, eventsByOutreach } = _partnersCache;
+  const firm = companies.find(c => c.slug === firmSlug);
+
+  if (!firm) {
+    $('#content').innerHTML = `
+      <div class="mb-3 text-xs text-cream/50"><a href="#partners" class="hover:text-gold">← Partners pipeline</a></div>
+      <div class="flash flash-err">Firm "${esc(firmSlug)}" not found in hoa_companies. Check the slug.</div>
+    `;
+    return;
+  }
+
+  const o = outreach.find(x => x.company_id === firm.id);
+  const events = o ? (eventsByOutreach[o.id] || []) : [];
+  const portfolioRows = portfolioR.data || [];
+
+  // Aggregate portfolio totals (mirrors the portfolio sub-view)
+  const totalVolume   = portfolioRows.reduce((s,r) => s + Number(r.total_volume_12mo || 0), 0);
+  const totalReferral = portfolioRows.reduce((s,r) => s + Number(r.projected_referral_12mo || 0), 0);
+  const totalSales    = portfolioRows.reduce((s,r) => s + Number(r.sales_count_12mo || 0), 0);
+  const totalMMM      = portfolioRows.reduce((s,r) => s + Number(r.active_mmm_count || 0), 0);
+
+  // Firm-switcher dropdown source (dedupe + sort)
+  const firmMap = new Map();
+  (allFirmsR.data || []).forEach(r => firmMap.set(r.firm_slug, r.firm_name));
+  const allFirms = Array.from(firmMap.entries())
+    .map(([slug, name]) => ({ slug, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const publicUrl = PUBLIC_PARTNER_URL(firm.slug);
+  const supabaseFirmRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=hoa_companies&filter=id%3Aeq%3A${encodeURIComponent(firm.id)}`;
+  const supabaseOutreachRowUrl = o ? `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}` : null;
+
+  // Status-conditional buttons (mirrors pipeline row logic)
+  const canCompose = o && !['declined','dormant','on_hold','researching'].includes(o.status);
+  const canLogReply = o && CAN_LOG_REPLY.includes(o.status);
+  const canBookMeeting = o && CAN_BOOK_MEETING.includes(o.status);
+  const canCompleteMeeting = o && CAN_COMPLETE_MEETING.includes(o.status);
+  const composeLabel = o && o.status === 'replied' ? 'Send reply →'
+    : o && (o.status === 'meeting_scheduled' || o.status === 'meeting_held') ? 'Send follow-up →'
+    : 'Compose →';
+
+  $('#content').innerHTML = `
+    <div class="mb-3 text-xs text-cream/50">
+      <a href="#partners" class="hover:text-gold">← Partners pipeline</a>
+      <span class="text-cream/30 mx-2">/</span>
+      <span class="font-mono uppercase tracking-wider text-gold">${esc(firm.name)}</span>
+      <span class="text-cream/30 mx-2">/</span>
+      <span class="font-mono uppercase tracking-wider">hub</span>
+    </div>
+
+    <div class="hub-header">
+      <div class="flex items-baseline justify-between flex-wrap gap-3 mb-4">
+        <div>
+          <h1 class="font-display text-3xl italic">${esc(firm.name)} <span class="text-cream/50 text-sm font-sans italic">— partnership hub</span></h1>
+          <div class="text-xs text-cream/60 mt-1 flex flex-wrap gap-3 items-center">
+            ${o ? `<span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>` : ''}
+            ${o ? `<span class="font-mono">priority #${o.priority}</span>` : ''}
+            <span>${portfolioRows.length} building${portfolioRows.length !== 1 ? 's' : ''}</span>
+            <span>${fmtMoney(totalVolume)} 12mo volume</span>
+            <span class="text-gold">${fmtMoney(totalReferral)} projected referral</span>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center">
+          <select class="firm-switcher" id="firm-switcher" title="Jump to another PM firm's hub">
+            ${allFirms.map(f => `<option value="${esc(f.slug)}" ${f.slug === firm.slug ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-2 flex-wrap items-center">
+        ${o && canCompose ? `<button class="btn btn-primary btn-sm" data-toggle="composer" data-row="${esc(o.id)}">${esc(composeLabel)}</button>` : ''}
+        ${o && canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
+        ${o && canBookMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-booker" data-row="${esc(o.id)}">Meeting booked →</button>` : ''}
+        ${o && canCompleteMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-completer" data-row="${esc(o.id)}">Meeting completed →</button>` : ''}
+        <a class="btn btn-secondary btn-sm" href="#partners/${esc(firm.slug)}/portfolio">View full portfolio →</a>
+        <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Public ↗</a>
+        <button class="btn btn-secondary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy public link</button>
+        ${supabaseOutreachRowUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseOutreachRowUrl)}">Edit outreach row ↗</a>` : ''}
+      </div>
+
+      <!-- Inline panel slots, same IDs as the pipeline row so togglePartnerPanel works unchanged -->
+      ${o ? `
+      <div class="partners-set-email mt-3" id="set-email-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-composer mt-3" id="composer-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-reply-logger mt-3" id="reply-logger-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-meeting-booker mt-3" id="meeting-booker-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-meeting-completer mt-3" id="meeting-completer-${esc(o.id)}" style="display:none"></div>
+      ` : ''}
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="card">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Volume (12mo)</div>
+        <div class="font-display text-3xl">${fmtMoney(totalVolume)}</div>
+      </div>
+      <div class="card border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.06),#1a1f2e);">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold mb-2">Projected 1% Referral</div>
+        <div class="font-display text-3xl text-gold">${fmtMoney(totalReferral)}</div>
+      </div>
+      <div class="card">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Sales (12mo)</div>
+        <div class="font-display text-3xl">${fmtNum(totalSales)}</div>
+      </div>
+      <div class="card">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Active MMMs</div>
+        <div class="font-display text-3xl">${fmtNum(totalMMM)}</div>
+      </div>
+    </div>
+
+    <!-- Decision-maker card -->
+    <div class="hub-section">
+      <h2>Decision-maker</h2>
+      <div class="card">
+        ${o && o.contact_full_name ? `
+          <div class="flex items-baseline justify-between gap-3 flex-wrap mb-2">
+            <div>
+              <div class="font-display text-xl">${esc(o.contact_full_name)}</div>
+              <div class="text-cream/65 text-sm">${esc(o.contact_title || '—')}</div>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              ${o.contact_email ? `<a class="btn btn-secondary btn-sm" href="mailto:${esc(o.contact_email)}">${esc(o.contact_email)}</a>` : `<span class="text-brick text-xs">⚠ no email set — <button class="underline text-gold" data-toggle="set-email" data-row="${esc(o.id)}">set email →</button></span>`}
+            </div>
+          </div>
+          ${o.custom_vars && o.custom_vars.personal_angle ? `
+            <div class="mt-3 pt-3 border-t border-cream/10">
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Personal angle <span class="lowercase normal-case italic text-cream/40">(used in cold email templates)</span></div>
+              <div class="text-sm text-cream/85 italic">"${esc(o.custom_vars.personal_angle)}"</div>
+            </div>
+          ` : ''}
+        ` : `<div class="text-cream/55 italic">No decision-maker contact set yet. ${supabaseOutreachRowUrl ? `<a class="text-gold underline" target="_blank" href="${esc(supabaseOutreachRowUrl)}">Edit outreach row →</a>` : ''}</div>`}
+      </div>
+    </div>
+
+    <!-- Activity timeline -->
+    <div class="hub-section">
+      <h2>Activity timeline <span class="text-cream/50 text-sm font-sans italic">— ${events.length} event${events.length !== 1 ? 's' : ''}</span></h2>
+      ${events.length ? events.map(ev => renderTimelineEvent(ev)).join('') : `<div class="placeholder">No activity yet. Once you send the first cold email, sent/received events will surface here.</div>`}
+    </div>
+
+    <!-- Pitch materials -->
+    <div class="hub-section">
+      <h2>Pitch materials</h2>
+      <div class="card">
+        <div class="material-row">
+          <div class="material-label">Public page</div>
+          <div class="material-value">
+            <span class="font-mono text-xs text-cream/75 break-all flex-1">${esc(publicUrl)}</span>
+            <button class="btn btn-secondary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy</button>
+            <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Open ↗</a>
+          </div>
+        </div>
+        <div class="material-row">
+          <div class="material-label">Pitch deck URL</div>
+          <div class="material-value">
+            <input id="deck-url-input" type="url" placeholder="https://your-cdn/deck.pdf" value="${esc(firm.deck_url || '')}">
+            <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="deck_url">Save</button>
+            ${firm.deck_url ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(firm.deck_url)}">Open ↗</a>` : ''}
+          </div>
+        </div>
+        <div class="material-row">
+          <div class="material-label">One-pager URL</div>
+          <div class="material-value">
+            <input id="one-pager-url-input" type="url" placeholder="https://your-cdn/one-pager.pdf" value="${esc(firm.one_pager_url || '')}">
+            <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="one_pager_url">Save</button>
+            ${firm.one_pager_url ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(firm.one_pager_url)}">Open ↗</a>` : ''}
+          </div>
+        </div>
+        <div class="material-row">
+          <div class="material-label">LinkedIn</div>
+          <div class="material-value">
+            <input id="linkedin-url-input" type="url" placeholder="https://www.linkedin.com/company/..." value="${esc(firm.linkedin_url || '')}">
+            <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="linkedin_url">Save</button>
+            ${firm.linkedin_url ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(firm.linkedin_url)}">Open ↗</a>` : ''}
+          </div>
+        </div>
+        <div class="material-row">
+          <div class="material-label">Templates</div>
+          <div class="material-value">
+            ${o ? templates.map(t => `<a class="btn btn-secondary btn-sm" href="#partners/${esc(firm.slug)}" data-tpl-preview="${esc(t.slug)}" data-row="${esc(o.id)}">${esc(t.name.replace('Partnership · ', ''))}</a>`).join('') : '<span class="text-cream/50 text-xs italic">no outreach row yet</span>'}
+          </div>
+        </div>
+        <div id="material-msg" class="text-xs mt-3"></div>
+      </div>
+    </div>
+
+    <!-- Top buildings -->
+    <div class="hub-section">
+      <h2>Top buildings <span class="text-cream/50 text-sm font-sans italic">— ${portfolioRows.length} total · <a class="text-gold underline" href="#partners/${esc(firm.slug)}/portfolio">view full portfolio →</a></span></h2>
+      ${portfolioRows.length ? `
+        <div class="card !p-0 overflow-hidden"><table>
+          <thead><tr><th>Building</th><th>Units</th><th>Sales 12mo</th><th>12mo Volume</th><th>Proj Referral</th><th>MMMs</th></tr></thead>
+          <tbody>
+            ${portfolioRows.slice(0, 3).map(r => `
+              <tr>
+                <td>
+                  <div class="font-medium">${esc(r.building_name || r.building_slug)}</div>
+                  <div class="text-[11px] text-cream/55">${esc(r.neighborhood || '—')}</div>
+                </td>
+                <td class="font-display text-base">${fmtNum(r.unit_count)}</td>
+                <td>${fmtNum(r.sales_count_12mo)}</td>
+                <td class="font-mono text-xs">${Number(r.total_volume_12mo) > 0 ? fmtMoney(r.total_volume_12mo) : '—'}</td>
+                <td class="font-mono text-sm ${Number(r.projected_referral_12mo) > 0 ? 'text-gold' : 'text-cream/40'}">${Number(r.projected_referral_12mo) > 0 ? fmtMoney(r.projected_referral_12mo) : '—'}</td>
+                <td>${r.active_mmm_count > 0 ? `<span class="tag tag-good">${r.active_mmm_count}</span>` : '<span class="text-cream/40">—</span>'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table></div>
+      ` : `<div class="placeholder">No buildings linked to ${esc(firm.name)} yet.</div>`}
+    </div>
+
+    <!-- Research & notes -->
+    <div class="hub-section">
+      <h2>Research & notes <span class="text-cream/50 text-sm font-sans italic">— free-form scratchpad</span></h2>
+      <div class="card">
+        <textarea id="research-notes-textarea" class="notes-textarea" placeholder="Background research, contact history, mutual connections, recent news, anything you want to remember about ${esc(firm.name)} next time you sit down to pitch them.">${esc(firm.research_notes || '')}</textarea>
+        <div class="flex gap-2 items-center mt-3 flex-wrap">
+          <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="research_notes">Save notes</button>
+          <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseFirmRowUrl)}">Edit firm row in Supabase ↗</a>
+          <span id="notes-msg" class="text-xs"></span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Wire firm-switcher
+  const switcher = $('#firm-switcher');
+  if (switcher) {
+    switcher.addEventListener('change', (e) => {
+      const newSlug = e.target.value;
+      if (newSlug && newSlug !== firm.slug) {
+        location.hash = `#partners/${newSlug}`;
+      }
+    });
+  }
+
+  // Wire inline panel toggle buttons (composer, reply-logger, meeting-*)
+  wireToggleButtons('#content');
+
+  // Wire Copy public link buttons (there can be 2: one in header, one in pitch materials)
+  $$('[data-action="copy-public-link"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const url = PUBLIC_PARTNER_URL(btn.dataset.slug);
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = '✓ Copied';
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      } catch (e) {
+        btn.textContent = '✗ Copy failed';
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      }
+    });
+  });
+
+  // Wire firm-field save buttons (deck_url, one_pager_url, linkedin_url, research_notes)
+  $$('[data-action="save-firm-field"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const field = btn.dataset.field;
+      const inputId = field === 'research_notes' ? 'research-notes-textarea'
+        : field === 'deck_url' ? 'deck-url-input'
+        : field === 'one_pager_url' ? 'one-pager-url-input'
+        : field === 'linkedin_url' ? 'linkedin-url-input'
+        : null;
+      if (!inputId) return;
+      const inputEl = $(`#${inputId}`);
+      const value = inputEl.value.trim();
+      const msgElId = field === 'research_notes' ? 'notes-msg' : 'material-msg';
+      const msgEl = $(`#${msgElId}`);
+
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+      const { error } = await _sb.from('hoa_companies')
+        .update({ [field]: value || null, updated_at: new Date().toISOString() })
+        .eq('id', firm.id);
+
+      btn.disabled = false;
+      btn.textContent = originalText;
+
+      if (error) {
+        msgEl.innerHTML = `<span class="text-brick">Save failed: ${esc(error.message)}</span>`;
+        return;
+      }
+      msgEl.innerHTML = `<span class="text-sage">✓ ${esc(field.replace(/_/g,' '))} saved</span>`;
+      setTimeout(() => { msgEl.innerHTML = ''; }, 3000);
+
+      // If a URL field, refresh so the "Open ↗" button appears
+      if (field !== 'research_notes' && value) {
+        setTimeout(() => location.reload(), 600);
+      }
+    });
+  });
+}
+
+// Renders one event in the activity timeline. Event-type-aware styling.
+function renderTimelineEvent(ev) {
+  const occurredAt = ev.occurred_at;
+  const meta = ev.metadata || {};
+
+  let label = ev.event_type.replace(/_/g, ' ');
+  let tagClass = 'tag-warn';
+  let bodyHtml = '';
+  let extraClass = '';
+
+  if (ev.event_type === 'email_sent') {
+    label = 'sent';
+    tagClass = 'tag-warn';
+    bodyHtml = `
+      ${ev.subject ? `<div class="text-sm text-cream mb-1"><span class="text-cream/50">Subject:</span> ${esc(ev.subject)}</div>` : ''}
+      ${ev.template_slug ? `<div class="font-mono text-[11px] text-cream/55">template: ${esc(ev.template_slug)}</div>` : ''}
+      ${ev.body ? `<details class="mt-2"><summary class="text-xs text-cream/55 cursor-pointer">show body</summary><pre class="font-sans text-xs text-cream/80 bg-navy p-3 mt-2 rounded border border-cream/10 whitespace-pre-wrap">${esc(ev.body)}</pre></details>` : ''}
+    `;
+  } else if (ev.event_type === 'email_replied') {
+    const cls = meta.classification || 'unknown';
+    label = `reply · ${cls}`;
+    tagClass = cls === 'positive' ? 'tag-good' : cls === 'declined' ? 'tag-bad' : 'tag-warn';
+    extraClass = cls === 'positive' ? 'event-positive' : cls === 'declined' ? 'event-negative' : '';
+    bodyHtml = `
+      ${meta.notes ? `<div class="text-sm text-cream/85 italic mb-2">"${esc(meta.notes)}"</div>` : ''}
+      ${ev.body ? `<details class="mt-2"><summary class="text-xs text-cream/55 cursor-pointer">show reply text</summary><pre class="font-sans text-xs text-cream/80 bg-navy p-3 mt-2 rounded border border-cream/10 whitespace-pre-wrap">${esc(ev.body)}</pre></details>` : ''}
+    `;
+  } else if (ev.event_type === 'meeting_scheduled') {
+    label = 'meeting booked';
+    tagClass = 'tag-warn';
+    bodyHtml = `
+      ${meta.meeting_at ? `<div class="text-sm text-cream mb-1"><span class="text-cream/50">When:</span> ${esc(fmtDateTime(meta.meeting_at))}</div>` : ''}
+      ${meta.notes ? `<div class="text-sm text-cream/75 italic">${esc(meta.notes)}</div>` : ''}
+    `;
+  } else if (ev.event_type === 'meeting_held') {
+    const cls = meta.classification || 'unknown';
+    label = `meeting held · ${cls}`;
+    tagClass = cls === 'positive' ? 'tag-good' : cls === 'declined' ? 'tag-bad' : 'tag-warn';
+    extraClass = cls === 'positive' ? 'event-positive' : cls === 'declined' ? 'event-negative' : '';
+    bodyHtml = meta.notes ? `<div class="text-sm text-cream/85">${esc(meta.notes)}</div>` : '';
+  } else if (ev.event_type === 'note') {
+    label = 'note';
+    tagClass = 'tag';
+    bodyHtml = ev.body ? `<div class="text-sm text-cream/85">${esc(ev.body)}</div>` : '';
+  } else if (ev.event_type === 'status_changed') {
+    label = 'status changed';
+    bodyHtml = meta.from && meta.to ? `<div class="text-sm text-cream/75 font-mono text-xs">${esc(meta.from)} → ${esc(meta.to)}</div>` : '';
+  } else {
+    // Fallback for unhandled event types
+    bodyHtml = ev.body ? `<div class="text-sm text-cream/75">${esc(ev.body.slice(0, 240))}${ev.body.length > 240 ? '…' : ''}</div>` : `<div class="text-xs text-cream/40 italic">no body</div>`;
+  }
+
+  return `
+    <div class="timeline-event ${extraClass}">
+      <div class="flex items-baseline gap-3 flex-wrap mb-2">
+        <span class="tag ${tagClass}">${esc(label)}</span>
+        <span class="font-mono text-[11px] text-cream/55">${esc(fmtDateTime(occurredAt))}</span>
+        <span class="font-mono text-[10px] text-cream/40">${esc(relTime(occurredAt))}</span>
+      </div>
+      ${bodyHtml}
+    </div>
+  `;
+}
+
 // ===== PARTNER PORTFOLIO sub-view at #partners/<firm_slug>/portfolio =====
-// v5.9 adds firm-switcher dropdown in header.
 async function renderPartnerPortfolio(firmSlug) {
   $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
 
-  // Three parallel fetches: firm row, this firm's portfolio data, ALL firms (for the switcher)
   const [firmR, rowsR, allFirmsR] = await Promise.all([
     _sb.from('hoa_companies').select('*').eq('slug', firmSlug).maybeSingle(),
     _sb.from('v_partner_portfolio').select('*').eq('firm_slug', firmSlug).order('projected_referral_12mo', { ascending: false }),
@@ -1186,7 +1587,6 @@ async function renderPartnerPortfolio(firmSlug) {
   const firm = firmR.data;
   const rows = rowsR.data || [];
 
-  // Build deduped, alphabetized firm list for the switcher
   const firmMap = new Map();
   (allFirmsR.data || []).forEach(r => firmMap.set(r.firm_slug, r.firm_name));
   const allFirms = Array.from(firmMap.entries())
@@ -1213,7 +1613,7 @@ async function renderPartnerPortfolio(firmSlug) {
     <div class="mb-3 text-xs text-cream/50">
       <a href="#partners" class="hover:text-gold">← Partners pipeline</a>
       <span class="text-cream/30 mx-2">/</span>
-      <span class="font-mono uppercase tracking-wider">${esc(firm.name)}</span>
+      <a href="#partners/${esc(firm.slug)}" class="hover:text-gold font-mono uppercase tracking-wider">${esc(firm.name)}</a>
       <span class="text-cream/30 mx-2">/</span>
       <span class="font-mono uppercase tracking-wider text-gold">portfolio</span>
     </div>
@@ -1227,6 +1627,7 @@ async function renderPartnerPortfolio(firmSlug) {
         <select class="firm-switcher" id="firm-switcher" title="Jump to another PM firm's portfolio">
           ${allFirms.map(f => `<option value="${esc(f.slug)}" ${f.slug === firm.slug ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}
         </select>
+        <a class="btn btn-secondary btn-sm" href="#partners/${esc(firm.slug)}">← Back to hub</a>
         <button class="btn btn-primary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy public link</button>
         <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Open public ↗</a>
       </div>
@@ -1301,12 +1702,12 @@ async function renderPartnerPortfolio(firmSlug) {
     </div>
   `;
 
-  // v5.9: wire the firm-switcher dropdown
   const switcher = $('#firm-switcher');
   if (switcher) {
     switcher.addEventListener('change', (e) => {
       const newSlug = e.target.value;
       if (newSlug && newSlug !== firm.slug) {
+        // From the portfolio sub-view, the switcher jumps to that firm's PORTFOLIO (same level)
         location.hash = `#partners/${newSlug}/portfolio`;
       }
     });
@@ -1371,7 +1772,7 @@ async function renderBuildings() {
       <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
       <td>${b.unit_coverage_pct != null ? `<span class="${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span>` : '—'}</td>
       <td>${fmtNum(b.emails_sent_unique)}</td>
-      <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '</span>'}</td>
+      <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '—'}</td>
       <td>${fmtNum(b.signed_up)}</td>
       <td>${fmtNum(b.active_mmms)}</td>
     </tr>`).join('')}</tbody></table></div>`;
@@ -1432,7 +1833,7 @@ async function renderSettings() {
 }
 
 boot();
-console.log('[ADMIN] v5.9 booted');
+console.log('[ADMIN] v5.10 booted');
 </script>
 </body>
 </html>
