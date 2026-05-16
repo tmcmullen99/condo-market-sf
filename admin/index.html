@@ -16,7 +16,6 @@
 .tab{padding:12px 14px;color:rgba(232,227,216,0.5);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}
 .tab:hover{color:#e8e3d8}.tab.active{color:#d4a574;border-bottom-color:#d4a574}
 .card{background:#1a1f2e;border:1px solid rgba(232,227,216,0.12);border-radius:10px;padding:18px 20px}
-/* Sprint 5: visual treatment for engaged + declined pipeline rows */
 .card.partner-engaged{border-left:3px solid #d4a574;background:linear-gradient(90deg,rgba(212,165,116,0.05) 0%,#1a1f2e 35%)}
 .card.partner-closed{opacity:0.55}
 .btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
@@ -29,6 +28,10 @@
 input,select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#d4a574}
 input[type="datetime-local"]{color-scheme:dark}
+/* Sprint 6.5: firm-switcher select in portfolio header */
+.firm-switcher{background:#0f131d;border:1px solid rgba(232,227,216,.25);color:#e8e3d8;padding:8px 14px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;min-width:240px;background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23d4a574' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;appearance:none;-webkit-appearance:none}
+.firm-switcher:hover{border-color:rgba(232,227,216,.4)}
+.firm-switcher:focus{outline:none;border-color:#d4a574}
 table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#232a3d}
 th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,227,216,.55);font-weight:400;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(232,227,216,.1)}
 td{padding:12px 14px;vertical-align:top;border-top:1px solid rgba(232,227,216,.06)}
@@ -51,7 +54,6 @@ tr:hover td{background:rgba(232,227,216,.02)}
 
 <div id="error-banner" class="debug-banner"></div>
 
-<!-- Anon key setup screen — shown only on first run -->
 <div id="setup-screen" class="screen center">
   <div class="card max-w-xl w-full">
     <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
@@ -65,7 +67,6 @@ tr:hover td{background:rgba(232,227,216,.02)}
   </div>
 </div>
 
-<!-- Boot screen -->
 <div id="boot-screen" class="screen center">
   <div class="text-center">
     <div class="font-display italic text-4xl mb-4">Condo <span class="text-bluegray">Market</span></div>
@@ -75,7 +76,6 @@ tr:hover td{background:rgba(232,227,216,.02)}
   </div>
 </div>
 
-<!-- Auth -->
 <div id="auth-screen" class="screen center">
   <div class="card max-w-md w-full">
     <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
@@ -93,13 +93,12 @@ tr:hover td{background:rgba(232,227,216,.02)}
   </div>
 </div>
 
-<!-- Main app -->
 <div id="app" class="screen">
   <header class="border-b border-cream/10">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.8</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.9</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -123,7 +122,6 @@ tr:hover td{background:rgba(232,227,216,.02)}
 </div>
 
 <script type="module">
-// ===== Error reporting =====
 const errBanner = document.getElementById('error-banner');
 function showError(msg, source) {
   console.error('[ADMIN]', source || 'err', msg);
@@ -135,7 +133,6 @@ window.addEventListener('unhandledrejection', e => showError(String(e.reason?.me
 
 const setBoot = (msg) => { console.log('[BOOT]', msg); const el = document.getElementById('boot-status'); if (el) el.textContent = msg; };
 
-// ===== Screen toggling =====
 function showScreen(which) {
   ['setup-screen','boot-screen','auth-screen','app'].forEach(id => {
     const el = document.getElementById(id);
@@ -149,7 +146,6 @@ function showScreen(which) {
   });
 }
 
-// ===== Anon key =====
 const ANON_KEY_STORAGE = 'cms_admin_anon_key_v1';
 const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
 let SUPABASE_ANON_KEY = localStorage.getItem(ANON_KEY_STORAGE) || '';
@@ -176,7 +172,6 @@ document.getElementById('reset-anon-key').addEventListener('click', () => {
   location.reload();
 });
 
-// ===== Boot =====
 async function boot() {
   if (!SUPABASE_ANON_KEY || !SUPABASE_ANON_KEY.startsWith('eyJ')) {
     showScreen('setup-screen');
@@ -275,7 +270,6 @@ async function loadProfileAndShow(session) {
   }
 }
 
-// ===== Helpers =====
 const $ = (s,c=document) => c.querySelector(s);
 const $$ = (s,c=document) => Array.from(c.querySelectorAll(s));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -293,7 +287,6 @@ const relTime = (iso) => {
   const d = Math.floor(h/24);     return future ? `in ${d}d` : `${d}d ago`;
 };
 
-// ===== Router =====
 function routeFromHash() {
   if (!document.getElementById('app').classList.contains('show')) return;
   const hash = location.hash.replace('#', '') || 'home';
@@ -309,7 +302,6 @@ function routeFromHash() {
   });
 }
 
-// ===== HOME =====
 async function renderHome() {
   const c = $('#content');
   c.innerHTML = `
@@ -439,7 +431,6 @@ function renderActionProposal(a, durationMs) {
   });
 }
 
-// ===== Other tabs =====
 async function renderPeople() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">People</h1><div id="ppl"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
   const { data, error, count } = await _sb.from('v_person_overview').select('*', { count: 'exact' }).order('last_emailed_at',{ascending:false,nullsFirst:false}).limit(50);
@@ -474,9 +465,11 @@ async function renderHoa() {
 }
 
 // ===== PARTNERS — PM firm partnership pipeline =====
-// Sprint 1-6 build (2026-05-15).
-// Sprint 6: Meeting-booked + meeting-completed transition panels for replied → meeting_scheduled → meeting_held.
-// Stats tile: "Upcoming meetings" replaces "Templates loaded" (more operational signal).
+// Sprint 1-6.5 build. v5.9 changes:
+//   - PUBLIC_PARTNER_URL switches from /partners/<slug>/ path format to
+//     /partners/?firm=<slug> query-string format (path routing parked).
+//   - New "Public ↗" button on each pipeline row for one-click access.
+//   - Firm-switcher dropdown in portfolio header (toggle between all 8 firms).
 
 let _partnersCache = null;
 
@@ -494,17 +487,14 @@ const NEXT_ACTION_TO_SLUG = {
   send_reply:        'partnership_reply_engaged',
 };
 
-// Sprint 5: statuses that can receive a reply (show "Reply received →")
 const CAN_LOG_REPLY = ['emailed', 'followed_up_1', 'followed_up_2'];
-
-// Sprint 5: post-reply engaged states (gold accent treatment)
 const ENGAGED_STATUSES = ['replied', 'meeting_scheduled', 'meeting_held', 'agreement_sent', 'agreement_signed'];
-
-// Sprint 6: status-gated buttons for the two new transitions
 const CAN_BOOK_MEETING = ['replied'];
 const CAN_COMPLETE_MEETING = ['meeting_scheduled'];
 
-const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/${encodeURIComponent(slug)}/`;
+// v5.9: query-string URL format (path-based routing via _redirects/Functions parked).
+// Tested working at https://www.sanfranciscocondomarket.com/partners/?firm=<slug>
+const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/?firm=${encodeURIComponent(slug)}`;
 
 async function renderPartners(rest) {
   rest = Array.isArray(rest) ? rest : [];
@@ -555,7 +545,6 @@ function renderPartnersStats() {
   const total = outreach.length;
   const active = outreach.filter(o => !['declined','dormant','agreement_signed'].includes(o.status)).length;
   const engaged = outreach.filter(o => ENGAGED_STATUSES.includes(o.status)).length;
-  // Sprint 6: replace "Templates loaded" with "Upcoming meetings" (more operational signal)
   const upcomingMeetings = outreach.filter(o => o.status === 'meeting_scheduled').length;
   const weekFromNow = new Date(Date.now() + 7*86400000);
   const dueThisWeek = outreach.filter(o => o.next_action_at && new Date(o.next_action_at) <= weekFromNow && !['declined','dormant'].includes(o.status)).length;
@@ -597,6 +586,7 @@ function renderPartnersPipeline() {
     const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
     const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
     const portfolioHref = firm?.slug ? `#partners/${firm.slug}/portfolio` : '#partners';
+    const publicUrl = firm?.slug ? PUBLIC_PARTNER_URL(firm.slug) : null;
 
     const composeLabel = o.status === 'replied' ? 'Send reply →'
       : o.status === 'meeting_scheduled' || o.status === 'meeting_held' ? 'Send follow-up →'
@@ -615,12 +605,13 @@ function renderPartnersPipeline() {
           ${o.contact_full_name ? `<span class="text-cream/70 text-sm">${esc(o.contact_full_name)}${o.contact_title ? ` · ${esc(o.contact_title)}` : ''}</span>` : `<span class="text-cream/45 text-xs italic">no decision-maker contact set</span>`}
           <span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">${esc(composeLabel)}</button>` : ''}
           ${canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
           ${canBookMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-booker" data-row="${esc(o.id)}">Meeting booked →</button>` : ''}
           ${canCompleteMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-completer" data-row="${esc(o.id)}">Meeting completed →</button>` : ''}
           <a class="btn btn-secondary btn-sm" href="${esc(portfolioHref)}">Portfolio →</a>
+          ${publicUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Public ↗</a>` : ''}
           <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
         </div>
       </div>
@@ -669,7 +660,6 @@ function togglePartnerPanel(kind, rowId, renderer) {
     target.innerHTML = '';
     return;
   }
-  // Close all other panels first (Sprint 6: includes meeting-booker + meeting-completer)
   $$('.partners-composer, .partners-set-email, .partners-reply-logger, .partners-meeting-booker, .partners-meeting-completer').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
   target.style.display = 'block';
   renderer(rowId, target);
@@ -707,7 +697,6 @@ function renderPartnerSetEmail(outreachId, container) {
   $(`#set-email-input-${outreachId}`).focus();
 }
 
-// ===== Sprint 5: Reply Logger panel =====
 function renderPartnerReplyLogger(outreachId, container) {
   const { outreach, companyMap } = _partnersCache;
   const o = outreach.find(x => x.id === outreachId);
@@ -817,19 +806,15 @@ function renderPartnerReplyLogger(outreachId, container) {
   });
 }
 
-// ===== Sprint 6: Meeting Booker panel =====
-// replied → meeting_scheduled
-// Captures meeting datetime + notes, logs event_type='meeting_scheduled'
 function renderPartnerMeetingBooker(outreachId, container) {
   const { outreach, companyMap } = _partnersCache;
   const o = outreach.find(x => x.id === outreachId);
   if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
   const firm = companyMap[o.company_id];
 
-  // Default datetime: tomorrow at 2pm local
   const defaultDt = new Date(Date.now() + 86400000);
   defaultDt.setHours(14, 0, 0, 0);
-  const defaultDtStr = defaultDt.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+  const defaultDtStr = defaultDt.toISOString().slice(0, 16);
 
   container.innerHTML = `
     <div class="border-t border-cream/10 pt-4">
@@ -872,7 +857,6 @@ function renderPartnerMeetingBooker(outreachId, container) {
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
 
-    // 1) Log event
     const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
       outreach_id: outreachId,
       event_type: 'meeting_scheduled',
@@ -890,12 +874,11 @@ function renderPartnerMeetingBooker(outreachId, container) {
       return;
     }
 
-    // 2) Advance status
     const now = new Date();
     const { error: updErr } = await _sb.from('partnership_outreach').update({
       status: 'meeting_scheduled',
       last_action_at: now.toISOString(),
-      next_action_at: meetingAtIso, // surface in "due this week" as the meeting approaches
+      next_action_at: meetingAtIso,
       next_action_type: 'meeting',
       updated_at: now.toISOString(),
     }).eq('id', outreachId);
@@ -911,9 +894,6 @@ function renderPartnerMeetingBooker(outreachId, container) {
   });
 }
 
-// ===== Sprint 6: Meeting Completer panel =====
-// meeting_scheduled → meeting_held (positive) or declined (negative)
-// Captures outcome classification + notes, logs event_type='meeting_held'
 function renderPartnerMeetingCompleter(outreachId, container) {
   const { outreach, companyMap } = _partnersCache;
   const o = outreach.find(x => x.id === outreachId);
@@ -973,7 +953,6 @@ function renderPartnerMeetingCompleter(outreachId, container) {
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
 
-    // 1) Log event — event_type='meeting_held' regardless of outcome
     const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
       outreach_id: outreachId,
       event_type: 'meeting_held',
@@ -992,13 +971,12 @@ function renderPartnerMeetingCompleter(outreachId, container) {
       return;
     }
 
-    // 2) Advance status based on outcome
     const now = new Date();
     const updates = { last_action_at: now.toISOString(), updated_at: now.toISOString() };
     if (selectedOutcome === 'positive') {
       updates.status = 'meeting_held';
       updates.next_action_type = 'wait';
-      updates.next_action_at = null; // Tim drives next action manually; agreement flow is shelved
+      updates.next_action_at = null;
     } else if (selectedOutcome === 'declined') {
       updates.status = 'declined';
       updates.next_action_type = 'wait';
@@ -1190,19 +1168,30 @@ function renderPartnersTemplates() {
 }
 
 // ===== PARTNER PORTFOLIO sub-view at #partners/<firm_slug>/portfolio =====
+// v5.9 adds firm-switcher dropdown in header.
 async function renderPartnerPortfolio(firmSlug) {
   $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
 
-  const [firmR, rowsR] = await Promise.all([
+  // Three parallel fetches: firm row, this firm's portfolio data, ALL firms (for the switcher)
+  const [firmR, rowsR, allFirmsR] = await Promise.all([
     _sb.from('hoa_companies').select('*').eq('slug', firmSlug).maybeSingle(),
     _sb.from('v_partner_portfolio').select('*').eq('firm_slug', firmSlug).order('projected_referral_12mo', { ascending: false }),
+    _sb.from('v_partner_portfolio_public').select('firm_slug, firm_name'),
   ]);
 
   if (firmR.error) throw firmR.error;
   if (rowsR.error) throw rowsR.error;
+  if (allFirmsR.error) throw allFirmsR.error;
 
   const firm = firmR.data;
   const rows = rowsR.data || [];
+
+  // Build deduped, alphabetized firm list for the switcher
+  const firmMap = new Map();
+  (allFirmsR.data || []).forEach(r => firmMap.set(r.firm_slug, r.firm_name));
+  const allFirms = Array.from(firmMap.entries())
+    .map(([slug, name]) => ({ slug, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   if (!firm) {
     $('#content').innerHTML = `
@@ -1235,6 +1224,9 @@ async function renderPartnerPortfolio(firmSlug) {
         <p class="text-cream/60 text-sm">${rows.length} building${rows.length !== 1 ? 's' : ''} · ${fmtNum(totalUnits)} units total · last-12-month basis</p>
       </div>
       <div class="flex gap-2 flex-wrap items-center">
+        <select class="firm-switcher" id="firm-switcher" title="Jump to another PM firm's portfolio">
+          ${allFirms.map(f => `<option value="${esc(f.slug)}" ${f.slug === firm.slug ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}
+        </select>
         <button class="btn btn-primary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy public link</button>
         <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Open public ↗</a>
       </div>
@@ -1309,6 +1301,17 @@ async function renderPartnerPortfolio(firmSlug) {
     </div>
   `;
 
+  // v5.9: wire the firm-switcher dropdown
+  const switcher = $('#firm-switcher');
+  if (switcher) {
+    switcher.addEventListener('change', (e) => {
+      const newSlug = e.target.value;
+      if (newSlug && newSlug !== firm.slug) {
+        location.hash = `#partners/${newSlug}/portfolio`;
+      }
+    });
+  }
+
   const copyBtn = $('[data-action="copy-public-link"]');
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
@@ -1333,7 +1336,6 @@ async function renderPartnerPortfolio(firmSlug) {
   }
 }
 
-// ===== EMAIL / QUEUE / BUILDINGS / MMM / ANALYTICS / SETTINGS =====
 async function renderEmail() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email</h1><div id="email"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
   const { data: templates, error } = await _sb.from('email_templates').select('*').eq('is_active', true);
@@ -1369,7 +1371,7 @@ async function renderBuildings() {
       <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
       <td>${b.unit_coverage_pct != null ? `<span class="${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span>` : '—'}</td>
       <td>${fmtNum(b.emails_sent_unique)}</td>
-      <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '—'}</td>
+      <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '</span>'}</td>
       <td>${fmtNum(b.signed_up)}</td>
       <td>${fmtNum(b.active_mmms)}</td>
     </tr>`).join('')}</tbody></table></div>`;
@@ -1429,9 +1431,8 @@ async function renderSettings() {
   `;
 }
 
-// ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.8 booted');
+console.log('[ADMIN] v5.9 booted');
 </script>
 </body>
 </html>
