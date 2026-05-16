@@ -16,6 +16,9 @@
 .tab{padding:12px 14px;color:rgba(232,227,216,0.5);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}
 .tab:hover{color:#e8e3d8}.tab.active{color:#d4a574;border-bottom-color:#d4a574}
 .card{background:#1a1f2e;border:1px solid rgba(232,227,216,0.12);border-radius:10px;padding:18px 20px}
+/* Sprint 5: visual treatment for engaged + declined pipeline rows */
+.card.partner-engaged{border-left:3px solid #d4a574;background:linear-gradient(90deg,rgba(212,165,116,0.05) 0%,#1a1f2e 35%)}
+.card.partner-closed{opacity:0.55}
 .btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
 .btn-primary{background:#d4a574;color:#0f131d;border-color:#d4a574}.btn-primary:hover{opacity:.88}
 .btn-secondary{background:transparent;color:rgba(232,227,216,.78);border-color:rgba(232,227,216,.25)}.btn-secondary:hover{background:rgba(232,227,216,.06);color:#e8e3d8;border-color:rgba(232,227,216,.4)}
@@ -95,7 +98,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.6</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.7</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -499,11 +502,10 @@ async function renderHoa() {
 }
 
 // ===== PARTNERS — PM firm partnership pipeline =====
-// Sprint 1-4 build (2026-05-15).
-// Sprint 4: PUBLIC_PARTNER_URL now generates pretty paths (/partners/<slug>/)
-// matching the _redirects rewrite; renderPartnerComposer injects
-// public_portfolio_url as a default merge var so cold-email templates
-// auto-link to each prospect's live portfolio page.
+// Sprint 1-5 build (2026-05-15).
+// Sprint 5 changes: reply-logger panel (manual reply tracking with classification);
+// visual treatment for engaged/declined rows; dynamic Compose button label.
+// Full Gmail inbound automation deferred to a later sprint, post-MK1 (Resend infra).
 
 let _partnersCache = null;
 
@@ -522,7 +524,13 @@ const NEXT_ACTION_TO_SLUG = {
   send_reply:        'partnership_reply_engaged',
 };
 
-// Public partner page URL builder — Sprint 4 uses pretty paths
+// Sprint 5: which statuses can receive a reply (i.e., show "Reply received →" button)
+const CAN_LOG_REPLY = ['emailed', 'followed_up_1', 'followed_up_2'];
+
+// Sprint 5: which statuses are post-reply engaged states (gold accent treatment)
+const ENGAGED_STATUSES = ['replied', 'meeting_scheduled', 'meeting_held', 'agreement_sent', 'agreement_signed'];
+
+// Public partner page URL builder
 const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/${encodeURIComponent(slug)}/`;
 
 async function renderPartners(rest) {
@@ -573,13 +581,13 @@ function renderPartnersStats() {
   const { outreach, templates } = _partnersCache;
   const total = outreach.length;
   const active = outreach.filter(o => !['declined','dormant','agreement_signed'].includes(o.status)).length;
-  const needsEmail = outreach.filter(o => o.contact_first_name && !o.contact_email && !['declined','dormant'].includes(o.status)).length;
+  const replied = outreach.filter(o => ENGAGED_STATUSES.includes(o.status)).length;
   const weekFromNow = new Date(Date.now() + 7*86400000);
   const dueThisWeek = outreach.filter(o => o.next_action_at && new Date(o.next_action_at) <= weekFromNow && !['declined','dormant'].includes(o.status)).length;
 
   const tiles = [
     ['In pipeline', total, `${active} active · ${total - active} closed`],
-    ['Need email lookup', needsEmail, needsEmail ? 'verify via Apollo' : 'all set'],
+    ['Engaged', replied, replied ? 'replied or later' : 'awaiting first reply'],
     ['Due this week', dueThisWeek, dueThisWeek ? 'click rows below' : 'queue is clear'],
     ['Templates loaded', templates.length, 'partnership category'],
   ];
@@ -607,13 +615,24 @@ function renderPartnersPipeline() {
     const events = eventsByOutreach[o.id] || [];
     const lastEvent = events[0];
     const canCompose = !['declined','dormant','on_hold','researching'].includes(o.status);
+    const canLogReply = CAN_LOG_REPLY.includes(o.status);
     const needsEmail = o.contact_first_name && !o.contact_email;
     const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
     const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
     const portfolioHref = firm?.slug ? `#partners/${firm.slug}/portfolio` : '#partners';
 
+    // Sprint 5: dynamic compose label based on suggested next action
+    const composeLabel = o.status === 'replied' ? 'Send reply →'
+      : o.status === 'meeting_scheduled' || o.status === 'meeting_held' ? 'Send follow-up →'
+      : 'Compose →';
+
+    // Sprint 5: row styling based on status
+    const isEngaged = ENGAGED_STATUSES.includes(o.status);
+    const isClosed = ['declined','dormant'].includes(o.status);
+    const rowClass = isEngaged ? 'partner-engaged' : isClosed ? 'partner-closed' : '';
+
     return `
-    <div class="card mb-3" data-row="${esc(o.id)}">
+    <div class="card mb-3 ${rowClass}" data-row="${esc(o.id)}">
       <div class="flex items-baseline justify-between gap-4 flex-wrap mb-2">
         <div class="flex items-baseline gap-3 flex-wrap">
           <span class="font-mono text-xs text-cream/45">#${o.priority}</span>
@@ -622,7 +641,8 @@ function renderPartnersPipeline() {
           <span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>
         </div>
         <div class="flex items-center gap-2">
-          ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">Compose →</button>` : ''}
+          ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">${esc(composeLabel)}</button>` : ''}
+          ${canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
           <a class="btn btn-secondary btn-sm" href="${esc(portfolioHref)}">Portfolio →</a>
           <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
         </div>
@@ -640,6 +660,7 @@ function renderPartnersPipeline() {
       </div>
       <div class="partners-set-email mt-3" id="set-email-${esc(o.id)}" style="display:none"></div>
       <div class="partners-composer mt-3" id="composer-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-reply-logger mt-3" id="reply-logger-${esc(o.id)}" style="display:none"></div>
     </div>
     `;
   }).join('');
@@ -649,6 +670,9 @@ function renderPartnersPipeline() {
   );
   $$('[data-toggle="set-email"]', $('#partners-pipeline')).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('set-email', b.dataset.row, renderPartnerSetEmail))
+  );
+  $$('[data-toggle="reply-logger"]', $('#partners-pipeline')).forEach(b =>
+    b.addEventListener('click', () => togglePartnerPanel('reply-logger', b.dataset.row, renderPartnerReplyLogger))
   );
 }
 
@@ -662,7 +686,7 @@ function togglePartnerPanel(kind, rowId, renderer) {
     return;
   }
   // Close all other panels first
-  $$('.partners-composer, .partners-set-email').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
+  $$('.partners-composer, .partners-set-email, .partners-reply-logger').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
   target.style.display = 'block';
   renderer(rowId, target);
 }
@@ -697,6 +721,122 @@ function renderPartnerSetEmail(outreachId, container) {
     container.innerHTML = '';
   });
   $(`#set-email-input-${outreachId}`).focus();
+}
+
+// ===== Sprint 5: Reply Logger panel =====
+function renderPartnerReplyLogger(outreachId, container) {
+  const { outreach, companyMap } = _partnersCache;
+  const o = outreach.find(x => x.id === outreachId);
+  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
+  const firm = companyMap[o.company_id];
+
+  container.innerHTML = `
+    <div class="border-t border-cream/10 pt-4">
+      <div class="text-sm text-cream/75 mb-3">
+        Log a reply from <span class="font-mono text-cream">${esc(o.contact_email || firm?.name || 'this prospect')}</span>.
+        Advances pipeline status and creates an event record. Doesn't send anything outbound.
+      </div>
+
+      <div class="text-xs text-cream/55 mb-2 font-mono uppercase tracking-wider">Classification</div>
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button class="btn btn-secondary btn-sm" data-classify="positive" data-row="${esc(outreachId)}">✓ Positive / engaged</button>
+        <button class="btn btn-secondary btn-sm" data-classify="declined" data-row="${esc(outreachId)}">✗ Declined / not a fit</button>
+      </div>
+
+      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Reply text <span class="lowercase italic text-cream/40 ml-1">(optional, but useful for the record)</span></div>
+      <textarea id="reply-body-${esc(outreachId)}" rows="4" placeholder="Paste the reply text…" class="mb-3 !text-xs font-mono"></textarea>
+
+      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Notes <span class="lowercase italic text-cream/40 ml-1">(optional — for your future self)</span></div>
+      <input id="reply-notes-${esc(outreachId)}" placeholder="e.g. 'Sounds interested but wants to talk Q3 instead of immediate pilot'" class="mb-4 !text-xs">
+
+      <div class="flex gap-2 flex-wrap">
+        <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-reply" disabled style="opacity:0.4;cursor:not-allowed">Save reply →</button>
+        <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-reply">Cancel</button>
+      </div>
+      <div id="reply-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
+    </div>
+  `;
+
+  // Track which classification button is selected; save button is gated on it
+  let selectedClassification = null;
+  const saveBtn = $(`[data-row="${outreachId}"][data-action="save-reply"]`, container);
+
+  $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedClassification = btn.dataset.classify;
+      $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(b => {
+        b.classList.toggle('btn-primary', b === btn);
+        b.classList.toggle('btn-secondary', b !== btn);
+      });
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+      saveBtn.style.cursor = 'pointer';
+    });
+  });
+
+  $(`[data-row="${outreachId}"][data-action="cancel-reply"]`, container).addEventListener('click', () => {
+    container.style.display = 'none';
+    container.innerHTML = '';
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    if (!selectedClassification) return;
+    const body = $(`#reply-body-${outreachId}`).value.trim();
+    const notes = $(`#reply-notes-${outreachId}`).value.trim();
+    const msgEl = $(`#reply-msg-${outreachId}`);
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
+
+    // 1) Log the event (event_type = 'email_replied' per schema constraint)
+    const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
+      outreach_id: outreachId,
+      event_type: 'email_replied',
+      body: body || null,
+      metadata: {
+        classification: selectedClassification,
+        notes: notes || null,
+        logged_via: 'admin_partners_reply_logger',
+        logged_at: new Date().toISOString(),
+      },
+    });
+    if (evErr) {
+      msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save reply →';
+      return;
+    }
+
+    // 2) Advance status based on classification
+    const now = new Date();
+    const updates = {
+      last_action_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    };
+    if (selectedClassification === 'positive') {
+      updates.status = 'replied';
+      updates.next_action_type = 'send_reply';
+      updates.next_action_at = now.toISOString(); // immediate — Tim should send the reply template now
+    } else if (selectedClassification === 'declined') {
+      updates.status = 'declined';
+      updates.next_action_type = 'wait';
+      updates.next_action_at = null;
+    }
+
+    const { error: updErr } = await _sb.from('partnership_outreach').update(updates).eq('id', outreachId);
+    if (updErr) {
+      msgEl.innerHTML = `<span class="text-amber">Event logged, but status update failed: ${esc(updErr.message)}</span>`;
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save reply →';
+      return;
+    }
+
+    const nextLabel = selectedClassification === 'positive'
+      ? 'Compose button will now suggest the reply template.'
+      : 'Pipeline closed for this firm.';
+    msgEl.innerHTML = `<span class="text-sage">✓ Reply logged + status advanced. ${nextLabel} Refreshing…</span>`;
+    setTimeout(() => loadPartnersData(), 800);
+  });
 }
 
 function renderPartnerTemplate(text, vars) {
@@ -872,11 +1012,6 @@ function renderPartnersTemplates() {
 }
 
 // ===== PARTNER PORTFOLIO — Sprint 2 sub-view at #partners/<firm_slug>/portfolio =====
-// Per-firm dashboard: aggregate revenue opportunity + per-building stats.
-// Reads from v_partner_portfolio view (joined building_sales 12mo + MMM + contacts + ownership).
-// Sprint 3: header now includes "Copy public link" + "Open ↗" pointing at the public partner page.
-// Sprint 4: uses pretty PUBLIC_PARTNER_URL (path-based).
-
 async function renderPartnerPortfolio(firmSlug) {
   $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
 
@@ -899,7 +1034,6 @@ async function renderPartnerPortfolio(firmSlug) {
     return;
   }
 
-  // Client-side aggregate reduce across building rows
   const totalVolume   = rows.reduce((s,r) => s + Number(r.total_volume_12mo || 0), 0);
   const totalReferral = rows.reduce((s,r) => s + Number(r.projected_referral_12mo || 0), 0);
   const totalSales    = rows.reduce((s,r) => s + Number(r.sales_count_12mo || 0), 0);
@@ -928,7 +1062,6 @@ async function renderPartnerPortfolio(firmSlug) {
       </div>
     </div>
 
-    <!-- Aggregate stat tiles -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
       <div class="card">
         <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Volume (12mo)</div>
@@ -952,21 +1085,12 @@ async function renderPartnerPortfolio(firmSlug) {
       </div>
     </div>
 
-    <!-- Building table -->
     <h2 class="font-display text-xl mb-3">Buildings</h2>
     ${rows.length ? `
       <div class="card !p-0 mb-6 overflow-x-auto"><table>
         <thead><tr>
-          <th>Building</th>
-          <th>Units</th>
-          <th>Sales 12mo</th>
-          <th>Median Price</th>
-          <th>Median $/sf</th>
-          <th>12mo Volume</th>
-          <th>Proj Referral</th>
-          <th>MMMs</th>
-          <th>Owners on File</th>
-          <th>Last Sale</th>
+          <th>Building</th><th>Units</th><th>Sales 12mo</th><th>Median Price</th><th>Median $/sf</th>
+          <th>12mo Volume</th><th>Proj Referral</th><th>MMMs</th><th>Owners on File</th><th>Last Sale</th>
         </tr></thead>
         <tbody>
           ${rows.map(r => `
@@ -989,25 +1113,24 @@ async function renderPartnerPortfolio(firmSlug) {
           `).join('')}
         </tbody>
       </table></div>
-    ` : `<div class="placeholder">No buildings linked to <span class="font-display italic">${esc(firm.name)}</span> in hoa_outreach yet. Link buildings by setting their <span class="font-mono">company_id</span> in <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=hoa_outreach" target="_blank" class="text-gold underline">hoa_outreach</a>.</div>`}
+    ` : `<div class="placeholder">No buildings linked to <span class="font-display italic">${esc(firm.name)}</span> in hoa_outreach yet.</div>`}
 
     ${rows.length ? `
     <div class="card mb-6" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
       <h3 class="font-display text-lg mb-2">What this means in the call</h3>
       <div class="text-sm text-cream/80 space-y-2">
         <p>Last 12 months: <strong class="text-gold">${fmtMoney(totalVolume)}</strong> in closed-sale volume across ${esc(firm.name)}'s portfolio. At a 1% broker-to-broker referral, that's <strong class="text-gold">${fmtMoney(totalReferral)}</strong> in raw addressable revenue if Condo Market had been the partner broker on every transaction.</p>
-        <p class="text-cream/65 text-xs">Realistic capture depends on what fraction of transactions actually route through Condo Market vs other brokers. The honest framing: <em>"If we'd had a partnership in place last year, here's the upper bound — discuss how much of that you think we'd realistically capture."</em></p>
+        <p class="text-cream/65 text-xs">Realistic capture depends on what fraction of transactions actually route through Condo Market vs other brokers.</p>
       </div>
     </div>
     ` : ''}
 
     <div class="text-xs text-cream/40 mt-3 pb-8">
-      Data sources: building_sales (recording-date-indexed, 12mo trailing) · make_me_move (active claims) · building_contacts (skip-trace + verified) · unit_ownership (current owners).
+      Data sources: building_sales (recording-date-indexed, 12mo trailing) · make_me_move (active claims) · building_contacts · unit_ownership.
       View definition: <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&view=v_partner_portfolio" target="_blank" class="text-gold underline">v_partner_portfolio</a>.
     </div>
   `;
 
-  // Wire "Copy public link" button (Sprint 3)
   const copyBtn = $('[data-action="copy-public-link"]');
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
@@ -1130,7 +1253,7 @@ async function renderSettings() {
 
 // ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.6 booted');
+console.log('[ADMIN] v5.7 booted');
 </script>
 </body>
 </html>
