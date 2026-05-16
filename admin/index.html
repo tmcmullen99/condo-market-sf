@@ -28,6 +28,7 @@
 .tag-good{background:rgba(124,157,106,.15);color:#b8d4a8}.tag-bad{background:rgba(216,128,128,.15);color:#e8a8a8}.tag-warn{background:rgba(212,165,116,.15);color:#d4a574}
 input,select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#d4a574}
+input[type="datetime-local"]{color-scheme:dark}
 table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#232a3d}
 th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,227,216,.55);font-weight:400;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(232,227,216,.1)}
 td{padding:12px 14px;vertical-align:top;border-top:1px solid rgba(232,227,216,.06)}
@@ -64,7 +65,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
   </div>
 </div>
 
-<!-- Boot screen — initial loading state -->
+<!-- Boot screen -->
 <div id="boot-screen" class="screen center">
   <div class="text-center">
     <div class="font-display italic text-4xl mb-4">Condo <span class="text-bluegray">Market</span></div>
@@ -74,7 +75,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
   </div>
 </div>
 
-<!-- Auth (sign-in) screen -->
+<!-- Auth -->
 <div id="auth-screen" class="screen center">
   <div class="card max-w-md w-full">
     <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
@@ -98,7 +99,7 @@ tr:hover td{background:rgba(232,227,216,.02)}
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.7</span>
+        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.8</span>
       </div>
       <div class="flex items-center gap-3 text-xs text-cream/60">
         <span id="user-email" class="font-mono"></span>
@@ -134,7 +135,7 @@ window.addEventListener('unhandledrejection', e => showError(String(e.reason?.me
 
 const setBoot = (msg) => { console.log('[BOOT]', msg); const el = document.getElementById('boot-status'); if (el) el.textContent = msg; };
 
-// ===== Screen toggling (uses .show class — survives Tailwind cascade) =====
+// ===== Screen toggling =====
 function showScreen(which) {
   ['setup-screen','boot-screen','auth-screen','app'].forEach(id => {
     const el = document.getElementById(id);
@@ -148,12 +149,11 @@ function showScreen(which) {
   });
 }
 
-// ===== Anon key — stored in localStorage, captured via UI =====
+// ===== Anon key =====
 const ANON_KEY_STORAGE = 'cms_admin_anon_key_v1';
 const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
 let SUPABASE_ANON_KEY = localStorage.getItem(ANON_KEY_STORAGE) || '';
 
-// Setup form handler
 document.getElementById('setup-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const fd = new FormData(e.target);
@@ -176,17 +176,14 @@ document.getElementById('reset-anon-key').addEventListener('click', () => {
   location.reload();
 });
 
-// ===== Boot sequence =====
+// ===== Boot =====
 async function boot() {
-  // Step 1: if no anon key, show setup screen
   if (!SUPABASE_ANON_KEY || !SUPABASE_ANON_KEY.startsWith('eyJ')) {
     showScreen('setup-screen');
     return;
   }
-
   showScreen('boot-screen');
   setBoot('Loading Supabase JS…');
-
   let createClient;
   try {
     ({ createClient } = await import('https://esm.sh/@supabase/supabase-js@2'));
@@ -194,14 +191,12 @@ async function boot() {
     showError('Failed to load Supabase JS: ' + e.message, 'cdn');
     return;
   }
-
   setBoot('Initializing client…');
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   window.__sb = sb;
-  window.__SUPABASE_ANON_KEY = SUPABASE_ANON_KEY; // for fetch() to admin-command
-
+  window.__SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
   await initAdmin(sb);
 }
 
@@ -211,8 +206,6 @@ let _sb = null;
 
 async function initAdmin(sb) {
   _sb = sb;
-
-  // Auth state listener (reactive)
   sb.auth.onAuthStateChange((event, session) => {
     console.log('[AUTH]', event, session ? 'session ✓' : 'no session');
     if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
@@ -222,8 +215,6 @@ async function initAdmin(sb) {
       showScreen('auth-screen');
     }
   });
-
-  // Wire sign-in form
   document.getElementById('signin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -239,7 +230,6 @@ async function initAdmin(sb) {
         msg.textContent = `❌ ${error.message} (HTTP ${error.status || '?'})`;
         msg.className = 'text-xs mt-2 text-brick';
         btn.disabled = false; btn.textContent = 'Sign in';
-        console.error('[SIGNIN]', error);
         return;
       }
       msg.textContent = '✓ Signed in. Loading admin…';
@@ -248,36 +238,20 @@ async function initAdmin(sb) {
       msg.textContent = '❌ ' + e.message;
       msg.className = 'text-xs mt-2 text-brick';
       btn.disabled = false; btn.textContent = 'Sign in';
-      console.error('[SIGNIN throw]', e);
     }
   });
-
-  // Wire sign-out
   document.getElementById('signout-btn').addEventListener('click', async () => {
     try { await sb.auth.signOut(); } catch(_) {}
     location.reload();
   });
-
-  // Wire nav
   document.querySelectorAll('#nav .tab').forEach(t => t.addEventListener('click', e => { e.preventDefault(); location.hash = t.dataset.tab; }));
   window.addEventListener('hashchange', routeFromHash);
-
-  // Initial auth check
   setBoot('Checking auth…');
   try {
     const { data: { session }, error } = await sb.auth.getSession();
-    if (error) {
-      showError('getSession: ' + error.message, 'auth');
-      showScreen('auth-screen');
-      return;
-    }
-    if (session) {
-      setBoot('Session found, loading profile…');
-      await loadProfileAndShow(session);
-    } else {
-      setBoot('No session — showing sign-in.');
-      showScreen('auth-screen');
-    }
+    if (error) { showError('getSession: ' + error.message, 'auth'); showScreen('auth-screen'); return; }
+    if (session) { setBoot('Session found, loading profile…'); await loadProfileAndShow(session); }
+    else { setBoot('No session — showing sign-in.'); showScreen('auth-screen'); }
   } catch (e) {
     showError('boot failed: ' + e.message, 'boot');
     showScreen('auth-screen');
@@ -343,7 +317,6 @@ async function renderHome() {
       <h1 class="font-display text-4xl italic mb-1">Welcome back, ${esc(currentUser?.full_name?.split(' ')[0] || 'Tim')}.</h1>
       <p class="text-cream/60 text-sm">Ask Claude. Pull data. Draft campaigns. Manage everything from here.</p>
     </section>
-
     <section class="card mb-8 border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
       <div class="flex items-center gap-2 mb-3">
         <span class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase">⚡ Claude Command</span>
@@ -361,7 +334,6 @@ async function renderHome() {
       </div>
       <div id="cmd-result" class="mt-4"></div>
     </section>
-
     <section class="mb-8">
       <h2 class="font-display text-xl mb-4">Today</h2>
       <div id="home-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
@@ -467,7 +439,7 @@ function renderActionProposal(a, durationMs) {
   });
 }
 
-// ===== Other tabs (lazy load + try/catch) =====
+// ===== Other tabs =====
 async function renderPeople() {
   $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">People</h1><div id="ppl"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
   const { data, error, count } = await _sb.from('v_person_overview').select('*', { count: 'exact' }).order('last_emailed_at',{ascending:false,nullsFirst:false}).limit(50);
@@ -502,14 +474,12 @@ async function renderHoa() {
 }
 
 // ===== PARTNERS — PM firm partnership pipeline =====
-// Sprint 1-5 build (2026-05-15).
-// Sprint 5 changes: reply-logger panel (manual reply tracking with classification);
-// visual treatment for engaged/declined rows; dynamic Compose button label.
-// Full Gmail inbound automation deferred to a later sprint, post-MK1 (Resend infra).
+// Sprint 1-6 build (2026-05-15).
+// Sprint 6: Meeting-booked + meeting-completed transition panels for replied → meeting_scheduled → meeting_held.
+// Stats tile: "Upcoming meetings" replaces "Templates loaded" (more operational signal).
 
 let _partnersCache = null;
 
-// Cadence state machine: which template advances to which next state, and how far out
 const PARTNERSHIP_CADENCE = {
   partnership_initial_cold:   { next_status: 'emailed',         next_action_type: 'send_follow_up_1', days_until_next: 4  },
   partnership_follow_up_1:    { next_status: 'followed_up_1',   next_action_type: 'send_follow_up_2', days_until_next: 7  },
@@ -524,13 +494,16 @@ const NEXT_ACTION_TO_SLUG = {
   send_reply:        'partnership_reply_engaged',
 };
 
-// Sprint 5: which statuses can receive a reply (i.e., show "Reply received →" button)
+// Sprint 5: statuses that can receive a reply (show "Reply received →")
 const CAN_LOG_REPLY = ['emailed', 'followed_up_1', 'followed_up_2'];
 
-// Sprint 5: which statuses are post-reply engaged states (gold accent treatment)
+// Sprint 5: post-reply engaged states (gold accent treatment)
 const ENGAGED_STATUSES = ['replied', 'meeting_scheduled', 'meeting_held', 'agreement_sent', 'agreement_signed'];
 
-// Public partner page URL builder
+// Sprint 6: status-gated buttons for the two new transitions
+const CAN_BOOK_MEETING = ['replied'];
+const CAN_COMPLETE_MEETING = ['meeting_scheduled'];
+
 const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/${encodeURIComponent(slug)}/`;
 
 async function renderPartners(rest) {
@@ -578,18 +551,20 @@ async function loadPartnersData() {
 }
 
 function renderPartnersStats() {
-  const { outreach, templates } = _partnersCache;
+  const { outreach } = _partnersCache;
   const total = outreach.length;
   const active = outreach.filter(o => !['declined','dormant','agreement_signed'].includes(o.status)).length;
-  const replied = outreach.filter(o => ENGAGED_STATUSES.includes(o.status)).length;
+  const engaged = outreach.filter(o => ENGAGED_STATUSES.includes(o.status)).length;
+  // Sprint 6: replace "Templates loaded" with "Upcoming meetings" (more operational signal)
+  const upcomingMeetings = outreach.filter(o => o.status === 'meeting_scheduled').length;
   const weekFromNow = new Date(Date.now() + 7*86400000);
   const dueThisWeek = outreach.filter(o => o.next_action_at && new Date(o.next_action_at) <= weekFromNow && !['declined','dormant'].includes(o.status)).length;
 
   const tiles = [
     ['In pipeline', total, `${active} active · ${total - active} closed`],
-    ['Engaged', replied, replied ? 'replied or later' : 'awaiting first reply'],
+    ['Engaged', engaged, engaged ? 'replied or later' : 'awaiting first reply'],
+    ['Upcoming meetings', upcomingMeetings, upcomingMeetings ? 'meeting_scheduled' : 'none booked yet'],
     ['Due this week', dueThisWeek, dueThisWeek ? 'click rows below' : 'queue is clear'],
-    ['Templates loaded', templates.length, 'partnership category'],
   ];
   $('#partners-stats').innerHTML = tiles.map(([l,n,sub]) =>
     `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-3xl">${esc(String(n))}</div><div class="text-xs text-cream/55 mt-1">${esc(sub)}</div></div>`
@@ -616,17 +591,17 @@ function renderPartnersPipeline() {
     const lastEvent = events[0];
     const canCompose = !['declined','dormant','on_hold','researching'].includes(o.status);
     const canLogReply = CAN_LOG_REPLY.includes(o.status);
+    const canBookMeeting = CAN_BOOK_MEETING.includes(o.status);
+    const canCompleteMeeting = CAN_COMPLETE_MEETING.includes(o.status);
     const needsEmail = o.contact_first_name && !o.contact_email;
     const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
     const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
     const portfolioHref = firm?.slug ? `#partners/${firm.slug}/portfolio` : '#partners';
 
-    // Sprint 5: dynamic compose label based on suggested next action
     const composeLabel = o.status === 'replied' ? 'Send reply →'
       : o.status === 'meeting_scheduled' || o.status === 'meeting_held' ? 'Send follow-up →'
       : 'Compose →';
 
-    // Sprint 5: row styling based on status
     const isEngaged = ENGAGED_STATUSES.includes(o.status);
     const isClosed = ['declined','dormant'].includes(o.status);
     const rowClass = isEngaged ? 'partner-engaged' : isClosed ? 'partner-closed' : '';
@@ -643,6 +618,8 @@ function renderPartnersPipeline() {
         <div class="flex items-center gap-2">
           ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">${esc(composeLabel)}</button>` : ''}
           ${canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
+          ${canBookMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-booker" data-row="${esc(o.id)}">Meeting booked →</button>` : ''}
+          ${canCompleteMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-completer" data-row="${esc(o.id)}">Meeting completed →</button>` : ''}
           <a class="btn btn-secondary btn-sm" href="${esc(portfolioHref)}">Portfolio →</a>
           <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
         </div>
@@ -661,6 +638,8 @@ function renderPartnersPipeline() {
       <div class="partners-set-email mt-3" id="set-email-${esc(o.id)}" style="display:none"></div>
       <div class="partners-composer mt-3" id="composer-${esc(o.id)}" style="display:none"></div>
       <div class="partners-reply-logger mt-3" id="reply-logger-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-meeting-booker mt-3" id="meeting-booker-${esc(o.id)}" style="display:none"></div>
+      <div class="partners-meeting-completer mt-3" id="meeting-completer-${esc(o.id)}" style="display:none"></div>
     </div>
     `;
   }).join('');
@@ -674,19 +653,24 @@ function renderPartnersPipeline() {
   $$('[data-toggle="reply-logger"]', $('#partners-pipeline')).forEach(b =>
     b.addEventListener('click', () => togglePartnerPanel('reply-logger', b.dataset.row, renderPartnerReplyLogger))
   );
+  $$('[data-toggle="meeting-booker"]', $('#partners-pipeline')).forEach(b =>
+    b.addEventListener('click', () => togglePartnerPanel('meeting-booker', b.dataset.row, renderPartnerMeetingBooker))
+  );
+  $$('[data-toggle="meeting-completer"]', $('#partners-pipeline')).forEach(b =>
+    b.addEventListener('click', () => togglePartnerPanel('meeting-completer', b.dataset.row, renderPartnerMeetingCompleter))
+  );
 }
 
 function togglePartnerPanel(kind, rowId, renderer) {
   const target = $(`#${kind}-${rowId}`);
   if (!target) return;
-  // If already open, just close
   if (target.style.display === 'block') {
     target.style.display = 'none';
     target.innerHTML = '';
     return;
   }
-  // Close all other panels first
-  $$('.partners-composer, .partners-set-email, .partners-reply-logger').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
+  // Close all other panels first (Sprint 6: includes meeting-booker + meeting-completer)
+  $$('.partners-composer, .partners-set-email, .partners-reply-logger, .partners-meeting-booker, .partners-meeting-completer').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
   target.style.display = 'block';
   renderer(rowId, target);
 }
@@ -757,7 +741,6 @@ function renderPartnerReplyLogger(outreachId, container) {
     </div>
   `;
 
-  // Track which classification button is selected; save button is gated on it
   let selectedClassification = null;
   const saveBtn = $(`[data-row="${outreachId}"][data-action="save-reply"]`, container);
 
@@ -788,7 +771,6 @@ function renderPartnerReplyLogger(outreachId, container) {
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
 
-    // 1) Log the event (event_type = 'email_replied' per schema constraint)
     const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
       outreach_id: outreachId,
       event_type: 'email_replied',
@@ -807,16 +789,12 @@ function renderPartnerReplyLogger(outreachId, container) {
       return;
     }
 
-    // 2) Advance status based on classification
     const now = new Date();
-    const updates = {
-      last_action_at: now.toISOString(),
-      updated_at: now.toISOString(),
-    };
+    const updates = { last_action_at: now.toISOString(), updated_at: now.toISOString() };
     if (selectedClassification === 'positive') {
       updates.status = 'replied';
       updates.next_action_type = 'send_reply';
-      updates.next_action_at = now.toISOString(); // immediate — Tim should send the reply template now
+      updates.next_action_at = now.toISOString();
     } else if (selectedClassification === 'declined') {
       updates.status = 'declined';
       updates.next_action_type = 'wait';
@@ -839,6 +817,210 @@ function renderPartnerReplyLogger(outreachId, container) {
   });
 }
 
+// ===== Sprint 6: Meeting Booker panel =====
+// replied → meeting_scheduled
+// Captures meeting datetime + notes, logs event_type='meeting_scheduled'
+function renderPartnerMeetingBooker(outreachId, container) {
+  const { outreach, companyMap } = _partnersCache;
+  const o = outreach.find(x => x.id === outreachId);
+  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
+  const firm = companyMap[o.company_id];
+
+  // Default datetime: tomorrow at 2pm local
+  const defaultDt = new Date(Date.now() + 86400000);
+  defaultDt.setHours(14, 0, 0, 0);
+  const defaultDtStr = defaultDt.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+
+  container.innerHTML = `
+    <div class="border-t border-cream/10 pt-4">
+      <div class="text-sm text-cream/75 mb-4">
+        Log a meeting booking with <span class="font-mono text-cream">${esc(firm?.name || 'this firm')}</span>.
+        Advances status to <span class="font-mono text-gold">meeting_scheduled</span> and creates an event record.
+      </div>
+
+      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Meeting date & time</div>
+      <input type="datetime-local" id="meeting-at-${esc(outreachId)}" class="mb-3 !w-auto" value="${esc(defaultDtStr)}">
+
+      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Notes <span class="lowercase italic text-cream/40 ml-1">(optional — calendar link, agenda, attendees)</span></div>
+      <input id="meeting-notes-${esc(outreachId)}" placeholder="e.g., 'Zoom link in calendar. CFO joining. 30 min, walkthrough + Q&A'" class="mb-4 !text-xs">
+
+      <div class="flex gap-2 flex-wrap">
+        <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-booking">Save booking →</button>
+        <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-booking">Cancel</button>
+      </div>
+      <div id="booking-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
+    </div>
+  `;
+
+  $(`[data-row="${outreachId}"][data-action="cancel-booking"]`, container).addEventListener('click', () => {
+    container.style.display = 'none';
+    container.innerHTML = '';
+  });
+
+  const saveBtn = $(`[data-row="${outreachId}"][data-action="save-booking"]`, container);
+  saveBtn.addEventListener('click', async () => {
+    const meetingAtStr = $(`#meeting-at-${outreachId}`).value;
+    const notes = $(`#meeting-notes-${outreachId}`).value.trim();
+    const msgEl = $(`#booking-msg-${outreachId}`);
+
+    if (!meetingAtStr) {
+      msgEl.innerHTML = '<span class="text-brick">Meeting date/time required.</span>';
+      return;
+    }
+
+    const meetingAtIso = new Date(meetingAtStr).toISOString();
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
+
+    // 1) Log event
+    const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
+      outreach_id: outreachId,
+      event_type: 'meeting_scheduled',
+      metadata: {
+        meeting_at: meetingAtIso,
+        notes: notes || null,
+        logged_via: 'admin_partners_meeting_booker',
+        logged_at: new Date().toISOString(),
+      },
+    });
+    if (evErr) {
+      msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save booking →';
+      return;
+    }
+
+    // 2) Advance status
+    const now = new Date();
+    const { error: updErr } = await _sb.from('partnership_outreach').update({
+      status: 'meeting_scheduled',
+      last_action_at: now.toISOString(),
+      next_action_at: meetingAtIso, // surface in "due this week" as the meeting approaches
+      next_action_type: 'meeting',
+      updated_at: now.toISOString(),
+    }).eq('id', outreachId);
+    if (updErr) {
+      msgEl.innerHTML = `<span class="text-amber">Event logged, but status update failed: ${esc(updErr.message)}</span>`;
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save booking →';
+      return;
+    }
+
+    msgEl.innerHTML = '<span class="text-sage">✓ Meeting booked + status advanced. Refreshing…</span>';
+    setTimeout(() => loadPartnersData(), 800);
+  });
+}
+
+// ===== Sprint 6: Meeting Completer panel =====
+// meeting_scheduled → meeting_held (positive) or declined (negative)
+// Captures outcome classification + notes, logs event_type='meeting_held'
+function renderPartnerMeetingCompleter(outreachId, container) {
+  const { outreach, companyMap } = _partnersCache;
+  const o = outreach.find(x => x.id === outreachId);
+  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
+  const firm = companyMap[o.company_id];
+
+  container.innerHTML = `
+    <div class="border-t border-cream/10 pt-4">
+      <div class="text-sm text-cream/75 mb-3">
+        Log the outcome of the meeting with <span class="font-mono text-cream">${esc(firm?.name || 'this firm')}</span>.
+        Classification determines next status; notes captured for the record.
+      </div>
+
+      <div class="text-xs text-cream/55 mb-2 font-mono uppercase tracking-wider">Outcome</div>
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button class="btn btn-secondary btn-sm" data-classify="positive" data-row="${esc(outreachId)}">✓ Positive — moving forward</button>
+        <button class="btn btn-secondary btn-sm" data-classify="declined" data-row="${esc(outreachId)}">✗ Not a fit — closing the loop</button>
+      </div>
+
+      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Meeting notes <span class="lowercase italic text-cream/40 ml-1">(recommended)</span></div>
+      <textarea id="completion-notes-${esc(outreachId)}" rows="4" placeholder="What was discussed? Any objections? Next steps? Who's on their side?" class="mb-4 !text-xs"></textarea>
+
+      <div class="flex gap-2 flex-wrap">
+        <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-completion" disabled style="opacity:0.4;cursor:not-allowed">Save outcome →</button>
+        <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-completion">Cancel</button>
+      </div>
+      <div id="completion-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
+    </div>
+  `;
+
+  let selectedOutcome = null;
+  const saveBtn = $(`[data-row="${outreachId}"][data-action="save-completion"]`, container);
+
+  $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedOutcome = btn.dataset.classify;
+      $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(b => {
+        b.classList.toggle('btn-primary', b === btn);
+        b.classList.toggle('btn-secondary', b !== btn);
+      });
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+      saveBtn.style.cursor = 'pointer';
+    });
+  });
+
+  $(`[data-row="${outreachId}"][data-action="cancel-completion"]`, container).addEventListener('click', () => {
+    container.style.display = 'none';
+    container.innerHTML = '';
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    if (!selectedOutcome) return;
+    const notes = $(`#completion-notes-${outreachId}`).value.trim();
+    const msgEl = $(`#completion-msg-${outreachId}`);
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
+
+    // 1) Log event — event_type='meeting_held' regardless of outcome
+    const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
+      outreach_id: outreachId,
+      event_type: 'meeting_held',
+      body: notes || null,
+      metadata: {
+        classification: selectedOutcome,
+        notes: notes || null,
+        logged_via: 'admin_partners_meeting_completer',
+        logged_at: new Date().toISOString(),
+      },
+    });
+    if (evErr) {
+      msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save outcome →';
+      return;
+    }
+
+    // 2) Advance status based on outcome
+    const now = new Date();
+    const updates = { last_action_at: now.toISOString(), updated_at: now.toISOString() };
+    if (selectedOutcome === 'positive') {
+      updates.status = 'meeting_held';
+      updates.next_action_type = 'wait';
+      updates.next_action_at = null; // Tim drives next action manually; agreement flow is shelved
+    } else if (selectedOutcome === 'declined') {
+      updates.status = 'declined';
+      updates.next_action_type = 'wait';
+      updates.next_action_at = null;
+    }
+
+    const { error: updErr } = await _sb.from('partnership_outreach').update(updates).eq('id', outreachId);
+    if (updErr) {
+      msgEl.innerHTML = `<span class="text-amber">Event logged, but status update failed: ${esc(updErr.message)}</span>`;
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save outcome →';
+      return;
+    }
+
+    const nextLabel = selectedOutcome === 'positive'
+      ? 'Status advanced to meeting_held. Drive next action manually.'
+      : 'Pipeline closed for this firm.';
+    msgEl.innerHTML = `<span class="text-sage">✓ Outcome logged. ${nextLabel} Refreshing…</span>`;
+    setTimeout(() => loadPartnersData(), 800);
+  });
+}
+
 function renderPartnerTemplate(text, vars) {
   return String(text || '').replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null && vars[k] !== '') ? String(vars[k]) : `{${k}}`);
 }
@@ -851,8 +1033,6 @@ function renderPartnerComposer(outreachId, container) {
 
   const defaultSlug = NEXT_ACTION_TO_SLUG[o.next_action_type] || 'partnership_initial_cold';
 
-  // Sprint 4: public_portfolio_url is a default merge var so templates
-  // auto-anchor to the firm's live portfolio page. custom_vars can override.
   const mergedVars = {
     first_name: o.contact_first_name || '',
     firm_name: firm?.name || '',
@@ -959,7 +1139,6 @@ async function markPartnerEmailAsSent(outreachId, templateSlug, subject, body) {
   const transition = PARTNERSHIP_CADENCE[templateSlug];
   const msgEl = $(`#composer-msg-${outreachId}`);
 
-  // 1) Append event
   const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
     outreach_id: outreachId,
     event_type: 'email_sent',
@@ -973,7 +1152,6 @@ async function markPartnerEmailAsSent(outreachId, templateSlug, subject, body) {
     return;
   }
 
-  // 2) Advance state if we have a known transition
   if (transition) {
     const now = new Date();
     const next = transition.days_until_next ? new Date(now.getTime() + transition.days_until_next * 86400000) : null;
@@ -1011,7 +1189,7 @@ function renderPartnersTemplates() {
   `;
 }
 
-// ===== PARTNER PORTFOLIO — Sprint 2 sub-view at #partners/<firm_slug>/portfolio =====
+// ===== PARTNER PORTFOLIO sub-view at #partners/<firm_slug>/portfolio =====
 async function renderPartnerPortfolio(firmSlug) {
   $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
 
@@ -1253,7 +1431,7 @@ async function renderSettings() {
 
 // ===== Kick off =====
 boot();
-console.log('[ADMIN] v5.7 booted');
+console.log('[ADMIN] v5.8 booted');
 </script>
 </body>
 </html>
