@@ -1,22 +1,202 @@
-<!doctype html><html data-build-id="6a4c94d0ec" data-git-hash="a9d9b50a86a4ecc5b3e61a0a7b6e4f6a4c94d0ec" data-build-timestamp="1778897652" data-version="1.0.0" data-env="" data-color-version="v2" lang="en" data-theme="claude" data-mode="light" class="h-screen antialiased scroll-smooth"><head data-ion-ip-country="US"><link rel="preconnect" href="https://assets-proxy.anthropic.com" crossorigin><link rel="dns-prefetch" href="https://assets-proxy.anthropic.com"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title data-react-fallback>Claude</title><meta data-react-fallback name="description" content="Claude is Anthropic's AI, built for problem solvers. Tackle complex challenges, analyze data, write code, and think through your hardest work."><meta name="apple-itunes-app" content="app-id=6473753684"><meta property="og:type" content="website"><meta property="og:site_name" content="Claude"><meta property="og:image" content="https://claude.ai/images/claude_ogimage.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link rel="icon" type="image/svg+xml" href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/cd02a42d9-Vq_H3mgS.svg"><link rel="icon" type="image/png" sizes="32x32" href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/ce67964e7-CAX1bqSh.png"><link rel="icon" type="image/png" sizes="16x16" href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c03e51811-DebilQLI.png"><link rel="shortcut icon" href="/favicon.ico"><link rel="apple-touch-icon" href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c129d018a-jJjJELY8.png"><link rel="apple-touch-startup-image" href="/images/claude_app_icon.png"><link rel="manifest" href="/manifest.json"><meta name="mobile-web-app-capable" content="yes"><link rel="preload" href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/cc27851ad-CFxw3nG7.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c66fc489e-C-BHYa_K.woff2" as="font" type="font/woff2" crossorigin><script nonce="29aUj1UgWIUj78zreMxYjw==">void 0===globalThis.process&&(globalThis.process={env:{},cwd:function(){return"/"}}),void 0===globalThis.global&&(globalThis.global=globalThis)</script><script type="application/ld+json" nonce="29aUj1UgWIUj78zreMxYjw==">{
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "WebSite",
-            "name": "Claude",
-            "alternateName": ["Claude.ai", "Claude by Anthropic"],
-            "url": "https://claude.com"
-          },
-          {
-            "@type": "Organization",
-            "name": "Anthropic",
-            "url": "https://www.anthropic.com",
-            "logo": "https://claude.ai/images/claude_ogimage.png",
-            "sameAs": [
-              "https://x.com/AnthropicAI",
-              "https://www.linkedin.com/company/anthropic",
-              "https://www.youtube.com/@anthropic-ai"
-            ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>DealMachine CSV Ingest · Condo Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f131d;color:#e8e3d8;font-family:'DM Sans',sans-serif;padding:60px 24px;max-width:720px;margin:0 auto;min-height:100vh;-webkit-font-smoothing:antialiased}
+h1{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:36px;font-weight:400;margin:0 0 8px;line-height:1.1}
+.gold{color:#d4a574}
+.sub{opacity:.6;font-size:14px;margin-bottom:28px;line-height:1.6}
+.card{background:#1a1f2e;border:1px solid rgba(232,227,216,.12);border-radius:10px;padding:24px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+input[type=email],input[type=password],input[type=text]{flex:1;min-width:200px;background:#0f131d;color:#e8e3d8;padding:10px 12px;border:1px solid rgba(232,227,216,.2);border-radius:6px;font-family:inherit;font-size:14px}
+input[type=file]{background:#0f131d;color:#e8e3d8;padding:12px;border:1px solid rgba(232,227,216,.2);border-radius:6px;width:100%;margin-bottom:12px;font-family:inherit;font-size:14px}
+button{background:#d4a574;color:#0f131d;padding:10px 20px;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit;font-size:14px}
+button.sec{background:transparent;color:rgba(232,227,216,.7);border:1px solid rgba(232,227,216,.2)}
+button:hover{opacity:.88}
+button:disabled{opacity:.4;cursor:not-allowed}
+.status{padding:14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;max-height:340px;overflow:auto;margin-top:16px;line-height:1.6;word-break:break-word}
+.status.ok{background:rgba(124,157,106,.12);color:#b8d4a8;border:1px solid rgba(124,157,106,.4)}
+.status.err{background:rgba(216,128,128,.12);color:#e8a8a8;border:1px solid rgba(216,128,128,.4)}
+.status.info{background:rgba(159,180,216,.08);color:#9fb4d8;border:1px solid rgba(159,180,216,.3)}
+.who{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.7;margin-bottom:14px}
+.code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(232,227,216,.05);padding:1px 6px;border-radius:3px}
+</style>
+</head>
+<body>
+<h1>DealMachine <span class="gold">CSV Ingest</span></h1>
+<p class="sub">Drop in your DealMachine export. Rows land as JSONB in <span class="code">staging_dealmachine_campbell</span>; transformations run server-side next.</p>
+
+<div class="card">
+  <div id="auth-section">
+    <div id="auth-msg" class="status info">Initializing…</div>
+  </div>
+  <div id="upload-section" style="display:none">
+    <div class="who" id="who"></div>
+    <input type="file" id="file" accept=".csv,text/csv" />
+    <button id="upload-btn">Parse &amp; insert</button>
+    <button class="sec" id="signout-btn">Sign out</button>
+    <div id="result"></div>
+  </div>
+</div>
+
+<script type="module">
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const ANON_KEY_LS = 'cms_admin_anon_key_v1';
+
+let ANON_KEY = localStorage.getItem(ANON_KEY_LS) || '';
+
+function setStatus(el, msg, cls) {
+  el.textContent = msg;
+  el.className = 'status ' + (cls || 'info');
+}
+
+function showKeyPrompt(msg) {
+  setStatus(document.getElementById('auth-msg'), msg, 'err');
+  const sec = document.getElementById('auth-section');
+  const div = document.createElement('div');
+  div.style.marginTop = '12px';
+  div.innerHTML = '<div class="row"><input type="password" id="key-input" placeholder="Paste anon key (eyJ…)" /><button id="key-save">Save</button></div>';
+  sec.appendChild(div);
+  document.getElementById('key-save').onclick = () => {
+    const k = document.getElementById('key-input').value.trim();
+    if (k.startsWith('eyJ') && k.length > 100) {
+      localStorage.setItem(ANON_KEY_LS, k);
+      location.reload();
+    } else {
+      setStatus(document.getElementById('auth-msg'), "That doesn't look like a Supabase anon key.", 'err');
+    }
+  };
+}
+
+if (!ANON_KEY || !ANON_KEY.startsWith('eyJ') || ANON_KEY.length < 100) {
+  showKeyPrompt('No Supabase anon key in localStorage. Paste it from your Supabase API settings page below.');
+} else {
+  try {
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const sb = createClient(SUPABASE_URL, ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+
+    const { data: { session }, error: sErr } = await sb.auth.getSession();
+    if (sErr) {
+      showKeyPrompt('Auth error: ' + sErr.message);
+    } else if (!session) {
+      const am = document.getElementById('auth-msg');
+      setStatus(am, 'Not signed in.', 'err');
+      const div = document.createElement('div');
+      div.style.marginTop = '12px';
+      div.innerHTML = '<div class="row"><input type="email" id="email" placeholder="email" value="tim@mcmullen.properties" /><input type="password" id="password" placeholder="password" /><button id="signin-btn">Sign in</button></div>';
+      document.getElementById('auth-section').appendChild(div);
+      document.getElementById('signin-btn').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+          setStatus(am, 'Sign-in failed: ' + error.message, 'err');
+        } else {
+          location.reload();
+        }
+      };
+    } else {
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('upload-section').style.display = 'block';
+      document.getElementById('who').textContent = 'signed in as ' + session.user.email;
+
+      document.getElementById('signout-btn').onclick = async () => {
+        await sb.auth.signOut();
+        location.reload();
+      };
+
+      document.getElementById('upload-btn').onclick = async () => {
+        const fileEl = document.getElementById('file');
+        const result = document.getElementById('result');
+        const btn = document.getElementById('upload-btn');
+        const file = fileEl.files[0];
+        if (!file) {
+          setStatus(result, 'Pick a file first.', 'err');
+          return;
+        }
+
+        btn.disabled = true;
+        try {
+          setStatus(result, 'Reading file…', 'info');
+          const text = await file.text();
+
+          // RFC-4180-ish CSV parser: handles quoted fields, embedded commas, escaped quotes, CRLF
+          function parseCSV(csv) {
+            const rows = [];
+            let row = [];
+            let field = '';
+            let inQuotes = false;
+            let fieldStart = true;
+            for (let i = 0; i < csv.length; i++) {
+              const ch = csv[i];
+              if (inQuotes) {
+                if (ch === '"' && csv[i+1] === '"') { field += '"'; i++; }
+                else if (ch === '"') { inQuotes = false; }
+                else field += ch;
+              } else {
+                if (ch === '"' && fieldStart) { inQuotes = true; fieldStart = false; }
+                else if (ch === ',') { row.push(field); field = ''; fieldStart = true; }
+                else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; fieldStart = true; }
+                else if (ch === '\r') { /* skip */ }
+                else { field += ch; fieldStart = false; }
+              }
+            }
+            if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+            return rows;
           }
-        ]
-      }</script><script nonce="29aUj1UgWIUj78zreMxYjw==">!function(){try{performance.mark?.("rq_cache:preload_start");const e="keyval-store",o="keyval",r="react-query-cache",t=new Promise(t=>{if(!window.indexedDB)return void t(void 0);const c=indexedDB.open(e);c.onupgradeneeded=()=>{c.transaction?.abort()},c.onerror=()=>t(void 0),c.onsuccess=()=>{const a=c.result;if(!a.objectStoreNames.contains(o))return a.close(),indexedDB.deleteDatabase(e),void t(void 0);try{const e=a.transaction(o,"readonly").objectStore(o).get(r);e.onerror=()=>{a.close(),t(void 0)},e.onsuccess=()=>{a.close(),window.__PRELOADED_IDB_CACHE_RESULT__=e.result,t(e.result)}}catch{a.close(),t(void 0)}}});window.__PRELOADED_IDB_CACHE__=t,performance.measure?.("rq_cache:preload_exec",{start:"rq_cache:preload_start"})}catch{}}()</script><script type="module" crossorigin src="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/index-afkjR08N.js" nonce="29aUj1UgWIUj78zreMxYjw=="></script><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/vendor-CAJFgYol.js"><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/cec18ad9a-BaR9kBWg.js"><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c723dd3dd-CfVegtyc.js"><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c627fcdb6-C5v4Avm_.js"><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c5c6275f4-BxP9iUCO.js"><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c4bf44b41-Deu1oluF.js"><link rel="modulepreload" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/tree-sitter-BfScwQVn.js"><link rel="stylesheet" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/cec18ad9a-C-sKtWb5.css"><link rel="stylesheet" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c723dd3dd-BScCWUJi.css"><link rel="stylesheet" crossorigin href="https://assets-proxy.anthropic.com/claude-ai/v2/assets/v1/c6a992d55-CRZMfZdu.css"></head><body class="bg-bg-100 text-text-100 font-ui min-h-screen"><div id="root"></div><script nonce="29aUj1UgWIUj78zreMxYjw==">(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.nonce='29aUj1UgWIUj78zreMxYjw==';d.innerHTML="window.__CF$cv$params={r:'9fcc33525d832734',t:'MTc3ODk1MzU3Mg=='};var a=document.createElement('script');a.nonce='29aUj1UgWIUj78zreMxYjw==';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body></html>
+
+          setStatus(result, 'Parsing CSV…', 'info');
+          const rows = parseCSV(text);
+          if (rows.length < 2) throw new Error('CSV has fewer than 2 rows');
+          const headers = rows[0];
+          const dataRows = rows.slice(1).filter(r => r.length === headers.length && r.some(c => c !== ''));
+
+          setStatus(result, 'Parsed ' + dataRows.length + ' rows × ' + headers.length + ' columns.\nWiping any prior staging rows…', 'info');
+          const { error: delErr } = await sb.from('staging_dealmachine_campbell').delete().neq('id', 0);
+          if (delErr) throw new Error('Could not wipe prior staging: ' + delErr.message);
+
+          const records = dataRows.map(r => {
+            const obj = {};
+            headers.forEach((h, i) => { obj[h] = r[i] === '' ? null : r[i]; });
+            return { row_data: obj, source_filename: file.name };
+          });
+
+          const batchSize = 100;
+          let inserted = 0;
+          for (let i = 0; i < records.length; i += batchSize) {
+            const batch = records.slice(i, i + batchSize);
+            const { error } = await sb.from('staging_dealmachine_campbell').insert(batch);
+            if (error) throw new Error('Batch ' + Math.floor(i/batchSize + 1) + ': ' + error.message + ' (inserted ' + inserted + ' so far)');
+            inserted += batch.length;
+            setStatus(result, 'Inserted ' + inserted + ' / ' + records.length + ' rows…', 'info');
+          }
+
+          setStatus(
+            result,
+            '✓ Done.\n\nFile: ' + file.name + '\nRows inserted: ' + inserted + '\nColumns: ' + headers.length + '\n\nColumn names:\n' + headers.join(', ') + '\n\nReply to Claude with "done" and the transformations run next.',
+            'ok'
+          );
+        } catch (e) {
+          setStatus(result, '✗ ' + (e.message || String(e)), 'err');
+        } finally {
+          btn.disabled = false;
+        }
+      };
+    }
+  } catch (e) {
+    showKeyPrompt('Module load failed: ' + (e.message || String(e)));
+  }
+}
+</script>
+</body>
+</html>
