@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Just-Sold Pipeline · Condo Market Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital@1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f131d; --navy2: #1a1f2e; --navy3: #252a3a;
+      --cream: #e8e3d8; --cream-soft: #f5f1ea;
+      --gold: #d4a574; --gold-bright: #e0b88a;
+      --danger: #c8553d; --danger-soft: #6e2e21;
+      --warn: #d4a032; --warn-soft: #5a4818;
+      --success: #5d9b5d; --success-soft: #294529;
+      --muted: rgba(232, 227, 216, 0.55);
+      --border: rgba(232, 227, 216, 0.12);
+      --border-soft: rgba(232, 227, 216, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; background: var(--navy); color: var(--cream); font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* Nav */
+    nav.admin-nav { display: flex; gap: 24px; align-items: center; padding-bottom: 28px; border-bottom: 1px solid var(--border-soft); margin-bottom: 36px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+    nav.admin-nav a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    nav.admin-nav a:hover { color: var(--cream); }
+    nav.admin-nav strong { color: var(--gold); }
+    nav.admin-nav .spacer { flex: 1; }
+    nav.admin-nav .clock { color: var(--muted); font-size: 11px; }
+
+    /* Header */
+    header.page-header { margin-bottom: 40px; }
+    header.page-header .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+    header.page-header h1 { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 44px; line-height: 1.1; margin: 0 0 14px; }
+    header.page-header p.sub { color: var(--muted); font-size: 15px; max-width: 720px; margin: 0; }
+
+    /* Status banner */
+    .status-banner { display: flex; align-items: center; gap: 20px; padding: 22px 28px; border-radius: 12px; margin-bottom: 32px; border: 1px solid var(--border); background: var(--navy2); }
+    .status-banner.live { background: linear-gradient(135deg, var(--navy2), rgba(93, 155, 93, 0.08)); border-color: rgba(93, 155, 93, 0.3); }
+    .status-banner.paused { background: linear-gradient(135deg, var(--navy2), rgba(212, 160, 50, 0.08)); border-color: rgba(212, 160, 50, 0.4); }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .status-banner.live .status-dot { background: var(--success); box-shadow: 0 0 12px var(--success); animation: pulse 2s infinite; }
+    .status-banner.paused .status-dot { background: var(--warn); box-shadow: 0 0 12px var(--warn); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .status-banner .label { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .status-banner .state { font-size: 22px; font-weight: 600; }
+    .status-banner .state.live { color: var(--success); }
+    .status-banner .state.paused { color: var(--warn); }
+    .status-banner .desc { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .status-banner .spacer { flex: 1; }
+    .btn { padding: 10px 22px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-block; }
+    .btn:hover { background: rgba(232, 227, 216, 0.06); }
+    .btn-primary { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+    .btn-primary:hover { background: var(--gold-bright); }
+    .btn-danger { color: var(--danger); border-color: rgba(200, 85, 61, 0.4); }
+    .btn-danger:hover { background: rgba(200, 85, 61, 0.1); }
+    .btn-warn { color: var(--warn); border-color: rgba(212, 160, 50, 0.4); }
+    .btn-warn:hover { background: rgba(212, 160, 50, 0.1); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 36px; }
+    .stat-card { background: var(--navy2); border: 1px solid var(--border); border-radius: 10px; padding: 22px 24px; }
+    .stat-card .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .stat-card .stat-value { font-size: 36px; font-weight: 600; line-height: 1; }
+    .stat-card .stat-sub { font-size: 12px; color: var(--muted); margin-top: 8px; }
+    .stat-card.alert { border-color: rgba(212, 160, 50, 0.4); background: linear-gradient(135deg, var(--navy2), rgba(212, 160, 50, 0.06)); }
+    .stat-card.alert .stat-value { color: var(--warn); }
+    .stat-card.success .stat-value { color: var(--success); }
+
+    /* Section */
+    section.panel { margin-bottom: 40px; }
+    section.panel h2 { font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; margin: 0 0 8px; }
+    section.panel .panel-sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+
+    /* Batch cards (awaiting approval) */
+    .batch-card { background: var(--navy2); border: 1px solid rgba(212, 160, 50, 0.35); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+    .batch-card-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
+    .batch-card-header .batch-meta { flex: 1; }
+    .batch-card-header .batch-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--warn); margin-bottom: 6px; }
+    .batch-card-header .batch-title { font-size: 18px; font-weight: 600; }
+    .batch-card-header .batch-age { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+    .batch-card-header .actions { display: flex; gap: 10px; }
+
+    .batch-numbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .batch-numbers .num { padding: 16px; background: var(--navy3); border-radius: 8px; text-align: center; }
+    .batch-numbers .num .v { font-size: 28px; font-weight: 600; line-height: 1; }
+    .batch-numbers .num .l { font-size: 11px; color: var(--muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+    .batch-numbers .num.warn .v { color: var(--warn); }
+
+    .batch-buildings { margin-top: 12px; }
+    .batch-buildings h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; font-weight: 500; }
+    .batch-buildings ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+    .batch-buildings li { display: flex; justify-content: space-between; padding: 8px 14px; background: var(--navy3); border-radius: 6px; font-size: 13px; }
+    .batch-buildings li .b-name { color: var(--cream); }
+    .batch-buildings li .b-count { color: var(--gold); font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+    /* History table */
+    table.history { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.history th { text-align: left; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+    table.history td { padding: 14px 16px; border-bottom: 1px solid var(--border-soft); }
+    table.history tr:hover td { background: rgba(232, 227, 216, 0.02); }
+    .pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+    .pill.in_flight { background: rgba(212, 160, 50, 0.15); color: var(--warn); }
+    .pill.awaiting_approval { background: rgba(200, 85, 61, 0.15); color: var(--danger); }
+    .pill.complete { background: rgba(93, 155, 93, 0.15); color: var(--success); }
+
+    /* Controls */
+    .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .control-card { background: var(--navy2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .control-card .ctl-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .control-card .ctl-current { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+    .control-card .ctl-desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+    .control-card input[type="number"] { width: 100%; padding: 10px 14px; background: var(--navy); border: 1px solid var(--border); color: var(--cream); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 14px; margin-bottom: 10px; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
+    .empty .emoji { font-size: 32px; margin-bottom: 12px; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+    @media (max-width: 800px) {
+      .stats-grid, .controls { grid-template-columns: 1fr 1fr; }
+      .batch-numbers { grid-template-columns: 1fr; }
+      header.page-header h1 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <nav class="admin-nav">
+      <a href="campaigns.html">Campaigns</a>
+      <strong>Just-Sold</strong>
+      <a href="../">Site</a>
+      <div class="spacer"></div>
+      <span class="clock" id="clock"></span>
+    </nav>
+
+    <header class="page-header">
+      <div class="eyebrow">Event-driven · Building Sales Pipeline</div>
+      <h1>Just-Sold Notifications</h1>
+      <p class="sub">When new sales are inserted into <code style="font-family:'JetBrains Mono',monospace;color:var(--gold);">building_sales</code>, the pipeline notifies every owner in that building. CSV batch imports of 20-50 sales can queue 7,000+ emails — this dashboard catches the burst, pauses the pipeline, and lets you review before releasing.</p>
+    </header>
+
+    <div id="status-banner" class="status-banner"><div class="loading">Loading pipeline status…</div></div>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <section class="panel">
+      <h2>Awaiting your approval</h2>
+      <p class="panel-sub">Bursts (>50 notifications queued within 5 minutes) auto-pause and land here. Review the building fan-out, then Release or Discard.</p>
+      <div id="awaiting-batches"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Recent batch history</h2>
+      <p class="panel-sub">Last 30 days of building-sale-triggered notification bursts.</p>
+      <div id="recent-batches"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Pipeline controls</h2>
+      <p class="panel-sub">Throttle settings. Changes apply immediately.</p>
+      <div class="controls" id="controls"></div>
+    </section>
+
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+    const KEY_STORAGE = 'cms_admin_anon_key_v1';
+    let anonKey = localStorage.getItem(KEY_STORAGE);
+    if (!anonKey) {
+      anonKey = prompt('Paste Supabase anon key for sanfranciscocondomarket.com:');
+      if (!anonKey) { document.body.innerHTML = '<div class="container"><p style="color:var(--muted);text-align:center;padding:60px;">Anon key required.</p></div>'; throw new Error('no key'); }
+      localStorage.setItem(KEY_STORAGE, anonKey);
+    }
+    const sb = createClient(SUPABASE_URL, anonKey);
+
+    // Clock
+    function tickClock() {
+      const d = new Date();
+      document.getElementById('clock').textContent =
+        d.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit' }) + ' PT';
+    }
+    setInterval(tickClock, 1000); tickClock();
+
+    function ageString(iso) {
+      if (!iso) return '—';
+      const s = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (s < 60) return `${Math.round(s)}s ago`;
+      if (s < 3600) return `${Math.round(s/60)}m ago`;
+      if (s < 86400) return `${Math.round(s/3600)}h ago`;
+      return `${Math.round(s/86400)}d ago`;
+    }
+
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    async function renderStatus() {
+      const { data, error } = await sb.from('v_just_sold_pipeline_status').select('*').single();
+      const banner = document.getElementById('status-banner');
+      if (error || !data) {
+        banner.innerHTML = `<div class="loading">Status unavailable: ${esc(error?.message || 'no data')}</div>`;
+        return;
+      }
+      const paused = data.paused === 'true';
+      const featureOff = data.feature_flag !== 'true';
+      banner.className = 'status-banner ' + (featureOff || paused ? 'paused' : 'live');
+      banner.innerHTML = `
+        <div class="status-dot"></div>
+        <div>
+          <div class="label">Pipeline state</div>
+          <div class="state ${featureOff || paused ? 'paused' : 'live'}">${featureOff ? 'FEATURE DISABLED' : paused ? 'PAUSED' : 'LIVE'}</div>
+          <div class="desc">${featureOff ? 'just_sold_notifications_enabled = false in system_config.' : paused ? `${data.awaiting_approval_count} batches awaiting review. New sale triggers will queue but not send.` : 'New building-sale triggers will queue and send within 30 min.'}</div>
+        </div>
+        <div class="spacer"></div>
+        ${featureOff ? '' : `<button class="btn ${paused ? 'btn-primary' : 'btn-warn'}" onclick="window.togglePause(${!paused})">${paused ? '▶ Resume pipeline' : '⏸ Pause pipeline'}</button>`}
+      `;
+
+      const grid = document.getElementById('stats-grid');
+      grid.innerHTML = `
+        <div class="stat-card ${data.awaiting_approval_count > 0 ? 'alert' : ''}">
+          <div class="stat-label">Awaiting approval</div>
+          <div class="stat-value">${data.awaiting_approval_count}</div>
+          <div class="stat-sub">${data.awaiting_approval_count > 0 ? '⚠ Action required' : 'No bursts pending'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending in queue</div>
+          <div class="stat-value">${data.pending_count}</div>
+          <div class="stat-sub">Will fire next 30 min</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-label">Sent today</div>
+          <div class="stat-value">${data.sent_today}</div>
+          <div class="stat-sub">of ${data.daily_cap}/day cap</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sent last 7 days</div>
+          <div class="stat-value">${data.sent_last_7d}</div>
+          <div class="stat-sub">${data.skipped_24h} skipped in 24h</div>
+        </div>
+      `;
+
+      // Controls render
+      const ctrl = document.getElementById('controls');
+      ctrl.innerHTML = `
+        <div class="control-card">
+          <div class="ctl-label">Daily cap</div>
+          <div class="ctl-current">${data.daily_cap}</div>
+          <div class="ctl-desc">Max just-sold emails sent per calendar day (PT).</div>
+          <input id="ctl-daily-cap" type="number" min="0" max="10000" placeholder="${data.daily_cap}">
+          <button class="btn btn-primary" style="width:100%;" onclick="window.saveCap()">Update cap</button>
+        </div>
+        <div class="control-card">
+          <div class="ctl-label">Burst threshold</div>
+          <div class="ctl-current">${data.burst_threshold}</div>
+          <div class="ctl-desc">Notifications queued within 5 min above this → auto-pause.</div>
+          <input id="ctl-burst" type="number" min="1" max="10000" placeholder="${data.burst_threshold}">
+          <button class="btn btn-primary" style="width:100%;" onclick="window.saveBurst()">Update threshold</button>
+        </div>
+        <div class="control-card">
+          <div class="ctl-label">Per-building cooldown</div>
+          <div class="ctl-current">${data.per_building_cooldown_days} days</div>
+          <div class="ctl-desc">Each recipient gets max 1 just-sold per building per N days.</div>
+          <input id="ctl-cooldown" type="number" min="0" max="365" placeholder="${data.per_building_cooldown_days}">
+          <button class="btn btn-primary" style="width:100%;" onclick="window.saveCooldown()">Update cooldown</button>
+        </div>
+      `;
+    }
+
+    async function renderBatches() {
+      const { data, error } = await sb.from('v_just_sold_batches').select('*').limit(40);
+      const awaitingDiv = document.getElementById('awaiting-batches');
+      const historyDiv = document.getElementById('recent-batches');
+      if (error) {
+        awaitingDiv.innerHTML = `<div class="empty">Error loading batches: ${esc(error.message)}</div>`;
+        historyDiv.innerHTML = '';
+        return;
+      }
+      const awaiting = (data || []).filter(b => b.batch_status === 'awaiting_approval');
+      const history = (data || []).filter(b => b.batch_status !== 'awaiting_approval');
+
+      // Awaiting batches — full cards with actions
+      if (awaiting.length === 0) {
+        awaitingDiv.innerHTML = `<div class="empty"><div class="emoji">✓</div>No bursts pending review. Pipeline drains normally.</div>`;
+      } else {
+        const cards = await Promise.all(awaiting.map(async b => {
+          // Drill-down: building breakdown for this batch
+          const { data: buildings } = await sb.from('v_just_sold_batch_building_breakdown')
+            .select('*').eq('batch_id', b.batch_id).order('recipients_in_building', { ascending: false }).limit(8);
+          const buildingsList = (buildings || []).map(bd =>
+            `<li><span class="b-name">${esc(bd.building_name)} <span style="color:var(--muted);font-size:11px;">(${(bd.sale_units || []).length} sale${(bd.sale_units || []).length === 1 ? '' : 's'})</span></span><span class="b-count">${bd.recipients_in_building}</span></li>`
+          ).join('');
+          return `
+            <div class="batch-card">
+              <div class="batch-card-header">
+                <div class="batch-meta">
+                  <div class="batch-eyebrow">⚠ Awaiting approval · burst detected</div>
+                  <div class="batch-title">${b.distinct_sales} new sale${b.distinct_sales === 1 ? '' : 's'} across ${b.distinct_buildings} building${b.distinct_buildings === 1 ? '' : 's'}</div>
+                  <div class="batch-age">${ageString(b.first_seen_at)} · batch ${b.batch_id.slice(0, 8)}…</div>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-primary" onclick="window.releaseBatch('${b.batch_id}', ${b.awaiting_count})">▶ Release ${b.awaiting_count}</button>
+                  <button class="btn btn-danger" onclick="window.discardBatch('${b.batch_id}', ${b.awaiting_count})">✕ Discard</button>
+                </div>
+              </div>
+              <div class="batch-numbers">
+                <div class="num warn"><div class="v">${b.total_notifications}</div><div class="l">Total notifications</div></div>
+                <div class="num"><div class="v">${b.distinct_sales}</div><div class="l">Sales triggering</div></div>
+                <div class="num"><div class="v">${b.distinct_buildings}</div><div class="l">Buildings affected</div></div>
+              </div>
+              <div class="batch-buildings">
+                <h4>Top buildings by fan-out</h4>
+                <ul>${buildingsList}</ul>
+              </div>
+            </div>
+          `;
+        }));
+        awaitingDiv.innerHTML = cards.join('');
+      }
+
+      // History table
+      if (history.length === 0) {
+        historyDiv.innerHTML = `<div class="empty">No completed batches yet.</div>`;
+      } else {
+        historyDiv.innerHTML = `
+          <table class="history">
+            <thead><tr><th>When</th><th>Sales</th><th>Buildings</th><th>Sent</th><th>Skipped</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>
+              ${history.map(b => `
+                <tr>
+                  <td>${ageString(b.first_seen_at)}</td>
+                  <td>${b.distinct_sales}</td>
+                  <td>${b.distinct_buildings}</td>
+                  <td style="color:var(--success);">${b.sent_count}</td>
+                  <td style="color:var(--muted);">${b.skipped_count}</td>
+                  <td>${b.total_notifications}</td>
+                  <td><span class="pill ${b.batch_status}">${b.batch_status.replace('_', ' ')}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    window.togglePause = async (newPaused) => {
+      const { error } = await sb.rpc('just_sold_set_paused', { p_paused: newPaused });
+      if (error) return alert('Failed: ' + error.message);
+      refresh();
+    };
+    window.releaseBatch = async (batchId, count) => {
+      if (!confirm(`Release ${count} notifications? They will drain at the configured daily cap.`)) return;
+      const { error } = await sb.rpc('just_sold_release_batch', { p_batch_id: batchId });
+      if (error) return alert('Failed: ' + error.message);
+      refresh();
+    };
+    window.discardBatch = async (batchId, count) => {
+      if (!confirm(`DISCARD ${count} notifications? They will NOT be sent. This cannot be undone.`)) return;
+      const { error } = await sb.rpc('just_sold_discard_batch', { p_batch_id: batchId, p_reason: 'discarded via dashboard' });
+      if (error) return alert('Failed: ' + error.message);
+      refresh();
+    };
+    window.saveCap = async () => {
+      const v = parseInt(document.getElementById('ctl-daily-cap').value);
+      if (!Number.isFinite(v) || v < 0) return alert('Invalid cap value');
+      const { error } = await sb.rpc('just_sold_set_daily_cap', { p_cap: v });
+      if (error) return alert('Failed: ' + error.message);
+      refresh();
+    };
+    window.saveBurst = async () => {
+      const v = parseInt(document.getElementById('ctl-burst').value);
+      if (!Number.isFinite(v) || v < 1) return alert('Invalid threshold');
+      const { error } = await sb.from('system_config').update({ value: String(v), updated_at: new Date().toISOString() }).eq('key', 'just_sold_burst_threshold');
+      if (error) return alert('Failed: ' + error.message);
+      refresh();
+    };
+    window.saveCooldown = async () => {
+      const v = parseInt(document.getElementById('ctl-cooldown').value);
+      if (!Number.isFinite(v) || v < 0) return alert('Invalid cooldown');
+      const { error } = await sb.from('system_config').update({ value: String(v), updated_at: new Date().toISOString() }).eq('key', 'just_sold_per_building_cooldown_days');
+      if (error) return alert('Failed: ' + error.message);
+      refresh();
+    };
+
+    async function refresh() { await Promise.all([renderStatus(), renderBatches()]); }
+    refresh();
+    setInterval(refresh, 30000);
+  </script>
+</body>
+</html>
