@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List My Condo · Condo Market SF</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/cm-base.css">
+<script defer src="/assets/cm-config.js"></script>
+<style>
+:root{--navy:#0f131d;--navy2:#1a1f2e;--cream:#e8e3d8;--gold:#d4a574;--blue-gray:#9fb4d8;--success:#8fb97a;--warn:#d9a44b;--coral:#c97865}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-system,sans-serif;line-height:1.55;min-height:100vh}
+.page{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+.h{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;color:var(--cream);letter-spacing:-0.01em}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold)}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.04em}
+.crumbs{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.5);margin-bottom:24px}
+.crumbs a{color:var(--blue-gray);text-decoration:none}
+.crumbs a:hover{color:var(--cream)}
+.hero{padding:24px 28px;border:1px solid rgba(232,227,216,0.14);border-radius:14px;background:var(--navy2);margin-bottom:36px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.hero h1{font-size:30px;line-height:1.15;margin-bottom:8px}
+.hero .meta{font-size:12px;color:rgba(232,227,216,0.55);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.05em}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border:1px solid rgba(143,185,122,0.4);background:rgba(143,185,122,0.1);color:var(--success);border-radius:999px;font-size:11px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.12em;text-transform:uppercase}
+.step{margin-bottom:36px}
+.step-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.step-num{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(232,227,216,0.45)}
+.step-title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:22px}
+.grid3{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:720px){.grid3{grid-template-columns:repeat(3,1fr)}}
+.tier-wrap{position:relative}
+.tier{padding:20px 18px;border:1px solid rgba(232,227,216,0.14);border-radius:12px;background:rgba(232,227,216,0.02);cursor:pointer;transition:all 0.15s;height:100%}
+.tier:hover{border-color:rgba(212,165,116,0.4);background:rgba(212,165,116,0.04)}
+.tier.selected{border-color:var(--gold);background:rgba(212,165,116,0.08)}
+.tier-current{position:absolute;top:10px;right:14px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:var(--success);letter-spacing:0.14em;text-transform:uppercase;padding:3px 8px;background:rgba(143,185,122,0.1);border:1px solid rgba(143,185,122,0.3);border-radius:4px}
+.tier-label{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px;color:var(--gold)}
+.tier-name{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:22px;margin-bottom:6px}
+.tier-price{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:20px;color:var(--cream);margin-bottom:12px;letter-spacing:0.04em}
+.tier-desc{font-size:13px;color:rgba(232,227,216,0.65);line-height:1.55}
+.tier-foot{margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.1);font-size:11px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.08em}
+.occ-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.occ-grid{grid-template-columns:repeat(3,1fr)}}
+.occ{padding:18px 16px;border:1px solid rgba(232,227,216,0.14);border-radius:12px;cursor:pointer;text-align:center;transition:all 0.15s}
+.occ:hover{border-color:rgba(159,180,216,0.4);background:rgba(159,180,216,0.04)}
+.occ.selected{border-color:var(--blue-gray);background:rgba(159,180,216,0.08)}
+.occ-icon{font-size:28px;margin-bottom:8px;color:var(--blue-gray);line-height:1}
+.occ-name{font-size:15px;font-weight:500;margin-bottom:3px}
+.occ-sub{font-size:12px;color:rgba(232,227,216,0.55)}
+.prompt{padding:28px;border:1px dashed rgba(232,227,216,0.18);border-radius:12px;text-align:center;color:rgba(232,227,216,0.55);font-size:14px;font-style:italic}
+.tools{display:none}
+.tools.active{display:block}
+.tool{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 20px;border:1px solid rgba(232,227,216,0.1);border-radius:10px;background:rgba(232,227,216,0.015);margin-bottom:10px;gap:18px;cursor:pointer;transition:all 0.15s}
+.tool:hover{border-color:rgba(232,227,216,0.2);background:rgba(232,227,216,0.03)}
+.tool.enabled{border-color:rgba(212,165,116,0.34);background:rgba(212,165,116,0.05)}
+.tool-name{font-size:15px;font-weight:500;color:var(--cream)}
+.tool-desc{font-size:13px;color:rgba(232,227,216,0.6);margin-top:3px;line-height:1.5}
+.toggle{width:40px;height:22px;border-radius:999px;border:1px solid rgba(232,227,216,0.2);background:rgba(232,227,216,0.06);position:relative;flex-shrink:0;transition:all 0.15s;margin-top:2px}
+.toggle::after{content:'';position:absolute;top:1px;left:1px;width:18px;height:18px;border-radius:50%;background:var(--cream);transition:all 0.15s}
+.tool.enabled .toggle{background:var(--gold);border-color:var(--gold)}
+.tool.enabled .toggle::after{left:19px;background:var(--navy)}
+.expand{display:none;margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)}
+.tool.enabled .expand{display:block}
+.upload-stub{padding:18px;border:2px dashed rgba(232,227,216,0.18);border-radius:8px;text-align:center;background:rgba(232,227,216,0.02);color:rgba(232,227,216,0.55);font-size:13px}
+.upload-stub strong{color:var(--cream)}
+.buyout{margin-top:10px;padding:20px 22px;border:1px solid rgba(159,180,216,0.24);border-radius:12px;background:rgba(159,180,216,0.05)}
+.buyout-title{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:12px}
+.buyout ul{margin:0;padding-left:20px;font-size:13px;color:rgba(232,227,216,0.78);line-height:1.65}
+.buyout li{margin-bottom:5px}
+.buyout li strong{color:var(--cream);font-weight:500}
+.cta-row{margin-top:36px;padding-top:24px;border-top:1px solid rgba(232,227,216,0.1);display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.btn{padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;border-radius:10px;border:1px solid rgba(232,227,216,0.18);background:transparent;color:var(--cream);cursor:pointer;transition:all 0.15s}
+.btn:hover{border-color:rgba(232,227,216,0.4);background:rgba(232,227,216,0.03)}
+.btn.primary{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:500}
+.btn.primary:hover{background:#deb588;border-color:#deb588}
+.btn.ghost{border:none;color:rgba(232,227,216,0.55)}
+.btn.ghost:hover{color:var(--cream);background:transparent}
+</style>
+</head>
+<body>
+
+<div class="page" id="lmc">
+  <div class="crumbs"><a href="/account/">Account</a> / <a href="/account/the-harrison-13e/">The Harrison · 13E</a> / List my condo</div>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow" style="margin-bottom:8px">List your condo</div>
+      <h1 class="h">The Harrison · <span class="mono" style="font-style:normal;color:var(--blue-gray)">#13E</span></h1>
+      <div class="meta">401 Harrison St · SoMa · purchased 2017-11-28 · $925,000</div>
+    </div>
+    <div class="pill">✓ Verified Owner</div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-num">Step 01</span><span class="step-title">Choose your distribution tier</span></div>
+    <div class="grid3">
+      <div class="tier-wrap"><div class="tier selected" data-tier="mmm">
+        <div class="tier-current">Current</div>
+        <div class="tier-label">Tier 01 · Free</div>
+        <div class="tier-name">Make Me Move</div>
+        <div class="tier-price">$950,000</div>
+        <div class="tier-desc">Platform distribution. Verified buyers on Condo Market see your price. No marketing, no MLS. Zero obligation.</div>
+        <div class="tier-foot">No agreement required</div>
+      </div></div>
+      <div class="tier-wrap"><div class="tier" data-tier="coming_soon">
+        <div class="tier-label">Tier 02 · Upgrade</div>
+        <div class="tier-name">Coming Soon</div>
+        <div class="tier-price">$950,000</div>
+        <div class="tier-desc">Broker distribution. Tim shares with every SF agent with a qualified buyer. Non-MLS marketing agreement signed.</div>
+        <div class="tier-foot">Non-MLS marketing agreement</div>
+      </div></div>
+      <div class="tier-wrap"><div class="tier" data-tier="listing">
+        <div class="tier-label">Tier 03 · Upgrade</div>
+        <div class="tier-name">Active Listing</div>
+        <div class="tier-price">$950,000</div>
+        <div class="tier-desc">The full SF market. MLS exposure, Zillow, Redfin, Compass. Full listing agreement + Harrison-specific strategy call.</div>
+        <div class="tier-foot">Full listing agreement</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-num">Step 02</span><span class="step-title">How is the unit occupied?</span></div>
+    <div class="occ-grid">
+      <div class="occ" data-occ="vacant"><div class="occ-icon">⌂</div><div class="occ-name">Vacant</div><div class="occ-sub">No one living there</div></div>
+      <div class="occ" data-occ="owner"><div class="occ-icon">♛</div><div class="occ-name">Owner-occupied</div><div class="occ-sub">You live there</div></div>
+      <div class="occ" data-occ="tenant"><div class="occ-icon">⌗</div><div class="occ-name">Tenant-occupied</div><div class="occ-sub">Renter in place</div></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><span class="step-num">Step 03</span><span class="step-title">Marketing tools</span></div>
+    <div id="prompt" class="prompt">Pick how the unit is occupied above to see what's available.</div>
+
+    <div id="tools-vacant" class="tools">
+      <div class="tool" data-tool="photos">
+        <div><div class="tool-name">Professional photography</div><div class="tool-desc">Pro photographer captures vacant interiors at golden hour. ~$450, billed at close.</div>
+        <div class="expand"><div class="upload-stub">📸 <strong>Photo upload tool</strong> · drag-and-drop multiple files, sortable order, cover photo picker. [Wires to listing-photos bucket]</div></div></div>
+        <div class="toggle"></div></div>
+      <div class="tool" data-tool="staging"><div><div class="tool-name">Virtual staging</div><div class="tool-desc">Empty rooms get digitally furnished. Buyers see lifestyle, not echo. ~$150/room.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Interactive floor plan with measurements. Built into your listing page.</div>
+        <div class="expand"><div class="upload-stub">📐 <strong>Floor plan upload</strong> · PDF, PNG, or sketch on iPad. We'll convert to interactive SVG.</div></div></div>
+        <div class="toggle"></div></div>
+      <div class="tool" data-tool="openhouse"><div><div class="tool-name">Open house windows</div><div class="tool-desc">You define when. We host. Vacant units = max flexibility, no occupant coordination.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="privatetour"><div><div class="tool-name">Private tour windows</div><div class="tool-desc">By-appointment tours for qualified buyers only. Better signal-to-noise than open houses.</div></div><div class="toggle"></div></div>
+    </div>
+
+    <div id="tools-owner" class="tools">
+      <div class="tool" data-tool="photos"><div><div class="tool-name">Professional photography</div><div class="tool-desc">Pre-photo prep checklist sent your way. Pro photographer 2-3 hour session at your convenience.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="staging"><div><div class="tool-name">Virtual staging</div><div class="tool-desc">Re-stage your photos digitally if your taste differs from buyer demographic. Optional.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Interactive floor plan with measurements. Built into your listing page.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="privatetour"><div><div class="tool-name">Private tour windows</div><div class="tool-desc">No open houses — you keep your life. Tours by appointment with 24-hour notice.</div></div><div class="toggle"></div></div>
+    </div>
+
+    <div id="tools-tenant" class="tools">
+      <div class="tool" data-tool="photos"><div><div class="tool-name">Professional photography</div><div class="tool-desc">Tenant coordination handled by Tim. CA Civil Code §1954 entry notice (24h written) respected.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="staging"><div><div class="tool-name">Virtual staging</div><div class="tool-desc">Recommended when tenant furnishings don't show well. Digital re-staging only.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Often the highest-value marketing asset for occupied units — no tenant disruption.</div></div><div class="toggle"></div></div>
+      <div class="tool" data-tool="investorsale"><div><div class="tool-name">Investor sale process</div><div class="tool-desc">Sell to a buyer who keeps the tenant (or negotiates buyout separately). No tour disruption to the tenant.</div></div><div class="toggle"></div></div>
+      <div class="buyout">
+        <div class="buyout-title">Tenant buyout logistics (cash-for-keys)</div>
+        <ul>
+          <li>Typical SF range: <strong>$20K–$30K</strong> — varies by tenancy length & rent-control status</li>
+          <li>Built into purchase contract as a <strong>credit at close</strong> OR funded <strong>separately at signing</strong></li>
+          <li>SF Tenant Buyout Ordinance compliance — written disclosures required, <strong>30-day rescission window</strong> for tenant</li>
+          <li>Lawyer on retainer drafts the buyout agreement; recorded with SF Rent Board</li>
+          <li>Owner and buyer split cost via negotiation — typically owner-funded but creative structuring possible</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn ghost" id="btn-save-draft">Save draft</button>
+    <button class="btn" id="btn-schedule">Schedule call with Tim</button>
+    <button class="btn primary" id="btn-primary">Save Make Me Move at $950,000</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var state={tier:'mmm',occ:null,tools:{}};
+  var primary=document.getElementById('btn-primary');
+  var ctaLabels={mmm:'Save Make Me Move at $950,000',coming_soon:'Continue to Coming Soon agreement →',listing:'Continue to Listing agreement →'};
+
+  document.querySelectorAll('.tier').forEach(function(el){
+    el.addEventListener('click',function(){
+      document.querySelectorAll('.tier').forEach(function(e){e.classList.remove('selected')});
+      el.classList.add('selected');
+      state.tier=el.dataset.tier;
+      primary.textContent=ctaLabels[state.tier];
+    });
+  });
+
+  document.querySelectorAll('.occ').forEach(function(el){
+    el.addEventListener('click',function(){
+      document.querySelectorAll('.occ').forEach(function(e){e.classList.remove('selected')});
+      el.classList.add('selected');
+      state.occ=el.dataset.occ;
+      document.getElementById('prompt').style.display='none';
+      ['vacant','owner','tenant'].forEach(function(k){
+        document.getElementById('tools-'+k).classList.toggle('active',k===state.occ);
+      });
+    });
+  });
+
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('.tool');
+    if(!t)return;
+    if(e.target.closest('.upload-stub'))return;
+    t.classList.toggle('enabled');
+    state.tools[t.dataset.tool]=t.classList.contains('enabled');
+  });
+
+  document.getElementById('btn-schedule').addEventListener('click',function(){
+    window.location.href='/book/';
+  });
+
+  document.getElementById('btn-save-draft').addEventListener('click',function(){
+    // TODO: wire to RPC `upsert_listing_draft`
+    alert('Draft saved (placeholder — backend wiring next sprint).\n\nState: '+JSON.stringify(state,null,2));
+  });
+
+  primary.addEventListener('click',function(){
+    // TODO: wire each tier to its appropriate flow
+    // - mmm: just upsert make_me_move (already exists for verified users)
+    // - coming_soon: redirect to /agreements/non-mls/ for e-sign flow
+    // - listing: redirect to /agreements/listing/ for e-sign flow
+    if(state.tier==='mmm'){
+      alert('Make Me Move saved at $950,000 (placeholder).');
+    } else if(state.tier==='coming_soon'){
+      window.location.href='/agreements/non-mls/?unit=the-harrison-13e';
+    } else {
+      window.location.href='/agreements/listing/?unit=the-harrison-13e';
+    }
+  });
+})();
+</script>
+</body>
+</html>
