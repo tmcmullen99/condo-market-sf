@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>List My Condo · Condo Market SF</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/cm-base.css">
-<script defer src="/assets/cm-config.js"></script>
 <style>
 :root{--navy:#0f131d;--navy2:#1a1f2e;--cream:#e8e3d8;--gold:#d4a574;--blue-gray:#9fb4d8;--success:#8fb97a;--warn:#d9a44b;--coral:#c97865}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -49,6 +47,29 @@ body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-syst
 .prompt{padding:28px;border:1px dashed rgba(232,227,216,0.18);border-radius:12px;text-align:center;color:rgba(232,227,216,0.55);font-size:14px;font-style:italic}
 .tools{display:none}
 .tools.active{display:block}
+.photo-library{padding:24px 24px;border:1px solid rgba(212,165,116,0.34);border-radius:12px;background:rgba(212,165,116,0.04);margin-bottom:14px}
+.pl-header{margin-bottom:20px}
+.pl-title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:19px;color:var(--cream);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.pl-icon{font-size:22px;font-style:normal}
+.pl-desc{font-size:13px;color:rgba(232,227,216,0.7);line-height:1.55}
+.pl-upload{padding:32px 20px;border:2px dashed rgba(232,227,216,0.2);border-radius:10px;text-align:center;cursor:pointer;transition:all 0.15s;background:rgba(232,227,216,0.02);margin-bottom:20px;position:relative}
+.pl-upload:hover{border-color:rgba(212,165,116,0.5);background:rgba(212,165,116,0.04)}
+.pl-upload-icon{font-size:26px;color:var(--gold);margin-bottom:10px;line-height:1}
+.pl-upload-main{font-size:14px;color:var(--cream);margin-bottom:5px}
+.pl-upload-link{color:var(--gold);text-decoration:underline}
+.pl-upload-sub{font-size:11px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.05em}
+.pl-preview{margin-top:12px;font-size:13px;color:var(--success);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.05em}
+.pl-consent{padding:18px 20px;border:1px solid rgba(232,227,216,0.12);border-radius:10px;background:rgba(232,227,216,0.015)}
+.pl-consent-title{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:12px}
+.pl-consent-intro{font-size:13px;color:rgba(232,227,216,0.78);margin-bottom:10px;line-height:1.55}
+.pl-consent-list{margin:0 0 16px;padding-left:20px;font-size:12px;color:rgba(232,227,216,0.7);line-height:1.65}
+.pl-consent-list li{margin-bottom:7px}
+.pl-consent-list li strong{color:var(--cream);font-weight:500}
+.pl-consent-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:12px 14px;border:1px solid rgba(232,227,216,0.18);border-radius:8px;background:rgba(232,227,216,0.025);transition:all 0.15s;font-size:13px;color:var(--cream)}
+.pl-consent-check:hover{border-color:rgba(232,227,216,0.32);background:rgba(232,227,216,0.04)}
+.pl-consent-check.checked{border-color:rgba(143,185,122,0.4);background:rgba(143,185,122,0.06)}
+.pl-checkbox{width:16px;height:16px;margin-top:2px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.pl-required{color:var(--coral);font-size:10px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.08em;text-transform:uppercase;margin-left:4px}
 .tool{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 20px;border:1px solid rgba(232,227,216,0.1);border-radius:10px;background:rgba(232,227,216,0.015);margin-bottom:10px;gap:18px;cursor:pointer;transition:all 0.15s}
 .tool:hover{border-color:rgba(232,227,216,0.2);background:rgba(232,227,216,0.03)}
 .tool.enabled{border-color:rgba(212,165,116,0.34);background:rgba(212,165,116,0.05)}
@@ -58,10 +79,6 @@ body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-syst
 .toggle::after{content:'';position:absolute;top:1px;left:1px;width:18px;height:18px;border-radius:50%;background:var(--cream);transition:all 0.15s}
 .tool.enabled .toggle{background:var(--gold);border-color:var(--gold)}
 .tool.enabled .toggle::after{left:19px;background:var(--navy)}
-.expand{display:none;margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)}
-.tool.enabled .expand{display:block}
-.upload-stub{padding:18px;border:2px dashed rgba(232,227,216,0.18);border-radius:8px;text-align:center;background:rgba(232,227,216,0.02);color:rgba(232,227,216,0.55);font-size:13px}
-.upload-stub strong{color:var(--cream)}
 .buyout{margin-top:10px;padding:20px 22px;border:1px solid rgba(159,180,216,0.24);border-radius:12px;background:rgba(159,180,216,0.05)}
 .buyout-title{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:12px}
 .buyout ul{margin:0;padding-left:20px;font-size:13px;color:rgba(232,227,216,0.78);line-height:1.65}
@@ -78,7 +95,7 @@ body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-syst
 </head>
 <body>
 
-<div class="page" id="lmc">
+<div class="page">
   <div class="crumbs"><a href="/account/">Account</a> / <a href="/account/the-harrison-13e/">The Harrison · 13E</a> / List my condo</div>
 
   <div class="hero">
@@ -132,28 +149,89 @@ body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-syst
     <div id="prompt" class="prompt">Pick how the unit is occupied above to see what's available.</div>
 
     <div id="tools-vacant" class="tools">
-      <div class="tool" data-tool="photos">
-        <div><div class="tool-name">Professional photography</div><div class="tool-desc">Pro photographer captures vacant interiors at golden hour. ~$450, billed at close.</div>
-        <div class="expand"><div class="upload-stub">📸 <strong>Photo upload tool</strong> · drag-and-drop multiple files, sortable order, cover photo picker. [Wires to listing-photos bucket]</div></div></div>
-        <div class="toggle"></div></div>
-      <div class="tool" data-tool="staging"><div><div class="tool-name">Virtual staging</div><div class="tool-desc">Empty rooms get digitally furnished. Buyers see lifestyle, not echo. ~$150/room.</div></div><div class="toggle"></div></div>
-      <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Interactive floor plan with measurements. Built into your listing page.</div>
-        <div class="expand"><div class="upload-stub">📐 <strong>Floor plan upload</strong> · PDF, PNG, or sketch on iPad. We'll convert to interactive SVG.</div></div></div>
-        <div class="toggle"></div></div>
+      <div class="photo-library">
+        <div class="pl-header">
+          <div class="pl-title"><span class="pl-icon">📷</span> Photo library</div>
+          <div class="pl-desc">Send us your existing listing photos — from a prior broker, an old listing, or your own iPhone. We virtually stage and digitally enhance them for your Condo Market listing, saving you a fresh photographer fee (~$450 saved).</div>
+        </div>
+        <div class="pl-upload" data-mode="vacant">
+          <div class="pl-upload-icon">⬆</div>
+          <div class="pl-upload-main">Drag photos here or <span class="pl-upload-link">click to browse</span></div>
+          <div class="pl-upload-sub">JPG, PNG, HEIC · max 50 photos · 25MB each</div>
+          <input type="file" multiple accept="image/jpeg,image/png,image/heic" style="display:none">
+        </div>
+        <div class="pl-consent">
+          <div class="pl-consent-title">Image rights & modification consent</div>
+          <p class="pl-consent-intro">By submitting these photos, I confirm and warrant:</p>
+          <ul class="pl-consent-list">
+            <li>I <strong>own or have full license</strong> to use these images, including any rights from the original photographer.</li>
+            <li>I <strong>grant Condo Market a non-exclusive license</strong> to modify these images — virtual staging, color correction, retouching, and other digital enhancement — to produce new marketing images for my Condo Market listing.</li>
+            <li>Modified images will carry a <strong>"Virtually Staged" disclosure</strong> where virtual staging is applied, per real estate marketing industry standards.</li>
+            <li>Use is <strong>limited to the Condo Market platform</strong> and related non-MLS marketing channels. Modified images will not be submitted to MLS or syndicated to public listing sites (Zillow, Redfin, Compass) as unmodified property photography.</li>
+            <li>Condo Market <strong>retains a copy</strong> for the duration of my active listing engagement and reasonable historical record.</li>
+          </ul>
+          <label class="pl-consent-check"><input type="checkbox" class="pl-checkbox"><span>I confirm the above.<span class="pl-required">required</span></span></label>
+        </div>
+      </div>
+      <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Interactive floor plan with measurements. Built into your listing page.</div></div><div class="toggle"></div></div>
       <div class="tool" data-tool="openhouse"><div><div class="tool-name">Open house windows</div><div class="tool-desc">You define when. We host. Vacant units = max flexibility, no occupant coordination.</div></div><div class="toggle"></div></div>
       <div class="tool" data-tool="privatetour"><div><div class="tool-name">Private tour windows</div><div class="tool-desc">By-appointment tours for qualified buyers only. Better signal-to-noise than open houses.</div></div><div class="toggle"></div></div>
     </div>
 
     <div id="tools-owner" class="tools">
-      <div class="tool" data-tool="photos"><div><div class="tool-name">Professional photography</div><div class="tool-desc">Pre-photo prep checklist sent your way. Pro photographer 2-3 hour session at your convenience.</div></div><div class="toggle"></div></div>
-      <div class="tool" data-tool="staging"><div><div class="tool-name">Virtual staging</div><div class="tool-desc">Re-stage your photos digitally if your taste differs from buyer demographic. Optional.</div></div><div class="toggle"></div></div>
+      <div class="photo-library">
+        <div class="pl-header">
+          <div class="pl-title"><span class="pl-icon">📷</span> Photo library</div>
+          <div class="pl-desc">Send us photos you already have — your own, from a prior listing, or from a real estate photographer. We virtually re-stage and enhance them for your Condo Market listing, no fresh shoot required.</div>
+        </div>
+        <div class="pl-upload" data-mode="owner">
+          <div class="pl-upload-icon">⬆</div>
+          <div class="pl-upload-main">Drag photos here or <span class="pl-upload-link">click to browse</span></div>
+          <div class="pl-upload-sub">JPG, PNG, HEIC · max 50 photos · 25MB each</div>
+          <input type="file" multiple accept="image/jpeg,image/png,image/heic" style="display:none">
+        </div>
+        <div class="pl-consent">
+          <div class="pl-consent-title">Image rights & modification consent</div>
+          <p class="pl-consent-intro">By submitting these photos, I confirm and warrant:</p>
+          <ul class="pl-consent-list">
+            <li>I <strong>own or have full license</strong> to use these images, including any rights from the original photographer.</li>
+            <li>I <strong>grant Condo Market a non-exclusive license</strong> to modify these images — virtual staging, color correction, retouching, and other digital enhancement — to produce new marketing images for my Condo Market listing.</li>
+            <li>Modified images will carry a <strong>"Virtually Staged" disclosure</strong> where virtual staging is applied, per real estate marketing industry standards.</li>
+            <li>Use is <strong>limited to the Condo Market platform</strong> and related non-MLS marketing channels. Modified images will not be submitted to MLS or syndicated to public listing sites (Zillow, Redfin, Compass) as unmodified property photography.</li>
+            <li>Condo Market <strong>retains a copy</strong> for the duration of my active listing engagement and reasonable historical record.</li>
+          </ul>
+          <label class="pl-consent-check"><input type="checkbox" class="pl-checkbox"><span>I confirm the above.<span class="pl-required">required</span></span></label>
+        </div>
+      </div>
       <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Interactive floor plan with measurements. Built into your listing page.</div></div><div class="toggle"></div></div>
       <div class="tool" data-tool="privatetour"><div><div class="tool-name">Private tour windows</div><div class="tool-desc">No open houses — you keep your life. Tours by appointment with 24-hour notice.</div></div><div class="toggle"></div></div>
     </div>
 
     <div id="tools-tenant" class="tools">
-      <div class="tool" data-tool="photos"><div><div class="tool-name">Professional photography</div><div class="tool-desc">Tenant coordination handled by Tim. CA Civil Code §1954 entry notice (24h written) respected.</div></div><div class="toggle"></div></div>
-      <div class="tool" data-tool="staging"><div><div class="tool-name">Virtual staging</div><div class="tool-desc">Recommended when tenant furnishings don't show well. Digital re-staging only.</div></div><div class="toggle"></div></div>
+      <div class="photo-library">
+        <div class="pl-header">
+          <div class="pl-title"><span class="pl-icon">📷</span> Photo library</div>
+          <div class="pl-desc">Send us any prior listing photos you have on hand. Tenant-occupied units rarely allow fresh shoots, so existing photos + virtual re-staging is the cleanest path. Tenant photographs are not required.</div>
+        </div>
+        <div class="pl-upload" data-mode="tenant">
+          <div class="pl-upload-icon">⬆</div>
+          <div class="pl-upload-main">Drag photos here or <span class="pl-upload-link">click to browse</span></div>
+          <div class="pl-upload-sub">JPG, PNG, HEIC · max 50 photos · 25MB each</div>
+          <input type="file" multiple accept="image/jpeg,image/png,image/heic" style="display:none">
+        </div>
+        <div class="pl-consent">
+          <div class="pl-consent-title">Image rights & modification consent</div>
+          <p class="pl-consent-intro">By submitting these photos, I confirm and warrant:</p>
+          <ul class="pl-consent-list">
+            <li>I <strong>own or have full license</strong> to use these images, including any rights from the original photographer.</li>
+            <li>I <strong>grant Condo Market a non-exclusive license</strong> to modify these images — virtual staging, color correction, retouching, and other digital enhancement — to produce new marketing images for my Condo Market listing.</li>
+            <li>Modified images will carry a <strong>"Virtually Staged" disclosure</strong> where virtual staging is applied, per real estate marketing industry standards.</li>
+            <li>Use is <strong>limited to the Condo Market platform</strong> and related non-MLS marketing channels. Modified images will not be submitted to MLS or syndicated to public listing sites (Zillow, Redfin, Compass) as unmodified property photography.</li>
+            <li>Condo Market <strong>retains a copy</strong> for the duration of my active listing engagement and reasonable historical record.</li>
+          </ul>
+          <label class="pl-consent-check"><input type="checkbox" class="pl-checkbox"><span>I confirm the above.<span class="pl-required">required</span></span></label>
+        </div>
+      </div>
       <div class="tool" data-tool="floorplan"><div><div class="tool-name">Floor plan tool</div><div class="tool-desc">Often the highest-value marketing asset for occupied units — no tenant disruption.</div></div><div class="toggle"></div></div>
       <div class="tool" data-tool="investorsale"><div><div class="tool-name">Investor sale process</div><div class="tool-desc">Sell to a buyer who keeps the tenant (or negotiates buyout separately). No tour disruption to the tenant.</div></div><div class="toggle"></div></div>
       <div class="buyout">
@@ -178,7 +256,7 @@ body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-syst
 
 <script>
 (function(){
-  var state={tier:'mmm',occ:null,tools:{}};
+  var state={tier:'mmm',occ:null,tools:{},photos:{vacant:0,owner:0,tenant:0},consent:{vacant:false,owner:false,tenant:false}};
   var primary=document.getElementById('btn-primary');
   var ctaLabels={mmm:'Save Make Me Move at $950,000',coming_soon:'Continue to Coming Soon agreement →',listing:'Continue to Listing agreement →'};
 
@@ -203,35 +281,53 @@ body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-syst
     });
   });
 
+  document.querySelectorAll('.pl-upload').forEach(function(el){
+    var input=el.querySelector('input[type=file]');
+    var mode=el.dataset.mode;
+    el.addEventListener('click',function(e){
+      if(e.target.tagName==='INPUT')return;
+      input.click();
+    });
+    input.addEventListener('change',function(){
+      if(!input.files.length)return;
+      state.photos[mode]=input.files.length;
+      var preview=el.querySelector('.pl-preview');
+      if(!preview){preview=document.createElement('div');preview.className='pl-preview';el.appendChild(preview);}
+      preview.textContent='✓ '+input.files.length+' photo'+(input.files.length>1?'s':'')+' staged for upload';
+    });
+  });
+
+  document.querySelectorAll('.pl-consent-check').forEach(function(label){
+    var cb=label.querySelector('.pl-checkbox');
+    cb.addEventListener('change',function(){
+      label.classList.toggle('checked',cb.checked);
+      var section=label.closest('.tools');
+      if(section){
+        var mode=section.id.replace('tools-','');
+        state.consent[mode]=cb.checked;
+      }
+    });
+  });
+
   document.addEventListener('click',function(e){
     var t=e.target.closest('.tool');
     if(!t)return;
-    if(e.target.closest('.upload-stub'))return;
     t.classList.toggle('enabled');
     state.tools[t.dataset.tool]=t.classList.contains('enabled');
   });
 
-  document.getElementById('btn-schedule').addEventListener('click',function(){
-    window.location.href='/book/';
-  });
-
+  document.getElementById('btn-schedule').addEventListener('click',function(){window.location.href='/book/'});
   document.getElementById('btn-save-draft').addEventListener('click',function(){
-    // TODO: wire to RPC `upsert_listing_draft`
-    alert('Draft saved (placeholder — backend wiring next sprint).\n\nState: '+JSON.stringify(state,null,2));
+    alert('Draft saved (backend wiring next sprint).\n\nState: '+JSON.stringify(state,null,2));
   });
-
   primary.addEventListener('click',function(){
-    // TODO: wire each tier to its appropriate flow
-    // - mmm: just upsert make_me_move (already exists for verified users)
-    // - coming_soon: redirect to /agreements/non-mls/ for e-sign flow
-    // - listing: redirect to /agreements/listing/ for e-sign flow
-    if(state.tier==='mmm'){
-      alert('Make Me Move saved at $950,000 (placeholder).');
-    } else if(state.tier==='coming_soon'){
-      window.location.href='/agreements/non-mls/?unit=the-harrison-13e';
-    } else {
-      window.location.href='/agreements/listing/?unit=the-harrison-13e';
+    if(state.occ && !state.consent[state.occ]){
+      alert('Please confirm the image rights & modification consent checkbox before submitting.');
+      return;
     }
+    if(state.tier==='mmm'){alert('Make Me Move saved at $950,000 (placeholder).')}
+    else if(state.tier==='coming_soon'){window.location.href='/agreements/non-mls/?unit=the-harrison-13e'}
+    else{window.location.href='/agreements/listing/?unit=the-harrison-13e'}
   });
 })();
 </script>
