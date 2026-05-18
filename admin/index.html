@@ -2,1838 +2,594 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Condo Market · Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={theme:{extend:{colors:{navy:'#0f131d',navy2:'#1a1f2e',navy3:'#232a3d',cream:'#e8e3d8',bluegray:'#9fb4d8',gold:'#d4a574',sage:'#7c9d6a',brick:'#d88080',amber:'#b89860'},fontFamily:{display:['Playfair Display','Georgia','serif'],sans:['DM Sans','-apple-system','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Condo Market SF</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}body{background:#0f131d;color:#e8e3d8;font-family:'DM Sans',sans-serif;min-height:100vh;margin:0}
-.font-display{font-family:'Playfair Display',Georgia,serif}.font-mono{font-family:'JetBrains Mono',monospace}
-.tab{padding:12px 14px;color:rgba(232,227,216,0.5);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s}
-.tab:hover{color:#e8e3d8}.tab.active{color:#d4a574;border-bottom-color:#d4a574}
-.card{background:#1a1f2e;border:1px solid rgba(232,227,216,0.12);border-radius:10px;padding:18px 20px}
-.card.partner-engaged{border-left:3px solid #d4a574;background:linear-gradient(90deg,rgba(212,165,116,0.05) 0%,#1a1f2e 35%)}
-.card.partner-closed{opacity:0.55}
-.btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
-.btn-primary{background:#d4a574;color:#0f131d;border-color:#d4a574}.btn-primary:hover{opacity:.88}
-.btn-secondary{background:transparent;color:rgba(232,227,216,.78);border-color:rgba(232,227,216,.25)}.btn-secondary:hover{background:rgba(232,227,216,.06);color:#e8e3d8;border-color:rgba(232,227,216,.4)}
-.btn-danger{background:transparent;color:#d88080;border-color:rgba(216,128,128,.45)}.btn-danger:hover{background:rgba(216,128,128,.08);color:#e8a8a8}
-.btn-sm{padding:5px 12px;font-size:12px}
-.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(232,227,216,.08);color:rgba(232,227,216,.7);margin-right:4px}
-.tag-good{background:rgba(124,157,106,.15);color:#b8d4a8}.tag-bad{background:rgba(216,128,128,.15);color:#e8a8a8}.tag-warn{background:rgba(212,165,116,.15);color:#d4a574}
-input,select,textarea{background:#0f131d;border:1px solid rgba(232,227,216,.18);border-radius:6px;color:#e8e3d8;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;width:100%}
-input:focus,select:focus,textarea:focus{outline:none;border-color:#d4a574}
-input[type="datetime-local"]{color-scheme:dark}
-.firm-switcher{background:#0f131d;border:1px solid rgba(232,227,216,.25);color:#e8e3d8;padding:8px 14px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;min-width:240px;background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23d4a574' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;appearance:none;-webkit-appearance:none}
-.firm-switcher:hover{border-color:rgba(232,227,216,.4)}
-.firm-switcher:focus{outline:none;border-color:#d4a574}
-table{width:100%;border-collapse:collapse;font-size:13px}thead{background:#232a3d}
-th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,227,216,.55);font-weight:400;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(232,227,216,.1)}
-td{padding:12px 14px;vertical-align:top;border-top:1px solid rgba(232,227,216,.06)}
-tr:hover td{background:rgba(232,227,216,.02)}
-.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(232,227,216,.2);border-top-color:#d4a574;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.flash{padding:12px 18px;border-radius:8px;margin-bottom:18px;font-size:14px}
-.flash-ok{background:rgba(124,157,106,.12);border:1px solid rgba(124,157,106,.4);color:#b8d4a8}
-.flash-err{background:rgba(216,128,128,.12);border:1px solid rgba(216,128,128,.4);color:#e8a8a8}
-.placeholder{background:#1a1f2e;border:1px dashed rgba(232,227,216,.14);border-radius:10px;padding:32px;text-align:center;color:rgba(232,227,216,.5);font-size:13px}
-.action-prop{background:linear-gradient(180deg,rgba(212,165,116,.06),#1a1f2e);border:1px solid rgba(212,165,116,.4);border-radius:10px;padding:18px 22px;margin-top:14px}
-.debug-banner{position:fixed;top:0;left:0;right:0;background:#d88080;color:#0f131d;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:100;display:none}
-.debug-banner.show{display:block}
-.screen{display:none;min-height:100vh}
-.screen.show{display:block}
-.screen.show.center{display:flex;align-items:center;justify-content:center;padding:24px}
-
-/* Sprint 7.1: Firm Hub layout */
-.hub-header{background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);border:1px solid rgba(232,227,216,.12);border-radius:10px;padding:22px 26px;margin-bottom:24px}
-.hub-section{margin-bottom:24px}
-.hub-section h2{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:20px;margin-bottom:12px;color:#e8e3d8}
-.timeline-event{background:#1a1f2e;border:1px solid rgba(232,227,216,.1);border-radius:8px;padding:14px 18px;margin-bottom:10px;position:relative}
-.timeline-event::before{content:'';position:absolute;left:-1px;top:14px;bottom:14px;width:2px;background:rgba(212,165,116,0.4);border-radius:2px}
-.timeline-event.event-positive::before{background:#7c9d6a}
-.timeline-event.event-negative::before{background:#d88080}
-.material-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(232,227,216,.06);flex-wrap:wrap}
-.material-row:last-child{border-bottom:none}
-.material-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(232,227,216,.55);min-width:130px;flex-shrink:0}
-.material-value{flex:1;min-width:280px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.material-value input{flex:1;min-width:200px}
-.notes-textarea{min-height:140px;line-height:1.55;font-size:14px}
+:root{--navy:#0f131d;--navy2:#1a1f2e;--navy3:#232a3a;--cream:#e8e3d8;--gold:#d4a574;--blue-gray:#9fb4d8;--success:#8fb97a;--warn:#d9a44b;--coral:#c97865;--hot:#c97865;--warm:#d9a44b;--cool:#9fb4d8;--cold:#666;--sidebar-w:230px;--topbar-h:60px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--cream);font-family:'DM Sans',-apple-system,sans-serif;line-height:1.55;min-height:100vh;font-size:14px}
+.h{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;color:var(--cream);letter-spacing:-0.01em}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.04em}
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold)}
+a{color:inherit;text-decoration:none}
+#gate{padding:80px 24px;max-width:480px;margin:0 auto;text-align:center}
+#gate h2{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:24px;margin-bottom:14px}
+#gate p{color:rgba(232,227,216,0.7);margin-bottom:20px;font-size:14px}
+#gate input{display:block;margin:14px auto;padding:11px 14px;border:1px solid rgba(232,227,216,0.2);background:var(--navy2);color:var(--cream);border-radius:8px;font-family:'JetBrains Mono',ui-monospace,monospace;width:100%;font-size:13px}
+#gate button{padding:11px 22px;background:var(--gold);color:var(--navy);border:none;border-radius:8px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+#gate button:hover{background:#deb588}
+#shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+@media(max-width:760px){#shell{grid-template-columns:1fr}#sidebar{display:none}}
+#sidebar{background:var(--navy2);border-right:1px solid rgba(232,227,216,0.08);padding:22px 14px;height:100vh;position:sticky;top:0;overflow-y:auto}
+.brand{padding:0 10px 22px;border-bottom:1px solid rgba(232,227,216,0.08);margin-bottom:18px}
+.brand-name{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:18px;color:var(--cream)}
+.brand-name span{color:var(--blue-gray)}
+.brand-sub{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-top:4px}
+.nav-section{margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:8px;cursor:pointer;color:rgba(232,227,216,0.75);font-size:13px;font-weight:500;transition:all 0.12s}
+.nav-item:hover{background:rgba(232,227,216,0.04);color:var(--cream)}
+.nav-item.active{background:rgba(212,165,116,0.12);color:var(--gold)}
+.nav-icon{font-size:15px;line-height:1;width:20px;text-align:center}
+.nav-sub{margin:4px 0 8px 32px;display:none}
+.nav-section.open .nav-sub{display:block}
+.sub-item{padding:6px 10px;border-radius:6px;cursor:pointer;color:rgba(232,227,216,0.6);font-size:12px;transition:all 0.12s;display:flex;align-items:center;gap:8px}
+.sub-item:hover{color:var(--cream);background:rgba(232,227,216,0.03)}
+.sub-item.active{color:var(--gold);background:rgba(212,165,116,0.06)}
+.sub-dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0.5}
+.sub-item.active .sub-dot{opacity:1}
+#main{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+#topbar{height:var(--topbar-h);padding:0 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(232,227,216,0.08);background:var(--navy);position:sticky;top:0;z-index:10}
+.crumbs{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.5);letter-spacing:0.06em}
+.crumbs .current{color:var(--cream);font-weight:500}
+.crumbs .sep{color:rgba(232,227,216,0.3)}
+.topbar-right{display:flex;align-items:center;gap:16px;font-size:12px;color:rgba(232,227,216,0.55);font-family:'JetBrains Mono',ui-monospace,monospace}
+#content{padding:28px 32px 64px;max-width:1400px;width:100%}
+.section-head{margin-bottom:24px}
+.section-head h1{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:28px;color:var(--cream);margin-bottom:6px}
+.section-head .desc{font-size:14px;color:rgba(232,227,216,0.65)}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
+@media(min-width:720px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat{padding:16px 18px;border:1px solid rgba(232,227,216,0.12);border-radius:11px;background:var(--navy2)}
+.stat-label{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,227,216,0.5);margin-bottom:8px}
+.stat-value{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:28px;color:var(--cream);line-height:1}
+.stat-value.hot{color:var(--hot)}.stat-value.warm{color:var(--warm)}.stat-value.cool{color:var(--cool)}.stat-value.success{color:var(--success)}
+.filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:5px 12px;border:1px solid rgba(232,227,216,0.16);background:transparent;color:rgba(232,227,216,0.75);border-radius:999px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.12s}
+.filter-btn:hover{border-color:rgba(232,227,216,0.34)}
+.filter-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.filter-spacer{flex:1}
+.filter-meta{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:rgba(232,227,216,0.5);letter-spacing:0.08em}
+.search-input{padding:5px 12px;border:1px solid rgba(232,227,216,0.16);background:var(--navy2);color:var(--cream);border-radius:999px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;min-width:220px}
+.row-list{display:flex;flex-direction:column;gap:8px}
+.row{padding:14px 18px;border:1px solid rgba(232,227,216,0.12);border-radius:10px;background:var(--navy2);display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;transition:all 0.12s}
+.row:hover{border-color:rgba(232,227,216,0.24);background:var(--navy3)}
+.row.hot{border-left:3px solid var(--hot)}.row.warm{border-left:3px solid var(--warm)}.row.cool{border-left:3px solid var(--cool)}.row.cold{border-left:3px solid var(--cold)}
+.row.pending{border-left:3px solid var(--warn)}.row.approved{border-left:3px solid var(--success)}.row.rejected{border-left:3px solid var(--coral)}
+.row-badge{display:flex;flex-direction:column;align-items:center;min-width:60px;gap:4px}
+.row-badge-icon{font-size:22px;line-height:1}
+.row-badge-text{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:500;letter-spacing:0.04em}
+.row-main h3{font-size:14px;font-weight:500;margin-bottom:3px;color:var(--cream)}
+.row-main h3 .meta{color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.06em;margin-left:6px;font-weight:400}
+.row-main .sub{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:rgba(232,227,216,0.5);margin-bottom:5px;letter-spacing:0.04em}
+.row-main .details{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:rgba(232,227,216,0.7);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.04em}
+.row-main .details strong{color:var(--cream);font-weight:500}
+.row-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:110px}
+.row-actions .age{font-size:10px;color:rgba(232,227,216,0.45);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.04em}
+.row-actions .action-row{display:flex;gap:6px}
+.btn{padding:5px 11px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;border-radius:6px;cursor:pointer;border:1px solid rgba(232,227,216,0.18);background:transparent;color:var(--cream);transition:all 0.12s}
+.btn:hover{border-color:rgba(232,227,216,0.4);background:rgba(232,227,216,0.04)}
+.btn.primary{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:500}
+.btn.primary:hover{background:#deb588;border-color:#deb588}
+.btn.success{background:var(--success);color:var(--navy);border-color:var(--success)}
+.btn.success:hover{background:#a3cb8a;border-color:#a3cb8a}
+.btn.danger{background:transparent;color:var(--coral);border-color:rgba(201,120,101,0.4)}
+.btn.danger:hover{background:rgba(201,120,101,0.08);border-color:var(--coral)}
+.empty{padding:48px 24px;text-align:center;color:rgba(232,227,216,0.5);font-size:14px;font-style:italic;border:1px dashed rgba(232,227,216,0.16);border-radius:12px}
+.placeholder-section{padding:60px 40px;text-align:center;border:1px dashed rgba(212,165,116,0.3);border-radius:14px;background:rgba(212,165,116,0.03)}
+.placeholder-section h2{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:22px;color:var(--cream);margin-bottom:12px}
+.placeholder-section p{color:rgba(232,227,216,0.65);font-size:14px;margin-bottom:18px}
+.sprint-tag{display:inline-block;padding:5px 14px;background:rgba(212,165,116,0.12);border:1px solid rgba(212,165,116,0.3);border-radius:999px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold)}
+#toast{position:fixed;bottom:24px;right:24px;padding:13px 20px;background:var(--navy2);border:1px solid var(--gold);border-radius:10px;color:var(--cream);font-size:13px;font-family:'JetBrains Mono',ui-monospace,monospace;z-index:1000;max-width:360px;display:none}
+#toast.show{display:block;animation:slidein 0.2s ease}
+#toast.success{border-color:var(--success);color:var(--success)}
+#toast.error{border-color:var(--coral);color:var(--coral)}
+@keyframes slidein{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.events-table{width:100%;border-collapse:collapse;font-size:12px}
+.events-table th{text-align:left;padding:10px 12px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,227,216,0.5);border-bottom:1px solid rgba(232,227,216,0.12);background:var(--navy2);font-weight:500}
+.events-table td{padding:11px 12px;border-bottom:1px solid rgba(232,227,216,0.06);vertical-align:top;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.03em}
+.events-table tr:hover td{background:rgba(232,227,216,0.025)}
+.evtype{color:var(--gold)}
+.evmeta{color:rgba(232,227,216,0.55);font-size:10px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
 
-<div id="error-banner" class="debug-banner"></div>
-
-<div id="setup-screen" class="screen center">
-  <div class="card max-w-xl w-full">
-    <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
-    <p class="text-cream/60 text-sm mb-4">First-time setup — paste your Supabase anon key below. This is a one-time step; the key is stored in your browser's localStorage and never has to be touched in the file again.</p>
-    <div class="text-cream/55 text-xs mb-4">Get the key from <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/api" target="_blank" class="text-gold underline">API settings → anon public</a>. Starts with <span class="font-mono">eyJ...</span></div>
-    <form id="setup-form" class="space-y-3">
-      <textarea name="key" rows="4" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required class="font-mono text-xs" autofocus></textarea>
-      <button type="submit" class="btn btn-primary w-full justify-center">Save & continue</button>
-      <div id="setup-msg" class="text-xs"></div>
-    </form>
-  </div>
+<div id="gate">
+  <h2>Admin sign-in</h2>
+  <p>Sign in with your admin account to access the dashboard.</p>
+  <div id="gate-content"><p style="font-size:13px;color:rgba(232,227,216,0.6);margin-bottom:14px">Loading…</p></div>
 </div>
 
-<div id="boot-screen" class="screen center">
-  <div class="text-center">
-    <div class="font-display italic text-4xl mb-4">Condo <span class="text-bluegray">Market</span></div>
-    <div class="text-cream/60 text-sm mb-6">Loading admin…</div>
-    <div class="spinner"></div>
-    <div id="boot-status" class="font-mono text-[11px] text-cream/40 mt-6 max-w-md"></div>
-  </div>
-</div>
-
-<div id="auth-screen" class="screen center">
-  <div class="card max-w-md w-full">
-    <h1 class="font-display text-3xl italic mb-2">Condo <span class="text-bluegray">Market</span></h1>
-    <p class="text-cream/60 text-sm mb-6">Admin sign in</p>
-    <form id="signin-form" class="space-y-3">
-      <input type="email" name="email" placeholder="email" required autocomplete="email" value="tim@mcmullen.properties">
-      <input type="password" name="password" placeholder="password" required autocomplete="current-password">
-      <button type="submit" id="signin-btn" class="btn btn-primary w-full justify-center">Sign in</button>
-      <div id="signin-msg" class="text-xs mt-2"></div>
-    </form>
-    <div class="mt-6 flex justify-between text-xs">
-      <a href="https://www.sanfranciscocondomarket.com/sign-in/" target="_blank" class="text-cream/50 hover:text-gold">Reset password</a>
-      <button id="reset-anon-key" class="text-cream/50 hover:text-brick">Reset anon key</button>
+<div id="shell" style="display:none">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-name">Condo <span>Market</span></div>
+      <div class="brand-sub">Admin · v2</div>
     </div>
-  </div>
-</div>
-
-<div id="app" class="screen">
-  <header class="border-b border-cream/10">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <span class="font-display italic text-2xl">Condo <span class="text-bluegray">Market</span></span>
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold border border-gold/40 rounded-full px-3 py-1">admin v5.10</span>
-      </div>
-      <div class="flex items-center gap-3 text-xs text-cream/60">
-        <span id="user-email" class="font-mono"></span>
-        <button id="signout-btn" class="btn btn-secondary btn-sm">Sign out</button>
+    <div class="nav-section" data-section="dashboard"><div class="nav-item" data-route="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div></div>
+    <div class="nav-section" data-section="listings">
+      <div class="nav-item" data-route="listings"><span class="nav-icon">📋</span><span>Listings</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="listings/pipeline"><span class="sub-dot"></span>Pipeline</div>
+        <div class="sub-item" data-route="listings/owners"><span class="sub-dot"></span>Owners</div>
+        <div class="sub-item" data-route="listings/active"><span class="sub-dot"></span>Active deals</div>
+        <div class="sub-item" data-route="listings/events"><span class="sub-dot"></span>Funnel events</div>
       </div>
     </div>
-    <nav class="max-w-7xl mx-auto px-6 flex gap-0 overflow-x-auto" id="nav">
-      <a class="tab" data-tab="home" href="#home">Home</a>
-      <a class="tab" data-tab="people" href="#people">People</a>
-      <a class="tab" data-tab="hoa" href="#hoa">HOAs</a>
-      <a class="tab" data-tab="partners" href="#partners">Partners</a>
-      <a class="tab" data-tab="email" href="#email">Email</a>
-      <a class="tab" data-tab="queue" href="#queue">Queue</a>
-      <a class="tab" data-tab="buildings" href="#buildings">Buildings</a>
-      <a class="tab" data-tab="mmm" href="#mmm">MMM</a>
-      <a class="tab" data-tab="analytics" href="#analytics">Analytics</a>
-      <a class="tab" data-tab="settings" href="#settings">Settings</a>
-    </nav>
-  </header>
-  <main id="content" class="max-w-7xl mx-auto px-6 py-8"></main>
+    <div class="nav-section" data-section="buyers"><div class="nav-item" data-route="buyers"><span class="nav-icon">👥</span><span>Buyers</span></div></div>
+    <div class="nav-section" data-section="partnerships"><div class="nav-item" data-route="partnerships"><span class="nav-icon">🤝</span><span>Partnerships</span></div></div>
+    <div class="nav-section" data-section="acquisition"><div class="nav-item" data-route="acquisition"><span class="nav-icon">📡</span><span>Acquisition</span></div></div>
+    <div class="nav-section" data-section="ops"><div class="nav-item" data-route="ops"><span class="nav-icon">⚙</span><span>Operations</span></div></div>
+  </aside>
+  <div id="main">
+    <header id="topbar">
+      <div class="crumbs" id="crumbs"><span class="current">Dashboard</span></div>
+      <div class="topbar-right"><span id="user-info"></span><span id="updated"></span></div>
+    </header>
+    <section id="content"></section>
+  </div>
 </div>
+
+<div id="toast"></div>
 
 <script type="module">
-const errBanner = document.getElementById('error-banner');
-function showError(msg, source) {
-  console.error('[ADMIN]', source || 'err', msg);
-  errBanner.textContent = `${source || 'err'}: ${msg}`;
-  errBanner.classList.add('show');
-}
-window.addEventListener('error', e => showError(e.message + ' @ ' + e.filename + ':' + e.lineno, 'js'));
-window.addEventListener('unhandledrejection', e => showError(String(e.reason?.message || e.reason), 'promise'));
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const setBoot = (msg) => { console.log('[BOOT]', msg); const el = document.getElementById('boot-status'); if (el) el.textContent = msg; };
-
-function showScreen(which) {
-  ['setup-screen','boot-screen','auth-screen','app'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (id === which || (which === 'app' && id === 'app')) {
-      el.classList.add('show');
-      if (id !== 'app') el.classList.add('center');
-    } else {
-      el.classList.remove('show');
-    }
-  });
-}
-
-const ANON_KEY_STORAGE = 'cms_admin_anon_key_v1';
-const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-let SUPABASE_ANON_KEY = localStorage.getItem(ANON_KEY_STORAGE) || '';
-
-document.getElementById('setup-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const key = String(fd.get('key') || '').trim();
-  const msg = document.getElementById('setup-msg');
-  if (!key.startsWith('eyJ') || key.length < 100) {
-    msg.textContent = 'That doesn\'t look like a valid Supabase anon key (should start with "eyJ" and be ~200+ chars).';
-    msg.className = 'text-xs text-brick';
-    return;
-  }
-  localStorage.setItem(ANON_KEY_STORAGE, key);
-  msg.textContent = 'Saved. Reloading…';
-  msg.className = 'text-xs text-sage';
-  setTimeout(() => location.reload(), 500);
-});
-
-document.getElementById('reset-anon-key').addEventListener('click', () => {
-  if (!confirm('Clear stored anon key and restart setup?')) return;
-  localStorage.removeItem(ANON_KEY_STORAGE);
-  location.reload();
-});
-
-async function boot() {
-  if (!SUPABASE_ANON_KEY || !SUPABASE_ANON_KEY.startsWith('eyJ')) {
-    showScreen('setup-screen');
-    return;
-  }
-  showScreen('boot-screen');
-  setBoot('Loading Supabase JS…');
-  let createClient;
-  try {
-    ({ createClient } = await import('https://esm.sh/@supabase/supabase-js@2'));
-  } catch (e) {
-    showError('Failed to load Supabase JS: ' + e.message, 'cdn');
-    return;
-  }
-  setBoot('Initializing client…');
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
-  window.__sb = sb;
-  window.__SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
-  await initAdmin(sb);
-}
+const SUPA_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPA_ANON = window.CMSF_ANON_KEY || localStorage.getItem('cms_admin_anon_key_v1') || '';
+const sb = createClient(SUPA_URL, SUPA_ANON);
+window.sb = sb;
 
 let currentUser = null;
-let currentSession = null;
-let _sb = null;
+let sectionRefreshTimer = null;
 
-async function initAdmin(sb) {
-  _sb = sb;
-  sb.auth.onAuthStateChange((event, session) => {
-    console.log('[AUTH]', event, session ? 'session ✓' : 'no session');
-    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-      if (session) loadProfileAndShow(session);
-    } else if (event === 'SIGNED_OUT') {
-      currentUser = null; currentSession = null;
-      showScreen('auth-screen');
-    }
-  });
-  document.getElementById('signin-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const email = String(fd.get('email') || '').trim();
-    const password = String(fd.get('password') || '');
-    const btn = document.getElementById('signin-btn');
-    const msg = document.getElementById('signin-msg');
-    msg.textContent = ''; msg.className = 'text-xs mt-2';
-    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Signing in…';
-    try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
-        msg.textContent = `❌ ${error.message} (HTTP ${error.status || '?'})`;
-        msg.className = 'text-xs mt-2 text-brick';
-        btn.disabled = false; btn.textContent = 'Sign in';
-        return;
-      }
-      msg.textContent = '✓ Signed in. Loading admin…';
-      msg.className = 'text-xs mt-2 text-sage';
-    } catch (e) {
-      msg.textContent = '❌ ' + e.message;
-      msg.className = 'text-xs mt-2 text-brick';
-      btn.disabled = false; btn.textContent = 'Sign in';
-    }
-  });
-  document.getElementById('signout-btn').addEventListener('click', async () => {
-    try { await sb.auth.signOut(); } catch(_) {}
-    location.reload();
-  });
-  document.querySelectorAll('#nav .tab').forEach(t => t.addEventListener('click', e => { e.preventDefault(); location.hash = t.dataset.tab; }));
-  window.addEventListener('hashchange', routeFromHash);
-  setBoot('Checking auth…');
-  try {
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (error) { showError('getSession: ' + error.message, 'auth'); showScreen('auth-screen'); return; }
-    if (session) { setBoot('Session found, loading profile…'); await loadProfileAndShow(session); }
-    else { setBoot('No session — showing sign-in.'); showScreen('auth-screen'); }
-  } catch (e) {
-    showError('boot failed: ' + e.message, 'boot');
-    showScreen('auth-screen');
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtMoney(n){if(!n)return'—';if(n>=1000000)return'$'+(n/1000000).toFixed(2).replace(/\.?0+$/,'')+'M';if(n>=1000)return'$'+Math.round(n/1000)+'K';return'$'+n}
+function fmtDuration(s){if(!s)return'—';if(s<60)return s+'s';const m=Math.floor(s/60),sec=s%60;if(m<60)return sec?`${m}m ${sec}s`:`${m}m`;const h=Math.floor(m/60);return`${h}h ${m%60}m`}
+function fmtAge(t){if(!t)return'—';const s=Math.round((Date.now()-new Date(t).getTime())/1000);if(s<60)return s+'s ago';if(s<3600)return Math.round(s/60)+'m ago';if(s<86400)return Math.round(s/3600)+'h ago';return Math.round(s/86400)+'d ago'}
+function prettyBuilding(slug){if(!slug)return'—';return String(slug).replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+function toast(msg,type='info'){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;setTimeout(()=>t.className='',3500)}
+function setUpdated(){document.getElementById('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+
+const tempEmoji={hot:'🔥',warm:'🌡',cool:'❄',cold:'·'};
+
+async function bootstrap() {
+  if (!SUPA_ANON) {
+    document.getElementById('gate-content').innerHTML = `<p style="color:var(--coral);font-size:13px">No anon key found.</p><input type="password" id="key-input" placeholder="anon key"><button id="key-save">Save key</button>`;
+    document.getElementById('key-save').addEventListener('click', () => { const k=document.getElementById('key-input').value.trim(); if(k){localStorage.setItem('cms_admin_anon_key_v1',k);location.reload()}});
+    return;
   }
-}
-
-async function loadProfileAndShow(session) {
-  try {
-    const { data: profile, error } = await _sb.from('profiles').select('id,email,full_name,role').eq('id', session.user.id).maybeSingle();
-    if (error) { showError('profile: ' + error.message + (error.code === '42501' ? ' (RLS denied — check anon key matches project)' : ''), 'profile'); showScreen('auth-screen'); return; }
-    if (!profile) { showError('Your account has no profile row.', 'profile'); await _sb.auth.signOut(); return; }
-    if (profile.role !== 'admin') { showError(`Admin role required (you are: ${profile.role}).`, 'authz'); await _sb.auth.signOut(); return; }
-    currentUser = { ...session.user, ...profile };
-    currentSession = session;
-    document.getElementById('user-email').textContent = profile.email;
-    showScreen('app');
-    routeFromHash();
-  } catch (e) {
-    showError('profile load: ' + e.message, 'profile');
-    showScreen('auth-screen');
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) {
+    document.getElementById('gate-content').innerHTML = `<p style="font-size:13px;color:rgba(232,227,216,0.7)">You're not signed in. Sign in to your admin account first.</p><button onclick="location.href='/account/signin/?redirect=/admin/'">Sign in →</button>`;
+    return;
   }
+  const { data: profile, error } = await sb.from('profiles').select('id,full_name,role,email').eq('id', user.id).maybeSingle();
+  if (error || !profile || profile.role !== 'admin') {
+    document.getElementById('gate-content').innerHTML = `<p style="color:var(--coral);font-size:13px">Your account doesn't have admin role.</p><button id="signout-btn">Sign out</button>`;
+    document.getElementById('signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.href='/account/signin/?redirect=/admin/'; });
+    return;
+  }
+  currentUser = profile;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('shell').style.display = 'grid';
+  document.getElementById('user-info').textContent = profile.full_name || profile.email;
+  document.querySelectorAll('[data-route]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); location.hash = '#' + el.dataset.route; }));
+  window.addEventListener('hashchange', handleHashChange);
+  handleHashChange();
 }
 
-const $ = (s,c=document) => c.querySelector(s);
-const $$ = (s,c=document) => Array.from(c.querySelectorAll(s));
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmtNum = (n) => n == null ? '—' : Number(n).toLocaleString('en-US');
-const fmtMoney = (n) => n == null ? '—' : '$' + Math.round(Number(n)).toLocaleString('en-US');
-const fmtPct = (num, denom) => !denom ? '—' : ((num/denom)*100).toFixed(num/denom < 0.01 ? 1 : 0) + '%';
-const fmtDate = (iso) => !iso ? '—' : new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-const fmtDateTime = (iso) => !iso ? '—' : new Date(iso).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
-const relTime = (iso) => {
-  if (!iso) return '—';
-  const ms = Date.now() - new Date(iso).getTime();
-  const future = ms < 0, abs = Math.abs(ms);
-  const s = Math.floor(abs/1000); if (s < 60) return future ? `in ${s}s` : `${s}s ago`;
-  const m = Math.floor(s/60);     if (m < 60) return future ? `in ${m}m` : `${m}m ago`;
-  const h = Math.floor(m/60);     if (h < 24) return future ? `in ${h}h` : `${h}h ago`;
-  const d = Math.floor(h/24);     return future ? `in ${d}d` : `${d}d ago`;
-};
-
-function routeFromHash() {
-  if (!document.getElementById('app').classList.contains('show')) return;
-  const hash = location.hash.replace('#', '') || 'home';
-  const [tab, ...rest] = hash.split('/');
-  $$('#nav .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  const renderers = { home: renderHome, people: renderPeople, hoa: renderHoa, partners: renderPartners, email: renderEmail, queue: renderQueue, buildings: renderBuildings, mmm: renderMmm, analytics: renderAnalytics, settings: renderSettings };
-  const renderer = renderers[tab] || renderHome;
-  const c = $('#content');
-  c.innerHTML = '<div class="p-8 text-center"><div class="spinner"></div></div>';
-  Promise.resolve().then(() => renderer(rest)).catch(e => {
-    showError(`${tab}: ${e.message}`, 'render');
-    c.innerHTML = `<div class="flash flash-err">${esc(tab)} tab failed: ${esc(e.message)}</div>`;
-  });
+function handleHashChange() {
+  const hash = (location.hash || '#listings/pipeline').slice(1);
+  if (sectionRefreshTimer) { clearInterval(sectionRefreshTimer); sectionRefreshTimer = null; }
+  
+  document.querySelectorAll('.nav-section').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('[data-route]').forEach(el => el.classList.remove('active'));
+  const [topSection, subSection] = hash.split('/');
+  const topEl = document.querySelector(`.nav-section[data-section="${topSection}"]`);
+  if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
+  if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
+  
+  const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
+  const subName = { pipeline:'Pipeline', owners:'Owners', active:'Active deals', events:'Funnel events' }[subSection];
+  document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
+  
+  document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':renderBuyersStub, 'partnerships':renderPartnershipsStub, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
+  (renderers[hash] || renderers['listings/pipeline'])();
 }
 
-async function renderHome() {
-  const c = $('#content');
-  c.innerHTML = `
-    <section class="mb-8">
-      <h1 class="font-display text-4xl italic mb-1">Welcome back, ${esc(currentUser?.full_name?.split(' ')[0] || 'Tim')}.</h1>
-      <p class="text-cream/60 text-sm">Ask Claude. Pull data. Draft campaigns. Manage everything from here.</p>
-    </section>
-    <section class="card mb-8 border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase">⚡ Claude Command</span>
-        <span class="text-cream/40 text-xs">— natural language interface to your platform</span>
-      </div>
-      <textarea id="cmd-input" rows="3" placeholder="Try: 'Send a Just Sold email to all Madrone owners about Unit 421 for $1.85M', or 'Show me top buildings by open rate this week'" class="!bg-navy"></textarea>
-      <div class="flex items-center justify-between mt-3 gap-3 flex-wrap">
-        <div class="flex gap-2 flex-wrap text-xs">
-          <button class="btn btn-secondary btn-sm" data-prompt="How many active MMM listings do we have right now?">Stats query</button>
-          <button class="btn btn-secondary btn-sm" data-prompt="Show me all owners at 480 Mission Bay Blvd N">People query</button>
-          <button class="btn btn-secondary btn-sm" data-prompt="What's the open rate of wave 3 compared to wave 2?">CRO query</button>
-          <button class="btn btn-secondary btn-sm" data-prompt="Create a task to follow up with the Madrone HOA tomorrow at 2pm">Create task</button>
-        </div>
-        <button id="cmd-run" class="btn btn-primary">Run Command <span class="font-mono text-[10px] opacity-60">⌘↵</span></button>
-      </div>
-      <div id="cmd-result" class="mt-4"></div>
-    </section>
-    <section class="mb-8">
-      <h2 class="font-display text-xl mb-4">Today</h2>
-      <div id="home-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
-      <div id="home-tasks"></div>
-    </section>
-  `;
-  $('#cmd-run').addEventListener('click', runCommand);
-  $('#cmd-input').addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e.key==='Enter') runCommand(); });
-  $$('[data-prompt]').forEach(b => b.addEventListener('click', () => { $('#cmd-input').value = b.dataset.prompt; $('#cmd-input').focus(); }));
-  loadHomeStats().catch(e => { $('#home-stats').innerHTML = `<div class="card col-span-full"><div class="text-brick text-xs">stats: ${esc(e.message)}</div></div>`; });
-  loadHomeTasks().catch(e => { $('#home-tasks').innerHTML = `<div class="card"><div class="text-brick text-xs">tasks: ${esc(e.message)}</div></div>`; });
-}
-
-async function loadHomeStats() {
-  const target = $('#home-stats'); if (!target) return;
-  target.innerHTML = [0,1,2,3].map(()=>`<div class="card"><div class="spinner"></div></div>`).join('');
-  const [statsR, capR] = await Promise.allSettled([
-    _sb.from('v_platform_stats').select('*').maybeSingle(),
-    _sb.from('v_send_capacity_by_city').select('*').eq('city_slug','san-francisco').maybeSingle(),
+async function renderDashboard() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Today, ${new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})}</div>
+      <h1>Morning briefing</h1>
+      <div class="desc">Cross-section view of what changed since your last sign-in.</div>
+    </div>
+    <div id="dash-content"><div class="empty">Loading…</div></div>`;
+  const [scoreRes, claimsRes, listingsRes, partnersRes] = await Promise.all([
+    sb.from('v_seller_intent_scores').select('temperature').then(r => r.data || []),
+    sb.from('user_units').select('status').eq('status','pending').then(r => r.data || []),
+    sb.from('listings').select('id,tier,agreement_signed_at').in('tier',['coming_soon','listing']).then(r => r.data || []),
+    sb.from('partnership_outreach').select('id,next_action_at').not('next_action_at','is',null).lte('next_action_at', new Date().toISOString()).then(r => r.data || [])
   ]);
-  const stats = statsR.status === 'fulfilled' ? (statsR.value?.data || {}) : {};
-  const cap = capR.status === 'fulfilled' ? (capR.value?.data || {}) : {};
-  target.innerHTML = [
-    ['Total people', fmtNum(stats.total_people), `${fmtNum(stats.active_accounts)} accounts`],
-    ['Active MMMs', fmtNum(stats.active_mmms), `${fmtNum(stats.open_offers)} open offers`],
-    ['Open tasks', fmtNum(stats.open_tasks), stats.overdue_tasks > 0 ? `<span class="text-brick">${stats.overdue_tasks} overdue</span>` : 'on track'],
-    ['Today\'s capacity', `${fmtNum(cap.sent_today||0)}/${fmtNum(cap.daily_cap||0)}`, `${fmtNum(cap.remaining_today||0)} remaining`],
-  ].map(([l,n,sub]) => `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-3xl">${n}</div><div class="text-xs text-cream/55 mt-1">${sub}</div></div>`).join('');
+  const tempCounts = { hot:0, warm:0, cool:0, cold:0 };
+  scoreRes.forEach(r => tempCounts[r.temperature] = (tempCounts[r.temperature]||0) + 1);
+  const pendingApprovals = claimsRes.length;
+  const activeListings = listingsRes.filter(l => l.agreement_signed_at).length;
+  const draftListings = listingsRes.filter(l => !l.agreement_signed_at).length;
+  document.getElementById('dash-content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">🔥 Hot sellers</div><div class="stat-value hot">${tempCounts.hot}</div></div>
+      <div class="stat"><div class="stat-label">⏳ Pending claims</div><div class="stat-value warm">${pendingApprovals}</div></div>
+      <div class="stat"><div class="stat-label">📋 Active listings</div><div class="stat-value success">${activeListings}</div></div>
+      <div class="stat"><div class="stat-label">🤝 Partner actions due</div><div class="stat-value cool">${partnersRes.length}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:18px">
+      <div style="padding:22px 24px;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+        <h3 class="h" style="font-size:18px;margin-bottom:10px">Sellers (Listings)</h3>
+        <div style="font-size:13px;color:rgba(232,227,216,0.7);line-height:1.6">
+          ${tempCounts.hot} hot · ${tempCounts.warm} warm · ${tempCounts.cool} cool · ${tempCounts.cold} cold<br>
+          ${pendingApprovals ? `<strong style="color:var(--warn)">${pendingApprovals} claim${pendingApprovals>1?'s':''} awaiting your approval</strong>` : 'No pending claims'}<br>
+          ${draftListings ? `${draftListings} draft listing${draftListings>1?'s':''} not yet signed` : ''}
+        </div>
+        <div style="margin-top:14px"><a href="#listings/pipeline" class="btn primary" style="display:inline-block">Pipeline →</a> <a href="#listings/owners" class="btn" style="display:inline-block">Owners →</a></div>
+      </div>
+      <div style="padding:22px 24px;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+        <h3 class="h" style="font-size:18px;margin-bottom:10px">Buyers & Partnerships</h3>
+        <div style="font-size:13px;color:rgba(232,227,216,0.65);line-height:1.6;font-style:italic">Sprint B (Buyers) and Sprint C (Partnerships) ship next. Stub placeholders for now.</div>
+      </div>
+    </div>`;
+  setUpdated();
 }
 
-async function loadHomeTasks() {
-  const target = $('#home-tasks'); if (!target) return;
-  const { data: tasks, error } = await _sb.from('v_admin_inbox').select('*').order('priority',{ascending:false}).order('due_at',{ascending:true,nullsFirst:false}).limit(5);
-  if (error) throw error;
-  if (!tasks || !tasks.length) { target.innerHTML = '<div class="placeholder">No open tasks. Inbox is clear.</div>'; return; }
-  target.innerHTML = `<h3 class="font-display text-base mb-3">Top priorities (${tasks.length})</h3><div class="space-y-2">${tasks.map(t => `
-    <div class="card flex items-center justify-between gap-4">
-      <div class="flex-1 min-w-0">
-        <div class="flex gap-2 items-baseline mb-1 flex-wrap">
-          <span class="tag ${t.priority==='urgent'?'tag-bad':t.priority==='high'?'tag-warn':''}">${esc(t.priority)}</span>
-          <span class="font-mono text-[10px] tracking-[0.1em] uppercase text-cream/50">${esc(t.task_type)}</span>
-          ${t.due_at ? `<span class="font-mono text-[10px] text-cream/40">${esc(relTime(t.due_at))}</span>` : ''}
-        </div>
-        <div class="font-medium text-cream">${esc(t.title)}</div>
-        ${t.description ? `<div class="text-xs text-cream/60 mt-1">${esc(t.description)}</div>` : ''}
+async function renderListingsPipeline() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Listings · Pipeline</div>
+      <h1>Hot seller leads</h1>
+      <div class="desc">Sellers engaging with /account/list-my-condo/ scored by intent. Auto-refreshes every 30 seconds.</div>
+    </div>
+    <div id="pipe-stats" class="stats-grid"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="hot">🔥 Hot only</button>
+      <button class="filter-btn" data-filter="warm">🌡 Warm+</button>
+      <button class="filter-btn" data-filter="active24h">Last 24h</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="pipe-count">—</div>
+    </div>
+    <div id="pipe-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderPipelineList(window._allPipe || [], b.dataset.filter);
+  }));
+  const loadPipeline = async () => {
+    const { data, error } = await sb.from('v_hot_seller_leads').select('*');
+    if (error) { document.getElementById('pipe-list').innerHTML = `<div class="empty">Error: ${escapeHtml(error.message)}</div>`; return; }
+    window._allPipe = data || [];
+    const counts = { hot:0, warm:0, cool:0, cold:0 };
+    window._allPipe.forEach(l => counts[l.temperature] = (counts[l.temperature]||0) + 1);
+    document.getElementById('pipe-stats').innerHTML = `
+      <div class="stat"><div class="stat-label">🔥 Hot</div><div class="stat-value hot">${counts.hot}</div></div>
+      <div class="stat"><div class="stat-label">🌡 Warm</div><div class="stat-value warm">${counts.warm}</div></div>
+      <div class="stat"><div class="stat-label">❄ Cool</div><div class="stat-value cool">${counts.cool}</div></div>
+      <div class="stat"><div class="stat-label">All-time</div><div class="stat-value">${window._allPipe.length}</div></div>`;
+    const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+    renderPipelineList(window._allPipe, active);
+    setUpdated();
+  };
+  await loadPipeline();
+  sectionRefreshTimer = setInterval(loadPipeline, 30000);
+}
+
+function renderPipelineList(allLeads, filter) {
+  let leads = allLeads;
+  if (filter === 'hot') leads = leads.filter(l => l.temperature === 'hot');
+  else if (filter === 'warm') leads = leads.filter(l => ['hot','warm'].includes(l.temperature));
+  else if (filter === 'active24h') { const c = Date.now() - 86400*1000; leads = leads.filter(l => new Date(l.last_activity_at).getTime() > c); }
+  document.getElementById('pipe-count').textContent = leads.length + ' lead' + (leads.length===1?'':'s');
+  if (!leads.length) { document.getElementById('pipe-list').innerHTML = '<div class="empty">No leads match this filter. As sellers engage with /account/list-my-condo/, they appear here.</div>'; return; }
+  document.getElementById('pipe-list').innerHTML = `<div class="row-list">${leads.map(l => {
+    const parts = [];
+    if (l.highest_tier_selected) parts.push(`<span><strong>${l.highest_tier_selected}</strong></span>`);
+    if (l.occupancy_mode) parts.push(`<span>${l.occupancy_mode.replace('_',' ')}</span>`);
+    if (l.total_photos_uploaded) parts.push(`<span><strong>${l.total_photos_uploaded}</strong>📷</span>`);
+    if (l.consent_given) parts.push(`<span style="color:var(--success)">✓ consent</span>`);
+    if (l.primary_cta_clicked) parts.push(`<span style="color:var(--gold)">✓ CTA</span>`);
+    if (l.schedule_call_clicked) parts.push(`<span style="color:var(--gold)">✓ booked</span>`);
+    if (l.total_time_s) parts.push(`<span>${fmtDuration(l.total_time_s)}</span>`);
+    if (l.mmm_price) parts.push(`<span>MMM <strong>${fmtMoney(l.mmm_price)}</strong></span>`);
+    const unit = l.claimed_building_slug ? `${prettyBuilding(l.claimed_building_slug)} · #${l.claimed_unit_address}` : '—';
+    return `<div class="row ${l.temperature}">
+      <div class="row-badge"><div class="row-badge-icon">${tempEmoji[l.temperature]}</div><div class="row-badge-text" style="color:var(--${l.temperature})">${l.intent_score}/130</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(l.full_name || l.email.split('@')[0])}<span class="meta">${escapeHtml(unit)}</span></h3>
+        <div class="sub">${escapeHtml(l.email)}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
       </div>
-      <button class="btn btn-secondary btn-sm" data-task-done="${esc(t.id)}">Done</button>
-    </div>`).join('')}</div>`;
-  $$('[data-task-done]', target).forEach(b => b.addEventListener('click', async () => {
-    await _sb.from('admin_tasks').update({ status:'done', completed_at:new Date().toISOString() }).eq('id', b.dataset.taskDone);
-    loadHomeTasks();
+      <div class="row-actions"><div class="age">${fmtAge(l.last_activity_at)}</div><div class="action-row"><a href="mailto:${l.email}" class="btn primary">Email →</a></div></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function renderListingsOwners() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Listings · Owners</div>
+      <h1>Unit claims & owners</h1>
+      <div class="desc">Approve pending claims, view all verified owners and their Make Me Move prices.</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+      <button class="filter-btn" data-filter="approved">✓ Approved</button>
+      <button class="filter-btn" data-filter="rejected">✕ Rejected</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="own-count">—</div>
+    </div>
+    <div id="own-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderOwnersList(window._allOwners || [], b.dataset.filter);
+  }));
+  await loadOwners();
+}
+
+async function loadOwners() {
+  const { data: claims, error } = await sb.from('user_units').select('*').order('created_at', { ascending: false });
+  if (error) { document.getElementById('own-list').innerHTML = `<div class="empty">Error: ${escapeHtml(error.message)}</div>`; return; }
+  const userIds = [...new Set((claims||[]).map(c => c.user_id))];
+  const bldgSlugs = [...new Set((claims||[]).map(c => c.building_slug).filter(Boolean))];
+  const [profilesRes, mmmRes, bldgRes] = await Promise.all([
+    sb.from('profiles').select('id,full_name,email').in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000']),
+    sb.from('make_me_move').select('user_id,building_slug,unit_address,target_price,is_active'),
+    sb.from('buildings').select('slug,display_name,neighborhood').in('slug', bldgSlugs.length ? bldgSlugs : ['__none__'])
+  ]);
+  const profileMap = Object.fromEntries((profilesRes.data || []).map(p => [p.id, p]));
+  const mmmMap = Object.fromEntries((mmmRes.data || []).map(m => [`${m.user_id}|${m.building_slug}|${m.unit_address}`, m]));
+  const bldgMap = Object.fromEntries((bldgRes.data || []).map(b => [b.slug, b]));
+  window._allOwners = (claims || []).map(c => ({ ...c, profile: profileMap[c.user_id], mmm: mmmMap[`${c.user_id}|${c.building_slug}|${c.unit_address}`], building: bldgMap[c.building_slug] }));
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderOwnersList(window._allOwners, active);
+  setUpdated();
+}
+
+function renderOwnersList(allOwners, filter) {
+  let owners = allOwners;
+  if (filter !== 'all') owners = owners.filter(o => o.status === filter);
+  owners = [...owners].sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (b.status === 'pending' && a.status !== 'pending') return 1;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+  document.getElementById('own-count').textContent = owners.length + ' owner' + (owners.length===1?'':'s');
+  if (!owners.length) { document.getElementById('own-list').innerHTML = '<div class="empty">No claims match this filter.</div>'; return; }
+  document.getElementById('own-list').innerHTML = `<div class="row-list">${owners.map(o => {
+    const bldgName = o.building?.display_name || prettyBuilding(o.building_slug);
+    const statusIcon = { pending:'⏳', approved:'✓', rejected:'✕' }[o.status] || '·';
+    const statusColor = { pending:'warn', approved:'success', rejected:'coral' }[o.status] || 'cool';
+    const parts = [];
+    if (o.mmm?.target_price) parts.push(`<span>MMM <strong>${fmtMoney(o.mmm.target_price)}</strong>${o.mmm.is_active ? ' active' : ' inactive'}</span>`);
+    if (o.building?.neighborhood) parts.push(`<span>${o.building.neighborhood}</span>`);
+    if (o.claimed_name && o.claimed_name !== o.profile?.full_name) parts.push(`<span>claimed: <strong>${escapeHtml(o.claimed_name)}</strong></span>`);
+    const actions = o.status === 'pending' 
+      ? `<button class="btn success" data-act="approve" data-id="${o.id}">Approve</button><button class="btn danger" data-act="reject" data-id="${o.id}">Reject</button>`
+      : `<a class="btn" href="mailto:${o.profile?.email || ''}">Email →</a>`;
+    return `<div class="row ${o.status}">
+      <div class="row-badge"><div class="row-badge-icon">${statusIcon}</div><div class="row-badge-text" style="color:var(--${statusColor})">${o.status}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(o.profile?.full_name || o.claimed_name || o.profile?.email?.split('@')[0] || 'Unknown')}<span class="meta">${escapeHtml(bldgName)} · #${escapeHtml(o.unit_address || '')}</span></h3>
+        <div class="sub">${escapeHtml(o.profile?.email || '')}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>') || '<span style="color:rgba(232,227,216,0.4)">no MMM yet</span>'}</div>
+      </div>
+      <div class="row-actions"><div class="age">claimed ${fmtAge(o.created_at)}</div><div class="action-row">${actions}</div></div>
+    </div>`;
+  }).join('')}</div>`;
+  document.querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', async () => {
+    const act = btn.dataset.act, id = btn.dataset.id;
+    if (act === 'approve') {
+      if (!confirm('Approve this claim? This activates the owner\'s Make Me Move price and unlocks petition signing.')) return;
+      const { error } = await sb.from('user_units').update({ status: 'approved' }).eq('id', id);
+      if (error) return toast('Approve failed: ' + error.message, 'error');
+      toast('Claim approved ✓', 'success');
+    } else if (act === 'reject') {
+      if (!confirm('Reject this claim? The owner will be notified and the unit will go back to unclaimed.')) return;
+      const { error } = await sb.from('user_units').update({ status: 'rejected' }).eq('id', id);
+      if (error) return toast('Reject failed: ' + error.message, 'error');
+      toast('Claim rejected', 'success');
+    }
+    await loadOwners();
   }));
 }
 
-async function runCommand() {
-  const text = $('#cmd-input').value.trim();
-  if (text.length < 3) return;
-  const result = $('#cmd-result');
-  result.innerHTML = '<div class="card flex items-center gap-3"><div class="spinner"></div><span class="text-cream/60 text-sm">Thinking…</span></div>';
-  try {
-    const token = currentSession?.access_token;
-    if (!token) { result.innerHTML = '<div class="flash flash-err">Not authenticated.</div>'; return; }
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-command`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ command: text })
-    });
-    const json = await resp.json();
-    if (!json.ok) { result.innerHTML = `<div class="flash flash-err">${esc(json.error || 'Command failed')}</div>`; return; }
-    if (json.parse_error) { result.innerHTML = `<div class="flash flash-err">Claude returned non-JSON: ${esc(json.parse_error)}</div>`; return; }
-    renderActionProposal(json.action, json.duration_ms);
-  } catch (e) {
-    result.innerHTML = `<div class="flash flash-err">Network error: ${esc(e.message)}</div>`;
-  }
-}
-
-function renderActionProposal(a, durationMs) {
-  const result = $('#cmd-result');
-  if (!a) { result.innerHTML = '<div class="flash flash-err">Empty response.</div>'; return; }
-  const warningsHtml = (a.warnings || []).length ? `<div class="text-brick text-xs mt-2">⚠ ${a.warnings.map(esc).join(' · ')}</div>` : '';
-  let bodyHtml = '';
-  if (a.intent === 'clarify') {
-    bodyHtml = `<div class="text-cream/80">${esc(a.clarification_needed || a.summary)}</div>`;
-  } else if (a.intent === 'info') {
-    bodyHtml = `<div class="text-cream/80">${esc(a.summary)}</div>${a.explanation ? `<div class="text-xs text-cream/60 mt-2">${esc(a.explanation)}</div>` : ''}`;
-  } else if (a.intent === 'query' && a.sql) {
-    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div>${a.explanation ? `<div class="text-xs text-cream/60 mb-3">${esc(a.explanation)}</div>` : ''}<pre class="font-mono text-xs bg-navy p-3 rounded border border-cream/10 overflow-x-auto whitespace-pre-wrap">${esc(a.sql)}</pre><div class="mt-3 flex gap-2"><a class="btn btn-primary btn-sm" target="_blank" href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/sql/new?content=${encodeURIComponent(a.sql)}">Open in SQL editor</a><button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button></div>`;
-  } else if (a.intent === 'send_email' && a.email) {
-    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div><div class="text-xs text-cream/60 mb-3">${esc(a.explanation || '')}</div><div class="space-y-1 text-sm"><div><span class="text-cream/50">Template:</span> <span class="font-mono text-gold">${esc(a.email.template_slug)}</span></div><div><span class="text-cream/50">Recipients:</span> ${esc(a.email.recipient_description || JSON.stringify(a.email.recipient_config))}</div>${a.email.estimated_recipients != null ? `<div><span class="text-cream/50">Estimated count:</span> <span class="font-mono">${fmtNum(a.email.estimated_recipients)}</span></div>` : ''}</div><div class="mt-3 flex gap-2"><button class="btn btn-secondary btn-sm" disabled>Draft to me first (Sprint B)</button><button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button></div>`;
-  } else if (a.intent === 'create_task' && a.task) {
-    bodyHtml = `<div class="text-cream/80 mb-2">${esc(a.summary)}</div><div class="space-y-1 text-sm mt-3"><div><span class="text-cream/50">Title:</span> ${esc(a.task.title)}</div>${a.task.description ? `<div><span class="text-cream/50">Description:</span> ${esc(a.task.description)}</div>` : ''}<div><span class="text-cream/50">Priority:</span> <span class="font-mono">${esc(a.task.priority)}</span></div>${a.task.due_at ? `<div><span class="text-cream/50">Due:</span> ${esc(fmtDate(a.task.due_at))} (${esc(relTime(a.task.due_at))})</div>` : ''}</div><div class="mt-3 flex gap-2"><button class="btn btn-primary btn-sm" id="create-task-btn">Create task</button><button class="btn btn-secondary btn-sm" id="cancel-action">Cancel</button></div>`;
-  } else {
-    bodyHtml = `<div class="text-cream/80">${esc(a.summary || 'Unsupported.')}</div><pre class="font-mono text-[10px] mt-2 text-cream/40 overflow-x-auto">${esc(JSON.stringify(a, null, 2))}</pre>`;
-  }
-  result.innerHTML = `<div class="action-prop"><div class="flex items-center gap-2 mb-2 flex-wrap"><span class="tag tag-${a.confidence==='high'?'good':a.confidence==='low'?'bad':'warn'}">${esc(a.confidence||'?')} confidence</span><span class="font-mono text-[10px] text-cream/40">${esc(a.intent)} · ${durationMs}ms</span></div>${bodyHtml}${warningsHtml}</div>`;
-  const cancel = $('#cancel-action'); if (cancel) cancel.addEventListener('click', () => { result.innerHTML = ''; });
-  const ct = $('#create-task-btn'); if (ct) ct.addEventListener('click', async () => {
-    const t = a.task;
-    const { error } = await _sb.from('admin_tasks').insert({ title: t.title, description: t.description, task_type: t.task_type || 'manual', priority: t.priority || 'normal', due_at: t.due_at || null });
-    if (error) { result.innerHTML = `<div class="flash flash-err">${esc(error.message)}</div>`; return; }
-    result.innerHTML = `<div class="flash flash-ok">Task created.</div>`;
-    loadHomeTasks();
-  });
-}
-
-async function renderPeople() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">People</h1><div id="ppl"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data, error, count } = await _sb.from('v_person_overview').select('*', { count: 'exact' }).order('last_emailed_at',{ascending:false,nullsFirst:false}).limit(50);
-  if (error) throw error;
-  $('#ppl').innerHTML = `
-    <div class="text-xs text-cream/60 mb-3">${fmtNum(count||0)} people · showing first 50</div>
-    <div class="card !p-0 overflow-hidden"><table>
-    <thead><tr><th>Person</th><th>Buildings</th><th>Emails</th><th>Last emailed</th></tr></thead>
-    <tbody>${(data||[]).map(p => `<tr>
-      <td><div class="font-medium">${esc(p.full_name || p.primary_email)}</div><div class="font-mono text-[11px] text-cream/50">${esc(p.primary_email)}</div></td>
-      <td class="text-cream/80">${esc((p.building_slugs||[]).slice(0,2).join(', ')) || '—'} <span class="text-[11px] text-cream/45 font-mono">${p.owned_building_count||0} bldg</span></td>
-      <td>${fmtNum(p.emails_received)}<div class="text-[11px] text-cream/45">${p.emails_received > 0 ? fmtPct(p.emails_opened, p.emails_received) : '—'} open</div></td>
-      <td class="font-mono text-xs text-cream/70">${esc(relTime(p.last_emailed_at))}</td>
-    </tr>`).join('')}</tbody></table></div>`;
-}
-
-async function renderHoa() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">HOA Pipeline</h1><div id="hoa"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data, error } = await _sb.from('v_hoa_pipeline').select('*').order('urgency_rank',{ascending:true}).limit(100);
-  if (error) throw error;
-  $('#hoa').innerHTML = `<div class="space-y-2">${(data||[]).map(h => `
-    <div class="card !p-3">
-      <div class="flex flex-wrap items-baseline gap-3">
-        <span class="font-mono text-sm font-medium">${esc(h.building_slug)}</span>
-        <span class="tag ${h.status==='won'?'tag-good':h.status==='declined'?'tag-bad':'tag-warn'}">${esc(h.status.replace('_',' '))}</span>
-        ${h.next_action_at ? `<span class="font-mono text-[10px] text-cream/50">next: ${esc(relTime(h.next_action_at))}</span>` : ''}
-        ${h.contact_count > 0 ? `<span class="tag">${h.contact_count} contact${h.contact_count!==1?'s':''}</span>` : ''}
-      </div>
-      ${h.primary_contact_email ? `<div class="text-sm text-cream/70 mt-1">${esc(h.primary_contact_name||'')} · ${esc(h.primary_contact_email)}</div>` : ''}
-    </div>`).join('')}</div>
-    <div class="placeholder mt-6"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>HOA pitch page editor, full CRM, recurring schedules</div>`;
-}
-
-// ===== PARTNERS — PM firm partnership pipeline =====
-// Sprint 1-7.1 build. v5.10 changes:
-//   - New route #partners/<slug> → renderPartnerHub (the new primary firm view)
-//   - Pipeline row "Portfolio →" renamed to "Open hub →" (navigates to hub, not portfolio)
-//   - Hub consolidates: header + stats + decision-maker + activity timeline +
-//     pitch materials (inline-editable URLs) + top buildings + research notes
-//   - Existing #partners/<slug>/portfolio still works as a sub-route from the hub
-//   - loadPartnersData split into fetchPartnersData (silent) + loadPartnersData (renders)
-//     so the hub can populate _partnersCache without targeting pipeline DOM elements
-
-let _partnersCache = null;
-
-const PARTNERSHIP_CADENCE = {
-  partnership_initial_cold:   { next_status: 'emailed',         next_action_type: 'send_follow_up_1', days_until_next: 4  },
-  partnership_follow_up_1:    { next_status: 'followed_up_1',   next_action_type: 'send_follow_up_2', days_until_next: 7  },
-  partnership_follow_up_2:    { next_status: 'followed_up_2',   next_action_type: 'wait',             days_until_next: null },
-  partnership_reply_engaged:  { next_status: 'replied',         next_action_type: 'wait',             days_until_next: null },
-};
-
-const NEXT_ACTION_TO_SLUG = {
-  send_initial:      'partnership_initial_cold',
-  send_follow_up_1:  'partnership_follow_up_1',
-  send_follow_up_2:  'partnership_follow_up_2',
-  send_reply:        'partnership_reply_engaged',
-};
-
-const CAN_LOG_REPLY = ['emailed', 'followed_up_1', 'followed_up_2'];
-const ENGAGED_STATUSES = ['replied', 'meeting_scheduled', 'meeting_held', 'agreement_sent', 'agreement_signed'];
-const CAN_BOOK_MEETING = ['replied'];
-const CAN_COMPLETE_MEETING = ['meeting_scheduled'];
-
-const PUBLIC_PARTNER_URL = (slug) => `https://www.sanfranciscocondomarket.com/partners/?firm=${encodeURIComponent(slug)}`;
-
-async function renderPartners(rest) {
-  rest = Array.isArray(rest) ? rest : [];
-  const [firmSlug, subview] = rest;
-  if (firmSlug && subview === 'portfolio') {
-    return renderPartnerPortfolio(firmSlug);
-  }
-  // Sprint 7.1: bare /<slug> path → hub
-  if (firmSlug) {
-    return renderPartnerHub(firmSlug);
-  }
-
-  $('#content').innerHTML = `
-    <div class="flex items-baseline justify-between mb-4 flex-wrap gap-3">
-      <h1 class="font-display text-3xl italic">Partners <span class="text-cream/50 text-sm font-sans italic">— PM firm partnership pipeline</span></h1>
-      <div class="text-xs text-cream/55">33% broker-to-broker · 1% of every sale price</div>
+async function renderListingsActive() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Listings · Active deals</div>
+      <h1>Coming Soon & Active Listings</h1>
+      <div class="desc">All listings where the seller has selected Coming Soon or Active Listing tier.</div>
     </div>
-    <div id="partners-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
-    <h2 class="font-display text-xl mb-3">Pipeline</h2>
-    <div id="partners-pipeline"><div class="p-8 text-center"><div class="spinner"></div></div></div>
-    <div id="partners-templates" class="mt-8"></div>
-  `;
-  await loadPartnersData();
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="coming_soon">Coming Soon</button>
+      <button class="filter-btn" data-filter="listing">Active Listing</button>
+      <button class="filter-btn" data-filter="unsigned">Awaiting signature</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="deal-count">—</div>
+    </div>
+    <div id="deal-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderActiveList(window._allDeals || [], b.dataset.filter);
+  }));
+  await loadActive();
 }
 
-// Sprint 7.1: split data-fetch from rendering so the hub can use the cache too
-async function fetchPartnersData() {
-  const [outR, coR, tplR, evR] = await Promise.all([
-    _sb.from('partnership_outreach').select('*').order('priority',{ascending:true}),
-    _sb.from('hoa_companies').select('*'),
-    _sb.from('email_templates').select('*').eq('category','partnership').eq('is_active',true).order('slug'),
-    _sb.from('partnership_outreach_events').select('*').order('occurred_at',{ascending:false}),
+async function loadActive() {
+  const { data: listings, error } = await sb.from('listings').select('*').in('tier',['coming_soon','listing']).order('updated_at', { ascending: false });
+  if (error) { document.getElementById('deal-list').innerHTML = `<div class="empty">Error: ${escapeHtml(error.message)}</div>`; return; }
+  const userIds = [...new Set((listings||[]).map(l => l.user_id).filter(Boolean))];
+  const bldgSlugs = [...new Set((listings||[]).map(l => l.building_slug).filter(Boolean))];
+  const [profilesRes, bldgRes] = await Promise.all([
+    sb.from('profiles').select('id,full_name,email').in('id', userIds.length ? userIds : ['00000000-0000-0000-0000-000000000000']),
+    sb.from('buildings').select('slug,display_name,neighborhood').in('slug', bldgSlugs.length ? bldgSlugs : ['__none__'])
   ]);
-  if (outR.error) throw outR.error;
-  if (coR.error) throw coR.error;
-  if (tplR.error) throw tplR.error;
-
-  const outreach = outR.data || [];
-  const companies = coR.data || [];
-  const templates = tplR.data || [];
-  const events = evR.data || [];
-  const companyMap = Object.fromEntries(companies.map(c => [c.id, c]));
-  const eventsByOutreach = events.reduce((acc, e) => { (acc[e.outreach_id] ||= []).push(e); return acc; }, {});
-
-  _partnersCache = { outreach, companies, companyMap, templates, events, eventsByOutreach };
+  const profileMap = Object.fromEntries((profilesRes.data || []).map(p => [p.id, p]));
+  const bldgMap = Object.fromEntries((bldgRes.data || []).map(b => [b.slug, b]));
+  window._allDeals = (listings || []).map(l => ({ ...l, profile: profileMap[l.user_id], building: bldgMap[l.building_slug] }));
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderActiveList(window._allDeals, active);
+  setUpdated();
 }
 
-async function loadPartnersData() {
-  await fetchPartnersData();
-  renderPartnersStats();
-  renderPartnersPipeline();
-  renderPartnersTemplates();
-}
-
-function renderPartnersStats() {
-  const { outreach } = _partnersCache;
-  const total = outreach.length;
-  const active = outreach.filter(o => !['declined','dormant','agreement_signed'].includes(o.status)).length;
-  const engaged = outreach.filter(o => ENGAGED_STATUSES.includes(o.status)).length;
-  const upcomingMeetings = outreach.filter(o => o.status === 'meeting_scheduled').length;
-  const weekFromNow = new Date(Date.now() + 7*86400000);
-  const dueThisWeek = outreach.filter(o => o.next_action_at && new Date(o.next_action_at) <= weekFromNow && !['declined','dormant'].includes(o.status)).length;
-
-  const tiles = [
-    ['In pipeline', total, `${active} active · ${total - active} closed`],
-    ['Engaged', engaged, engaged ? 'replied or later' : 'awaiting first reply'],
-    ['Upcoming meetings', upcomingMeetings, upcomingMeetings ? 'meeting_scheduled' : 'none booked yet'],
-    ['Due this week', dueThisWeek, dueThisWeek ? 'click rows below' : 'queue is clear'],
-  ];
-  $('#partners-stats').innerHTML = tiles.map(([l,n,sub]) =>
-    `<div class="card"><div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">${esc(l)}</div><div class="font-display text-3xl">${esc(String(n))}</div><div class="text-xs text-cream/55 mt-1">${esc(sub)}</div></div>`
-  ).join('');
-}
-
-function partnerStatusTag(status) {
-  if (['agreement_signed','meeting_held','meeting_scheduled','replied','agreement_sent'].includes(status)) return 'tag-good';
-  if (['declined','dormant'].includes(status)) return 'tag-bad';
-  return 'tag-warn';
-}
-
-function renderPartnersPipeline() {
-  const { outreach, companyMap, eventsByOutreach } = _partnersCache;
-
-  if (!outreach.length) {
-    $('#partners-pipeline').innerHTML = '<div class="placeholder">No partnership outreach rows yet.</div>';
-    return;
-  }
-
-  $('#partners-pipeline').innerHTML = outreach.map(o => {
-    const firm = companyMap[o.company_id];
-    const events = eventsByOutreach[o.id] || [];
-    const lastEvent = events[0];
-    const canCompose = !['declined','dormant','on_hold','researching'].includes(o.status);
-    const canLogReply = CAN_LOG_REPLY.includes(o.status);
-    const canBookMeeting = CAN_BOOK_MEETING.includes(o.status);
-    const canCompleteMeeting = CAN_COMPLETE_MEETING.includes(o.status);
-    const needsEmail = o.contact_first_name && !o.contact_email;
-    const apolloUrl = `https://app.apollo.io/#/companies/find?q=${encodeURIComponent(firm?.name || '')}`;
-    const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
-    // Sprint 7.1: pipeline row primary nav now points at the hub, not the portfolio
-    const hubHref = firm?.slug ? `#partners/${firm.slug}` : '#partners';
-    const publicUrl = firm?.slug ? PUBLIC_PARTNER_URL(firm.slug) : null;
-
-    const composeLabel = o.status === 'replied' ? 'Send reply →'
-      : o.status === 'meeting_scheduled' || o.status === 'meeting_held' ? 'Send follow-up →'
-      : 'Compose →';
-
-    const isEngaged = ENGAGED_STATUSES.includes(o.status);
-    const isClosed = ['declined','dormant'].includes(o.status);
-    const rowClass = isEngaged ? 'partner-engaged' : isClosed ? 'partner-closed' : '';
-
-    return `
-    <div class="card mb-3 ${rowClass}" data-row="${esc(o.id)}">
-      <div class="flex items-baseline justify-between gap-4 flex-wrap mb-2">
-        <div class="flex items-baseline gap-3 flex-wrap">
-          <span class="font-mono text-xs text-cream/45">#${o.priority}</span>
-          <a class="font-display text-lg hover:text-gold transition-colors" href="${esc(hubHref)}">${esc(firm?.name || '?')}</a>
-          ${o.contact_full_name ? `<span class="text-cream/70 text-sm">${esc(o.contact_full_name)}${o.contact_title ? ` · ${esc(o.contact_title)}` : ''}</span>` : `<span class="text-cream/45 text-xs italic">no decision-maker contact set</span>`}
-          <span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          ${canCompose ? `<button class="btn ${needsEmail ? 'btn-secondary' : 'btn-primary'} btn-sm" data-toggle="composer" data-row="${esc(o.id)}">${esc(composeLabel)}</button>` : ''}
-          ${canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
-          ${canBookMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-booker" data-row="${esc(o.id)}">Meeting booked →</button>` : ''}
-          ${canCompleteMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-completer" data-row="${esc(o.id)}">Meeting completed →</button>` : ''}
-          <a class="btn btn-secondary btn-sm" href="${esc(hubHref)}">Open hub →</a>
-          ${publicUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Public ↗</a>` : ''}
-          <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseRowUrl)}">Edit row ↗</a>
-        </div>
+function renderActiveList(allDeals, filter) {
+  let deals = allDeals;
+  if (filter === 'coming_soon') deals = deals.filter(d => d.tier === 'coming_soon');
+  else if (filter === 'listing') deals = deals.filter(d => d.tier === 'listing');
+  else if (filter === 'unsigned') deals = deals.filter(d => !d.agreement_signed_at);
+  document.getElementById('deal-count').textContent = deals.length + ' deal' + (deals.length===1?'':'s');
+  if (!deals.length) { document.getElementById('deal-list').innerHTML = '<div class="empty">No deals match this filter. When sellers select Coming Soon or Active Listing tier, they appear here.</div>'; return; }
+  document.getElementById('deal-list').innerHTML = `<div class="row-list">${deals.map(d => {
+    const bldgName = d.building?.display_name || prettyBuilding(d.building_slug);
+    const tierLabel = d.tier === 'coming_soon' ? 'Coming Soon' : 'Active Listing';
+    const tierIcon = d.tier === 'listing' ? '🔥' : '📋';
+    const signed = !!d.agreement_signed_at;
+    const parts = [];
+    if (d.price) parts.push(`<span>at <strong>${fmtMoney(d.price)}</strong></span>`);
+    if (d.occupancy_mode) parts.push(`<span>${d.occupancy_mode.replace('_',' ')}</span>`);
+    if (d.photo_count) parts.push(`<span>${d.photo_count}📷</span>`);
+    if (d.photo_library_consent_at) parts.push(`<span style="color:var(--success)">✓ consent</span>`);
+    parts.push(signed ? `<span style="color:var(--success)">✓ signed ${fmtAge(d.agreement_signed_at)}</span>` : `<span style="color:var(--warn)">⏳ awaiting signature</span>`);
+    const actions = signed ? `<a class="btn" href="mailto:${d.profile?.email || ''}">Email owner</a>` : `<button class="btn primary" data-sign="${d.id}">Mark signed</button>`;
+    return `<div class="row ${signed ? 'approved' : 'pending'}">
+      <div class="row-badge"><div class="row-badge-icon">${tierIcon}</div><div class="row-badge-text">${escapeHtml(tierLabel)}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(d.profile?.full_name || d.profile?.email?.split('@')[0] || 'Unknown')}<span class="meta">${escapeHtml(bldgName)} · #${escapeHtml(d.unit_address || '')}</span></h3>
+        <div class="sub">${escapeHtml(d.profile?.email || '')}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
       </div>
-      <div class="flex gap-3 flex-wrap text-xs text-cream/60">
-        ${o.contact_email
-          ? `<span class="font-mono text-cream/75">${esc(o.contact_email)}</span>`
-          : o.contact_first_name
-            ? `<span class="text-brick">⚠ no email — <a href="${esc(apolloUrl)}" target="_blank" class="underline">Apollo lookup</a> · <button class="underline text-gold" data-toggle="set-email" data-row="${esc(o.id)}">set email →</button></span>`
-            : `<span class="text-cream/40 italic">no decision-maker yet</span>`}
-        ${o.next_action_at ? `<span>Next: ${esc((o.next_action_type||'').replace(/_/g,' '))} <span class="text-cream/40">(${esc(relTime(o.next_action_at))})</span></span>` : ''}
-        ${lastEvent ? `<span>Last touch: ${esc(lastEvent.event_type.replace(/_/g,' '))} <span class="text-cream/40">(${esc(relTime(lastEvent.occurred_at))})</span></span>` : ''}
-        ${events.length ? `<span class="text-cream/40">${events.length} event${events.length !== 1 ? 's' : ''}</span>` : ''}
-        ${o.notes ? `<span class="text-cream/40 italic">"${esc(o.notes.length > 90 ? o.notes.slice(0,90) + '…' : o.notes)}"</span>` : ''}
-      </div>
-      <div class="partners-set-email mt-3" id="set-email-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-composer mt-3" id="composer-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-reply-logger mt-3" id="reply-logger-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-meeting-booker mt-3" id="meeting-booker-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-meeting-completer mt-3" id="meeting-completer-${esc(o.id)}" style="display:none"></div>
+      <div class="row-actions"><div class="age">updated ${fmtAge(d.updated_at)}</div><div class="action-row">${actions}</div></div>
+    </div>`;
+  }).join('')}</div>`;
+  document.querySelectorAll('[data-sign]').forEach(btn => btn.addEventListener('click', async () => {
+    const id = btn.dataset.sign;
+    const url = prompt('Optional: paste the agreement URL (DocuSign link, etc.). Leave blank to mark signed without URL.');
+    if (url === null) return;
+    const update = { agreement_signed_at: new Date().toISOString() };
+    if (url) update.agreement_url = url;
+    const { error } = await sb.from('listings').update(update).eq('id', id);
+    if (error) return toast('Mark signed failed: ' + error.message, 'error');
+    toast('Agreement marked signed ✓', 'success');
+    await loadActive();
+  }));
+}
+
+async function renderListingsEvents() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Listings · Funnel events</div>
+      <h1>Raw event stream</h1>
+      <div class="desc">Every event recorded from the seller funnel, newest first. Filter by email or event type.</div>
     </div>
-    `;
-  }).join('');
-
-  wireToggleButtons('#partners-pipeline');
-}
-
-// Helper: wire the inline-panel toggle buttons inside any container. Used by both
-// the pipeline list and the hub since they share the same panel templates.
-function wireToggleButtons(containerSel) {
-  const container = $(containerSel);
-  if (!container) return;
-  $$('[data-toggle="composer"]', container).forEach(b =>
-    b.addEventListener('click', () => togglePartnerPanel('composer', b.dataset.row, renderPartnerComposer))
-  );
-  $$('[data-toggle="set-email"]', container).forEach(b =>
-    b.addEventListener('click', () => togglePartnerPanel('set-email', b.dataset.row, renderPartnerSetEmail))
-  );
-  $$('[data-toggle="reply-logger"]', container).forEach(b =>
-    b.addEventListener('click', () => togglePartnerPanel('reply-logger', b.dataset.row, renderPartnerReplyLogger))
-  );
-  $$('[data-toggle="meeting-booker"]', container).forEach(b =>
-    b.addEventListener('click', () => togglePartnerPanel('meeting-booker', b.dataset.row, renderPartnerMeetingBooker))
-  );
-  $$('[data-toggle="meeting-completer"]', container).forEach(b =>
-    b.addEventListener('click', () => togglePartnerPanel('meeting-completer', b.dataset.row, renderPartnerMeetingCompleter))
-  );
-}
-
-function togglePartnerPanel(kind, rowId, renderer) {
-  const target = $(`#${kind}-${rowId}`);
-  if (!target) return;
-  if (target.style.display === 'block') {
-    target.style.display = 'none';
-    target.innerHTML = '';
-    return;
-  }
-  $$('.partners-composer, .partners-set-email, .partners-reply-logger, .partners-meeting-booker, .partners-meeting-completer').forEach(p => { p.style.display = 'none'; p.innerHTML = ''; });
-  target.style.display = 'block';
-  renderer(rowId, target);
-}
-
-function renderPartnerSetEmail(outreachId, container) {
-  const { outreach } = _partnersCache;
-  const o = outreach.find(x => x.id === outreachId);
-  container.innerHTML = `
-    <div class="border-t border-cream/10 pt-3 flex gap-2 items-center flex-wrap">
-      <input type="email" placeholder="firstname@firmdomain.com" class="!w-72" id="set-email-input-${esc(outreachId)}" value="${esc(o.contact_email || '')}">
-      <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-email">Save</button>
-      <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-email">Cancel</button>
-      <div id="set-email-msg-${esc(outreachId)}" class="text-xs"></div>
+    <div class="filters">
+      <input type="text" class="search-input" id="ev-email" placeholder="filter by email…">
+      <input type="text" class="search-input" id="ev-type" placeholder="filter by event_type…" style="min-width:280px">
+      <div class="filter-spacer"></div><div class="filter-meta" id="ev-count">—</div>
     </div>
-  `;
-  $(`[data-row="${outreachId}"][data-action="save-email"]`, container).addEventListener('click', async () => {
-    const email = $(`#set-email-input-${outreachId}`).value.trim().toLowerCase();
-    if (!email || !email.includes('@')) {
-      $(`#set-email-msg-${outreachId}`).innerHTML = '<span class="text-brick">Invalid email</span>';
-      return;
-    }
-    const { error } = await _sb.from('partnership_outreach').update({ contact_email: email, updated_at: new Date().toISOString() }).eq('id', outreachId);
-    if (error) {
-      $(`#set-email-msg-${outreachId}`).innerHTML = `<span class="text-brick">${esc(error.message)}</span>`;
-      return;
-    }
-    $(`#set-email-msg-${outreachId}`).innerHTML = '<span class="text-sage">✓ Saved — refreshing</span>';
-    setTimeout(() => location.reload(), 500);
-  });
-  $(`[data-row="${outreachId}"][data-action="cancel-email"]`, container).addEventListener('click', () => {
-    container.style.display = 'none';
-    container.innerHTML = '';
-  });
-  $(`#set-email-input-${outreachId}`).focus();
-}
-
-function renderPartnerReplyLogger(outreachId, container) {
-  const { outreach, companyMap } = _partnersCache;
-  const o = outreach.find(x => x.id === outreachId);
-  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
-  const firm = companyMap[o.company_id];
-
-  container.innerHTML = `
-    <div class="border-t border-cream/10 pt-4">
-      <div class="text-sm text-cream/75 mb-3">
-        Log a reply from <span class="font-mono text-cream">${esc(o.contact_email || firm?.name || 'this prospect')}</span>.
-        Advances pipeline status and creates an event record. Doesn't send anything outbound.
-      </div>
-
-      <div class="text-xs text-cream/55 mb-2 font-mono uppercase tracking-wider">Classification</div>
-      <div class="flex gap-2 mb-4 flex-wrap">
-        <button class="btn btn-secondary btn-sm" data-classify="positive" data-row="${esc(outreachId)}">✓ Positive / engaged</button>
-        <button class="btn btn-secondary btn-sm" data-classify="declined" data-row="${esc(outreachId)}">✗ Declined / not a fit</button>
-      </div>
-
-      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Reply text <span class="lowercase italic text-cream/40 ml-1">(optional, but useful for the record)</span></div>
-      <textarea id="reply-body-${esc(outreachId)}" rows="4" placeholder="Paste the reply text…" class="mb-3 !text-xs font-mono"></textarea>
-
-      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Notes <span class="lowercase italic text-cream/40 ml-1">(optional — for your future self)</span></div>
-      <input id="reply-notes-${esc(outreachId)}" placeholder="e.g. 'Sounds interested but wants to talk Q3 instead of immediate pilot'" class="mb-4 !text-xs">
-
-      <div class="flex gap-2 flex-wrap">
-        <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-reply" disabled style="opacity:0.4;cursor:not-allowed">Save reply →</button>
-        <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-reply">Cancel</button>
-      </div>
-      <div id="reply-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
-    </div>
-  `;
-
-  let selectedClassification = null;
-  const saveBtn = $(`[data-row="${outreachId}"][data-action="save-reply"]`, container);
-
-  $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedClassification = btn.dataset.classify;
-      $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(b => {
-        b.classList.toggle('btn-primary', b === btn);
-        b.classList.toggle('btn-secondary', b !== btn);
-      });
-      saveBtn.disabled = false;
-      saveBtn.style.opacity = '1';
-      saveBtn.style.cursor = 'pointer';
-    });
-  });
-
-  $(`[data-row="${outreachId}"][data-action="cancel-reply"]`, container).addEventListener('click', () => {
-    container.style.display = 'none';
-    container.innerHTML = '';
-  });
-
-  saveBtn.addEventListener('click', async () => {
-    if (!selectedClassification) return;
-    const body = $(`#reply-body-${outreachId}`).value.trim();
-    const notes = $(`#reply-notes-${outreachId}`).value.trim();
-    const msgEl = $(`#reply-msg-${outreachId}`);
-
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
-
-    const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
-      outreach_id: outreachId,
-      event_type: 'email_replied',
-      body: body || null,
-      metadata: {
-        classification: selectedClassification,
-        notes: notes || null,
-        logged_via: 'admin_partners_reply_logger',
-        logged_at: new Date().toISOString(),
-      },
-    });
-    if (evErr) {
-      msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save reply →';
-      return;
-    }
-
-    const now = new Date();
-    const updates = { last_action_at: now.toISOString(), updated_at: now.toISOString() };
-    if (selectedClassification === 'positive') {
-      updates.status = 'replied';
-      updates.next_action_type = 'send_reply';
-      updates.next_action_at = now.toISOString();
-    } else if (selectedClassification === 'declined') {
-      updates.status = 'declined';
-      updates.next_action_type = 'wait';
-      updates.next_action_at = null;
-    }
-
-    const { error: updErr } = await _sb.from('partnership_outreach').update(updates).eq('id', outreachId);
-    if (updErr) {
-      msgEl.innerHTML = `<span class="text-amber">Event logged, but status update failed: ${esc(updErr.message)}</span>`;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save reply →';
-      return;
-    }
-
-    msgEl.innerHTML = `<span class="text-sage">✓ Reply logged + status advanced. Refreshing…</span>`;
-    setTimeout(() => location.reload(), 800);
-  });
-}
-
-function renderPartnerMeetingBooker(outreachId, container) {
-  const { outreach, companyMap } = _partnersCache;
-  const o = outreach.find(x => x.id === outreachId);
-  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
-  const firm = companyMap[o.company_id];
-
-  const defaultDt = new Date(Date.now() + 86400000);
-  defaultDt.setHours(14, 0, 0, 0);
-  const defaultDtStr = defaultDt.toISOString().slice(0, 16);
-
-  container.innerHTML = `
-    <div class="border-t border-cream/10 pt-4">
-      <div class="text-sm text-cream/75 mb-4">
-        Log a meeting booking with <span class="font-mono text-cream">${esc(firm?.name || 'this firm')}</span>.
-        Advances status to <span class="font-mono text-gold">meeting_scheduled</span> and creates an event record.
-      </div>
-
-      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Meeting date & time</div>
-      <input type="datetime-local" id="meeting-at-${esc(outreachId)}" class="mb-3 !w-auto" value="${esc(defaultDtStr)}">
-
-      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Notes <span class="lowercase italic text-cream/40 ml-1">(optional — calendar link, agenda, attendees)</span></div>
-      <input id="meeting-notes-${esc(outreachId)}" placeholder="e.g., 'Zoom link in calendar. CFO joining. 30 min, walkthrough + Q&A'" class="mb-4 !text-xs">
-
-      <div class="flex gap-2 flex-wrap">
-        <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-booking">Save booking →</button>
-        <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-booking">Cancel</button>
-      </div>
-      <div id="booking-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
-    </div>
-  `;
-
-  $(`[data-row="${outreachId}"][data-action="cancel-booking"]`, container).addEventListener('click', () => {
-    container.style.display = 'none';
-    container.innerHTML = '';
-  });
-
-  const saveBtn = $(`[data-row="${outreachId}"][data-action="save-booking"]`, container);
-  saveBtn.addEventListener('click', async () => {
-    const meetingAtStr = $(`#meeting-at-${outreachId}`).value;
-    const notes = $(`#meeting-notes-${outreachId}`).value.trim();
-    const msgEl = $(`#booking-msg-${outreachId}`);
-
-    if (!meetingAtStr) {
-      msgEl.innerHTML = '<span class="text-brick">Meeting date/time required.</span>';
-      return;
-    }
-
-    const meetingAtIso = new Date(meetingAtStr).toISOString();
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
-
-    const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
-      outreach_id: outreachId,
-      event_type: 'meeting_scheduled',
-      metadata: {
-        meeting_at: meetingAtIso,
-        notes: notes || null,
-        logged_via: 'admin_partners_meeting_booker',
-        logged_at: new Date().toISOString(),
-      },
-    });
-    if (evErr) {
-      msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save booking →';
-      return;
-    }
-
-    const now = new Date();
-    const { error: updErr } = await _sb.from('partnership_outreach').update({
-      status: 'meeting_scheduled',
-      last_action_at: now.toISOString(),
-      next_action_at: meetingAtIso,
-      next_action_type: 'meeting',
-      updated_at: now.toISOString(),
-    }).eq('id', outreachId);
-    if (updErr) {
-      msgEl.innerHTML = `<span class="text-amber">Event logged, but status update failed: ${esc(updErr.message)}</span>`;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save booking →';
-      return;
-    }
-
-    msgEl.innerHTML = '<span class="text-sage">✓ Meeting booked + status advanced. Refreshing…</span>';
-    setTimeout(() => location.reload(), 800);
-  });
-}
-
-function renderPartnerMeetingCompleter(outreachId, container) {
-  const { outreach, companyMap } = _partnersCache;
-  const o = outreach.find(x => x.id === outreachId);
-  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
-  const firm = companyMap[o.company_id];
-
-  container.innerHTML = `
-    <div class="border-t border-cream/10 pt-4">
-      <div class="text-sm text-cream/75 mb-3">
-        Log the outcome of the meeting with <span class="font-mono text-cream">${esc(firm?.name || 'this firm')}</span>.
-        Classification determines next status; notes captured for the record.
-      </div>
-
-      <div class="text-xs text-cream/55 mb-2 font-mono uppercase tracking-wider">Outcome</div>
-      <div class="flex gap-2 mb-4 flex-wrap">
-        <button class="btn btn-secondary btn-sm" data-classify="positive" data-row="${esc(outreachId)}">✓ Positive — moving forward</button>
-        <button class="btn btn-secondary btn-sm" data-classify="declined" data-row="${esc(outreachId)}">✗ Not a fit — closing the loop</button>
-      </div>
-
-      <div class="text-xs text-cream/55 mb-1 font-mono uppercase tracking-wider">Meeting notes <span class="lowercase italic text-cream/40 ml-1">(recommended)</span></div>
-      <textarea id="completion-notes-${esc(outreachId)}" rows="4" placeholder="What was discussed? Any objections? Next steps? Who's on their side?" class="mb-4 !text-xs"></textarea>
-
-      <div class="flex gap-2 flex-wrap">
-        <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="save-completion" disabled style="opacity:0.4;cursor:not-allowed">Save outcome →</button>
-        <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="cancel-completion">Cancel</button>
-      </div>
-      <div id="completion-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
-    </div>
-  `;
-
-  let selectedOutcome = null;
-  const saveBtn = $(`[data-row="${outreachId}"][data-action="save-completion"]`, container);
-
-  $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedOutcome = btn.dataset.classify;
-      $$(`[data-row="${outreachId}"][data-classify]`, container).forEach(b => {
-        b.classList.toggle('btn-primary', b === btn);
-        b.classList.toggle('btn-secondary', b !== btn);
-      });
-      saveBtn.disabled = false;
-      saveBtn.style.opacity = '1';
-      saveBtn.style.cursor = 'pointer';
-    });
-  });
-
-  $(`[data-row="${outreachId}"][data-action="cancel-completion"]`, container).addEventListener('click', () => {
-    container.style.display = 'none';
-    container.innerHTML = '';
-  });
-
-  saveBtn.addEventListener('click', async () => {
-    if (!selectedOutcome) return;
-    const notes = $(`#completion-notes-${outreachId}`).value.trim();
-    const msgEl = $(`#completion-msg-${outreachId}`);
-
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
-
-    const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
-      outreach_id: outreachId,
-      event_type: 'meeting_held',
-      body: notes || null,
-      metadata: {
-        classification: selectedOutcome,
-        notes: notes || null,
-        logged_via: 'admin_partners_meeting_completer',
-        logged_at: new Date().toISOString(),
-      },
-    });
-    if (evErr) {
-      msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save outcome →';
-      return;
-    }
-
-    const now = new Date();
-    const updates = { last_action_at: now.toISOString(), updated_at: now.toISOString() };
-    if (selectedOutcome === 'positive') {
-      updates.status = 'meeting_held';
-      updates.next_action_type = 'wait';
-      updates.next_action_at = null;
-    } else if (selectedOutcome === 'declined') {
-      updates.status = 'declined';
-      updates.next_action_type = 'wait';
-      updates.next_action_at = null;
-    }
-
-    const { error: updErr } = await _sb.from('partnership_outreach').update(updates).eq('id', outreachId);
-    if (updErr) {
-      msgEl.innerHTML = `<span class="text-amber">Event logged, but status update failed: ${esc(updErr.message)}</span>`;
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save outcome →';
-      return;
-    }
-
-    msgEl.innerHTML = `<span class="text-sage">✓ Outcome logged. Refreshing…</span>`;
-    setTimeout(() => location.reload(), 800);
-  });
-}
-
-function renderPartnerTemplate(text, vars) {
-  return String(text || '').replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null && vars[k] !== '') ? String(vars[k]) : `{${k}}`);
-}
-
-function renderPartnerComposer(outreachId, container) {
-  const { outreach, templates, companyMap } = _partnersCache;
-  const o = outreach.find(x => x.id === outreachId);
-  if (!o) { container.innerHTML = '<div class="text-brick">Outreach row not found</div>'; return; }
-  const firm = companyMap[o.company_id];
-
-  const defaultSlug = NEXT_ACTION_TO_SLUG[o.next_action_type] || 'partnership_initial_cold';
-
-  const mergedVars = {
-    first_name: o.contact_first_name || '',
-    firm_name: firm?.name || '',
-    public_portfolio_url: firm?.slug ? PUBLIC_PARTNER_URL(firm.slug) : '',
-    ...(o.custom_vars || {}),
+    <div style="overflow-x:auto;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+      <table class="events-table">
+        <thead><tr><th>When</th><th>Email</th><th>Event</th><th>Metadata</th><th>Source</th></tr></thead>
+        <tbody id="ev-body"><tr><td colspan="5" style="text-align:center;padding:36px;color:rgba(232,227,216,0.5)">Loading…</td></tr></tbody>
+      </table>
+    </div>`;
+  let allEvents = [];
+  const applyFilters = () => {
+    const emailQ = document.getElementById('ev-email').value.toLowerCase().trim();
+    const typeQ = document.getElementById('ev-type').value.toLowerCase().trim();
+    let filtered = allEvents;
+    if (emailQ) filtered = filtered.filter(e => (e.email || '').toLowerCase().includes(emailQ));
+    if (typeQ) filtered = filtered.filter(e => (e.event_type || '').toLowerCase().includes(typeQ));
+    document.getElementById('ev-count').textContent = filtered.length + ' event' + (filtered.length===1?'':'s') + (allEvents.length === 200 ? ' (capped at 200)' : '');
+    if (!filtered.length) { document.getElementById('ev-body').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:36px;color:rgba(232,227,216,0.5);font-style:italic">No events match. Funnel populates when sellers visit /account/list-my-condo/.</td></tr>'; return; }
+    document.getElementById('ev-body').innerHTML = filtered.map(e => `<tr>
+      <td>${escapeHtml(new Date(e.occurred_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}))}</td>
+      <td>${escapeHtml(e.email || '—')}</td>
+      <td class="evtype">${escapeHtml(e.event_type)}</td>
+      <td class="evmeta" title="${escapeHtml(JSON.stringify(e.metadata || {}))}">${escapeHtml(JSON.stringify(e.metadata || {}))}</td>
+      <td style="color:rgba(232,227,216,0.4)">${escapeHtml(e.source || '—')}</td>
+    </tr>`).join('');
   };
-
-  const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}`;
-
-  container.innerHTML = `
-    <div class="border-t border-cream/10 pt-4">
-      <div class="mb-3 flex gap-2 flex-wrap items-center">
-        <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50">Template</span>
-        ${templates.map(t => `
-          <button class="btn ${t.slug === defaultSlug ? 'btn-primary' : 'btn-secondary'} btn-sm" data-tpl="${esc(t.slug)}" data-row="${esc(o.id)}">${esc(t.name.replace('Partnership · ', ''))}</button>
-        `).join('')}
-      </div>
-      <div id="composer-body-${esc(o.id)}"></div>
-      <div class="mt-4 pt-3 border-t border-cream/10 text-[11px] text-cream/45">
-        <span class="font-mono">custom_vars active:</span>
-        ${Object.entries(o.custom_vars || {}).map(([k,v]) => `<code class="font-mono">${esc(k)}=${esc(String(v).slice(0,40))}${String(v).length>40?'…':''}</code>`).join(' · ') || '<span class="italic">none</span>'}
-        <a href="${esc(supabaseRowUrl)}" target="_blank" class="text-gold underline ml-2">edit row →</a>
-      </div>
-    </div>
-  `;
-
-  $$(`[data-row="${o.id}"][data-tpl]`, container).forEach(b => {
-    b.addEventListener('click', () => {
-      $$(`[data-row="${o.id}"][data-tpl]`, container).forEach(btn => {
-        btn.classList.toggle('btn-primary', btn === b);
-        btn.classList.toggle('btn-secondary', btn !== b);
-      });
-      renderPartnerComposerBody(o.id, b.dataset.tpl, mergedVars);
-    });
-  });
-  renderPartnerComposerBody(o.id, defaultSlug, mergedVars);
+  const reload = async () => {
+    const { data, error } = await sb.from('funnel_events').select('*').order('occurred_at', { ascending: false }).limit(200);
+    if (error) { document.getElementById('ev-body').innerHTML = `<tr><td colspan="5" style="color:var(--coral);padding:24px">Error: ${escapeHtml(error.message)}</td></tr>`; return; }
+    allEvents = data || [];
+    applyFilters();
+    setUpdated();
+  };
+  document.getElementById('ev-email').addEventListener('input', applyFilters);
+  document.getElementById('ev-type').addEventListener('input', applyFilters);
+  await reload();
+  sectionRefreshTimer = setInterval(reload, 30000);
 }
 
-function renderPartnerComposerBody(outreachId, templateSlug, mergedVars) {
-  const { templates, outreach } = _partnersCache;
-  const t = templates.find(tt => tt.slug === templateSlug);
-  if (!t) return;
-  const o = outreach.find(x => x.id === outreachId);
-
-  const subject = renderPartnerTemplate(t.subject, mergedVars);
-  const bodyText = renderPartnerTemplate(t.body_text || '', mergedVars);
-  const bodyHtml = renderPartnerTemplate(t.body_html || '', mergedVars);
-
-  const unresolvedMatches = [
-    ...String(subject).matchAll(/\{(\w+)\}/g),
-    ...String(bodyText).matchAll(/\{(\w+)\}/g),
-  ].map(m => m[1]);
-  const unresolved = [...new Set(unresolvedMatches)];
-
-  const noEmail = !o.contact_email;
-  const supabaseRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(outreachId)}`;
-  const gmailUrl = o.contact_email
-    ? `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(o.contact_email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`
-    : null;
-
-  const body = $(`#composer-body-${outreachId}`);
-  body.innerHTML = `
-    ${unresolved.length ? `<div class="flash flash-err !py-2 !mb-3 !text-xs">Unresolved merge vars: ${unresolved.map(v => `<code class="font-mono">{${esc(v)}}</code>`).join(', ')}. <a href="${esc(supabaseRowUrl)}" target="_blank" class="underline">Fix in custom_vars →</a></div>` : ''}
-    <div class="mb-2 text-xs"><span class="text-cream/50">To:</span> ${o.contact_email ? `<span class="font-mono text-cream">${esc(o.contact_email)}</span>` : '<span class="text-brick">⚠ no recipient — preview only; resolve before sending</span>'}</div>
-    <div class="mb-2 text-xs"><span class="text-cream/50">Subject:</span> <span class="font-mono text-cream">${esc(subject)}</span></div>
-    <pre class="font-sans text-sm text-cream/90 bg-navy p-4 rounded border border-cream/10 whitespace-pre-wrap mb-3" style="font-family:'DM Sans',sans-serif">${esc(bodyText)}</pre>
-    <div class="flex gap-2 flex-wrap">
-      <button class="btn btn-primary btn-sm" data-row="${esc(outreachId)}" data-action="copy">Copy email</button>
-      ${gmailUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(gmailUrl)}">Open in Gmail ↗</a>` : ''}
-      <button class="btn btn-secondary btn-sm" data-row="${esc(outreachId)}" data-action="mark-sent" ${noEmail || unresolved.length ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>Mark as Sent →</button>
-    </div>
-    <div id="composer-msg-${esc(outreachId)}" class="text-xs mt-2"></div>
-  `;
-
-  $(`[data-row="${outreachId}"][data-action="copy"]`).addEventListener('click', async () => {
-    const plain = `Subject: ${subject}\n\n${bodyText}`;
-    try {
-      if (navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
-        const item = new ClipboardItem({
-          'text/html': new Blob([`<p><strong>Subject:</strong> ${esc(subject)}</p>${bodyHtml}`], { type: 'text/html' }),
-          'text/plain': new Blob([plain], { type: 'text/plain' }),
-        });
-        await navigator.clipboard.write([item]);
-      } else {
-        await navigator.clipboard.writeText(plain);
-      }
-      $(`#composer-msg-${outreachId}`).innerHTML = '<span class="text-sage">✓ Copied (rich + plain). Paste into Gmail. Click "Mark as Sent" when delivered.</span>';
-    } catch (e) {
-      $(`#composer-msg-${outreachId}`).innerHTML = `<span class="text-brick">Copy failed: ${esc(e.message)} — use "Open in Gmail" instead</span>`;
-    }
-  });
-
-  if (!noEmail && !unresolved.length) {
-    $(`[data-row="${outreachId}"][data-action="mark-sent"]`).addEventListener('click', async () => {
-      const transition = PARTNERSHIP_CADENCE[templateSlug];
-      const nextWhen = transition?.days_until_next ? `in ${transition.days_until_next} days` : 'never (final touch)';
-      if (!confirm(`Log this send to ${o.contact_email}?\n\nStatus → ${transition?.next_status || '(no change)'}\nNext follow-up: ${nextWhen}`)) return;
-      await markPartnerEmailAsSent(outreachId, templateSlug, subject, bodyText);
-    });
-  }
+function renderBuyersStub() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Buyers</div><h1>Buyer pool & negotiations</h1><div class="desc">Verified buyers, watchlists, offers, and appointments.</div></div>
+    <div class="placeholder-section">
+      <div class="sprint-tag">Sprint B</div>
+      <h2 style="margin-top:18px">Coming next</h2>
+      <p>Verified buyer profiles, who's watching what buildings, active offers + negotiation rounds, and booked appointments.</p>
+      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">Source tables: watchlist · offers · offer_rounds · appointments · profiles (buyer side)</p>
+    </div>`;
 }
 
-async function markPartnerEmailAsSent(outreachId, templateSlug, subject, body) {
-  const transition = PARTNERSHIP_CADENCE[templateSlug];
-  const msgEl = $(`#composer-msg-${outreachId}`);
-
-  const { error: evErr } = await _sb.from('partnership_outreach_events').insert({
-    outreach_id: outreachId,
-    event_type: 'email_sent',
-    template_slug: templateSlug,
-    subject,
-    body,
-    metadata: { logged_via: 'admin_partners_tab', logged_at: new Date().toISOString() },
-  });
-  if (evErr) {
-    msgEl.innerHTML = `<span class="text-brick">Failed to log event: ${esc(evErr.message)}</span>`;
-    return;
-  }
-
-  if (transition) {
-    const now = new Date();
-    const next = transition.days_until_next ? new Date(now.getTime() + transition.days_until_next * 86400000) : null;
-    const { error: updErr } = await _sb.from('partnership_outreach').update({
-      status: transition.next_status,
-      last_action_at: now.toISOString(),
-      next_action_at: next ? next.toISOString() : null,
-      next_action_type: transition.next_action_type,
-      updated_at: now.toISOString(),
-    }).eq('id', outreachId);
-    if (updErr) {
-      msgEl.innerHTML = `<span class="text-amber">Event logged, but state advance failed: ${esc(updErr.message)}</span>`;
-      return;
-    }
-  }
-
-  msgEl.innerHTML = '<span class="text-sage">✓ Sent + logged. Refreshing…</span>';
-  setTimeout(() => location.reload(), 700);
+function renderPartnershipsStub() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Partnerships</div><h1>HOA & Property Management partnerships</h1><div class="desc">Firm-level pipeline, HOA companies, building-level outreach, and petition signatures.</div></div>
+    <div class="placeholder-section">
+      <div class="sprint-tag">Sprint C</div>
+      <h2 style="margin-top:18px">Coming next</h2>
+      <p>3-touch cadence pipeline for PM firms (8 loaded), HOA companies (8) and contacts (4), building-level outreach status (65 buildings), and petition signature totals.</p>
+      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">Source tables: partnership_outreach · hoa_companies · hoa_contacts · hoa_outreach · hoa_outreach_events · petition_signatures · hoa_pitches</p>
+    </div>`;
 }
 
-function renderPartnersTemplates() {
-  const { templates } = _partnersCache;
-  $('#partners-templates').innerHTML = `
-    <h2 class="font-display text-xl mb-3">Templates <span class="text-cream/50 text-sm font-sans italic">— ${templates.length} active</span></h2>
-    <div class="card !p-0 overflow-hidden"><table>
-      <thead><tr><th>Slug</th><th>Name</th><th>Subject</th><th>Merge vars</th></tr></thead>
-      <tbody>${templates.map(t => `<tr>
-        <td><span class="font-mono text-xs text-cream/70">${esc(t.slug)}</span></td>
-        <td>${esc(t.name)}</td>
-        <td class="text-sm text-cream/80">${esc(t.subject)}</td>
-        <td class="text-[11px] text-cream/55 font-mono">${(t.merge_vars||[]).map(v => esc(v)).join(', ') || '—'}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-    <div class="text-xs text-cream/40 mt-3">Edit templates in <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=email_templates" target="_blank" class="underline text-gold">Supabase → email_templates</a> (filter category=partnership)</div>
-  `;
+function renderAcquisitionStub() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Acquisition</div><h1>Campaigns & contact lists</h1><div class="desc">Cold outreach campaigns, contact lists, email templates, and deliverability health.</div></div>
+    <div class="placeholder-section">
+      <div class="sprint-tag">Sprint D</div>
+      <h2 style="margin-top:18px">Coming next</h2>
+      <p>Sprint D will absorb /admin/campaigns.html, /admin/just-sold.html, and /admin/reputation.html into a unified acquisition workspace.</p>
+      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">For now, the original pages still work — links below.</p>
+      <div style="margin-top:18px"><a class="btn" href="/admin/campaigns.html">Campaigns →</a> <a class="btn" href="/admin/just-sold.html">Just-sold →</a> <a class="btn" href="/admin/reputation.html">Reputation →</a></div>
+    </div>`;
 }
 
-// ===== Sprint 7.1: Firm Detail Hub at #partners/<slug> =====
-// Single-page workspace consolidating everything about a PM firm.
-
-async function renderPartnerHub(firmSlug) {
-  $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
-
-  // Populate the partners cache (no rendering side-effects) and fetch portfolio + all-firms in parallel
-  const [_, portfolioR, allFirmsR] = await Promise.all([
-    fetchPartnersData(),
-    _sb.from('v_partner_portfolio').select('*').eq('firm_slug', firmSlug).order('projected_referral_12mo', { ascending: false }),
-    _sb.from('v_partner_portfolio_public').select('firm_slug, firm_name'),
-  ]);
-
-  if (portfolioR.error) throw portfolioR.error;
-  if (allFirmsR.error) throw allFirmsR.error;
-
-  const { companies, outreach, templates, eventsByOutreach } = _partnersCache;
-  const firm = companies.find(c => c.slug === firmSlug);
-
-  if (!firm) {
-    $('#content').innerHTML = `
-      <div class="mb-3 text-xs text-cream/50"><a href="#partners" class="hover:text-gold">← Partners pipeline</a></div>
-      <div class="flash flash-err">Firm "${esc(firmSlug)}" not found in hoa_companies. Check the slug.</div>
-    `;
-    return;
-  }
-
-  const o = outreach.find(x => x.company_id === firm.id);
-  const events = o ? (eventsByOutreach[o.id] || []) : [];
-  const portfolioRows = portfolioR.data || [];
-
-  // Aggregate portfolio totals (mirrors the portfolio sub-view)
-  const totalVolume   = portfolioRows.reduce((s,r) => s + Number(r.total_volume_12mo || 0), 0);
-  const totalReferral = portfolioRows.reduce((s,r) => s + Number(r.projected_referral_12mo || 0), 0);
-  const totalSales    = portfolioRows.reduce((s,r) => s + Number(r.sales_count_12mo || 0), 0);
-  const totalMMM      = portfolioRows.reduce((s,r) => s + Number(r.active_mmm_count || 0), 0);
-
-  // Firm-switcher dropdown source (dedupe + sort)
-  const firmMap = new Map();
-  (allFirmsR.data || []).forEach(r => firmMap.set(r.firm_slug, r.firm_name));
-  const allFirms = Array.from(firmMap.entries())
-    .map(([slug, name]) => ({ slug, name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const publicUrl = PUBLIC_PARTNER_URL(firm.slug);
-  const supabaseFirmRowUrl = `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=hoa_companies&filter=id%3Aeq%3A${encodeURIComponent(firm.id)}`;
-  const supabaseOutreachRowUrl = o ? `https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&table=partnership_outreach&filter=id%3Aeq%3A${encodeURIComponent(o.id)}` : null;
-
-  // Status-conditional buttons (mirrors pipeline row logic)
-  const canCompose = o && !['declined','dormant','on_hold','researching'].includes(o.status);
-  const canLogReply = o && CAN_LOG_REPLY.includes(o.status);
-  const canBookMeeting = o && CAN_BOOK_MEETING.includes(o.status);
-  const canCompleteMeeting = o && CAN_COMPLETE_MEETING.includes(o.status);
-  const composeLabel = o && o.status === 'replied' ? 'Send reply →'
-    : o && (o.status === 'meeting_scheduled' || o.status === 'meeting_held') ? 'Send follow-up →'
-    : 'Compose →';
-
-  $('#content').innerHTML = `
-    <div class="mb-3 text-xs text-cream/50">
-      <a href="#partners" class="hover:text-gold">← Partners pipeline</a>
-      <span class="text-cream/30 mx-2">/</span>
-      <span class="font-mono uppercase tracking-wider text-gold">${esc(firm.name)}</span>
-      <span class="text-cream/30 mx-2">/</span>
-      <span class="font-mono uppercase tracking-wider">hub</span>
-    </div>
-
-    <div class="hub-header">
-      <div class="flex items-baseline justify-between flex-wrap gap-3 mb-4">
-        <div>
-          <h1 class="font-display text-3xl italic">${esc(firm.name)} <span class="text-cream/50 text-sm font-sans italic">— partnership hub</span></h1>
-          <div class="text-xs text-cream/60 mt-1 flex flex-wrap gap-3 items-center">
-            ${o ? `<span class="tag ${partnerStatusTag(o.status)}">${esc(o.status.replace(/_/g,' '))}</span>` : ''}
-            ${o ? `<span class="font-mono">priority #${o.priority}</span>` : ''}
-            <span>${portfolioRows.length} building${portfolioRows.length !== 1 ? 's' : ''}</span>
-            <span>${fmtMoney(totalVolume)} 12mo volume</span>
-            <span class="text-gold">${fmtMoney(totalReferral)} projected referral</span>
-          </div>
-        </div>
-        <div class="flex gap-2 flex-wrap items-center">
-          <select class="firm-switcher" id="firm-switcher" title="Jump to another PM firm's hub">
-            ${allFirms.map(f => `<option value="${esc(f.slug)}" ${f.slug === firm.slug ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-
-      <div class="flex gap-2 flex-wrap items-center">
-        ${o && canCompose ? `<button class="btn btn-primary btn-sm" data-toggle="composer" data-row="${esc(o.id)}">${esc(composeLabel)}</button>` : ''}
-        ${o && canLogReply ? `<button class="btn btn-secondary btn-sm" data-toggle="reply-logger" data-row="${esc(o.id)}">Reply received →</button>` : ''}
-        ${o && canBookMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-booker" data-row="${esc(o.id)}">Meeting booked →</button>` : ''}
-        ${o && canCompleteMeeting ? `<button class="btn btn-primary btn-sm" data-toggle="meeting-completer" data-row="${esc(o.id)}">Meeting completed →</button>` : ''}
-        <a class="btn btn-secondary btn-sm" href="#partners/${esc(firm.slug)}/portfolio">View full portfolio →</a>
-        <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Public ↗</a>
-        <button class="btn btn-secondary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy public link</button>
-        ${supabaseOutreachRowUrl ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseOutreachRowUrl)}">Edit outreach row ↗</a>` : ''}
-      </div>
-
-      <!-- Inline panel slots, same IDs as the pipeline row so togglePartnerPanel works unchanged -->
-      ${o ? `
-      <div class="partners-set-email mt-3" id="set-email-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-composer mt-3" id="composer-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-reply-logger mt-3" id="reply-logger-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-meeting-booker mt-3" id="meeting-booker-${esc(o.id)}" style="display:none"></div>
-      <div class="partners-meeting-completer mt-3" id="meeting-completer-${esc(o.id)}" style="display:none"></div>
-      ` : ''}
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      <div class="card">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Volume (12mo)</div>
-        <div class="font-display text-3xl">${fmtMoney(totalVolume)}</div>
-      </div>
-      <div class="card border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.06),#1a1f2e);">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold mb-2">Projected 1% Referral</div>
-        <div class="font-display text-3xl text-gold">${fmtMoney(totalReferral)}</div>
-      </div>
-      <div class="card">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Sales (12mo)</div>
-        <div class="font-display text-3xl">${fmtNum(totalSales)}</div>
-      </div>
-      <div class="card">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Active MMMs</div>
-        <div class="font-display text-3xl">${fmtNum(totalMMM)}</div>
-      </div>
-    </div>
-
-    <!-- Decision-maker card -->
-    <div class="hub-section">
-      <h2>Decision-maker</h2>
-      <div class="card">
-        ${o && o.contact_full_name ? `
-          <div class="flex items-baseline justify-between gap-3 flex-wrap mb-2">
-            <div>
-              <div class="font-display text-xl">${esc(o.contact_full_name)}</div>
-              <div class="text-cream/65 text-sm">${esc(o.contact_title || '—')}</div>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              ${o.contact_email ? `<a class="btn btn-secondary btn-sm" href="mailto:${esc(o.contact_email)}">${esc(o.contact_email)}</a>` : `<span class="text-brick text-xs">⚠ no email set — <button class="underline text-gold" data-toggle="set-email" data-row="${esc(o.id)}">set email →</button></span>`}
-            </div>
-          </div>
-          ${o.custom_vars && o.custom_vars.personal_angle ? `
-            <div class="mt-3 pt-3 border-t border-cream/10">
-              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Personal angle <span class="lowercase normal-case italic text-cream/40">(used in cold email templates)</span></div>
-              <div class="text-sm text-cream/85 italic">"${esc(o.custom_vars.personal_angle)}"</div>
-            </div>
-          ` : ''}
-        ` : `<div class="text-cream/55 italic">No decision-maker contact set yet. ${supabaseOutreachRowUrl ? `<a class="text-gold underline" target="_blank" href="${esc(supabaseOutreachRowUrl)}">Edit outreach row →</a>` : ''}</div>`}
-      </div>
-    </div>
-
-    <!-- Activity timeline -->
-    <div class="hub-section">
-      <h2>Activity timeline <span class="text-cream/50 text-sm font-sans italic">— ${events.length} event${events.length !== 1 ? 's' : ''}</span></h2>
-      ${events.length ? events.map(ev => renderTimelineEvent(ev)).join('') : `<div class="placeholder">No activity yet. Once you send the first cold email, sent/received events will surface here.</div>`}
-    </div>
-
-    <!-- Pitch materials -->
-    <div class="hub-section">
-      <h2>Pitch materials</h2>
-      <div class="card">
-        <div class="material-row">
-          <div class="material-label">Public page</div>
-          <div class="material-value">
-            <span class="font-mono text-xs text-cream/75 break-all flex-1">${esc(publicUrl)}</span>
-            <button class="btn btn-secondary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy</button>
-            <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Open ↗</a>
-          </div>
-        </div>
-        <div class="material-row">
-          <div class="material-label">Pitch deck URL</div>
-          <div class="material-value">
-            <input id="deck-url-input" type="url" placeholder="https://your-cdn/deck.pdf" value="${esc(firm.deck_url || '')}">
-            <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="deck_url">Save</button>
-            ${firm.deck_url ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(firm.deck_url)}">Open ↗</a>` : ''}
-          </div>
-        </div>
-        <div class="material-row">
-          <div class="material-label">One-pager URL</div>
-          <div class="material-value">
-            <input id="one-pager-url-input" type="url" placeholder="https://your-cdn/one-pager.pdf" value="${esc(firm.one_pager_url || '')}">
-            <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="one_pager_url">Save</button>
-            ${firm.one_pager_url ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(firm.one_pager_url)}">Open ↗</a>` : ''}
-          </div>
-        </div>
-        <div class="material-row">
-          <div class="material-label">LinkedIn</div>
-          <div class="material-value">
-            <input id="linkedin-url-input" type="url" placeholder="https://www.linkedin.com/company/..." value="${esc(firm.linkedin_url || '')}">
-            <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="linkedin_url">Save</button>
-            ${firm.linkedin_url ? `<a class="btn btn-secondary btn-sm" target="_blank" href="${esc(firm.linkedin_url)}">Open ↗</a>` : ''}
-          </div>
-        </div>
-        <div class="material-row">
-          <div class="material-label">Templates</div>
-          <div class="material-value">
-            ${o ? templates.map(t => `<a class="btn btn-secondary btn-sm" href="#partners/${esc(firm.slug)}" data-tpl-preview="${esc(t.slug)}" data-row="${esc(o.id)}">${esc(t.name.replace('Partnership · ', ''))}</a>`).join('') : '<span class="text-cream/50 text-xs italic">no outreach row yet</span>'}
-          </div>
-        </div>
-        <div id="material-msg" class="text-xs mt-3"></div>
-      </div>
-    </div>
-
-    <!-- Top buildings -->
-    <div class="hub-section">
-      <h2>Top buildings <span class="text-cream/50 text-sm font-sans italic">— ${portfolioRows.length} total · <a class="text-gold underline" href="#partners/${esc(firm.slug)}/portfolio">view full portfolio →</a></span></h2>
-      ${portfolioRows.length ? `
-        <div class="card !p-0 overflow-hidden"><table>
-          <thead><tr><th>Building</th><th>Units</th><th>Sales 12mo</th><th>12mo Volume</th><th>Proj Referral</th><th>MMMs</th></tr></thead>
-          <tbody>
-            ${portfolioRows.slice(0, 3).map(r => `
-              <tr>
-                <td>
-                  <div class="font-medium">${esc(r.building_name || r.building_slug)}</div>
-                  <div class="text-[11px] text-cream/55">${esc(r.neighborhood || '—')}</div>
-                </td>
-                <td class="font-display text-base">${fmtNum(r.unit_count)}</td>
-                <td>${fmtNum(r.sales_count_12mo)}</td>
-                <td class="font-mono text-xs">${Number(r.total_volume_12mo) > 0 ? fmtMoney(r.total_volume_12mo) : '—'}</td>
-                <td class="font-mono text-sm ${Number(r.projected_referral_12mo) > 0 ? 'text-gold' : 'text-cream/40'}">${Number(r.projected_referral_12mo) > 0 ? fmtMoney(r.projected_referral_12mo) : '—'}</td>
-                <td>${r.active_mmm_count > 0 ? `<span class="tag tag-good">${r.active_mmm_count}</span>` : '<span class="text-cream/40">—</span>'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table></div>
-      ` : `<div class="placeholder">No buildings linked to ${esc(firm.name)} yet.</div>`}
-    </div>
-
-    <!-- Research & notes -->
-    <div class="hub-section">
-      <h2>Research & notes <span class="text-cream/50 text-sm font-sans italic">— free-form scratchpad</span></h2>
-      <div class="card">
-        <textarea id="research-notes-textarea" class="notes-textarea" placeholder="Background research, contact history, mutual connections, recent news, anything you want to remember about ${esc(firm.name)} next time you sit down to pitch them.">${esc(firm.research_notes || '')}</textarea>
-        <div class="flex gap-2 items-center mt-3 flex-wrap">
-          <button class="btn btn-primary btn-sm" data-action="save-firm-field" data-field="research_notes">Save notes</button>
-          <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(supabaseFirmRowUrl)}">Edit firm row in Supabase ↗</a>
-          <span id="notes-msg" class="text-xs"></span>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Wire firm-switcher
-  const switcher = $('#firm-switcher');
-  if (switcher) {
-    switcher.addEventListener('change', (e) => {
-      const newSlug = e.target.value;
-      if (newSlug && newSlug !== firm.slug) {
-        location.hash = `#partners/${newSlug}`;
-      }
-    });
-  }
-
-  // Wire inline panel toggle buttons (composer, reply-logger, meeting-*)
-  wireToggleButtons('#content');
-
-  // Wire Copy public link buttons (there can be 2: one in header, one in pitch materials)
-  $$('[data-action="copy-public-link"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const url = PUBLIC_PARTNER_URL(btn.dataset.slug);
-      const original = btn.textContent;
-      try {
-        await navigator.clipboard.writeText(url);
-        btn.textContent = '✓ Copied';
-        setTimeout(() => { btn.textContent = original; }, 2000);
-      } catch (e) {
-        btn.textContent = '✗ Copy failed';
-        setTimeout(() => { btn.textContent = original; }, 2000);
-      }
-    });
-  });
-
-  // Wire firm-field save buttons (deck_url, one_pager_url, linkedin_url, research_notes)
-  $$('[data-action="save-firm-field"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const field = btn.dataset.field;
-      const inputId = field === 'research_notes' ? 'research-notes-textarea'
-        : field === 'deck_url' ? 'deck-url-input'
-        : field === 'one_pager_url' ? 'one-pager-url-input'
-        : field === 'linkedin_url' ? 'linkedin-url-input'
-        : null;
-      if (!inputId) return;
-      const inputEl = $(`#${inputId}`);
-      const value = inputEl.value.trim();
-      const msgElId = field === 'research_notes' ? 'notes-msg' : 'material-msg';
-      const msgEl = $(`#${msgElId}`);
-
-      btn.disabled = true;
-      const originalText = btn.textContent;
-      btn.innerHTML = '<span class="spinner"></span> Saving…';
-
-      const { error } = await _sb.from('hoa_companies')
-        .update({ [field]: value || null, updated_at: new Date().toISOString() })
-        .eq('id', firm.id);
-
-      btn.disabled = false;
-      btn.textContent = originalText;
-
-      if (error) {
-        msgEl.innerHTML = `<span class="text-brick">Save failed: ${esc(error.message)}</span>`;
-        return;
-      }
-      msgEl.innerHTML = `<span class="text-sage">✓ ${esc(field.replace(/_/g,' '))} saved</span>`;
-      setTimeout(() => { msgEl.innerHTML = ''; }, 3000);
-
-      // If a URL field, refresh so the "Open ↗" button appears
-      if (field !== 'research_notes' && value) {
-        setTimeout(() => location.reload(), 600);
-      }
-    });
-  });
+function renderOpsStub() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Operations</div><h1>Tasks, automation, & config</h1><div class="desc">Internal admin queue and system tuning.</div></div>
+    <div class="placeholder-section">
+      <div class="sprint-tag">Sprint D</div>
+      <h2 style="margin-top:18px">Coming next</h2>
+      <p>Admin task queue, automation rules, system_config editor, and Claude commands log.</p>
+      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">Source tables: admin_tasks · automation_rules · automation_events · system_config · claude_commands</p>
+    </div>`;
 }
 
-// Renders one event in the activity timeline. Event-type-aware styling.
-function renderTimelineEvent(ev) {
-  const occurredAt = ev.occurred_at;
-  const meta = ev.metadata || {};
-
-  let label = ev.event_type.replace(/_/g, ' ');
-  let tagClass = 'tag-warn';
-  let bodyHtml = '';
-  let extraClass = '';
-
-  if (ev.event_type === 'email_sent') {
-    label = 'sent';
-    tagClass = 'tag-warn';
-    bodyHtml = `
-      ${ev.subject ? `<div class="text-sm text-cream mb-1"><span class="text-cream/50">Subject:</span> ${esc(ev.subject)}</div>` : ''}
-      ${ev.template_slug ? `<div class="font-mono text-[11px] text-cream/55">template: ${esc(ev.template_slug)}</div>` : ''}
-      ${ev.body ? `<details class="mt-2"><summary class="text-xs text-cream/55 cursor-pointer">show body</summary><pre class="font-sans text-xs text-cream/80 bg-navy p-3 mt-2 rounded border border-cream/10 whitespace-pre-wrap">${esc(ev.body)}</pre></details>` : ''}
-    `;
-  } else if (ev.event_type === 'email_replied') {
-    const cls = meta.classification || 'unknown';
-    label = `reply · ${cls}`;
-    tagClass = cls === 'positive' ? 'tag-good' : cls === 'declined' ? 'tag-bad' : 'tag-warn';
-    extraClass = cls === 'positive' ? 'event-positive' : cls === 'declined' ? 'event-negative' : '';
-    bodyHtml = `
-      ${meta.notes ? `<div class="text-sm text-cream/85 italic mb-2">"${esc(meta.notes)}"</div>` : ''}
-      ${ev.body ? `<details class="mt-2"><summary class="text-xs text-cream/55 cursor-pointer">show reply text</summary><pre class="font-sans text-xs text-cream/80 bg-navy p-3 mt-2 rounded border border-cream/10 whitespace-pre-wrap">${esc(ev.body)}</pre></details>` : ''}
-    `;
-  } else if (ev.event_type === 'meeting_scheduled') {
-    label = 'meeting booked';
-    tagClass = 'tag-warn';
-    bodyHtml = `
-      ${meta.meeting_at ? `<div class="text-sm text-cream mb-1"><span class="text-cream/50">When:</span> ${esc(fmtDateTime(meta.meeting_at))}</div>` : ''}
-      ${meta.notes ? `<div class="text-sm text-cream/75 italic">${esc(meta.notes)}</div>` : ''}
-    `;
-  } else if (ev.event_type === 'meeting_held') {
-    const cls = meta.classification || 'unknown';
-    label = `meeting held · ${cls}`;
-    tagClass = cls === 'positive' ? 'tag-good' : cls === 'declined' ? 'tag-bad' : 'tag-warn';
-    extraClass = cls === 'positive' ? 'event-positive' : cls === 'declined' ? 'event-negative' : '';
-    bodyHtml = meta.notes ? `<div class="text-sm text-cream/85">${esc(meta.notes)}</div>` : '';
-  } else if (ev.event_type === 'note') {
-    label = 'note';
-    tagClass = 'tag';
-    bodyHtml = ev.body ? `<div class="text-sm text-cream/85">${esc(ev.body)}</div>` : '';
-  } else if (ev.event_type === 'status_changed') {
-    label = 'status changed';
-    bodyHtml = meta.from && meta.to ? `<div class="text-sm text-cream/75 font-mono text-xs">${esc(meta.from)} → ${esc(meta.to)}</div>` : '';
-  } else {
-    // Fallback for unhandled event types
-    bodyHtml = ev.body ? `<div class="text-sm text-cream/75">${esc(ev.body.slice(0, 240))}${ev.body.length > 240 ? '…' : ''}</div>` : `<div class="text-xs text-cream/40 italic">no body</div>`;
-  }
-
-  return `
-    <div class="timeline-event ${extraClass}">
-      <div class="flex items-baseline gap-3 flex-wrap mb-2">
-        <span class="tag ${tagClass}">${esc(label)}</span>
-        <span class="font-mono text-[11px] text-cream/55">${esc(fmtDateTime(occurredAt))}</span>
-        <span class="font-mono text-[10px] text-cream/40">${esc(relTime(occurredAt))}</span>
-      </div>
-      ${bodyHtml}
-    </div>
-  `;
-}
-
-// ===== PARTNER PORTFOLIO sub-view at #partners/<firm_slug>/portfolio =====
-async function renderPartnerPortfolio(firmSlug) {
-  $('#content').innerHTML = `<div class="p-8 text-center"><div class="spinner"></div></div>`;
-
-  const [firmR, rowsR, allFirmsR] = await Promise.all([
-    _sb.from('hoa_companies').select('*').eq('slug', firmSlug).maybeSingle(),
-    _sb.from('v_partner_portfolio').select('*').eq('firm_slug', firmSlug).order('projected_referral_12mo', { ascending: false }),
-    _sb.from('v_partner_portfolio_public').select('firm_slug, firm_name'),
-  ]);
-
-  if (firmR.error) throw firmR.error;
-  if (rowsR.error) throw rowsR.error;
-  if (allFirmsR.error) throw allFirmsR.error;
-
-  const firm = firmR.data;
-  const rows = rowsR.data || [];
-
-  const firmMap = new Map();
-  (allFirmsR.data || []).forEach(r => firmMap.set(r.firm_slug, r.firm_name));
-  const allFirms = Array.from(firmMap.entries())
-    .map(([slug, name]) => ({ slug, name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  if (!firm) {
-    $('#content').innerHTML = `
-      <div class="mb-3 text-xs text-cream/50"><a href="#partners" class="hover:text-gold">← Partners pipeline</a></div>
-      <div class="flash flash-err">Firm "${esc(firmSlug)}" not found in hoa_companies. Check the slug.</div>
-    `;
-    return;
-  }
-
-  const totalVolume   = rows.reduce((s,r) => s + Number(r.total_volume_12mo || 0), 0);
-  const totalReferral = rows.reduce((s,r) => s + Number(r.projected_referral_12mo || 0), 0);
-  const totalSales    = rows.reduce((s,r) => s + Number(r.sales_count_12mo || 0), 0);
-  const totalMMM      = rows.reduce((s,r) => s + Number(r.active_mmm_count || 0), 0);
-  const totalUnits    = rows.reduce((s,r) => s + Number(r.unit_count || 0), 0);
-
-  const publicUrl = PUBLIC_PARTNER_URL(firm.slug);
-
-  $('#content').innerHTML = `
-    <div class="mb-3 text-xs text-cream/50">
-      <a href="#partners" class="hover:text-gold">← Partners pipeline</a>
-      <span class="text-cream/30 mx-2">/</span>
-      <a href="#partners/${esc(firm.slug)}" class="hover:text-gold font-mono uppercase tracking-wider">${esc(firm.name)}</a>
-      <span class="text-cream/30 mx-2">/</span>
-      <span class="font-mono uppercase tracking-wider text-gold">portfolio</span>
-    </div>
-
-    <div class="mb-6 flex items-baseline justify-between flex-wrap gap-3">
-      <div>
-        <h1 class="font-display text-3xl italic mb-1">${esc(firm.name)} <span class="text-cream/50 text-sm font-sans italic">— portfolio overview</span></h1>
-        <p class="text-cream/60 text-sm">${rows.length} building${rows.length !== 1 ? 's' : ''} · ${fmtNum(totalUnits)} units total · last-12-month basis</p>
-      </div>
-      <div class="flex gap-2 flex-wrap items-center">
-        <select class="firm-switcher" id="firm-switcher" title="Jump to another PM firm's portfolio">
-          ${allFirms.map(f => `<option value="${esc(f.slug)}" ${f.slug === firm.slug ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}
-        </select>
-        <a class="btn btn-secondary btn-sm" href="#partners/${esc(firm.slug)}">← Back to hub</a>
-        <button class="btn btn-primary btn-sm" data-action="copy-public-link" data-slug="${esc(firm.slug)}">Copy public link</button>
-        <a class="btn btn-secondary btn-sm" target="_blank" href="${esc(publicUrl)}">Open public ↗</a>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      <div class="card">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Volume (12mo)</div>
-        <div class="font-display text-3xl">${fmtMoney(totalVolume)}</div>
-        <div class="text-xs text-cream/55 mt-1">across this portfolio</div>
-      </div>
-      <div class="card border-gold/40" style="background:linear-gradient(180deg,rgba(212,165,116,0.06),#1a1f2e);">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-gold mb-2">Projected 1% Referral</div>
-        <div class="font-display text-3xl text-gold">${fmtMoney(totalReferral)}</div>
-        <div class="text-xs text-cream/55 mt-1">raw addressable, last 12 months</div>
-      </div>
-      <div class="card">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Sales (12mo)</div>
-        <div class="font-display text-3xl">${fmtNum(totalSales)}</div>
-        <div class="text-xs text-cream/55 mt-1">closed transactions</div>
-      </div>
-      <div class="card">
-        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-cream/50 mb-2">Active MMMs</div>
-        <div class="font-display text-3xl">${fmtNum(totalMMM)}</div>
-        <div class="text-xs text-cream/55 mt-1">homeowners signaling sell intent</div>
-      </div>
-    </div>
-
-    <h2 class="font-display text-xl mb-3">Buildings</h2>
-    ${rows.length ? `
-      <div class="card !p-0 mb-6 overflow-x-auto"><table>
-        <thead><tr>
-          <th>Building</th><th>Units</th><th>Sales 12mo</th><th>Median Price</th><th>Median $/sf</th>
-          <th>12mo Volume</th><th>Proj Referral</th><th>MMMs</th><th>Owners on File</th><th>Last Sale</th>
-        </tr></thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr>
-              <td>
-                <div class="font-medium">${esc(r.building_name || r.building_slug)}</div>
-                <div class="text-[11px] text-cream/55">${esc(r.neighborhood || '—')}${r.year_built ? ` · ${esc(String(r.year_built))}` : ''}</div>
-                ${r.hoa_outreach_status && r.hoa_outreach_status !== 'untouched' ? `<span class="tag ${r.hoa_outreach_status==='won'?'tag-good':r.hoa_outreach_status==='declined'?'tag-bad':''} !text-[8px] !mt-1">HOA: ${esc(r.hoa_outreach_status.replace('_',' '))}</span>` : ''}
-              </td>
-              <td class="font-display text-base">${fmtNum(r.unit_count)}</td>
-              <td>${fmtNum(r.sales_count_12mo)}</td>
-              <td class="font-mono text-xs">${r.median_sale_price_12mo ? fmtMoney(r.median_sale_price_12mo) : '—'}</td>
-              <td class="font-mono text-xs">${r.median_ppsf_12mo ? '$' + Math.round(r.median_ppsf_12mo) : '—'}</td>
-              <td class="font-mono text-xs">${Number(r.total_volume_12mo) > 0 ? fmtMoney(r.total_volume_12mo) : '—'}</td>
-              <td class="font-mono text-sm ${Number(r.projected_referral_12mo) > 0 ? 'text-gold' : 'text-cream/40'}">${Number(r.projected_referral_12mo) > 0 ? fmtMoney(r.projected_referral_12mo) : '—'}</td>
-              <td>${r.active_mmm_count > 0 ? `<span class="tag tag-good">${r.active_mmm_count}</span>` : '<span class="text-cream/40">—</span>'}</td>
-              <td>${fmtNum(r.ownership_records)}${r.contacts_total > 0 ? ` <span class="text-[10px] text-cream/45">(${fmtNum(r.contacts_total)} contacts)</span>` : ''}</td>
-              <td class="font-mono text-xs text-cream/70">${r.latest_sale_date ? esc(fmtDate(r.latest_sale_date)) : '—'}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table></div>
-    ` : `<div class="placeholder">No buildings linked to <span class="font-display italic">${esc(firm.name)}</span> in hoa_outreach yet.</div>`}
-
-    ${rows.length ? `
-    <div class="card mb-6" style="background:linear-gradient(180deg,rgba(212,165,116,0.04),#1a1f2e);">
-      <h3 class="font-display text-lg mb-2">What this means in the call</h3>
-      <div class="text-sm text-cream/80 space-y-2">
-        <p>Last 12 months: <strong class="text-gold">${fmtMoney(totalVolume)}</strong> in closed-sale volume across ${esc(firm.name)}'s portfolio. At a 1% broker-to-broker referral, that's <strong class="text-gold">${fmtMoney(totalReferral)}</strong> in raw addressable revenue if Condo Market had been the partner broker on every transaction.</p>
-        <p class="text-cream/65 text-xs">Realistic capture depends on what fraction of transactions actually route through Condo Market vs other brokers.</p>
-      </div>
-    </div>
-    ` : ''}
-
-    <div class="text-xs text-cream/40 mt-3 pb-8">
-      Data sources: building_sales (recording-date-indexed, 12mo trailing) · make_me_move (active claims) · building_contacts · unit_ownership.
-      View definition: <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/editor/?schema=public&view=v_partner_portfolio" target="_blank" class="text-gold underline">v_partner_portfolio</a>.
-    </div>
-  `;
-
-  const switcher = $('#firm-switcher');
-  if (switcher) {
-    switcher.addEventListener('change', (e) => {
-      const newSlug = e.target.value;
-      if (newSlug && newSlug !== firm.slug) {
-        // From the portfolio sub-view, the switcher jumps to that firm's PORTFOLIO (same level)
-        location.hash = `#partners/${newSlug}/portfolio`;
-      }
-    });
-  }
-
-  const copyBtn = $('[data-action="copy-public-link"]');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', async () => {
-      const slug = copyBtn.dataset.slug;
-      const url = PUBLIC_PARTNER_URL(slug);
-      const original = copyBtn.textContent;
-      try {
-        await navigator.clipboard.writeText(url);
-        copyBtn.textContent = '✓ Copied';
-        copyBtn.classList.remove('btn-primary');
-        copyBtn.classList.add('btn-secondary');
-        setTimeout(() => {
-          copyBtn.textContent = original;
-          copyBtn.classList.remove('btn-secondary');
-          copyBtn.classList.add('btn-primary');
-        }, 2000);
-      } catch (e) {
-        copyBtn.textContent = '✗ Copy failed';
-        setTimeout(() => { copyBtn.textContent = original; }, 2000);
-      }
-    });
-  }
-}
-
-async function renderEmail() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email</h1><div id="email"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data: templates, error } = await _sb.from('email_templates').select('*').eq('is_active', true);
-  if (error) throw error;
-  $('#email').innerHTML = `<div class="card !p-0 mb-6"><table>
-    <thead><tr><th>Template</th><th>Category</th><th>Subject</th></tr></thead>
-    <tbody>${(templates||[]).map(t => `<tr><td><div class="font-medium">${esc(t.name)}</div><div class="font-mono text-[11px] text-cream/50">${esc(t.slug)}</div></td><td><span class="tag">${esc(t.category)}</span></td><td class="text-sm text-cream/80">${esc(t.subject)}</td></tr>`).join('')}</tbody></table></div>
-    <div class="placeholder"><div class="text-gold font-mono text-[10px] tracking-[0.14em] uppercase mb-2">Sprint B</div>Template editor, recipient builder, manual send, recurring schedules, automation rules</div>`;
-}
-
-async function renderQueue() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Email Queue</h1><div id="q"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data, error } = await _sb.from('v_send_capacity_by_city').select('*');
-  if (error) throw error;
-  $('#q').innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${(data||[]).map(c => `
-    <div class="card">
-      <div class="flex items-baseline justify-between mb-2"><div class="font-display text-lg">${esc(c.display_name)}</div><span class="tag ${c.market_status==='active'?'tag-good':''}">${esc(c.market_status)}</span></div>
-      <div class="grid grid-cols-2 gap-3 text-sm">
-        <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Sent today</div><div class="font-display text-2xl">${fmtNum(c.sent_today||0)}/${fmtNum(c.daily_cap||0)}</div></div>
-        <div><div class="text-cream/50 text-xs font-mono uppercase tracking-wider">Pending</div><div class="font-display text-2xl text-bluegray">${fmtNum(c.pending_total||0)}</div></div>
-      </div>
-    </div>`).join('')}</div>`;
-}
-
-async function renderBuildings() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Buildings <span class="text-cream/50 text-sm font-sans italic">— penetration & engagement</span></h1><div id="b"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data, error } = await _sb.from('v_building_penetration').select('*').not('unit_count','is',null).order('signed_up',{ascending:false,nullsFirst:false}).order('open_rate_pct',{ascending:false,nullsFirst:false}).limit(50);
-  if (error) throw error;
-  $('#b').innerHTML = `<div class="card !p-0"><table>
-    <thead><tr><th>Building</th><th>Units</th><th>Coverage</th><th>Sent</th><th>Open %</th><th>Signups</th><th>MMMs</th></tr></thead>
-    <tbody>${(data||[]).map(b => `<tr>
-      <td><div class="font-medium">${esc(b.display_name||b.slug)}</div><div class="font-mono text-[11px] text-cream/50">${esc(b.slug)}</div></td>
-      <td class="font-display text-base">${fmtNum(b.unit_count)}</td>
-      <td>${b.unit_coverage_pct != null ? `<span class="${b.unit_coverage_pct >= 80 ? 'text-sage' : b.unit_coverage_pct >= 50 ? 'text-amber' : 'text-brick'}">${b.unit_coverage_pct}%</span>` : '—'}</td>
-      <td>${fmtNum(b.emails_sent_unique)}</td>
-      <td>${b.open_rate_pct != null ? `<span class="${b.open_rate_pct >= 25 ? 'text-sage' : b.open_rate_pct >= 15 ? 'text-amber' : ''}">${b.open_rate_pct}%</span>` : '—'}</td>
-      <td>${fmtNum(b.signed_up)}</td>
-      <td>${fmtNum(b.active_mmms)}</td>
-    </tr>`).join('')}</tbody></table></div>`;
-}
-
-async function renderMmm() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Make Me Move</h1><div id="m"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data, error } = await _sb.from('make_me_move').select('id,building_slug,unit_address,target_price,is_active,set_at').order('is_active',{ascending:false}).order('set_at',{ascending:false});
-  if (error) throw error;
-  $('#m').innerHTML = `<div class="card !p-0"><table>
-    <thead><tr><th>Building · Unit</th><th>Price</th><th>Active</th><th>Set</th></tr></thead>
-    <tbody>${(data||[]).map(m => `<tr class="${m.is_active?'':'opacity-50'}">
-      <td><div class="font-medium">${esc(m.building_slug)} · #${esc(m.unit_address)}</div></td>
-      <td class="font-display text-lg ${m.is_active?'text-gold':''}">${fmtMoney(m.target_price)}</td>
-      <td>${m.is_active?'<span class="tag tag-good">active</span>':'<span class="tag">inactive</span>'}</td>
-      <td class="font-mono text-xs">${esc(relTime(m.set_at))}</td>
-    </tr>`).join('')}</tbody></table></div>`;
-}
-
-async function renderAnalytics() {
-  $('#content').innerHTML = `<h1 class="font-display text-3xl italic mb-4">Analytics</h1><div id="a"><div class="p-8 text-center"><div class="spinner"></div></div></div>`;
-  const { data: stats, error } = await _sb.from('v_platform_stats').select('*').maybeSingle();
-  if (error) throw error;
-  const s = stats || {};
-  const tiles = [['Buildings',s.total_buildings],['People',s.total_people],['Accounts',s.active_accounts],['Sent (all)',s.emails_sent_total],['Opens',s.emails_opened_total],['Active MMMs',s.active_mmms],['Approved claims',s.approved_unit_claims],['Open tasks',s.open_tasks],['Overdue',s.overdue_tasks],['Sent (24h)',s.emails_sent_24h]];
-  $('#a').innerHTML = `<div class="grid grid-cols-2 md:grid-cols-5 gap-2">${tiles.map(([l,n]) => `<div class="card !p-3"><div class="font-mono text-[9px] tracking-[0.1em] uppercase text-cream/50 mb-1">${esc(l)}</div><div class="font-display text-xl">${fmtNum(n)}</div></div>`).join('')}</div>`;
-}
-
-async function renderSettings() {
-  $('#content').innerHTML = `
-    <h1 class="font-display text-3xl italic mb-4">Settings</h1>
-    <div class="card mb-6">
-      <h2 class="font-display text-lg mb-3">Signed in as</h2>
-      <div class="text-sm text-cream/80 font-mono">${esc(currentUser?.email)}</div>
-      <div class="text-xs text-cream/50 mt-1">id: ${esc(currentUser?.id)}</div>
-    </div>
-    <div class="card mb-6">
-      <h2 class="font-display text-lg mb-3">Edge function setup</h2>
-      <div class="text-sm text-cream/70 mb-3">The Claude command interface requires <span class="font-mono text-gold">ANTHROPIC_API_KEY</span> set as a Supabase Edge Functions secret.</div>
-      <ol class="text-sm space-y-1 list-decimal pl-5 text-cream/80">
-        <li>Open <a href="https://supabase.com/dashboard/project/kfqphwerygccpzntbbif/settings/functions" target="_blank" class="text-gold underline">Edge Functions secrets</a></li>
-        <li>Add secret <span class="font-mono">ANTHROPIC_API_KEY</span> with your Anthropic key (starts with sk-ant-)</li>
-      </ol>
-    </div>
-    <div class="card">
-      <h2 class="font-display text-lg mb-3">Sprint B priorities</h2>
-      <div class="text-sm text-cream/75 space-y-2">
-        <div>1. Inline SQL execution for Claude command queries</div>
-        <div>2. "Draft to me first" email send pipeline</div>
-        <div>3. New-sale automation engine</div>
-        <div>4. Recurring email scheduler</div>
-        <div>5. HOA pitch page editor + public route</div>
-        <div>6. Email template editor with live preview</div>
-        <div>7. Manual send-now form</div>
-      </div>
-    </div>
-  `;
-}
-
-boot();
-console.log('[ADMIN] v5.10 booted');
+bootstrap();
 </script>
 </body>
 </html>
