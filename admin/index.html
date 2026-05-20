@@ -146,7 +146,15 @@ a{color:inherit;text-decoration:none}
         <div class="sub-item" data-route="buyers/appointments"><span class="sub-dot"></span>Appointments</div>
       </div>
     </div>
-    <div class="nav-section" data-section="partnerships"><div class="nav-item" data-route="partnerships"><span class="nav-icon">🤝</span><span>Partnerships</span></div></div>
+    <div class="nav-section" data-section="partnerships">
+      <div class="nav-item" data-route="partnerships"><span class="nav-icon">🤝</span><span>Partnerships</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="partnerships/pipeline"><span class="sub-dot"></span>Pipeline</div>
+        <div class="sub-item" data-route="partnerships/buildings"><span class="sub-dot"></span>Building outreach</div>
+        <div class="sub-item" data-route="partnerships/petitions"><span class="sub-dot"></span>Petitions</div>
+        <div class="sub-item" data-route="partnerships/events"><span class="sub-dot"></span>Events</div>
+      </div>
+    </div>
     <div class="nav-section" data-section="acquisition"><div class="nav-item" data-route="acquisition"><span class="nav-icon">📡</span><span>Acquisition</span></div></div>
     <div class="nav-section" data-section="ops"><div class="nav-item" data-route="ops"><span class="nav-icon">⚙</span><span>Operations</span></div></div>
   </aside>
@@ -218,10 +226,11 @@ function handleHashChange() {
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
   const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subName = { pipeline:'Pipeline', owners:'Owners', active:'Active deals', events:'Funnel events', pool:'Pool', watchlists:'Watchlists', offers:'Offers', appointments:'Appointments' }[subSection];
+  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events' };
+  const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':renderPartnershipsStub, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -940,15 +949,288 @@ function renderApptList(allAppts, filter) {
   }).join('')}</div>`;
 }
 
-function renderPartnershipsStub() {
+// ---------- PARTNERSHIPS · PIPELINE (firms) ----------
+async function renderPartnersPipeline() {
   document.getElementById('content').innerHTML = `
-    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Partnerships</div><h1>HOA & Property Management partnerships</h1><div class="desc">Firm-level pipeline, HOA companies, building-level outreach, and petition signatures.</div></div>
-    <div class="placeholder-section">
-      <div class="sprint-tag">Sprint C</div>
-      <h2 style="margin-top:18px">Coming next</h2>
-      <p>3-touch cadence pipeline for PM firms (8 loaded), HOA companies (8) and contacts (4), building-level outreach status (65 buildings), and petition signature totals.</p>
-      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">Source tables: partnership_outreach · hoa_companies · hoa_contacts · hoa_outreach · hoa_outreach_events · petition_signatures · hoa_pitches</p>
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Partnerships · Pipeline</div>
+      <h1>Firm partnership cadence</h1>
+      <div class="desc">PM firms in your 3-touch outreach cadence, sorted by priority. Each firm = one HOA management company that could refer multiple buildings.</div>
+    </div>
+    <div id="firm-stats" class="stats-grid"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="cold">Cold</button>
+      <button class="filter-btn" data-filter="researching">Researching</button>
+      <button class="filter-btn" data-filter="on_hold">On hold</button>
+      <button class="filter-btn" data-filter="declined">Declined</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="firm-count">—</div>
+    </div>
+    <div id="firm-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderFirmList(window._allFirms || [], b.dataset.filter);
+  }));
+  await loadFirms();
+}
+
+async function loadFirms() {
+  const [firmsData, companiesData, outreachData] = await Promise.all([
+    sb.from('partnership_outreach').select('*').order('priority',{ascending:true,nullsLast:true}).order('updated_at',{ascending:false}),
+    sb.from('hoa_companies').select('*'),
+    sb.from('hoa_outreach').select('building_slug,company_id,status')
+  ]);
+  const companyMap = Object.fromEntries((companiesData.data||[]).map(c => [c.id, c]));
+  const buildingsByCompany = {};
+  for (const o of (outreachData.data||[])) {
+    if (!o.company_id) continue;
+    if (!buildingsByCompany[o.company_id]) buildingsByCompany[o.company_id] = [];
+    buildingsByCompany[o.company_id].push(o);
+  }
+  window._allFirms = (firmsData.data||[]).map(f => ({ ...f, company: companyMap[f.company_id], buildings_in_catalog: (buildingsByCompany[f.company_id]||[]).length }));
+
+  const statusCounts = { cold:0, researching:0, on_hold:0, declined:0 };
+  window._allFirms.forEach(f => { if (statusCounts[f.status] !== undefined) statusCounts[f.status] += 1; });
+  document.getElementById('firm-stats').innerHTML = `
+    <div class="stat"><div class="stat-label">❄ Cold</div><div class="stat-value cool">${statusCounts.cold}</div></div>
+    <div class="stat"><div class="stat-label">🔬 Researching</div><div class="stat-value warm">${statusCounts.researching}</div></div>
+    <div class="stat"><div class="stat-label">⏸ On hold</div><div class="stat-value">${statusCounts.on_hold}</div></div>
+    <div class="stat"><div class="stat-label">Total firms</div><div class="stat-value">${window._allFirms.length}</div></div>`;
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderFirmList(window._allFirms, active);
+  setUpdated();
+}
+
+function renderFirmList(allFirms, filter) {
+  let firms = allFirms;
+  if (filter !== 'all') firms = firms.filter(f => f.status === filter);
+  document.getElementById('firm-count').textContent = firms.length + ' firm' + (firms.length===1?'':'s');
+  if (!firms.length) { document.getElementById('firm-list').innerHTML = '<div class="empty">No firms match this filter.</div>'; return; }
+  document.getElementById('firm-list').innerHTML = `<div class="row-list">${firms.map(f => {
+    const v = f.custom_vars || {};
+    const companyName = f.company?.name || v.firm_name || '—';
+    const tempClass = ({cold:'cool', researching:'warm', on_hold:'cold', declined:'rejected'})[f.status] || 'cool';
+    const parts = [];
+    if (f.contact_title) parts.push(`<span>${escapeHtml(f.contact_title)}</span>`);
+    if (v.annual_volume) parts.push(`<span>vol <strong>${escapeHtml(v.annual_volume)}</strong></span>`);
+    if (v.projected_annual_revenue) parts.push(`<span style="color:var(--gold)">projected <strong>${escapeHtml(v.projected_annual_revenue)}</strong></span>`);
+    if (f.buildings_in_catalog) parts.push(`<span>${f.buildings_in_catalog} buildings in catalog</span>`);
+    if (f.company?.buildings_managed_est) parts.push(`<span>${f.company.buildings_managed_est.toLocaleString()} buildings managed</span>`);
+    if (f.next_action_type) parts.push(`<span style="color:var(--warn)">next: ${escapeHtml(f.next_action_type)}</span>`);
+
+    const links = [];
+    if (f.contact_email) links.push(`<a class="btn primary" href="mailto:${f.contact_email}">Email →</a>`);
+    if (f.contact_linkedin_url) links.push(`<a class="btn" href="${escapeHtml(f.contact_linkedin_url)}" target="_blank">LinkedIn →</a>`);
+    if (f.company?.website) links.push(`<a class="btn" href="${escapeHtml(f.company.website)}" target="_blank">Site →</a>`);
+    if (!links.length) links.push('<span style="font-size:11px;color:rgba(232,227,216,0.4);font-family:JetBrains Mono,monospace">no contact info</span>');
+
+    const angle = v.personal_angle ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(212,165,116,0.06);border-left:2px solid var(--gold);font-size:12px;line-height:1.5;color:rgba(232,227,216,0.8);font-style:italic">"${escapeHtml(v.personal_angle.substring(0,260))}${v.personal_angle.length>260?'…':''}"</div>` : '';
+    const notes = f.notes ? `<div style="margin-top:6px;font-size:11px;line-height:1.55;color:rgba(232,227,216,0.55);font-family:JetBrains Mono,monospace">${escapeHtml(f.notes.substring(0,220))}${f.notes.length>220?'…':''}</div>` : '';
+
+    return `<div class="row ${tempClass}">
+      <div class="row-badge"><div class="row-badge-icon">🏢</div><div class="row-badge-text">#${f.priority||'—'}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(companyName)}<span class="meta">${escapeHtml(f.status||'—')}</span></h3>
+        <div class="sub">${escapeHtml(f.contact_full_name || '—')}${f.contact_email ? ` · ${escapeHtml(f.contact_email)}` : ''}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+        ${angle}
+        ${notes}
+      </div>
+      <div class="row-actions"><div class="age">${f.last_action_at ? fmtAge(f.last_action_at) : 'no action yet'}</div><div class="action-row">${links.join('')}</div></div>
     </div>`;
+  }).join('')}</div>`;
+}
+
+// ---------- PARTNERSHIPS · BUILDING OUTREACH ----------
+async function renderPartnersBuildings() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Partnerships · Building outreach</div>
+      <h1>Per-building HOA outreach</h1>
+      <div class="desc">Every building in the SF catalog with HOA outreach state. Use this to track who's been contacted, who's pending, and who manages each building.</div>
+    </div>
+    <div id="bldg-stats" class="stats-grid"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="targeted">Targeted</button>
+      <button class="filter-btn" data-filter="contacted">Contacted</button>
+      <button class="filter-btn" data-filter="replied">Replied</button>
+      <button class="filter-btn" data-filter="declined">Declined</button>
+      <input type="text" class="search-input" id="bldg-search" placeholder="filter by building…" style="margin-left:auto">
+      <div class="filter-meta" id="bldg-count">—</div>
+    </div>
+    <div id="bldg-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderBuildingsList(window._allOutreach || [], b.dataset.filter, document.getElementById('bldg-search').value);
+  }));
+  document.getElementById('bldg-search').addEventListener('input', () => {
+    const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+    renderBuildingsList(window._allOutreach || [], active, document.getElementById('bldg-search').value);
+  });
+  await loadOutreach();
+}
+
+async function loadOutreach() {
+  const [outreachData, bldgsData, companiesData, contactsData] = await Promise.all([
+    sb.from('hoa_outreach').select('*').order('updated_at',{ascending:false}),
+    sb.from('buildings').select('slug,display_name,neighborhood,unit_count'),
+    sb.from('hoa_companies').select('id,name,slug'),
+    sb.from('hoa_contacts').select('*')
+  ]);
+  const bldgMap = Object.fromEntries((bldgsData.data||[]).map(b => [b.slug, b]));
+  const companyMap = Object.fromEntries((companiesData.data||[]).map(c => [c.id, c]));
+  const contactsByBldg = {};
+  for (const c of (contactsData.data||[])) {
+    if (!contactsByBldg[c.building_slug]) contactsByBldg[c.building_slug] = [];
+    contactsByBldg[c.building_slug].push(c);
+  }
+  window._allOutreach = (outreachData.data||[]).map(o => ({ ...o, building: bldgMap[o.building_slug], company: companyMap[o.company_id], contacts: contactsByBldg[o.building_slug]||[] }));
+
+  const statusCounts = {};
+  window._allOutreach.forEach(o => { statusCounts[o.status] = (statusCounts[o.status]||0) + 1; });
+  document.getElementById('bldg-stats').innerHTML = `
+    <div class="stat"><div class="stat-label">🎯 Targeted</div><div class="stat-value cool">${statusCounts.targeted||0}</div></div>
+    <div class="stat"><div class="stat-label">📨 Contacted</div><div class="stat-value warm">${statusCounts.contacted||0}</div></div>
+    <div class="stat"><div class="stat-label">💬 Replied</div><div class="stat-value success">${statusCounts.replied||0}</div></div>
+    <div class="stat"><div class="stat-label">Total buildings</div><div class="stat-value">${window._allOutreach.length}</div></div>`;
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderBuildingsList(window._allOutreach, active, '');
+  setUpdated();
+}
+
+function renderBuildingsList(allOutreach, filter, searchTerm) {
+  let outreach = allOutreach;
+  if (filter !== 'all') outreach = outreach.filter(o => o.status === filter);
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    outreach = outreach.filter(o => (o.building?.display_name||'').toLowerCase().includes(q) || (o.building_slug||'').toLowerCase().includes(q) || (o.company?.name||'').toLowerCase().includes(q));
+  }
+  document.getElementById('bldg-count').textContent = outreach.length + ' building' + (outreach.length===1?'':'s');
+  if (!outreach.length) { document.getElementById('bldg-list').innerHTML = '<div class="empty">No buildings match.</div>'; return; }
+  document.getElementById('bldg-list').innerHTML = `<div class="row-list">${outreach.map(o => {
+    const name = o.building?.display_name || prettyBuilding(o.building_slug);
+    const statusClass = ({targeted:'cool', contacted:'warm', replied:'approved', declined:'rejected', on_hold:'cold'})[o.status] || 'cool';
+    const parts = [];
+    if (o.company?.name) parts.push(`<span>via <strong>${escapeHtml(o.company.name)}</strong></span>`);
+    if (o.building?.neighborhood) parts.push(`<span>${escapeHtml(o.building.neighborhood)}</span>`);
+    if (o.building?.unit_count) parts.push(`<span>${o.building.unit_count} units</span>`);
+    if (o.contact_email) parts.push(`<span>${escapeHtml(o.contact_email)}</span>`);
+    if (o.contact_role) parts.push(`<span>${escapeHtml(o.contact_role)}</span>`);
+    if (o.contacts.length) parts.push(`<span style="color:var(--gold)">${o.contacts.length} known contact${o.contacts.length>1?'s':''}</span>`);
+
+    const links = [];
+    if (o.contact_email) links.push(`<a class="btn primary" href="mailto:${o.contact_email}">Email →</a>`);
+    if (o.contact_url) links.push(`<a class="btn" href="${escapeHtml(o.contact_url)}" target="_blank">HOA site →</a>`);
+    if (!links.length) links.push('<span style="font-size:11px;color:rgba(232,227,216,0.4);font-family:JetBrains Mono,monospace">no contact</span>');
+
+    const notes = o.notes ? `<div style="margin-top:6px;font-size:11px;line-height:1.55;color:rgba(232,227,216,0.55);font-family:JetBrains Mono,monospace">${escapeHtml(o.notes.substring(0,240))}${o.notes.length>240?'…':''}</div>` : '';
+
+    return `<div class="row ${statusClass}">
+      <div class="row-badge"><div class="row-badge-icon">🏛</div><div class="row-badge-text">${escapeHtml(o.status||'—')}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(name)}<span class="meta">${escapeHtml(o.building_slug)}</span></h3>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+        ${notes}
+      </div>
+      <div class="row-actions"><div class="age">${o.last_contacted_at ? `contacted ${fmtAge(o.last_contacted_at)}` : 'never contacted'}</div><div class="action-row">${links.join('')}</div></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ---------- PARTNERSHIPS · PETITIONS ----------
+async function renderPartnersPetitions() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Partnerships · Petitions</div>
+      <h1>Owner petitions</h1>
+      <div class="desc">Buyer and owner petition signatures, grouped by building. Each signature represents a verified owner asking their HOA to engage with us.</div>
+    </div>
+    <div id="pet-list"><div class="empty">Loading…</div></div>`;
+  const [sigsData, bldgsData, profilesData] = await Promise.all([
+    sb.from('petition_signatures').select('*').order('signed_at',{ascending:false}),
+    sb.from('buildings').select('slug,display_name,neighborhood'),
+    sb.from('profiles').select('id,email,full_name')
+  ]);
+  const bldgMap = Object.fromEntries((bldgsData.data||[]).map(b => [b.slug, b]));
+  const profileMap = Object.fromEntries((profilesData.data||[]).map(p => [p.id, p]));
+
+  if (!(sigsData.data||[]).length) {
+    document.getElementById('pet-list').innerHTML = '<div class="empty">No petition signatures yet. Once owners and prospects begin petitioning their HOAs, signatures appear here grouped by building.</div>';
+    setUpdated();
+    return;
+  }
+
+  const grouped = new Map();
+  for (const s of sigsData.data) {
+    if (!grouped.has(s.building_slug)) grouped.set(s.building_slug, []);
+    grouped.get(s.building_slug).push({ ...s, profile: profileMap[s.signer_user_id], building: bldgMap[s.building_slug] });
+  }
+  const sortedBldgs = Array.from(grouped.entries()).sort((a,b) => b[1].length - a[1].length);
+
+  document.getElementById('pet-list').innerHTML = `<div class="row-list">${sortedBldgs.map(([slug, sigs]) => {
+    const name = sigs[0].building?.display_name || prettyBuilding(slug);
+    const neighborhood = sigs[0].building?.neighborhood || '';
+    const signers = sigs.slice(0, 6).map(s => {
+      const signerName = s.profile?.full_name || s.matched_owner_name || s.profile?.email?.split('@')[0] || '—';
+      return `<span style="display:inline-block;padding:3px 9px;background:rgba(232,227,216,0.05);border-radius:999px;margin:2px 4px 2px 0;font-size:11px;font-family:JetBrains Mono,monospace;color:rgba(232,227,216,0.85)" title="${escapeHtml(s.unit_address||'')} · signed ${fmtAge(s.signed_at)}">${escapeHtml(signerName)}${s.unit_address ? ' (' + escapeHtml(s.unit_address) + ')' : ''}</span>`;
+    }).join('') + (sigs.length > 6 ? `<span style="color:rgba(232,227,216,0.5);font-size:11px;font-family:JetBrains Mono,monospace">+${sigs.length-6} more</span>` : '');
+    return `<div class="row warm">
+      <div class="row-badge"><div class="row-badge-icon">✍️</div><div class="row-badge-text">${sigs.length}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(name)}<span class="meta">${escapeHtml(neighborhood)}</span></h3>
+        <div style="margin-top:6px">${signers}</div>
+      </div>
+      <div class="row-actions"><div class="age">latest ${fmtAge(sigs[0].signed_at)}</div><div class="action-row"><a href="/buildings/#/building/${escapeHtml(slug)}/" class="btn" target="_blank">Building →</a></div></div>
+    </div>`;
+  }).join('')}</div>`;
+  setUpdated();
+}
+
+// ---------- PARTNERSHIPS · EVENTS ----------
+async function renderPartnersEvents() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Partnerships · Events</div>
+      <h1>HOA outreach event log</h1>
+      <div class="desc">Every outreach action logged against an HOA building. Sends, replies, declines, follow-ups, etc.</div>
+    </div>
+    <div class="filters">
+      <input type="text" class="search-input" id="hev-building" placeholder="filter by building…">
+      <input type="text" class="search-input" id="hev-type" placeholder="filter by event_type…" style="min-width:280px">
+      <div class="filter-spacer"></div><div class="filter-meta" id="hev-count">—</div>
+    </div>
+    <div style="overflow-x:auto;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+      <table class="events-table">
+        <thead><tr><th>When</th><th>Building</th><th>Event</th><th>Subject</th><th>Template</th></tr></thead>
+        <tbody id="hev-body"><tr><td colspan="5" style="text-align:center;padding:36px;color:rgba(232,227,216,0.5)">Loading…</td></tr></tbody>
+      </table>
+    </div>`;
+  let allEvents = [];
+  const applyFilters = () => {
+    const bQ = document.getElementById('hev-building').value.toLowerCase().trim();
+    const tQ = document.getElementById('hev-type').value.toLowerCase().trim();
+    let filtered = allEvents;
+    if (bQ) filtered = filtered.filter(e => (e.building_slug||'').toLowerCase().includes(bQ));
+    if (tQ) filtered = filtered.filter(e => (e.event_type||'').toLowerCase().includes(tQ));
+    document.getElementById('hev-count').textContent = filtered.length + ' event' + (filtered.length===1?'':'s');
+    if (!filtered.length) { document.getElementById('hev-body').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:36px;color:rgba(232,227,216,0.5);font-style:italic">No events match. The log populates as you contact HOAs and they reply.</td></tr>'; return; }
+    document.getElementById('hev-body').innerHTML = filtered.map(e => `<tr>
+      <td>${escapeHtml(new Date(e.occurred_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}))}</td>
+      <td>${escapeHtml(prettyBuilding(e.building_slug))}</td>
+      <td class="evtype">${escapeHtml(e.event_type||'—')}</td>
+      <td>${escapeHtml((e.subject||'').substring(0,80))}</td>
+      <td style="color:rgba(232,227,216,0.4)">${escapeHtml(e.template_key||'—')}</td>
+    </tr>`).join('');
+  };
+  const { data } = await sb.from('hoa_outreach_events').select('*').order('occurred_at',{ascending:false}).limit(200);
+  allEvents = data || [];
+  document.getElementById('hev-building').addEventListener('input', applyFilters);
+  document.getElementById('hev-type').addEventListener('input', applyFilters);
+  applyFilters();
+  setUpdated();
 }
 
 function renderAcquisitionStub() {
