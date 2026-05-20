@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buildings × PM Firms · Admin · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f131d; --bg-card:#1a1f2e; --bg-card-lift:#222837;
+  --cream:#e8e3d8; --cream-78:rgba(232,227,216,.78); --cream-58:rgba(232,227,216,.58);
+  --cream-38:rgba(232,227,216,.38); --cream-14:rgba(232,227,216,.14);
+  --gold:#d4a574; --gold-15:rgba(212,165,116,.15);
+  --blue-gray:#9fb4d8; --blue-gray-15:rgba(159,180,216,.15);
+  --green:#84d9a0; --red:#e57373;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(15,19,29,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--cream-14);padding:14px 0}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--cream)}
+.brand-sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-left:14px}
+.search{flex:1;max-width:380px;min-width:200px}
+.search input{width:100%;padding:9px 14px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:8px;color:var(--cream);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s}
+.search input:focus{border-color:var(--gold)}
+.search input::placeholder{color:var(--cream-38)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px 28px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat{padding:18px 20px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:10px}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
+.stat-value{font-family:var(--serif);font-size:30px;font-weight:500;letter-spacing:-.02em;color:var(--cream)}
+.stat-sub{font-size:12px;color:var(--cream-58);margin-top:2px;font-family:var(--mono)}
+
+.section-title{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.02em;margin:36px 0 6px;color:var(--cream)}
+.section-title em{font-style:italic;color:var(--blue-gray)}
+.section-sub{color:var(--cream-78);font-size:14px;margin-bottom:18px}
+
+/* Buildings table */
+.bldg-table{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px;overflow:hidden}
+.bldg-row{display:grid;grid-template-columns:2.2fr 1.4fr 90px 1.2fr 1fr;gap:18px;padding:14px 22px;align-items:center;border-bottom:1px solid var(--cream-14);transition:background .12s;cursor:default}
+.bldg-row:last-child{border-bottom:0}
+.bldg-row:hover{background:var(--bg-card-lift)}
+.bldg-row.header{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);background:rgba(0,0,0,.18);padding:12px 22px;cursor:default}
+.bldg-row.header:hover{background:rgba(0,0,0,.18)}
+.bldg-name{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:-.01em;line-height:1.25}
+.bldg-name a{color:var(--cream);border-bottom:1px solid transparent}
+.bldg-name a:hover{color:var(--gold);text-decoration:none;border-bottom-color:var(--gold)}
+.bldg-meta{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.03em;margin-top:3px}
+.bldg-stat{font-family:var(--serif);font-size:17px;color:var(--cream)}
+.bldg-stat-sub{font-size:10px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.bldg-revenue{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--gold);letter-spacing:-.01em}
+
+/* PM card inside building row */
+.pm-card{display:flex;align-items:center;gap:8px;padding:7px 12px;background:rgba(159,180,216,.08);border:1px solid rgba(159,180,216,.28);border-radius:8px;cursor:pointer;transition:all .12s;width:fit-content}
+.pm-card:hover{background:rgba(159,180,216,.16);border-color:var(--blue-gray);transform:translateX(2px)}
+.pm-card-name{font-size:13px;font-weight:500;color:var(--cream)}
+.pm-card-arrow{font-size:11px;color:var(--blue-gray);opacity:.7}
+.pm-unmapped{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(229,115,115,.08);border:1px dashed rgba(229,115,115,.4);border-radius:8px;color:var(--red);font-size:12px;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;cursor:default}
+
+/* PM folders section */
+.pm-folder{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px;margin-bottom:14px;overflow:hidden;transition:border-color .15s}
+.pm-folder.expanded{border-color:rgba(212,165,116,.36)}
+.pm-folder.highlight{animation:pulse 1.4s ease-out 1}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,165,116,0)}50%{box-shadow:0 0 0 4px rgba(212,165,116,.32)}}
+.pm-folder-head{display:grid;grid-template-columns:32px 1.8fr 1fr 1fr 140px;gap:18px;align-items:center;padding:18px 22px;cursor:pointer;transition:background .12s}
+.pm-folder-head:hover{background:var(--bg-card-lift)}
+.pm-folder-toggle{font-family:var(--mono);font-size:14px;color:var(--cream-58);transition:transform .2s}
+.pm-folder.expanded .pm-folder-toggle{transform:rotate(90deg);color:var(--gold)}
+.pm-folder-name{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.pm-folder-meta{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em;margin-top:4px}
+.pm-folder-stat{font-family:var(--serif);font-size:18px;color:var(--cream)}
+.pm-folder-stat-label{font-size:10px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.pm-folder-revenue{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:20px;letter-spacing:-.01em}
+.pm-folder-actions{display:flex;flex-direction:column;gap:4px}
+.pm-pitch-btn{display:inline-block;padding:6px 12px;background:rgba(212,165,116,.12);border:1px solid rgba(212,165,116,.32);border-radius:6px;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center;transition:all .12s}
+.pm-pitch-btn:hover{background:var(--gold);color:#1a1f2e;text-decoration:none}
+.pm-dash-btn{display:inline-block;padding:6px 12px;background:rgba(159,180,216,.10);border:1px solid rgba(159,180,216,.32);border-radius:6px;color:var(--blue-gray);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center;transition:all .12s}
+.pm-dash-btn:hover{background:var(--blue-gray);color:#1a1f2e;text-decoration:none}
+
+.pm-folder-body{max-height:0;overflow:hidden;transition:max-height .25s ease-out;border-top:1px solid var(--cream-14)}
+.pm-folder.expanded .pm-folder-body{max-height:4000px}
+.pm-folder-inner{padding:6px 0}
+
+.pm-bldg-row{display:grid;grid-template-columns:36px 2fr 1fr 80px 1fr 1fr;gap:14px;padding:12px 26px;align-items:center;border-bottom:1px solid var(--cream-14);transition:background .12s}
+.pm-bldg-row:last-child{border-bottom:0}
+.pm-bldg-row:hover{background:var(--bg-card-lift)}
+.pm-bldg-num{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.06em}
+.pm-bldg-name{font-family:var(--serif);font-size:15px;font-weight:500}
+.pm-bldg-name a{color:var(--cream)}
+.pm-bldg-name a:hover{color:var(--gold)}
+.pm-bldg-meta{font-size:10px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em;margin-top:2px}
+.pm-bldg-stat{font-family:var(--serif);font-size:15px}
+.pm-bldg-stat-sub{font-size:9px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.pm-bldg-rev{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:16px;letter-spacing:-.01em}
+
+.tier-badge{display:inline-block;padding:2px 8px;font-size:9px;font-family:var(--mono);letter-spacing:.1em;border-radius:4px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.tier-a{background:rgba(212,165,116,.18);color:var(--gold)}
+.tier-b{background:rgba(159,180,216,.18);color:var(--blue-gray)}
+.tier-c{background:rgba(232,227,216,.12);color:var(--cream-58)}
+.email-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.email-yes{background:var(--green)}
+.email-no{background:var(--red);opacity:.5}
+
+.loading{padding:80px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+.empty-pm{padding:24px;text-align:center;color:var(--cream-58);font-size:13px;font-family:var(--mono);letter-spacing:.04em}
+
+@media(max-width:1100px){
+  .bldg-row{grid-template-columns:2fr 1.4fr 80px 1fr;gap:12px}
+  .bldg-row > div:nth-child(5){display:none}
+  .bldg-row.header > div:nth-child(5){display:none}
+  .pm-folder-head{grid-template-columns:24px 1.6fr 1fr 1fr 120px}
+  .pm-bldg-row{grid-template-columns:30px 2fr 80px 1fr 1fr;gap:10px}
+  .pm-bldg-row > div:nth-child(5){display:none}
+}
+@media(max-width:700px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .bldg-row{grid-template-columns:1fr;gap:6px;padding:14px 18px}
+  .bldg-row.header{display:none}
+  .bldg-meta{font-size:11px}
+  .pm-folder-head{grid-template-columns:1fr;text-align:left}
+  .pm-folder-actions{flex-direction:row;flex-wrap:wrap;margin-top:8px}
+  .pm-bldg-row{grid-template-columns:1fr;gap:4px;padding:12px 18px}
+  .container{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div><span class="brand">Condo Market SF</span><span class="brand-sub">Admin · Buildings × PM Firms</span></div>
+    <div class="search"><input id="search-input" type="text" placeholder="Search buildings or PM firms…" autocomplete="off"></div>
+    <div><a href="https://www.sanfranciscocondomarket.com/admin/" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream-58)">← Admin home</a></div>
+  </div>
+</nav>
+
+<div id="loading" class="loading">Loading buildings × PM firms…</div>
+
+<main id="main" style="display:none">
+  <div class="container">
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- All Buildings -->
+    <h2 class="section-title">All <em>buildings</em>.</h2>
+    <p class="section-sub">81 catalogued buildings with ≥10 units in San Francisco. Click any PM card to jump to that firm's folder below.</p>
+    <div class="bldg-table">
+      <div class="bldg-row header">
+        <div>Building / address</div>
+        <div>Property manager</div>
+        <div>Units</div>
+        <div>10y volume</div>
+        <div>Partner @ 1%</div>
+      </div>
+      <div id="bldg-rows"></div>
+    </div>
+
+    <!-- PM Folders -->
+    <h2 class="section-title">By <em>property manager</em>.</h2>
+    <p class="section-sub">Click any folder to expand and see all mapped buildings. Each folder has direct links to that firm's partner portal (pitch + dashboard).</p>
+    <div id="pm-folders"></div>
+
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+const fmtMoney = (n) => {
+  if (n == null || n === 0) return '$0';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2).replace(/\.?0+$/,'') + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1e3).toLocaleString() + 'K';
+  return '$' + n.toLocaleString();
+};
+const fmtNum = (n) => (n||0).toLocaleString();
+const fmtDate = (s) => s ? new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—';
+
+const tierBadge = (firm) => {
+  if (!firm) return '';
+  const t = firm.mapped_buildings >= 5 || firm.buildings_managed_est >= 100 ? 'a'
+          : firm.mapped_buildings >= 1 || firm.buildings_managed_est >= 20 ? 'b' : 'c';
+  return `<span class="tier-badge tier-${t}">${t.toUpperCase()}</span>`;
+};
+
+let state = { buildings: [], firms: [], filterText: '' };
+
+function renderStats(totals) {
+  const cards = [
+    { label: 'Catalogued buildings', value: totals.total_buildings, sub: '≥10 units' },
+    { label: 'Mapped to PM', value: totals.mapped_buildings, sub: `${totals.total_buildings - totals.mapped_buildings} unmapped` },
+    { label: 'PM firms in DB', value: totals.total_firms, sub: '' },
+    { label: 'Firms with email', value: totals.firms_with_email, sub: `${totals.total_firms - totals.firms_with_email} need enrichment` }
+  ];
+  document.getElementById('stats-row').innerHTML = cards.map(c => `
+    <div class="stat">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value}</div>
+      ${c.sub ? `<div class="stat-sub">${c.sub}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderBuildings() {
+  const filter = state.filterText.toLowerCase().trim();
+  const rows = state.buildings.filter(b => {
+    if (!filter) return true;
+    return (b.display_name && b.display_name.toLowerCase().includes(filter))
+      || (b.firm_name && b.firm_name.toLowerCase().includes(filter))
+      || (b.neighborhood && b.neighborhood.toLowerCase().includes(filter))
+      || (b.address && b.address.toLowerCase().includes(filter));
+  });
+  
+  document.getElementById('bldg-rows').innerHTML = rows.map(b => {
+    const pmCell = b.firm_slug
+      ? `<div class="pm-card" data-firm="${b.firm_slug}">
+           <span class="pm-card-name">${b.firm_name}</span>
+           <span class="pm-card-arrow">→</span>
+         </div>`
+      : `<div class="pm-unmapped">unmapped</div>`;
+    return `
+      <div class="bldg-row">
+        <div>
+          <div class="bldg-name"><a href="${b.building_marketing_url}" target="_blank" rel="noopener">${b.display_name}</a></div>
+          <div class="bldg-meta">${b.address || ''} · ${b.neighborhood || '—'} · built ${b.year_built || '—'}</div>
+        </div>
+        <div>${pmCell}</div>
+        <div>
+          <div class="bldg-stat">${fmtNum(b.unit_count)}</div>
+        </div>
+        <div>
+          <div class="bldg-stat">${fmtMoney(b.volume_10y)}</div>
+          <div class="bldg-stat-sub">${b.sales_10y} sales</div>
+        </div>
+        <div class="bldg-revenue">${fmtMoney(b.partner_earn_10y_1pct)}</div>
+      </div>`;
+  }).join('') || '<div class="empty-pm">No buildings match your search.</div>';
+  
+  // Wire up PM card clicks
+  document.querySelectorAll('.pm-card[data-firm]').forEach(card => {
+    card.addEventListener('click', () => {
+      const firmSlug = card.dataset.firm;
+      const folder = document.getElementById('pm-folder-' + firmSlug);
+      if (!folder) return;
+      // Expand it
+      folder.classList.add('expanded');
+      // Scroll into view
+      folder.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Highlight pulse
+      folder.classList.add('highlight');
+      setTimeout(() => folder.classList.remove('highlight'), 1500);
+    });
+  });
+}
+
+function renderFirms() {
+  const filter = state.filterText.toLowerCase().trim();
+  const firms = state.firms.filter(f => {
+    if (!filter) return true;
+    return f.name.toLowerCase().includes(filter);
+  });
+  
+  document.getElementById('pm-folders').innerHTML = firms.map(f => {
+    const mappedBldgs = state.buildings.filter(b => b.firm_slug === f.slug);
+    return `
+      <div class="pm-folder" id="pm-folder-${f.slug}">
+        <div class="pm-folder-head" data-toggle-firm="${f.slug}">
+          <div class="pm-folder-toggle">▸</div>
+          <div>
+            <div class="pm-folder-name">
+              ${f.name}${tierBadge(f)}
+            </div>
+            <div class="pm-folder-meta">
+              <span class="email-dot ${f.has_email ? 'email-yes' : 'email-no'}"></span>
+              ${f.contact_email || 'No email yet'}${f.contact_name ? ' · ' + f.contact_name : ''}${f.contact_phone ? ' · ' + f.contact_phone : ''}
+            </div>
+          </div>
+          <div>
+            <div class="pm-folder-stat-label">Mapped buildings</div>
+            <div class="pm-folder-stat">${f.mapped_buildings}${f.buildings_managed_est ? ` <span style="color:var(--cream-58);font-size:13px">/ ~${f.buildings_managed_est} est.</span>` : ''}</div>
+          </div>
+          <div>
+            <div class="pm-folder-stat-label">10y volume</div>
+            <div class="pm-folder-stat">${fmtMoney(f.total_volume_10y)}</div>
+          </div>
+          <div class="pm-folder-actions">
+            <a class="pm-dash-btn" href="${f.dashboard_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Dashboard ↗</a>
+            <a class="pm-pitch-btn" href="${f.pitch_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Pitch ↗</a>
+          </div>
+        </div>
+        <div class="pm-folder-body">
+          <div class="pm-folder-inner">
+            ${mappedBldgs.length === 0
+              ? '<div class="empty-pm">No buildings mapped to this firm yet. Use the outreach response loop to discover their book.</div>'
+              : mappedBldgs.map((b, i) => `
+                <div class="pm-bldg-row">
+                  <div class="pm-bldg-num">${String(i+1).padStart(2,'0')}</div>
+                  <div>
+                    <div class="pm-bldg-name"><a href="${b.building_marketing_url}" target="_blank" rel="noopener">${b.display_name}</a></div>
+                    <div class="pm-bldg-meta">${b.address || ''} · ${b.neighborhood || '—'}</div>
+                  </div>
+                  <div>
+                    <div class="pm-bldg-stat">${fmtNum(b.unit_count)}</div>
+                    <div class="pm-bldg-stat-sub">units</div>
+                  </div>
+                  <div>
+                    <div class="pm-bldg-stat">${b.sales_10y}</div>
+                    <div class="pm-bldg-stat-sub">10y sales</div>
+                  </div>
+                  <div>
+                    <div class="pm-bldg-stat">${fmtMoney(b.volume_10y)}</div>
+                    <div class="pm-bldg-stat-sub">10y volume</div>
+                  </div>
+                  <div class="pm-bldg-rev">${fmtMoney(b.partner_earn_10y_1pct)}</div>
+                </div>
+              `).join('')
+            }
+          </div>
+        </div>
+      </div>`;
+  }).join('') || '<div class="empty-pm">No PM firms match your search.</div>';
+  
+  // Wire folder toggles
+  document.querySelectorAll('.pm-folder-head[data-toggle-firm]').forEach(head => {
+    head.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;  // don't toggle when clicking links
+      head.closest('.pm-folder').classList.toggle('expanded');
+    });
+  });
+}
+
+async function load() {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_buildings_by_pm`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    state.buildings = data.buildings || [];
+    state.firms = data.firms || [];
+    renderStats(data.totals);
+    renderBuildings();
+    renderFirms();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+  } catch (err) {
+    document.getElementById('loading').innerHTML = 'Error loading: ' + err.message;
+  }
+}
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+  state.filterText = e.target.value;
+  renderBuildings();
+  renderFirms();
+});
+
+load();
+</script>
+</body>
+</html>
