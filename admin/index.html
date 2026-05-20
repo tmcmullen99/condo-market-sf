@@ -137,7 +137,15 @@ a{color:inherit;text-decoration:none}
         <div class="sub-item" data-route="listings/events"><span class="sub-dot"></span>Funnel events</div>
       </div>
     </div>
-    <div class="nav-section" data-section="buyers"><div class="nav-item" data-route="buyers"><span class="nav-icon">👥</span><span>Buyers</span></div></div>
+    <div class="nav-section" data-section="buyers">
+      <div class="nav-item" data-route="buyers"><span class="nav-icon">👥</span><span>Buyers</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="buyers/pool"><span class="sub-dot"></span>Pool</div>
+        <div class="sub-item" data-route="buyers/watchlists"><span class="sub-dot"></span>Watchlists</div>
+        <div class="sub-item" data-route="buyers/offers"><span class="sub-dot"></span>Offers</div>
+        <div class="sub-item" data-route="buyers/appointments"><span class="sub-dot"></span>Appointments</div>
+      </div>
+    </div>
     <div class="nav-section" data-section="partnerships"><div class="nav-item" data-route="partnerships"><span class="nav-icon">🤝</span><span>Partnerships</span></div></div>
     <div class="nav-section" data-section="acquisition"><div class="nav-item" data-route="acquisition"><span class="nav-icon">📡</span><span>Acquisition</span></div></div>
     <div class="nav-section" data-section="ops"><div class="nav-item" data-route="ops"><span class="nav-icon">⚙</span><span>Operations</span></div></div>
@@ -210,10 +218,10 @@ function handleHashChange() {
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
   const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subName = { pipeline:'Pipeline', owners:'Owners', active:'Active deals', events:'Funnel events' }[subSection];
+  const subName = { pipeline:'Pipeline', owners:'Owners', active:'Active deals', events:'Funnel events', pool:'Pool', watchlists:'Watchlists', offers:'Offers', appointments:'Appointments' }[subSection];
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':renderBuyersStub, 'partnerships':renderPartnershipsStub, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':renderPartnershipsStub, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -671,15 +679,265 @@ async function renderListingsEvents() {
 }
 
 // ---------- STUBS ----------
-function renderBuyersStub() {
+// ---------- BUYERS · POOL ----------
+async function renderBuyersPool() {
   document.getElementById('content').innerHTML = `
-    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Buyers</div><h1>Buyer pool & negotiations</h1><div class="desc">Verified buyers, watchlists, offers, and appointments.</div></div>
-    <div class="placeholder-section">
-      <div class="sprint-tag">Sprint B</div>
-      <h2 style="margin-top:18px">Coming next</h2>
-      <p>Verified buyer profiles, who's watching what buildings, active offers + negotiation rounds, and booked appointments.</p>
-      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">Source tables: watchlist · offers · offer_rounds · appointments · profiles (buyer side)</p>
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Buyers · Pool</div>
+      <h1>Verified buyer pool</h1>
+      <div class="desc">Every person who's watched a building, made an offer, or booked an appointment. Aggregated across all buyer-side activity.</div>
+    </div>
+    <div id="buyer-stats" class="stats-grid"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="offer">Has offer</button>
+      <button class="filter-btn" data-filter="appointment">Booked appt</button>
+      <button class="filter-btn" data-filter="active30d">Active 30d</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="buyer-count">—</div>
+    </div>
+    <div id="buyer-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderPoolList(window._allPool || [], b.dataset.filter);
+  }));
+  await loadPool();
+}
+
+async function loadPool() {
+  const [watches, offersData, apptsData, profilesData] = await Promise.all([
+    sb.from('watchlist').select('id,user_id,building_slug,created_at'),
+    sb.from('offers').select('*'),
+    sb.from('appointments').select('*'),
+    sb.from('profiles').select('id,email,full_name,phone,tos_accepted_at')
+  ]);
+  const profileMap = Object.fromEntries((profilesData.data||[]).map(p => [p.id, p]));
+  const pool = new Map();
+  const upsert = (key, init) => { if (!pool.has(key)) pool.set(key, init); return pool.get(key); };
+
+  for (const w of (watches.data||[])) {
+    const profile = profileMap[w.user_id];
+    if (!profile) continue;
+    const p = upsert(profile.email.toLowerCase(), { email: profile.email, name: profile.full_name, user_id: w.user_id, phone: profile.phone, tos: profile.tos_accepted_at, watchlist: [], offers: [], appointments: [], last_activity: null });
+    p.watchlist.push(w);
+    if (!p.last_activity || w.created_at > p.last_activity) p.last_activity = w.created_at;
+  }
+  for (const o of (offersData.data||[])) {
+    if (!o.buyer_email) continue;
+    const profile = o.buyer_user_id ? profileMap[o.buyer_user_id] : null;
+    const p = upsert(o.buyer_email.toLowerCase(), { email: o.buyer_email, name: profile?.full_name || o.buyer_name, user_id: o.buyer_user_id, phone: profile?.phone, tos: profile?.tos_accepted_at, watchlist: [], offers: [], appointments: [], last_activity: null });
+    p.offers.push(o);
+    if (!p.last_activity || o.created_at > p.last_activity) p.last_activity = o.created_at;
+  }
+  for (const a of (apptsData.data||[])) {
+    if (!a.prospect_email) continue;
+    const p = upsert(a.prospect_email.toLowerCase(), { email: a.prospect_email, name: a.prospect_name, user_id: null, phone: a.prospect_phone, tos: null, watchlist: [], offers: [], appointments: [], last_activity: null });
+    p.appointments.push(a);
+    if (!p.last_activity || a.created_at > p.last_activity) p.last_activity = a.created_at;
+  }
+
+  window._allPool = Array.from(pool.values());
+  const totalBuyers = window._allPool.length;
+  const withOffer = window._allPool.filter(b => b.offers.length > 0).length;
+  const withAppt = window._allPool.filter(b => b.appointments.length > 0).length;
+  const verified = window._allPool.filter(b => b.tos).length;
+  document.getElementById('buyer-stats').innerHTML = `
+    <div class="stat"><div class="stat-label">👥 Buyers</div><div class="stat-value">${totalBuyers}</div></div>
+    <div class="stat"><div class="stat-label">💵 With offer</div><div class="stat-value warm">${withOffer}</div></div>
+    <div class="stat"><div class="stat-label">📅 Booked appt</div><div class="stat-value cool">${withAppt}</div></div>
+    <div class="stat"><div class="stat-label">✓ TOS accepted</div><div class="stat-value success">${verified}</div></div>`;
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderPoolList(window._allPool, active);
+  setUpdated();
+}
+
+function renderPoolList(allBuyers, filter) {
+  let buyers = [...allBuyers];
+  if (filter === 'offer') buyers = buyers.filter(b => b.offers.length > 0);
+  else if (filter === 'appointment') buyers = buyers.filter(b => b.appointments.length > 0);
+  else if (filter === 'active30d') { const c = Date.now() - 30*86400*1000; buyers = buyers.filter(b => b.last_activity && new Date(b.last_activity).getTime() > c); }
+  buyers.sort((a,b) => new Date(b.last_activity) - new Date(a.last_activity));
+  document.getElementById('buyer-count').textContent = buyers.length + ' buyer' + (buyers.length===1?'':'s');
+  if (!buyers.length) { document.getElementById('buyer-list').innerHTML = '<div class="empty">No buyers match this filter. Buyers appear here when they watch a building, make an offer, or book an appointment.</div>'; return; }
+  document.getElementById('buyer-list').innerHTML = `<div class="row-list">${buyers.map(b => {
+    const parts = [];
+    if (b.watchlist.length) parts.push(`<span>👁 ${b.watchlist.length} watch${b.watchlist.length>1?'es':''}</span>`);
+    if (b.offers.length) parts.push(`<span style="color:var(--warm)">💵 ${b.offers.length} offer${b.offers.length>1?'s':''}</span>`);
+    if (b.appointments.length) parts.push(`<span style="color:var(--cool)">📅 ${b.appointments.length} appt${b.appointments.length>1?'s':''}</span>`);
+    if (b.tos) parts.push(`<span style="color:var(--success)">✓ TOS</span>`);
+    const buildings = [...new Set([...b.watchlist.map(w=>w.building_slug), ...b.offers.map(o=>o.building_slug), ...b.appointments.map(a=>a.building_slug)])].filter(Boolean);
+    const buildingsStr = buildings.length ? buildings.slice(0,3).map(prettyBuilding).join(' · ') + (buildings.length>3 ? ` +${buildings.length-3}` : '') : '—';
+    const tempClass = b.offers.length ? 'warm' : (b.appointments.length ? 'cool' : (b.watchlist.length ? 'cool' : 'cold'));
+    return `<div class="row ${tempClass}">
+      <div class="row-badge"><div class="row-badge-icon">👤</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(b.name || b.email.split('@')[0])}<span class="meta">${escapeHtml(buildingsStr)}</span></h3>
+        <div class="sub">${escapeHtml(b.email)}${b.phone ? ` · ${escapeHtml(b.phone)}` : ''}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+      </div>
+      <div class="row-actions"><div class="age">${fmtAge(b.last_activity)}</div><div class="action-row"><a href="mailto:${b.email}" class="btn primary">Email →</a></div></div>
     </div>`;
+  }).join('')}</div>`;
+}
+
+// ---------- BUYERS · WATCHLISTS ----------
+async function renderBuyersWatchlists() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Buyers · Watchlists</div>
+      <h1>Building watchers</h1>
+      <div class="desc">Buildings with at least one buyer watching. Grouped by building, ordered by watcher count.</div>
+    </div>
+    <div id="wl-list"><div class="empty">Loading…</div></div>`;
+  const [watches, profilesData, bldgsData] = await Promise.all([
+    sb.from('watchlist').select('id,user_id,building_slug,created_at').order('created_at',{ascending:false}),
+    sb.from('profiles').select('id,email,full_name'),
+    sb.from('buildings').select('slug,display_name,neighborhood')
+  ]);
+  const profileMap = Object.fromEntries((profilesData.data||[]).map(p => [p.id, p]));
+  const bldgMap = Object.fromEntries((bldgsData.data||[]).map(b => [b.slug, b]));
+  const grouped = new Map();
+  for (const w of (watches.data||[])) {
+    if (!grouped.has(w.building_slug)) grouped.set(w.building_slug, []);
+    grouped.get(w.building_slug).push({ ...w, profile: profileMap[w.user_id] });
+  }
+  const sortedBldgs = Array.from(grouped.entries()).sort((a,b) => b[1].length - a[1].length);
+  if (!sortedBldgs.length) { document.getElementById('wl-list').innerHTML = '<div class="empty">No buyers are watching any buildings yet.</div>'; return; }
+  document.getElementById('wl-list').innerHTML = `<div class="row-list">${sortedBldgs.map(([slug, watchers]) => {
+    const bldg = bldgMap[slug];
+    const name = bldg?.display_name || prettyBuilding(slug);
+    const neighborhood = bldg?.neighborhood || '';
+    const watcherChips = watchers.map(w => {
+      const fullName = w.profile?.full_name || w.profile?.email?.split('@')[0] || '—';
+      return `<span style="display:inline-block;padding:3px 9px;background:rgba(232,227,216,0.05);border-radius:999px;margin:2px 4px 2px 0;font-size:11px;font-family:'JetBrains Mono',ui-monospace,monospace;color:rgba(232,227,216,0.85)" title="${escapeHtml(w.profile?.email||'')} · added ${fmtAge(w.created_at)}">${escapeHtml(fullName)}</span>`;
+    }).join('');
+    return `<div class="row cool">
+      <div class="row-badge"><div class="row-badge-icon">👁</div><div class="row-badge-text">${watchers.length}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(name)}<span class="meta">${escapeHtml(neighborhood)}</span></h3>
+        <div style="margin-top:6px">${watcherChips}</div>
+      </div>
+      <div class="row-actions"><div class="action-row"><a href="/buildings/#/building/${escapeHtml(slug)}/" class="btn" target="_blank">View building →</a></div></div>
+    </div>`;
+  }).join('')}</div>`;
+  setUpdated();
+}
+
+// ---------- BUYERS · OFFERS ----------
+async function renderBuyersOffers() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Buyers · Offers</div>
+      <h1>Offers &amp; negotiations</h1>
+      <div class="desc">All offers across all listings, with negotiation round history.</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="active">Active</button>
+      <button class="filter-btn" data-filter="awaiting_seller">Awaiting seller</button>
+      <button class="filter-btn" data-filter="awaiting_buyer">Awaiting buyer</button>
+      <button class="filter-btn" data-filter="expired">Expired/rejected</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="off-count">—</div>
+    </div>
+    <div id="off-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderOffersList(window._allOffers || [], b.dataset.filter);
+  }));
+  const [offersData, roundsData, bldgsData] = await Promise.all([
+    sb.from('offers').select('*').order('updated_at',{ascending:false}),
+    sb.from('offer_rounds').select('*').order('round_number',{ascending:true}),
+    sb.from('buildings').select('slug,display_name')
+  ]);
+  const bldgMap = Object.fromEntries((bldgsData.data||[]).map(b => [b.slug, b]));
+  const roundsByOffer = {};
+  for (const r of (roundsData.data||[])) { if (!roundsByOffer[r.offer_id]) roundsByOffer[r.offer_id] = []; roundsByOffer[r.offer_id].push(r); }
+  window._allOffers = (offersData.data||[]).map(o => ({ ...o, rounds: roundsByOffer[o.id] || [], building: bldgMap[o.building_slug] }));
+  renderOffersList(window._allOffers, 'all');
+  setUpdated();
+}
+
+function renderOffersList(allOffers, filter) {
+  let offers = allOffers;
+  if (filter === 'active') offers = offers.filter(o => !['expired','rejected','accepted'].includes(o.status));
+  else if (filter === 'awaiting_seller') offers = offers.filter(o => o.awaiting_response_from === 'seller');
+  else if (filter === 'awaiting_buyer') offers = offers.filter(o => o.awaiting_response_from === 'buyer');
+  else if (filter === 'expired') offers = offers.filter(o => ['expired','rejected'].includes(o.status));
+  document.getElementById('off-count').textContent = offers.length + ' offer' + (offers.length===1?'':'s');
+  if (!offers.length) { document.getElementById('off-list').innerHTML = '<div class="empty">No offers match this filter.</div>'; return; }
+  document.getElementById('off-list').innerHTML = `<div class="row-list">${offers.map(o => {
+    const bldgName = o.building?.display_name || prettyBuilding(o.building_slug);
+    const statusClass = {expired:'cold',rejected:'rejected',accepted:'approved',pending:'warm',countered:'warm'}[o.status] || 'cool';
+    const roundsHtml = o.rounds.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(232,227,216,0.08)">${o.rounds.map(r => `<div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.65);padding:3px 0">Round ${r.round_number} · <strong style="color:var(--cream)">${escapeHtml(r.from_role)}</strong> · ${fmtMoney(r.amount)}${r.message ? ` · <em>${escapeHtml(r.message.substring(0,100))}${r.message.length>100?'…':''}</em>` : ''} · ${fmtAge(r.created_at)}</div>`).join('')}</div>` : '';
+    return `<div class="row ${statusClass}">
+      <div class="row-badge"><div class="row-badge-icon">💵</div><div class="row-badge-text">${escapeHtml(o.status||'—')}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(o.buyer_name || o.buyer_email)}<span class="meta">→ ${escapeHtml(bldgName)}</span></h3>
+        <div class="sub">${escapeHtml(o.buyer_email)} · round ${o.current_round}${o.awaiting_response_from ? ` · awaiting <strong>${escapeHtml(o.awaiting_response_from)}</strong>` : ''}</div>
+        <div class="details"><span>Latest: <strong>${fmtMoney(o.offer_amount)}</strong></span><span style="opacity:0.4">·</span><span>${fmtAge(o.created_at)}</span>${o.expires_at ? `<span style="opacity:0.4">·</span><span>expires ${fmtAge(o.expires_at)}</span>` : ''}</div>
+        ${roundsHtml}
+      </div>
+      <div class="row-actions"><div class="action-row"><a href="mailto:${o.buyer_email}" class="btn primary">Reply →</a></div></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ---------- BUYERS · APPOINTMENTS ----------
+async function renderBuyersAppointments() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Buyers · Appointments</div>
+      <h1>Scheduled showings &amp; calls</h1>
+      <div class="desc">All appointments booked via the site. Default view is upcoming only.</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="upcoming">Upcoming</button>
+      <button class="filter-btn" data-filter="past">Past</button>
+      <button class="filter-btn" data-filter="cancelled">Cancelled</button>
+      <button class="filter-btn" data-filter="all">All</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="appt-count">—</div>
+    </div>
+    <div id="appt-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderApptList(window._allAppts || [], b.dataset.filter);
+  }));
+  const { data } = await sb.from('appointments').select('*').order('scheduled_for',{ascending:false});
+  window._allAppts = data || [];
+  renderApptList(window._allAppts, 'upcoming');
+  setUpdated();
+}
+
+function renderApptList(allAppts, filter) {
+  const now = Date.now();
+  let appts = allAppts;
+  if (filter === 'upcoming') appts = appts.filter(a => new Date(a.scheduled_for).getTime() > now && !a.cancelled_at);
+  else if (filter === 'past') appts = appts.filter(a => new Date(a.scheduled_for).getTime() <= now && !a.cancelled_at);
+  else if (filter === 'cancelled') appts = appts.filter(a => a.cancelled_at);
+  document.getElementById('appt-count').textContent = appts.length + ' appt' + (appts.length===1?'':'s');
+  if (!appts.length) { document.getElementById('appt-list').innerHTML = '<div class="empty">No appointments match. When prospects book via the site, they appear here.</div>'; return; }
+  document.getElementById('appt-list').innerHTML = `<div class="row-list">${appts.map(a => {
+    const when = new Date(a.scheduled_for);
+    const isUpcoming = when.getTime() > now && !a.cancelled_at;
+    const statusClass = a.cancelled_at ? 'rejected' : (isUpcoming ? 'warm' : 'cool');
+    const parts = [];
+    parts.push(`<span>${escapeHtml(a.appointment_type || 'meeting')}</span>`);
+    if (a.duration_minutes) parts.push(`<span>${a.duration_minutes}min</span>`);
+    if (a.timezone) parts.push(`<span>${escapeHtml(a.timezone)}</span>`);
+    if (a.source_campaign) parts.push(`<span>via ${escapeHtml(a.source_campaign)}</span>`);
+    return `<div class="row ${statusClass}">
+      <div class="row-badge"><div class="row-badge-icon">📅</div><div class="row-badge-text">${escapeHtml(a.status || (isUpcoming ? 'upcoming' : 'past'))}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(a.prospect_name || a.prospect_email)}<span class="meta">→ ${escapeHtml(a.property_address || prettyBuilding(a.building_slug))}</span></h3>
+        <div class="sub">${escapeHtml(a.prospect_email)}${a.prospect_phone ? ` · ${escapeHtml(a.prospect_phone)}` : ''}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+        ${a.prospect_notes ? `<div style="margin-top:6px;font-size:12px;color:rgba(232,227,216,0.65);font-style:italic">"${escapeHtml(a.prospect_notes.substring(0,200))}${a.prospect_notes.length>200?'…':''}"</div>` : ''}
+      </div>
+      <div class="row-actions"><div class="age">${when.toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div class="action-row">${a.google_meet_link ? `<a class="btn primary" href="${escapeHtml(a.google_meet_link)}" target="_blank">Join Meet →</a>` : `<a class="btn" href="mailto:${a.prospect_email}">Email →</a>`}</div></div>
+    </div>`;
+  }).join('')}</div>`;
 }
 
 function renderPartnershipsStub() {
