@@ -50,10 +50,13 @@ a{color:inherit;text-decoration:none}
 .section-head .desc{font-size:14px;color:rgba(232,227,216,0.65)}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
 @media(min-width:720px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stats-grid-3{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
+@media(min-width:720px){.stats-grid-3{grid-template-columns:repeat(3,1fr)}}
 .stat{padding:16px 18px;border:1px solid rgba(232,227,216,0.12);border-radius:11px;background:var(--navy2)}
 .stat-label{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,227,216,0.5);margin-bottom:8px}
 .stat-value{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:28px;color:var(--cream);line-height:1}
 .stat-value.hot{color:var(--hot)}.stat-value.warm{color:var(--warm)}.stat-value.cool{color:var(--cool)}.stat-value.success{color:var(--success)}
+.stat-sub{font-size:11px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace;margin-top:6px;letter-spacing:0.04em}
 .filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
 .filter-btn{padding:5px 12px;border:1px solid rgba(232,227,216,0.16);background:transparent;color:rgba(232,227,216,0.75);border-radius:999px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.12s}
 .filter-btn:hover{border-color:rgba(232,227,216,0.34)}
@@ -77,7 +80,7 @@ a{color:inherit;text-decoration:none}
 .row-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:110px}
 .row-actions .age{font-size:10px;color:rgba(232,227,216,0.45);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:0.04em}
 .row-actions .action-row{display:flex;gap:6px}
-.btn{padding:5px 11px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;border-radius:6px;cursor:pointer;border:1px solid rgba(232,227,216,0.18);background:transparent;color:var(--cream);transition:all 0.12s}
+.btn{padding:5px 11px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;border-radius:6px;cursor:pointer;border:1px solid rgba(232,227,216,0.18);background:transparent;color:var(--cream);transition:all 0.12s;display:inline-block;text-decoration:none}
 .btn:hover{border-color:rgba(232,227,216,0.4);background:rgba(232,227,216,0.04)}
 .btn.primary{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:500}
 .btn.primary:hover{background:#deb588;border-color:#deb588}
@@ -101,6 +104,13 @@ a{color:inherit;text-decoration:none}
 .events-table tr:hover td{background:rgba(232,227,216,0.025)}
 .evtype{color:var(--gold)}
 .evmeta{color:rgba(232,227,216,0.55);font-size:10px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shortcut-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:28px}
+@media(min-width:720px){.shortcut-grid{grid-template-columns:1fr 1fr}}
+.shortcut-card{padding:20px 22px;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)}
+.shortcut-card h3{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:16px;color:var(--cream);margin-bottom:8px}
+.shortcut-card .meta{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.65);line-height:1.7;letter-spacing:0.03em}
+.shortcut-card .meta strong{color:var(--cream);font-weight:500}
+.shortcut-card .actions{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
 </style>
 </head>
 <body>
@@ -191,69 +201,182 @@ async function bootstrap() {
 }
 
 function handleHashChange() {
-  const hash = (location.hash || '#listings/pipeline').slice(1);
+  const hash = (location.hash || '#dashboard').slice(1);
   if (sectionRefreshTimer) { clearInterval(sectionRefreshTimer); sectionRefreshTimer = null; }
-  
   document.querySelectorAll('.nav-section').forEach(s => s.classList.remove('open'));
   document.querySelectorAll('[data-route]').forEach(el => el.classList.remove('active'));
   const [topSection, subSection] = hash.split('/');
   const topEl = document.querySelector(`.nav-section[data-section="${topSection}"]`);
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
-  
   const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
   const subName = { pipeline:'Pipeline', owners:'Owners', active:'Active deals', events:'Funnel events' }[subSection];
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
-  
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
   const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':renderBuyersStub, 'partnerships':renderPartnershipsStub, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
-  (renderers[hash] || renderers['listings/pipeline'])();
+  (renderers[hash] || renderers['dashboard'])();
 }
 
+// ---------- DASHBOARD v2 ----------
 async function renderDashboard() {
   document.getElementById('content').innerHTML = `
     <div class="section-head">
       <div class="eyebrow" style="margin-bottom:6px">Today, ${new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})}</div>
       <h1>Morning briefing</h1>
-      <div class="desc">Cross-section view of what changed since your last sign-in.</div>
+      <div class="desc">What's happening across the business and what needs your attention. Auto-refreshes every 30 seconds.</div>
     </div>
     <div id="dash-content"><div class="empty">Loading…</div></div>`;
-  const [scoreRes, claimsRes, listingsRes, partnersRes] = await Promise.all([
+  await loadDashboard();
+  sectionRefreshTimer = setInterval(loadDashboard, 30000);
+}
+
+async function loadDashboard() {
+  const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+  const startIso = startOfToday.toISOString();
+  const last24hIso = new Date(Date.now() - 86400*1000).toISOString();
+
+  const [
+    scoreRes, claimsAll, listingsAll, partnersDue,
+    mmmActive, watchlistCount, offersCount, apptsCount, hoaCount, peopleCount,
+    todaySent, todayOpens, todayClicks,
+    lifetimeUnsubs, lifetimeBounces, lifetimeInvites,
+    feedRecent
+  ] = await Promise.all([
     sb.from('v_seller_intent_scores').select('temperature').then(r => r.data || []),
-    sb.from('user_units').select('status').eq('status','pending').then(r => r.data || []),
-    sb.from('listings').select('id,tier,agreement_signed_at').in('tier',['coming_soon','listing']).then(r => r.data || []),
-    sb.from('partnership_outreach').select('id,next_action_at').not('next_action_at','is',null).lte('next_action_at', new Date().toISOString()).then(r => r.data || [])
+    sb.from('user_units').select('status,created_at,claimed_name,building_slug,unit_address').order('created_at',{ascending:false}).then(r => r.data || []),
+    sb.from('listings').select('id,tier,agreement_signed_at').then(r => r.data || []),
+    sb.from('partnership_outreach').select('id,next_action_at').not('next_action_at','is',null).lte('next_action_at', new Date().toISOString()).then(r => r.data || []),
+    sb.from('make_me_move').select('id',{count:'exact',head:true}).eq('is_active',true).then(r => r.count || 0),
+    sb.from('watchlist').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('offers').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('appointments').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('hoa_outreach').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('people').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('launch_invitations').select('id',{count:'exact',head:true}).gte('sent_at',startIso).then(r => r.count || 0),
+    sb.from('launch_invitations').select('id',{count:'exact',head:true}).gte('opened_at',startIso).then(r => r.count || 0),
+    sb.from('launch_invitations').select('id',{count:'exact',head:true}).gte('first_clicked_at',startIso).then(r => r.count || 0),
+    sb.from('unsubscribed_emails').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('bounced_emails').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('launch_invitations').select('id',{count:'exact',head:true}).then(r => r.count || 0),
+    sb.from('launch_invitations').select('email,sent_at,opened_at,first_clicked_at,last_clicked_url,template_slug,delivery_status').or(`sent_at.gte.${last24hIso},opened_at.gte.${last24hIso},first_clicked_at.gte.${last24hIso}`).order('sent_at',{ascending:false}).limit(60).then(r => r.data || [])
   ]);
+
   const tempCounts = { hot:0, warm:0, cool:0, cold:0 };
-  scoreRes.forEach(r => tempCounts[r.temperature] = (tempCounts[r.temperature]||0) + 1);
-  const pendingApprovals = claimsRes.length;
-  const activeListings = listingsRes.filter(l => l.agreement_signed_at).length;
-  const draftListings = listingsRes.filter(l => !l.agreement_signed_at).length;
+  scoreRes.forEach(r => { tempCounts[r.temperature] = (tempCounts[r.temperature]||0) + 1; });
+  const pendingApprovals = claimsAll.filter(c => c.status === 'pending').length;
+  const approvedClaims = claimsAll.filter(c => c.status === 'approved').length;
+  const totalClaims = claimsAll.length;
+  const activeSigned = listingsAll.filter(l => ['coming_soon','listing'].includes(l.tier) && l.agreement_signed_at).length;
+  const draftListings = listingsAll.filter(l => ['coming_soon','listing'].includes(l.tier) && !l.agreement_signed_at).length;
+  const totalListings = listingsAll.length;
+  const buyerInterest = watchlistCount + offersCount + apptsCount;
+  const todayClickRate = todaySent > 0 ? Math.round((todayClicks / todaySent) * 1000) / 10 : 0;
+
   document.getElementById('dash-content').innerHTML = `
-    <div class="stats-grid">
-      <div class="stat"><div class="stat-label">🔥 Hot sellers</div><div class="stat-value hot">${tempCounts.hot}</div></div>
-      <div class="stat"><div class="stat-label">⏳ Pending claims</div><div class="stat-value warm">${pendingApprovals}</div></div>
-      <div class="stat"><div class="stat-label">📋 Active listings</div><div class="stat-value success">${activeListings}</div></div>
-      <div class="stat"><div class="stat-label">🤝 Partner actions due</div><div class="stat-value cool">${partnersRes.length}</div></div>
+    <div class="eyebrow" style="margin-bottom:10px">Activity pulse · today</div>
+    <div class="stats-grid-3">
+      <div class="stat">
+        <div class="stat-label">📬 Email engagement today</div>
+        <div class="stat-value">${todayOpens}<span style="font-size:14px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',monospace;margin-left:8px">opens</span></div>
+        <div class="stat-sub">${todaySent} sent · ${todayClicks} clicks${todayClickRate ? ` · ${todayClickRate}% CTR` : ''}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">👥 Verified owners</div>
+        <div class="stat-value success">${approvedClaims}</div>
+        <div class="stat-sub">of ${totalClaims} total claim${totalClaims!==1?'s':''}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">💰 MMM signals active</div>
+        <div class="stat-value warm">${mmmActive}</div>
+        <div class="stat-sub">owners with a target price set</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">📋 Listings</div>
+        <div class="stat-value">${totalListings}</div>
+        <div class="stat-sub">${activeSigned} signed · ${draftListings} draft${draftListings!==1?'s':''}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">🛒 Buyer interest</div>
+        <div class="stat-value cool">${buyerInterest}</div>
+        <div class="stat-sub">${watchlistCount} watch · ${offersCount} offer${offersCount!==1?'s':''} · ${apptsCount} appt${apptsCount!==1?'s':''}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">🤝 HOA pipeline</div>
+        <div class="stat-value">${hoaCount}</div>
+        <div class="stat-sub">buildings in outreach</div>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr;gap:18px">
-      <div style="padding:22px 24px;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
-        <h3 class="h" style="font-size:18px;margin-bottom:10px">Sellers (Listings)</h3>
-        <div style="font-size:13px;color:rgba(232,227,216,0.7);line-height:1.6">
+
+    <div class="eyebrow" style="margin-bottom:10px">Needs your attention</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">🔥 Hot sellers</div><div class="stat-value hot">${tempCounts.hot}</div><div class="stat-sub">${tempCounts.warm} warm · ${tempCounts.cool} cool</div></div>
+      <div class="stat"><div class="stat-label">⏳ Pending claims</div><div class="stat-value ${pendingApprovals?'warm':'success'}">${pendingApprovals}</div><div class="stat-sub">awaiting approval</div></div>
+      <div class="stat"><div class="stat-label">📝 Unsigned listings</div><div class="stat-value ${draftListings?'warm':'success'}">${draftListings}</div><div class="stat-sub">coming-soon + listing, no DocuSign yet</div></div>
+      <div class="stat"><div class="stat-label">🤝 Partner actions due</div><div class="stat-value ${partnersDue.length?'cool':'success'}">${partnersDue.length}</div><div class="stat-sub">next_action_at &le; now</div></div>
+    </div>
+
+    <div class="shortcut-grid">
+      <div class="shortcut-card">
+        <h3>Sellers</h3>
+        <div class="meta">
           ${tempCounts.hot} hot · ${tempCounts.warm} warm · ${tempCounts.cool} cool · ${tempCounts.cold} cold<br>
-          ${pendingApprovals ? `<strong style="color:var(--warn)">${pendingApprovals} claim${pendingApprovals>1?'s':''} awaiting your approval</strong>` : 'No pending claims'}<br>
-          ${draftListings ? `${draftListings} draft listing${draftListings>1?'s':''} not yet signed` : ''}
+          ${pendingApprovals ? `<strong style="color:var(--warn)">${pendingApprovals} claim${pendingApprovals>1?'s':''} awaiting your approval</strong>` : 'All claims processed'}<br>
+          ${draftListings ? `<strong>${draftListings} draft listing${draftListings>1?'s':''}</strong> not yet signed` : ''}
         </div>
-        <div style="margin-top:14px"><a href="#listings/pipeline" class="btn primary" style="display:inline-block">Pipeline →</a> <a href="#listings/owners" class="btn" style="display:inline-block">Owners →</a></div>
+        <div class="actions"><a href="#listings/pipeline" class="btn primary">Pipeline →</a><a href="#listings/owners" class="btn">Owners →</a><a href="#listings/active" class="btn">Active deals →</a></div>
       </div>
-      <div style="padding:22px 24px;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
-        <h3 class="h" style="font-size:18px;margin-bottom:10px">Buyers & Partnerships</h3>
-        <div style="font-size:13px;color:rgba(232,227,216,0.65);line-height:1.6;font-style:italic">Sprint B (Buyers) and Sprint C (Partnerships) ship next. Stub placeholders for now.</div>
+      <div class="shortcut-card">
+        <h3>Campaigns</h3>
+        <div class="meta">
+          <strong>${todaySent}</strong> sent today · <strong>${todayOpens}</strong> opens · <strong>${todayClicks}</strong> clicks<br>
+          Lifetime: <strong>${lifetimeInvites.toLocaleString()}</strong> invites · <strong>${lifetimeUnsubs}</strong> unsubs · <strong>${lifetimeBounces}</strong> bounces<br>
+          Database: <strong>${peopleCount.toLocaleString()}</strong> people indexed
+        </div>
+        <div class="actions"><a href="/admin/campaigns.html" class="btn">Campaigns →</a><a href="#listings/events" class="btn">Funnel events →</a></div>
       </div>
-    </div>`;
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">Last 24 hours · email activity</div>
+    <div id="dash-feed">${renderActivityFeed(feedRecent)}</div>
+  `;
   setUpdated();
 }
 
+function renderActivityFeed(rows) {
+  if (!rows.length) return '<div class="empty">No email activity in the last 24 hours.</div>';
+  // Sort by max(sent_at, opened_at, first_clicked_at) DESC
+  const eventTime = r => Math.max(
+    r.sent_at ? new Date(r.sent_at).getTime() : 0,
+    r.opened_at ? new Date(r.opened_at).getTime() : 0,
+    r.first_clicked_at ? new Date(r.first_clicked_at).getTime() : 0
+  );
+  const sorted = [...rows].sort((a,b) => eventTime(b) - eventTime(a)).slice(0, 20);
+  return `<div class="row-list">${sorted.map(r => {
+    const events = [];
+    const eventTimes = [
+      { ts: r.first_clicked_at, label: 'clicked', color: 'gold', icon: '🖱' },
+      { ts: r.opened_at, label: 'opened', color: 'success', icon: '👁' },
+      { ts: r.sent_at, label: 'sent', color: 'cool', icon: '📤' }
+    ].filter(e => e.ts);
+    eventTimes.forEach(e => {
+      events.push(`<span style="color:var(--${e.color})">✓ ${e.label}</span> ${escapeHtml(fmtAge(e.ts))}`);
+    });
+    const topEvent = eventTimes[0];
+    const eventClass = topEvent.label === 'clicked' ? 'hot' : (topEvent.label === 'opened' ? 'warm' : 'cool');
+    const icon = topEvent.icon;
+    const clickedUrl = r.last_clicked_url ? r.last_clicked_url.replace(/^https?:\/\/[^/]+/, '').replace('?ref=oos_invite','') : '';
+    return `<div class="row ${eventClass}">
+      <div class="row-badge"><div class="row-badge-icon">${icon}</div><div class="row-badge-text">${escapeHtml(topEvent.label)}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(r.email)}<span class="meta">${escapeHtml(r.template_slug || '—')}</span></h3>
+        <div class="details">${events.join('<span style="opacity:0.4">·</span>')}${clickedUrl ? `<span style="opacity:0.4">·</span><span>→ <strong>${escapeHtml(clickedUrl)}</strong></span>` : ''}</div>
+      </div>
+      <div class="row-actions"><div class="action-row"><a href="mailto:${r.email}" class="btn primary">Email →</a></div></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ---------- LISTINGS · PIPELINE ----------
 async function renderListingsPipeline() {
   document.getElementById('content').innerHTML = `
     <div class="section-head">
@@ -324,6 +447,7 @@ function renderPipelineList(allLeads, filter) {
   }).join('')}</div>`;
 }
 
+// ---------- LISTINGS · OWNERS ----------
 async function renderListingsOwners() {
   document.getElementById('content').innerHTML = `
     <div class="section-head">
@@ -414,6 +538,7 @@ function renderOwnersList(allOwners, filter) {
   }));
 }
 
+// ---------- LISTINGS · ACTIVE DEALS ----------
 async function renderListingsActive() {
   document.getElementById('content').innerHTML = `
     <div class="section-head">
@@ -496,6 +621,7 @@ function renderActiveList(allDeals, filter) {
   }));
 }
 
+// ---------- LISTINGS · FUNNEL EVENTS ----------
 async function renderListingsEvents() {
   document.getElementById('content').innerHTML = `
     <div class="section-head">
@@ -544,6 +670,7 @@ async function renderListingsEvents() {
   sectionRefreshTimer = setInterval(reload, 30000);
 }
 
+// ---------- STUBS ----------
 function renderBuyersStub() {
   document.getElementById('content').innerHTML = `
     <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Buyers</div><h1>Buyer pool & negotiations</h1><div class="desc">Verified buyers, watchlists, offers, and appointments.</div></div>
