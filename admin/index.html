@@ -155,8 +155,23 @@ a{color:inherit;text-decoration:none}
         <div class="sub-item" data-route="partnerships/events"><span class="sub-dot"></span>Events</div>
       </div>
     </div>
-    <div class="nav-section" data-section="acquisition"><div class="nav-item" data-route="acquisition"><span class="nav-icon">📡</span><span>Acquisition</span></div></div>
-    <div class="nav-section" data-section="ops"><div class="nav-item" data-route="ops"><span class="nav-icon">⚙</span><span>Operations</span></div></div>
+    <div class="nav-section" data-section="acquisition">
+      <div class="nav-item" data-route="acquisition"><span class="nav-icon">📡</span><span>Acquisition</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="acquisition/campaigns"><span class="sub-dot"></span>Campaigns</div>
+        <div class="sub-item" data-route="acquisition/just-sold"><span class="sub-dot"></span>Just-sold</div>
+        <div class="sub-item" data-route="acquisition/reputation"><span class="sub-dot"></span>Reputation</div>
+      </div>
+    </div>
+    <div class="nav-section" data-section="ops">
+      <div class="nav-item" data-route="ops"><span class="nav-icon">⚙</span><span>Operations</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="ops/tasks"><span class="sub-dot"></span>Tasks</div>
+        <div class="sub-item" data-route="ops/automation"><span class="sub-dot"></span>Automation</div>
+        <div class="sub-item" data-route="ops/config"><span class="sub-dot"></span>System config</div>
+        <div class="sub-item" data-route="ops/claude"><span class="sub-dot"></span>Claude log</div>
+      </div>
+    </div>
   </aside>
   <div id="main">
     <header id="topbar">
@@ -226,11 +241,11 @@ function handleHashChange() {
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
   const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events' };
+  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':renderAcquisitionStub, 'ops':renderOpsStub };
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -1233,27 +1248,337 @@ async function renderPartnersEvents() {
   setUpdated();
 }
 
-function renderAcquisitionStub() {
+// ---------- ACQUISITION · CAMPAIGNS ----------
+async function renderAcqCampaigns() {
   document.getElementById('content').innerHTML = `
-    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Acquisition</div><h1>Campaigns & contact lists</h1><div class="desc">Cold outreach campaigns, contact lists, email templates, and deliverability health.</div></div>
-    <div class="placeholder-section">
-      <div class="sprint-tag">Sprint D</div>
-      <h2 style="margin-top:18px">Coming next</h2>
-      <p>Sprint D will absorb /admin/campaigns.html, /admin/just-sold.html, and /admin/reputation.html into a unified acquisition workspace.</p>
-      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">For now, the original pages still work — links below.</p>
-      <div style="margin-top:18px"><a class="btn" href="/admin/campaigns.html">Campaigns →</a> <a class="btn" href="/admin/just-sold.html">Just-sold →</a> <a class="btn" href="/admin/reputation.html">Reputation →</a></div>
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Acquisition · Campaigns</div>
+      <h1>Outreach campaigns &amp; waves</h1>
+      <div class="desc">Every campaign with its wave history, audience config, cadence, and lifetime metrics. Firing actions still happen via the legacy <a href="/admin/campaigns.html" style="color:var(--gold);text-decoration:underline">campaigns.html</a> page until action handlers ship.</div>
+    </div>
+    <div id="camp-stats" class="stats-grid"></div>
+    <div id="camp-list"><div class="empty">Loading…</div></div>`;
+  const [campsData, wavesData, templatesData] = await Promise.all([
+    sb.from('campaigns').select('*').order('status',{ascending:true}).order('updated_at',{ascending:false}),
+    sb.from('campaign_waves').select('*').order('wave_number',{ascending:true}),
+    sb.from('email_templates').select('slug,subject,is_active')
+  ]);
+  const templateMap = Object.fromEntries((templatesData.data||[]).map(t => [t.slug, t]));
+  const wavesByCamp = {};
+  for (const w of (wavesData.data||[])) { if (!wavesByCamp[w.campaign_id]) wavesByCamp[w.campaign_id] = []; wavesByCamp[w.campaign_id].push(w); }
+  const camps = (campsData.data||[]).map(c => ({ ...c, waves: wavesByCamp[c.id]||[], template: templateMap[c.template_slug] }));
+
+  const totalSent = camps.reduce((sum, c) => sum + c.waves.reduce((s, w) => s + (w.sent_count||0), 0), 0);
+  const totalDelivered = camps.reduce((sum, c) => sum + c.waves.reduce((s, w) => s + (w.delivered_count||0), 0), 0);
+  const totalOpened = camps.reduce((sum, c) => sum + c.waves.reduce((s, w) => s + (w.opened_count||0), 0), 0);
+  const activeCamps = camps.filter(c => c.status === 'active').length;
+  document.getElementById('camp-stats').innerHTML = `
+    <div class="stat"><div class="stat-label">📋 Campaigns</div><div class="stat-value">${camps.length}</div><div class="stat-sub">${activeCamps} active</div></div>
+    <div class="stat"><div class="stat-label">📤 Tracked sends</div><div class="stat-value">${totalSent}</div><div class="stat-sub">sum across waves</div></div>
+    <div class="stat"><div class="stat-label">📬 Delivered</div><div class="stat-value success">${totalDelivered}</div></div>
+    <div class="stat"><div class="stat-label">👁 Opens</div><div class="stat-value warm">${totalOpened}</div></div>`;
+
+  if (!camps.length) { document.getElementById('camp-list').innerHTML = '<div class="empty">No campaigns defined yet.</div>'; return; }
+
+  document.getElementById('camp-list').innerHTML = `<div class="row-list">${camps.map(c => {
+    const statusClass = ({active:'approved', draft:'cool', paused:'pending', completed:'cold'})[c.status] || 'cool';
+    const lastWave = c.waves.length ? c.waves[c.waves.length-1] : null;
+    const nextDue = c.next_batch_at ? new Date(c.next_batch_at).getTime() : null;
+    const dueState = nextDue && nextDue <= Date.now() ? '⚠️ batch due now' : (nextDue ? `next batch ${fmtAge(c.next_batch_at)}` : '—');
+
+    const parts = [];
+    parts.push(`<span>tmpl <strong>${escapeHtml(c.template_slug||'—')}</strong></span>`);
+    parts.push(`<span>audience <strong>${escapeHtml(c.audience_view||'—')}</strong></span>`);
+    parts.push(`<span>batch ${c.batch_size_initial}→${c.batch_size_max} ×${c.batch_growth_factor}</span>`);
+    parts.push(`<span>cadence ${c.cadence_hours}h</span>`);
+    parts.push(`<span>min-days ${c.per_recipient_min_days}</span>`);
+    if (c.auto_fire) parts.push(`<span style="color:var(--gold)">auto-fire</span>`);
+
+    const wavesHtml = c.waves.length ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(232,227,216,0.08)">${c.waves.map(w => {
+      const sent = w.sent_count || 0;
+      const delivered = w.delivered_count || 0;
+      const opens = w.opened_count || 0;
+      const clicks = w.clicked_count || 0;
+      const bounces = w.bounced_count || 0;
+      const openRate = sent > 0 ? Math.round((opens/sent)*100) : 0;
+      const status = w.send_response_status || '—';
+      return `<div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.7);padding:3px 0">W${w.wave_number} · <strong style="color:var(--cream)">${sent}</strong> sent · ${delivered} delivered · ${opens} opens (${openRate}%) · ${clicks} clicks · ${bounces} bounces · ${w.fired_at ? fmtAge(w.fired_at) : '—'} <span style="color:rgba(232,227,216,0.4)">${escapeHtml(status)}</span></div>`;
+    }).join('')}</div>` : '<div style="margin-top:6px;font-size:11px;color:rgba(232,227,216,0.5);font-style:italic">No waves fired yet</div>';
+
+    return `<div class="row ${statusClass}">
+      <div class="row-badge"><div class="row-badge-icon">📧</div><div class="row-badge-text">${escapeHtml(c.status||'—')}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(c.name||c.slug)}<span class="meta">${escapeHtml(c.slug)}</span></h3>
+        <div class="sub">${escapeHtml(c.template?.subject || c.template_slug || '—')}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+        ${wavesHtml}
+      </div>
+      <div class="row-actions"><div class="age">${escapeHtml(dueState)}</div><div class="action-row"><a href="/admin/campaigns.html" class="btn primary">Fire (legacy) →</a></div></div>
     </div>`;
+  }).join('')}</div>`;
+  setUpdated();
 }
 
-function renderOpsStub() {
+// ---------- ACQUISITION · JUST-SOLD ----------
+async function renderAcqJustSold() {
   document.getElementById('content').innerHTML = `
-    <div class="section-head"><div class="eyebrow" style="margin-bottom:6px">Operations</div><h1>Tasks, automation, & config</h1><div class="desc">Internal admin queue and system tuning.</div></div>
-    <div class="placeholder-section">
-      <div class="sprint-tag">Sprint D</div>
-      <h2 style="margin-top:18px">Coming next</h2>
-      <p>Admin task queue, automation rules, system_config editor, and Claude commands log.</p>
-      <p style="font-size:12px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace">Source tables: admin_tasks · automation_rules · automation_events · system_config · claude_commands</p>
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Acquisition · Just-sold</div>
+      <h1>Recent SF sales</h1>
+      <div class="desc">Pulled from <code>intelligence_recent_sales</code> — SF buildings only. Use for just-sold outreach: contact OOS owners in the same building with a "your neighbor just sold for $X" angle.</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="20">Last 20</button>
+      <button class="filter-btn" data-filter="50">Last 50</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="js-count">—</div>
+    </div>
+    <div id="js-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    loadJustSold(parseInt(b.dataset.filter, 10));
+  }));
+  await loadJustSold(20);
+}
+
+async function loadJustSold(limit) {
+  const [salesRes, bldgsData] = await Promise.all([
+    sb.rpc('intelligence_recent_sales', { p_limit: limit }),
+    sb.from('buildings').select('slug,display_name,neighborhood')
+  ]);
+  const bldgMap = Object.fromEntries((bldgsData.data||[]).map(b => [b.slug, b]));
+  const sales = (salesRes.data || []).map(s => ({ ...s, building: bldgMap[s.building_slug] }));
+  document.getElementById('js-count').textContent = sales.length + ' sale' + (sales.length===1?'':'s');
+  if (!sales.length) { document.getElementById('js-list').innerHTML = '<div class="empty">No recent sales returned.</div>'; return; }
+  document.getElementById('js-list').innerHTML = `<div class="row-list">${sales.map(s => {
+    const bldgName = s.building?.display_name || prettyBuilding(s.building_slug);
+    const psf = s.sqft ? Math.round(s.sale_price / s.sqft) : null;
+    const parts = [];
+    parts.push(`<span><strong>${fmtMoney(s.sale_price)}</strong></span>`);
+    if (psf) parts.push(`<span>${psf.toLocaleString()}/sf</span>`);
+    if (s.sqft) parts.push(`<span>${s.sqft.toLocaleString()} sf</span>`);
+    if (s.building?.neighborhood) parts.push(`<span>${escapeHtml(s.building.neighborhood)}</span>`);
+    return `<div class="row cool">
+      <div class="row-badge"><div class="row-badge-icon">💰</div><div class="row-badge-text">${escapeHtml(new Date(s.sale_date).toLocaleDateString([],{month:'short',day:'numeric'}))}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(s.unit_address || prettyBuilding(s.building_slug))} ${s.unit_label ? `<span class="meta">${escapeHtml(s.unit_label)}</span>` : ''}</h3>
+        <div class="sub">${escapeHtml(bldgName)} · ${escapeHtml(s.building_slug)}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+      </div>
+      <div class="row-actions"><div class="age">${fmtAge(s.sale_date)}</div><div class="action-row"><a href="/buildings/#/building/${escapeHtml(s.building_slug)}/" class="btn" target="_blank">Building →</a></div></div>
     </div>`;
+  }).join('')}</div>`;
+  setUpdated();
+}
+
+// ---------- ACQUISITION · REPUTATION ----------
+function renderAcqReputation() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Acquisition · Reputation</div>
+      <h1>Reputation monitoring</h1>
+      <div class="desc">Reviews and rating signals across Google, Yelp, Zillow, and broker-side rating sites.</div>
+    </div>
+    <div class="placeholder-section">
+      <div class="sprint-tag">Spec needed</div>
+      <h2 style="margin-top:18px">Tell me what to build here</h2>
+      <p>There's no <code>reviews</code> or <code>reputation</code> table in the schema yet. The legacy <a href="/admin/reputation.html" style="color:var(--gold)">/admin/reputation.html</a> probably integrates with an external API (Google My Business, Yelp Fusion, etc.) or scrapes review sites. To absorb it cleanly I need to know which signals matter to you.</p>
+      <p style="font-size:13px;color:rgba(232,227,216,0.65);margin-top:14px">Likely options: (1) Google Business Profile reviews via Google API, (2) manual reputation_signals table populated by you, (3) embedded iframe of an external tool like Birdeye/Podium. Reply with your preference and I'll build it.</p>
+      <div style="margin-top:18px"><a class="btn" href="/admin/reputation.html">Open legacy page →</a></div>
+    </div>`;
+  setUpdated();
+}
+
+// ---------- OPERATIONS · TASKS ----------
+async function renderOpsTasks() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Operations · Tasks</div>
+      <h1>Admin task queue</h1>
+      <div class="desc">Internal to-do queue. Tasks can be created manually or by automation rules. Currently empty — this table is wired and ready for inserts.</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="open">Open</button>
+      <button class="filter-btn" data-filter="snoozed">Snoozed</button>
+      <button class="filter-btn" data-filter="completed">Completed</button>
+      <button class="filter-btn" data-filter="all">All</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="tsk-count">—</div>
+    </div>
+    <div id="tsk-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderTasksList(window._allTasks || [], b.dataset.filter);
+  }));
+  const { data } = await sb.from('admin_tasks').select('*').order('priority',{ascending:true,nullsLast:true}).order('due_at',{ascending:true,nullsLast:true});
+  window._allTasks = data || [];
+  renderTasksList(window._allTasks, 'open');
+  setUpdated();
+}
+
+function renderTasksList(allTasks, filter) {
+  const now = Date.now();
+  let tasks = allTasks;
+  if (filter === 'open') tasks = tasks.filter(t => t.status !== 'completed' && (!t.snoozed_until || new Date(t.snoozed_until).getTime() <= now));
+  else if (filter === 'snoozed') tasks = tasks.filter(t => t.snoozed_until && new Date(t.snoozed_until).getTime() > now);
+  else if (filter === 'completed') tasks = tasks.filter(t => t.status === 'completed');
+  document.getElementById('tsk-count').textContent = tasks.length + ' task' + (tasks.length===1?'':'s');
+  if (!tasks.length) { document.getElementById('tsk-list').innerHTML = '<div class="empty">No tasks. When admin tasks get created (manually or by automation rules), they appear here ordered by priority and due date.</div>'; return; }
+  document.getElementById('tsk-list').innerHTML = `<div class="row-list">${tasks.map(t => {
+    const statusClass = ({open:'cool', in_progress:'warm', completed:'approved', cancelled:'rejected'})[t.status] || 'cool';
+    const parts = [];
+    if (t.task_type) parts.push(`<span>${escapeHtml(t.task_type)}</span>`);
+    if (t.priority) parts.push(`<span>priority ${escapeHtml(t.priority)}</span>`);
+    if (t.building_slug) parts.push(`<span>${escapeHtml(prettyBuilding(t.building_slug))}</span>`);
+    if (t.campaign_key) parts.push(`<span>campaign ${escapeHtml(t.campaign_key)}</span>`);
+    return `<div class="row ${statusClass}">
+      <div class="row-badge"><div class="row-badge-icon">📌</div><div class="row-badge-text">${escapeHtml(t.status||'open')}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(t.title)}</h3>
+        ${t.description ? `<div class="sub">${escapeHtml(t.description.substring(0,200))}${t.description.length>200?'…':''}</div>` : ''}
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+      </div>
+      <div class="row-actions"><div class="age">${t.due_at ? `due ${fmtAge(t.due_at)}` : 'no due date'}</div></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ---------- OPERATIONS · AUTOMATION ----------
+async function renderOpsAutomation() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Operations · Automation</div>
+      <h1>Rules &amp; event log</h1>
+      <div class="desc">Trigger-based automation rules and their firing history. Currently no rules defined — table is wired and ready.</div>
+    </div>
+    <div class="eyebrow" style="margin-bottom:10px;margin-top:8px">Active rules</div>
+    <div id="auto-rules"><div class="empty">Loading…</div></div>
+    <div class="eyebrow" style="margin-bottom:10px;margin-top:24px">Recent events</div>
+    <div id="auto-events"><div class="empty">Loading…</div></div>`;
+  const [rulesData, eventsData, citiesData, templatesData] = await Promise.all([
+    sb.from('automation_rules').select('*').order('is_active',{ascending:false}).order('updated_at',{ascending:false}),
+    sb.from('automation_events').select('*').order('occurred_at',{ascending:false}).limit(50),
+    sb.from('cities').select('id,display_name,slug'),
+    sb.from('email_templates').select('id,slug,subject')
+  ]);
+  const cityMap = Object.fromEntries((citiesData.data||[]).map(c => [c.id, c]));
+  const templateMap = Object.fromEntries((templatesData.data||[]).map(t => [t.id, t]));
+
+  const rules = rulesData.data || [];
+  if (!rules.length) {
+    document.getElementById('auto-rules').innerHTML = '<div class="empty">No automation rules defined. When you add one, it appears here with trigger type, recipient strategy, and last-fired timestamp.</div>';
+  } else {
+    document.getElementById('auto-rules').innerHTML = `<div class="row-list">${rules.map(r => {
+      const tmpl = templateMap[r.template_id];
+      const city = cityMap[r.city_id];
+      const parts = [];
+      parts.push(`<span>trigger <strong>${escapeHtml(r.trigger_type||'—')}</strong></span>`);
+      parts.push(`<span>recipients <strong>${escapeHtml(r.recipient_strategy||'—')}</strong></span>`);
+      if (tmpl) parts.push(`<span>tmpl ${escapeHtml(tmpl.slug)}</span>`);
+      if (city) parts.push(`<span>${escapeHtml(city.display_name)}</span>`);
+      if (r.campaign_key_prefix) parts.push(`<span>prefix ${escapeHtml(r.campaign_key_prefix)}</span>`);
+      parts.push(`<span>fired <strong>${r.trigger_count||0}×</strong></span>`);
+      const tempClass = r.is_active ? 'approved' : 'cold';
+      return `<div class="row ${tempClass}">
+        <div class="row-badge"><div class="row-badge-icon">${r.is_active?'⚡':'⏸'}</div><div class="row-badge-text">${r.is_active?'active':'paused'}</div></div>
+        <div class="row-main">
+          <h3>${escapeHtml(r.name)}</h3>
+          ${r.description ? `<div class="sub">${escapeHtml(r.description.substring(0,180))}${r.description.length>180?'…':''}</div>` : ''}
+          <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+        </div>
+        <div class="row-actions"><div class="age">${r.last_triggered_at ? `last ${fmtAge(r.last_triggered_at)}` : 'never fired'}</div></div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  const events = eventsData.data || [];
+  if (!events.length) {
+    document.getElementById('auto-events').innerHTML = '<div class="empty">No automation events logged yet.</div>';
+  } else {
+    document.getElementById('auto-events').innerHTML = `<div style="overflow-x:auto;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)"><table class="events-table"><thead><tr><th>When</th><th>Rule</th><th>Status</th><th>Recipients</th><th>Queued</th><th>Error</th></tr></thead><tbody>${events.map(e => `<tr><td>${escapeHtml(new Date(e.occurred_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}))}</td><td>${escapeHtml(e.rule_id?.substring(0,8) || '—')}</td><td class="evtype">${escapeHtml(e.status||'—')}</td><td>${e.recipients_count||0}</td><td>${e.emails_queued||0}</td><td style="color:var(--coral)">${escapeHtml(e.error||'')}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+  setUpdated();
+}
+
+// ---------- OPERATIONS · SYSTEM CONFIG ----------
+async function renderOpsConfig() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Operations · System config</div>
+      <h1>System configuration</h1>
+      <div class="desc">Key/value system settings. Read-only here; edit via Supabase or a dedicated config tool until inline editing ships.</div>
+    </div>
+    <div class="filters">
+      <input type="text" class="search-input" id="cfg-search" placeholder="filter by key or description…" style="min-width:340px">
+      <div class="filter-spacer"></div><div class="filter-meta" id="cfg-count">—</div>
+    </div>
+    <div style="overflow-x:auto;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+      <table class="events-table">
+        <thead><tr><th>Key</th><th>Value</th><th>Description</th><th>Updated</th></tr></thead>
+        <tbody id="cfg-body"><tr><td colspan="4" style="text-align:center;padding:36px;color:rgba(232,227,216,0.5)">Loading…</td></tr></tbody>
+      </table>
+    </div>`;
+  const { data } = await sb.from('system_config').select('*').order('key',{ascending:true});
+  const all = data || [];
+  const applyFilter = () => {
+    const q = document.getElementById('cfg-search').value.toLowerCase().trim();
+    let rows = all;
+    if (q) rows = rows.filter(r => (r.key||'').toLowerCase().includes(q) || (r.description||'').toLowerCase().includes(q) || (r.value||'').toLowerCase().includes(q));
+    document.getElementById('cfg-count').textContent = rows.length + ' setting' + (rows.length===1?'':'s');
+    if (!rows.length) { document.getElementById('cfg-body').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:36px;color:rgba(232,227,216,0.5);font-style:italic">No matches.</td></tr>'; return; }
+    document.getElementById('cfg-body').innerHTML = rows.map(r => `<tr>
+      <td><strong style="color:var(--gold)">${escapeHtml(r.key)}</strong></td>
+      <td style="max-width:280px;word-break:break-word;color:var(--cream)">${escapeHtml((r.value||'').substring(0,200))}${(r.value||'').length>200?'…':''}</td>
+      <td style="color:rgba(232,227,216,0.7)">${escapeHtml(r.description||'')}</td>
+      <td style="color:rgba(232,227,216,0.45)">${escapeHtml(r.updated_at ? new Date(r.updated_at).toLocaleDateString() : '—')}</td>
+    </tr>`).join('');
+  };
+  document.getElementById('cfg-search').addEventListener('input', applyFilter);
+  applyFilter();
+  setUpdated();
+}
+
+// ---------- OPERATIONS · CLAUDE LOG ----------
+async function renderOpsClaude() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Operations · Claude log</div>
+      <h1>Claude command audit log</h1>
+      <div class="desc">Every command Claude has executed against the system. Use for auditing actions taken on your behalf.</div>
+    </div>
+    <div class="filters">
+      <input type="text" class="search-input" id="cl-search" placeholder="filter by intent or command…" style="min-width:300px">
+      <div class="filter-spacer"></div><div class="filter-meta" id="cl-count">—</div>
+    </div>
+    <div id="cl-list"><div class="empty">Loading…</div></div>`;
+  const { data } = await sb.from('claude_commands').select('*').order('created_at',{ascending:false}).limit(100);
+  const all = data || [];
+  const applyFilter = () => {
+    const q = document.getElementById('cl-search').value.toLowerCase().trim();
+    let rows = all;
+    if (q) rows = rows.filter(r => (r.command_text||'').toLowerCase().includes(q) || (r.intent||'').toLowerCase().includes(q));
+    document.getElementById('cl-count').textContent = rows.length + ' command' + (rows.length===1?'':'s');
+    if (!rows.length) { document.getElementById('cl-list').innerHTML = '<div class="empty">No commands logged.</div>'; return; }
+    document.getElementById('cl-list').innerHTML = `<div class="row-list">${rows.map(r => {
+      const tempClass = r.executed ? 'approved' : 'cool';
+      const parts = [];
+      if (r.intent) parts.push(`<span>intent <strong>${escapeHtml(r.intent)}</strong></span>`);
+      if (r.model) parts.push(`<span>model ${escapeHtml(r.model)}</span>`);
+      if (r.duration_ms != null) parts.push(`<span>${r.duration_ms}ms</span>`);
+      parts.push(`<span>${r.executed ? '✓ executed' : '✕ not executed'}</span>`);
+      return `<div class="row ${tempClass}">
+        <div class="row-badge"><div class="row-badge-icon">🤖</div></div>
+        <div class="row-main">
+          <h3>${escapeHtml((r.command_text||'').substring(0,160))}${(r.command_text||'').length>160?'…':''}</h3>
+          <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+        </div>
+        <div class="row-actions"><div class="age">${fmtAge(r.created_at)}</div></div>
+      </div>`;
+    }).join('')}</div>`;
+  };
+  document.getElementById('cl-search').addEventListener('input', applyFilter);
+  applyFilter();
+  setUpdated();
 }
 
 bootstrap();
