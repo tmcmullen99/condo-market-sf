@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing Cost Calculator · Condo Market SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0f131d; --bg-card:#1a1f2e; --bg-card-lift:#222837; --bg-input:rgba(15,19,29,.6);
+  --cream:#e8e3d8; --cream-78:rgba(232,227,216,.78); --cream-58:rgba(232,227,216,.58);
+  --cream-38:rgba(232,227,216,.38); --cream-14:rgba(232,227,216,.14);
+  --gold:#d4a574; --gold-15:rgba(212,165,116,.15); --gold-32:rgba(212,165,116,.32);
+  --blue-gray:#9fb4d8; --blue-gray-15:rgba(159,180,216,.15);
+  --green:#84d9a0; --red:#e57373; --amber:#e8c875;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(15,19,29,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--cream-14);padding:14px 0}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--cream)}
+.brand-sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-left:14px}
+.nav-links{display:flex;gap:18px;font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.nav-links a{color:var(--cream-58)}
+.nav-links a:hover{color:var(--cream);text-decoration:none}
+
+.container{max-width:1200px;margin:0 auto;padding:32px 28px}
+
+.hero{padding:32px 0 8px;border-bottom:1px solid var(--cream-14);margin-bottom:36px}
+.tag{display:inline-block;padding:5px 13px;border:1px solid rgba(159,180,216,.34);border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:18px}
+.hero h1{font-family:var(--serif);font-size:48px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-bottom:12px}
+.hero h1 em{font-style:italic;color:var(--blue-gray)}
+.hero-meta{color:var(--cream-78);font-size:14px;max-width:680px}
+
+.state{padding:80px 24px;text-align:center;max-width:520px;margin:0 auto}
+.state .state-icon{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.14em;margin-bottom:14px;text-transform:uppercase}
+.state h2{font-family:var(--serif);font-size:30px;font-weight:500;margin-bottom:14px;color:var(--cream)}
+.state p{color:var(--cream-78);margin-bottom:22px}
+.state .btn-primary{display:inline-block}
+
+.calc-grid{display:grid;grid-template-columns:1fr 380px;gap:28px;margin-bottom:36px}
+.calc-form{display:flex;flex-direction:column;gap:24px}
+.calc-card{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:24px 26px}
+.calc-card h3{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em;color:var(--cream);margin-bottom:4px}
+.calc-card .calc-sub{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em;margin-bottom:18px}
+.calc-step{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
+.field label .field-hint{text-transform:none;letter-spacing:0;color:var(--cream-38);font-size:10px;margin-left:6px}
+
+.input-wrap{position:relative;display:flex;align-items:stretch;background:var(--bg-input);border:1px solid var(--cream-14);border-radius:8px;transition:border-color .15s,background .15s}
+.input-wrap:focus-within{border-color:var(--gold);background:rgba(15,19,29,.9)}
+.input-wrap .input-prefix,.input-wrap .input-suffix{display:flex;align-items:center;padding:0 12px;font-family:var(--mono);font-size:14px;color:var(--gold)}
+.input-wrap .input-suffix{color:var(--cream-58);font-size:12px}
+.input-wrap input,.input-wrap select{flex:1;background:transparent;border:0;outline:0;color:var(--cream);font-family:var(--mono);font-size:14px;padding:11px 14px;width:100%;min-width:0}
+.input-wrap input.has-prefix{padding-left:4px}
+.input-wrap input.has-suffix{padding-right:4px}
+.input-wrap select{appearance:none;background:transparent;padding-right:38px;cursor:pointer}
+.input-wrap.select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:12px;pointer-events:none;font-family:var(--mono)}
+.input-wrap input::-webkit-outer-spin-button,.input-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.input-wrap input[type=number]{-moz-appearance:textfield}
+
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.checkbox-row{display:flex;align-items:flex-start;gap:12px;padding:14px 0;cursor:pointer;user-select:none}
+.checkbox-row input[type=checkbox]{margin-top:3px;width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.checkbox-label{flex:1}
+.checkbox-label-main{color:var(--cream);font-size:14px;font-weight:500}
+.checkbox-label-sub{color:var(--cream-58);font-size:12px;margin-top:2px;line-height:1.4}
+
+.tenant-fields{padding:18px;margin-top:8px;background:rgba(232,200,117,.06);border:1px solid rgba(232,200,117,.24);border-radius:10px}
+.tenant-note{font-family:var(--mono);font-size:11px;color:var(--amber);line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,200,117,.18);letter-spacing:.02em}
+.tenant-note strong{color:var(--amber);font-weight:500}
+
+.collapsible-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;padding-bottom:8px}
+.collapsible-header h3{margin-bottom:0}
+.collapsible-toggle{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.08em}
+.collapsible-body{padding-top:14px;border-top:1px solid var(--cream-14);margin-top:8px}
+.collapsible.collapsed .collapsible-body{display:none}
+
+.preview{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:24px 26px;position:sticky;top:88px;align-self:start;max-height:calc(100vh - 110px);overflow-y:auto}
+.preview h3{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.preview-sale{font-family:var(--serif);font-size:36px;font-weight:500;letter-spacing:-.02em;color:var(--cream);margin-bottom:6px;line-height:1}
+.preview-sale-sub{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em;margin-bottom:18px}
+.preview-line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;font-family:var(--mono);font-size:12px;border-bottom:1px solid var(--cream-14)}
+.preview-line.tenant{color:var(--amber)}
+.preview-line.tenant .preview-line-amount{color:var(--amber)}
+.preview-line-label{color:var(--cream-78);max-width:60%;line-height:1.4}
+.preview-line-amount{color:var(--cream);font-variant-numeric:tabular-nums;white-space:nowrap}
+.preview-totals{padding:14px 0 6px;border-top:1px solid var(--cream-38);margin-top:8px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--cream-78)}
+.preview-totals .amt{color:var(--cream);font-weight:500}
+.preview-net{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px;margin-top:14px;background:var(--gold-15);border:1px solid var(--gold-32);border-radius:8px}
+.preview-net-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-78)}
+.preview-net-amount{font-family:var(--serif);font-size:24px;font-weight:500;color:var(--gold);letter-spacing:-.02em}
+.preview-final{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px;margin-top:10px;background:rgba(132,217,160,.08);border:1px solid rgba(132,217,160,.32);border-radius:8px}
+.preview-final-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-78)}
+.preview-final-amount{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--green);letter-spacing:-.02em}
+.preview-mortgage-note{font-family:var(--mono);font-size:10px;color:var(--cream-58);letter-spacing:.04em;margin-top:12px;line-height:1.5}
+
+.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end;padding:20px 24px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;margin-bottom:36px}
+.btn{padding:13px 22px;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;border:0;display:inline-flex;align-items:center;gap:8px;transition:opacity .15s,background .15s}
+.btn-primary{background:var(--gold);color:#1a1f2e}
+.btn-primary:hover{background:#e8b985}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:transparent;color:var(--cream);border:1px solid var(--cream-14)}
+.btn-secondary:hover{background:var(--bg-card-lift)}
+.btn-spinner{display:none}
+.btn.loading .btn-spinner{display:inline-block;animation:spin 1s linear infinite}
+.btn.loading .btn-label{opacity:.7}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.saved-section{margin-top:24px}
+.saved-section h2{font-family:var(--serif);font-size:30px;font-weight:500;letter-spacing:-.02em;margin-bottom:8px}
+.saved-section h2 em{font-style:italic;color:var(--blue-gray)}
+.saved-section p{color:var(--cream-78);font-size:14px;margin-bottom:22px}
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.saved-card{background:var(--bg-card);border:1px solid var(--cream-14);border-left:3px solid var(--blue-gray);border-radius:10px;padding:18px 20px}
+.saved-card-scenario{font-family:var(--mono);font-size:11px;color:var(--blue-gray);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.saved-card-property{color:var(--cream);font-size:14px;margin-bottom:12px}
+.saved-card-net{font-family:var(--serif);font-size:24px;color:var(--gold);font-weight:500;margin-bottom:4px}
+.saved-card-meta{font-family:var(--mono);font-size:10px;color:var(--cream-58);letter-spacing:.04em;margin-bottom:14px}
+.saved-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.saved-card-actions .btn{padding:7px 12px;font-size:12px}
+.saved-empty{padding:32px;text-align:center;font-family:var(--mono);font-size:13px;color:var(--cream-58);background:var(--bg-card);border:1px dashed var(--cream-14);border-radius:12px}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--cream-14);border-left:3px solid var(--green);border-radius:10px;padding:14px 20px;color:var(--cream);font-family:var(--sans);font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;max-width:380px;opacity:0;transform:translateY(8px);transition:all .25s ease}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{border-left-color:var(--red)}
+.toast .toast-title{font-weight:500;margin-bottom:2px}
+.toast .toast-msg{color:var(--cream-78);font-size:13px}
+
+.footer{padding:32px 28px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;border-top:1px solid var(--cream-14);margin-top:48px}
+.loading{padding:120px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+
+@media(max-width:920px){
+  .calc-grid{grid-template-columns:1fr}
+  .preview{position:relative;top:0;max-height:none}
+  .hero h1{font-size:34px}
+  .field-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .container{padding:20px 18px}
+  .actions{flex-direction:column-reverse}
+  .actions .btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div><span class="brand">Condo Market SF</span><span class="brand-sub">Calculator</span></div>
+    <div class="nav-links">
+      <a href="/account/">My account</a>
+      <a href="/account/cmas/">My CMAs</a>
+    </div>
+  </div>
+</nav>
+
+<div id="loading" class="loading">Loading your account…</div>
+
+<div id="state-login" class="state" style="display:none">
+  <div class="state-icon">Sign in required</div>
+  <h2>Sign in to your Condo Market account</h2>
+  <p>The Closing Cost Calculator is available to verified owners with a claimed property. If you haven't claimed your unit yet, you can do that after signing in.</p>
+  <a href="/account/" class="btn btn-primary">Sign in →</a>
+</div>
+
+<div id="state-no-units" class="state" style="display:none">
+  <div class="state-icon">No claimed properties yet</div>
+  <h2>Claim a property to start modeling</h2>
+  <p>The calculator needs a verified ownership claim before it can generate scenarios. Owner verification takes a few minutes and unlocks the full Client Portal.</p>
+  <a href="/account/" class="btn btn-primary">Claim a property →</a>
+</div>
+
+<main id="main" style="display:none">
+  <div class="container">
+
+    <section class="hero">
+      <div class="tag">Client portal · Closing Cost Calculator</div>
+      <h1>Net sheet <em>calculator</em>.</h1>
+      <p class="hero-meta">Model your net proceeds at any sale price. Uses current San Francisco transfer tax brackets and standard SF seller-side closing costs. Save scenarios, generate a PDF, and share with your agent.</p>
+    </section>
+
+    <div class="calc-grid">
+      <div class="calc-form">
+
+        <!-- Step 1: Property -->
+        <div class="calc-card">
+          <div class="calc-step">Step 1</div>
+          <h3>What are you modeling?</h3>
+          <div class="calc-sub">Choose a property you've claimed.</div>
+          <div class="field">
+            <label for="unit-select">Property</label>
+            <div class="input-wrap select-wrap">
+              <select id="unit-select"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="scenario-label">Scenario label <span class="field-hint">(optional — helps you remember this one later)</span></label>
+            <div class="input-wrap">
+              <input type="text" id="scenario-label" placeholder="e.g. Coming Soon target, Stretch ask, Worst-case floor" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Sale price -->
+        <div class="calc-card">
+          <div class="calc-step">Step 2</div>
+          <h3>Sale price</h3>
+          <div class="calc-sub">The price you'd close at — not your asking price.</div>
+          <div class="field">
+            <label for="sale-price">Target sale price</label>
+            <div class="input-wrap">
+              <span class="input-prefix">$</span>
+              <input type="number" id="sale-price" min="100000" step="5000" class="has-prefix" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Tenant -->
+        <div class="calc-card">
+          <div class="calc-step">Step 3</div>
+          <h3>Is the unit currently tenant-occupied?</h3>
+          <div class="calc-sub">Tenant buyout costs can be a meaningful line item, especially in rent-controlled buildings.</div>
+          <label class="checkbox-row" for="tenant-occupied">
+            <input type="checkbox" id="tenant-occupied" />
+            <div class="checkbox-label">
+              <div class="checkbox-label-main">Yes, the unit has a current tenant</div>
+              <div class="checkbox-label-sub">Adds a tenant-buyout line item to your net sheet.</div>
+            </div>
+          </label>
+          <div class="tenant-fields" id="tenant-fields" style="display:none">
+            <div class="field" style="margin-bottom:0">
+              <label for="tenant-buyout">Estimated tenant buyout <span class="field-hint">(typical range $20K–$30K — adjust as needed)</span></label>
+              <div class="input-wrap">
+                <span class="input-prefix">$</span>
+                <input type="number" id="tenant-buyout" value="25000" min="0" step="1000" class="has-prefix" />
+              </div>
+            </div>
+            <div class="tenant-note"><strong>A note on tenant buyouts:</strong> Actual amounts vary significantly based on tenancy length, rent control protections, lease terms, and negotiation outcomes. SF Rent Board buyout disclosures are required for rent-controlled units. <strong>Discuss in detail with your agent</strong> before relying on this figure.</div>
+          </div>
+        </div>
+
+        <!-- Step 4: Mortgage payoff -->
+        <div class="calc-card">
+          <div class="calc-step">Step 4</div>
+          <h3>Mortgage payoff balance</h3>
+          <div class="calc-sub">Your remaining loan balance at close — confirm with your lender via written payoff statement.</div>
+          <div class="field">
+            <label for="mortgage-payoff">Outstanding mortgage balance <span class="field-hint">(leave blank if free & clear or unknown)</span></label>
+            <div class="input-wrap">
+              <span class="input-prefix">$</span>
+              <input type="number" id="mortgage-payoff" min="0" step="1000" placeholder="0" class="has-prefix" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Closing assumptions (collapsible) -->
+        <div class="calc-card collapsible collapsed" id="assumptions-card">
+          <div class="collapsible-header" id="assumptions-toggle">
+            <div>
+              <div class="calc-step">Step 5</div>
+              <h3>Closing assumptions</h3>
+              <div class="calc-sub">SF defaults are pre-filled. Adjust if your situation is different.</div>
+            </div>
+            <div class="collapsible-toggle"><span id="assumptions-toggle-text">Edit ▾</span></div>
+          </div>
+          <div class="collapsible-body">
+            <div class="field-grid">
+              <div class="field">
+                <label for="listing-pct">Listing agent commission</label>
+                <div class="input-wrap">
+                  <input type="number" id="listing-pct" value="2.5" min="0" max="10" step="0.25" class="has-suffix" />
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="buyer-pct">Buyer agent commission (offered)</label>
+                <div class="input-wrap">
+                  <input type="number" id="buyer-pct" value="2.5" min="0" max="10" step="0.25" class="has-suffix" />
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="staging">Professional staging</label>
+                <div class="input-wrap">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="staging" value="4000" min="0" step="500" class="has-prefix" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="marketing">Photography & marketing</label>
+                <div class="input-wrap">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="marketing" value="1000" min="0" step="100" class="has-prefix" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="inspections">Pre-listing inspections</label>
+                <div class="input-wrap">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="inspections" value="600" min="0" step="100" class="has-prefix" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live preview -->
+      <div class="preview" id="preview">
+        <h3>Live net sheet</h3>
+        <div class="preview-sale" id="prev-sale">$0</div>
+        <div class="preview-sale-sub" id="prev-sale-sub">enter a sale price to see the breakdown</div>
+        <div id="prev-lines"></div>
+        <div class="preview-totals">
+          <span>Total closing costs <span style="color:var(--cream-58)">(<span id="prev-pct">—</span>%)</span></span>
+          <span class="amt" id="prev-total">$0</span>
+        </div>
+        <div class="preview-net">
+          <span class="preview-net-label">Net before mortgage</span>
+          <span class="preview-net-amount" id="prev-net-pre">$0</span>
+        </div>
+        <div class="preview-final" id="prev-final-wrap" style="display:none">
+          <span class="preview-final-label">Final net proceeds</span>
+          <span class="preview-final-amount" id="prev-net-final">$0</span>
+        </div>
+        <div class="preview-mortgage-note" id="prev-mortgage-note">Enter your mortgage payoff balance to see final net proceeds.</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" id="save-btn"><span class="btn-spinner">↻</span><span class="btn-label">Save scenario</span></button>
+      <button class="btn btn-primary" id="pdf-btn"><span class="btn-spinner">↻</span><span class="btn-label">Generate PDF →</span></button>
+    </div>
+
+    <section class="saved-section">
+      <h2>My saved <em>scenarios</em>.</h2>
+      <p>Every scenario you generate is saved here. Download the PDF anytime, or share with your agent for the listing conversation.</p>
+      <div id="saved-list">
+        <div class="saved-empty">No saved scenarios yet. Build one above and click Generate PDF.</div>
+      </div>
+    </section>
+
+  </div>
+  <div class="footer">McMullen Properties LLC · CA DRE #02016832 · operating under Real Broker</div>
+</main>
+
+<div class="toast" id="toast"><div class="toast-title" id="toast-title"></div><div class="toast-msg" id="toast-msg"></div></div>
+
+<script>
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
+const fmtMoney = (n) => n == null || isNaN(n) ? '$0' : '$' + Math.round(Number(n)).toLocaleString();
+const fmtMoneyShort = (n) => {
+  if (n == null || isNaN(n)) return '—';
+  n = Number(n);
+  if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
+  if (Math.abs(n) >= 1e3) return '$' + Math.round(n/1e3).toLocaleString() + 'K';
+  return '$' + Math.round(n).toLocaleString();
+};
+
+// ---- State ----
+const state = {
+  user: null,
+  units: [],
+  selectedUnit: null,
+  inputs: {
+    salePrice: 0, scenarioLabel: '',
+    tenantOccupied: false, tenantBuyout: 25000,
+    mortgagePayoff: 0,
+    listingPct: 2.5, buyerPct: 2.5,
+    staging: 4000, marketing: 1000, inspections: 600,
+  },
+  lastComputed: null,
+  lastSavedId: null,
+};
+
+// ---- Toast ----
+let toastTimer;
+function toast(title, msg, isError){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg || '';
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4200);
+}
+
+// ---- Local compute (mirrors compute_net_sheet_sf) ----
+function computeLocal(i){
+  const price = Number(i.salePrice) || 0;
+  if (price <= 0) return null;
+  const listing = price * (Number(i.listingPct) || 0) / 100;
+  const buyer   = price * (Number(i.buyerPct)   || 0) / 100;
+  let tax, taxBracket;
+  if      (price <   250000) { tax = price * 0.005;  taxBracket = '$2.50 per $500 ($100K–$250K bracket)'; }
+  else if (price <  1000000) { tax = price * 0.0068; taxBracket = '$3.40 per $500 ($250K–$1M bracket)'; }
+  else if (price <  5000000) { tax = price * 0.0075; taxBracket = '$3.75 per $500 ($1M–$5M bracket)'; }
+  else if (price < 10000000) { tax = price * 0.0225; taxBracket = '$11.25 per $500 ($5M–$10M bracket · Prop I)'; }
+  else if (price < 25000000) { tax = price * 0.055;  taxBracket = '$27.50 per $500 ($10M–$25M bracket · Prop I)'; }
+  else                       { tax = price * 0.06;   taxBracket = '$30.00 per $500 (>$25M bracket · Prop I)'; }
+  const title = Math.max(1500, price * 0.0022);
+  const escrow = 1800, hoaXfer = 500, hoaDocs = 250, nhd = 125, recording = 150;
+  const tenantAmt = i.tenantOccupied ? (Number(i.tenantBuyout) || 0) : 0;
+  const staging = Number(i.staging) || 0, marketing = Number(i.marketing) || 0, inspections = Number(i.inspections) || 0;
+  const total = listing + buyer + tax + title + escrow + hoaXfer + hoaDocs + nhd + recording + staging + marketing + inspections + tenantAmt;
+  const netPre = price - total;
+  const mortgage = Number(i.mortgagePayoff) || 0;
+  const netFinal = netPre - mortgage;
+  return {
+    sale_price: price,
+    listing_commission: listing, buyer_agent_commission: buyer,
+    sf_transfer_tax: tax, sf_transfer_tax_note: taxBracket,
+    title_insurance: title, escrow_fees: escrow,
+    hoa_transfer_fee: hoaXfer, hoa_docs_fee: hoaDocs,
+    nhd_report: nhd, recording_notary: recording,
+    staging, marketing, inspections,
+    tenant_occupied: i.tenantOccupied, tenant_buyout: tenantAmt,
+    total_closing_costs: total,
+    closing_costs_pct: Math.round((total / price) * 10000) / 100,
+    mortgage_payoff: mortgage,
+    net_before_mortgage: netPre,
+    net_proceeds: netFinal,
+    listing_pct: Number(i.listingPct) || 0,
+    buyer_pct: Number(i.buyerPct) || 0,
+  };
+}
+
+// ---- Preview render ----
+function renderPreview(){
+  const c = computeLocal(state.inputs);
+  state.lastComputed = c;
+  const sub = document.getElementById('prev-sale-sub');
+  if (!c) {
+    document.getElementById('prev-sale').textContent = '$0';
+    sub.textContent = 'enter a sale price to see the breakdown';
+    document.getElementById('prev-lines').innerHTML = '';
+    document.getElementById('prev-pct').textContent = '—';
+    document.getElementById('prev-total').textContent = '$0';
+    document.getElementById('prev-net-pre').textContent = '$0';
+    document.getElementById('prev-final-wrap').style.display = 'none';
+    document.getElementById('prev-mortgage-note').textContent = 'Enter a sale price to begin.';
+    return;
+  }
+  document.getElementById('prev-sale').textContent = fmtMoney(c.sale_price);
+  sub.textContent = state.selectedUnit ? `${state.selectedUnit.building_name} · #${state.selectedUnit.unit_address}` : '—';
+  const lines = [
+    ['Listing agent commission (' + c.listing_pct + '%)', c.listing_commission, false],
+    ['Buyer agent commission (' + c.buyer_pct + '%)',     c.buyer_agent_commission, false],
+    ['SF transfer tax — ' + c.sf_transfer_tax_note,       c.sf_transfer_tax, false],
+    ["Owner's title insurance (CLTA)",                    c.title_insurance, false],
+    ['Escrow fees (seller portion)',                      c.escrow_fees, false],
+    ['HOA transfer fee',                                  c.hoa_transfer_fee, false],
+    ['HOA document & resale package',                     c.hoa_docs_fee, false],
+    ['Natural Hazard Disclosure (NHD)',                   c.nhd_report, false],
+    ['Recording, notary, courier',                        c.recording_notary, false],
+    ['Professional staging',                              c.staging, false],
+    ['Photography & marketing',                           c.marketing, false],
+    ['Pre-listing inspections',                           c.inspections, false],
+  ];
+  if (c.tenant_occupied) lines.push(['Estimated tenant buyout',         c.tenant_buyout, true]);
+  document.getElementById('prev-lines').innerHTML = lines.map(([label, amt, isTenant]) => `
+    <div class="preview-line ${isTenant ? 'tenant' : ''}">
+      <span class="preview-line-label">${label}</span>
+      <span class="preview-line-amount">${fmtMoney(amt)}</span>
+    </div>`).join('');
+  document.getElementById('prev-pct').textContent = c.closing_costs_pct.toFixed(2);
+  document.getElementById('prev-total').textContent = '−' + fmtMoney(c.total_closing_costs);
+  document.getElementById('prev-net-pre').textContent = fmtMoney(c.net_before_mortgage);
+  if (c.mortgage_payoff > 0) {
+    document.getElementById('prev-final-wrap').style.display = 'flex';
+    document.getElementById('prev-net-final').textContent = fmtMoney(c.net_proceeds);
+    document.getElementById('prev-mortgage-note').textContent = 'After subtracting your $' + Math.round(c.mortgage_payoff).toLocaleString() + ' mortgage payoff balance.';
+  } else {
+    document.getElementById('prev-final-wrap').style.display = 'none';
+    document.getElementById('prev-mortgage-note').textContent = 'Add your mortgage payoff balance above to see final net proceeds. Always confirm exact payoff with your lender before close.';
+  }
+}
+
+// ---- Wire form inputs ----
+function bindInput(id, key, opts){
+  const el = document.getElementById(id);
+  const setter = () => {
+    let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (el.type === 'number') v = v === '' ? 0 : parseFloat(v);
+    state.inputs[key] = v;
+    if (opts && opts.onChange) opts.onChange(v);
+    renderPreview();
+  };
+  el.addEventListener('input',  setter);
+  el.addEventListener('change', setter);
+}
+
+function setupForm(){
+  bindInput('sale-price',      'salePrice');
+  bindInput('scenario-label',  'scenarioLabel');
+  bindInput('tenant-occupied', 'tenantOccupied', { onChange: (v) => {
+    document.getElementById('tenant-fields').style.display = v ? 'block' : 'none';
+  }});
+  bindInput('tenant-buyout',   'tenantBuyout');
+  bindInput('mortgage-payoff', 'mortgagePayoff');
+  bindInput('listing-pct',     'listingPct');
+  bindInput('buyer-pct',       'buyerPct');
+  bindInput('staging',         'staging');
+  bindInput('marketing',       'marketing');
+  bindInput('inspections',     'inspections');
+
+  document.getElementById('unit-select').addEventListener('change', (e) => {
+    const u = state.units.find(x => x.building_slug + '|' + x.unit_address === e.target.value);
+    state.selectedUnit = u || null;
+    if (u && u.recommended_list_price && !state.inputs.salePrice) {
+      document.getElementById('sale-price').value = u.recommended_list_price;
+      state.inputs.salePrice = u.recommended_list_price;
+    }
+    renderPreview();
+  });
+
+  document.getElementById('assumptions-toggle').addEventListener('click', () => {
+    const card = document.getElementById('assumptions-card');
+    card.classList.toggle('collapsed');
+    document.getElementById('assumptions-toggle-text').textContent = card.classList.contains('collapsed') ? 'Edit ▾' : 'Done ▴';
+  });
+
+  document.getElementById('save-btn').addEventListener('click', onSave);
+  document.getElementById('pdf-btn').addEventListener('click', onGeneratePDF);
+}
+
+// ---- Init: auth + units + saved scenarios ----
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('state-login').style.display = 'block';
+    return;
+  }
+  state.user = session.user;
+
+  const { data: unitsRes } = await sb.rpc('list_my_claimed_units');
+  state.units = (unitsRes && unitsRes.ok) ? unitsRes.units : [];
+
+  if (!state.units.length) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('state-no-units').style.display = 'block';
+    return;
+  }
+
+  // Populate dropdown
+  const sel = document.getElementById('unit-select');
+  sel.innerHTML = state.units.map(u =>
+    `<option value="${u.building_slug}|${u.unit_address}">${u.building_name} · #${u.unit_address}</option>`
+  ).join('');
+  state.selectedUnit = state.units[0];
+
+  // Default sale price from CMA recommended_list_price if available
+  if (state.selectedUnit.recommended_list_price) {
+    document.getElementById('sale-price').value = state.selectedUnit.recommended_list_price;
+    state.inputs.salePrice = Number(state.selectedUnit.recommended_list_price);
+  }
+
+  setupForm();
+  renderPreview();
+  await loadSaved();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+
+// ---- Saved scenarios ----
+async function loadSaved(){
+  const { data, error } = await sb.rpc('list_my_net_sheets');
+  if (error || !data || !data.ok) return;
+  const rows = data.scenarios || [];
+  const list = document.getElementById('saved-list');
+  if (!rows.length) {
+    list.innerHTML = '<div class="saved-empty">No saved scenarios yet. Build one above and click Generate PDF.</div>';
+    return;
+  }
+  list.innerHTML = '<div class="saved-grid">' + rows.map(r => `
+    <div class="saved-card">
+      <div class="saved-card-scenario">${r.scenario_label || 'Net sheet'}</div>
+      <div class="saved-card-property">${r.building_name} · #${r.unit_label} · ${fmtMoneyShort(r.sale_price)}</div>
+      <div class="saved-card-net">${fmtMoneyShort(r.net_proceeds || r.net_before_mortgage)}</div>
+      <div class="saved-card-meta">${r.net_proceeds ? 'net proceeds' : 'net before mortgage'} · ${new Date(r.created_at).toLocaleDateString()}</div>
+      <div class="saved-card-actions">
+        ${r.pdf_storage_path ? `<button class="btn btn-primary" data-action="download" data-path="${r.pdf_storage_path}">Download PDF</button>` : ''}
+        <button class="btn btn-secondary" data-action="reload" data-id="${r.id}">Load this scenario</button>
+      </div>
+    </div>`).join('') + '</div>';
+
+  list.querySelectorAll('[data-action="download"]').forEach(b => b.addEventListener('click', () => downloadPDF(b.dataset.path)));
+  list.querySelectorAll('[data-action="reload"]').forEach(b => b.addEventListener('click', () => reloadScenario(b.dataset.id, rows)));
+}
+
+function reloadScenario(id, rows){
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('sale-price').value      = r.sale_price;        state.inputs.salePrice       = Number(r.sale_price);
+  document.getElementById('scenario-label').value  = r.scenario_label;    state.inputs.scenarioLabel   = r.scenario_label;
+  document.getElementById('tenant-occupied').checked = !!r.tenant_occupied; state.inputs.tenantOccupied = !!r.tenant_occupied;
+  document.getElementById('tenant-fields').style.display = r.tenant_occupied ? 'block' : 'none';
+  document.getElementById('tenant-buyout').value   = r.tenant_buyout;     state.inputs.tenantBuyout    = Number(r.tenant_buyout);
+  document.getElementById('mortgage-payoff').value = r.mortgage_payoff || ''; state.inputs.mortgagePayoff = Number(r.mortgage_payoff || 0);
+  const si = r.scenario_inputs || {};
+  if (si.listing_commission_pct != null) { document.getElementById('listing-pct').value = si.listing_commission_pct; state.inputs.listingPct = si.listing_commission_pct; }
+  if (si.buyer_agent_commission_pct != null) { document.getElementById('buyer-pct').value = si.buyer_agent_commission_pct; state.inputs.buyerPct = si.buyer_agent_commission_pct; }
+  if (si.staging != null)     { document.getElementById('staging').value     = si.staging;     state.inputs.staging     = si.staging; }
+  if (si.marketing != null)   { document.getElementById('marketing').value   = si.marketing;   state.inputs.marketing   = si.marketing; }
+  if (si.inspections != null) { document.getElementById('inspections').value = si.inspections; state.inputs.inspections = si.inspections; }
+  // Select the matching unit
+  const unitKey = r.building_slug + '|' + r.unit_label;
+  document.getElementById('unit-select').value = unitKey;
+  state.selectedUnit = state.units.find(x => x.building_slug + '|' + x.unit_address === unitKey) || state.selectedUnit;
+  renderPreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  toast('Scenario loaded', 'Edit and re-save to create a variant.');
+}
+
+async function downloadPDF(path){
+  try {
+    const { data, error } = await sb.storage.from('net-sheet-pdfs').download(path);
+    if (error) throw error;
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = url; a.download = path.split('/').pop();
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch(e) {
+    toast('Download failed', e.message || 'Could not retrieve PDF.', true);
+  }
+}
+
+// ---- Save ----
+async function onSave(){
+  if (!validate()) return;
+  const btn = document.getElementById('save-btn');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    const { data, error } = await sb.rpc('save_client_net_sheet', payload());
+    if (error || !data || !data.ok) throw new Error((data && data.error) || (error && error.message) || 'save_failed');
+    state.lastSavedId = data.id;
+    toast('Scenario saved', 'Find it under "My saved scenarios" below.');
+    await loadSaved();
+  } catch(e) {
+    toast('Save failed', e.message, true);
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+// ---- Generate PDF ----
+async function onGeneratePDF(){
+  if (!validate()) return;
+  const btn = document.getElementById('pdf-btn');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    // 1. Save the scenario
+    const { data, error } = await sb.rpc('save_client_net_sheet', payload());
+    if (error || !data || !data.ok) throw new Error((data && data.error) || 'save_failed');
+    const estimateId = data.id;
+    state.lastSavedId = estimateId;
+
+    // 2. Build PDF
+    const doc = buildPDF(state.lastComputed, state.selectedUnit, state.inputs.scenarioLabel);
+    const blob = doc.output('blob');
+    const path = state.user.id + '/' + estimateId + '.pdf';
+
+    // 3. Upload to storage
+    const { error: upErr } = await sb.storage.from('net-sheet-pdfs').upload(path, blob, {
+      cacheControl: '3600', upsert: true, contentType: 'application/pdf'
+    });
+    if (upErr) throw upErr;
+
+    // 4. Notify Tim
+    await sb.rpc('notify_admin_net_sheet_pdf', { p_estimate_id: estimateId, p_storage_path: path });
+
+    // 5. Trigger local download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `net-sheet-${state.selectedUnit.unit_address}-${fmtMoneyShort(state.lastComputed.sale_price).replace(/\$/g,'')}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    toast('PDF ready', 'Saved to your portal and downloaded. Your agent has been notified.');
+    await loadSaved();
+  } catch(e) {
+    toast('Generation failed', e.message || 'Could not generate PDF.', true);
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+function validate(){
+  const c = state.lastComputed;
+  if (!state.selectedUnit) { toast('Pick a property', 'Choose a claimed unit from Step 1.', true); return false; }
+  if (!c || c.sale_price <= 0) { toast('Sale price required', 'Enter a target sale price above $0.', true); return false; }
+  if (c.sale_price < 100000) { toast('Sale price looks low', 'Double-check the figure — it should be the full sale price.', true); return false; }
+  return true;
+}
+
+function payload(){
+  return {
+    p_building_slug:              state.selectedUnit.building_slug,
+    p_unit_address:               state.selectedUnit.unit_address,
+    p_sale_price:                 Number(state.inputs.salePrice),
+    p_scenario_label:             state.inputs.scenarioLabel || ('Net sheet · ' + fmtMoneyShort(state.inputs.salePrice)),
+    p_listing_commission_pct:     Number(state.inputs.listingPct),
+    p_buyer_agent_commission_pct: Number(state.inputs.buyerPct),
+    p_mortgage_payoff:            Number(state.inputs.mortgagePayoff) || 0,
+    p_tenant_occupied:            !!state.inputs.tenantOccupied,
+    p_tenant_buyout:              Number(state.inputs.tenantBuyout) || 0,
+    p_staging:                    Number(state.inputs.staging),
+    p_marketing:                  Number(state.inputs.marketing),
+    p_inspections:                Number(state.inputs.inspections),
+  };
+}
+
+// ---- PDF builder ----
+function buildPDF(c, unit, scenarioLabel){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  const W = 612, H = 792, M = 50;
+  const fmt = (n) => '$' + Math.round(Number(n) || 0).toLocaleString();
+  let y = 0;
+
+  // Header bar (dark)
+  doc.setFillColor(15, 19, 29);
+  doc.rect(0, 0, W, 86, 'F');
+  doc.setTextColor(232, 227, 216);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+  doc.text('CONDO MARKET SF', M, 36);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.setTextColor(159, 180, 216);
+  doc.text('SELLER NET SHEET', M, 54);
+  doc.setTextColor(212, 165, 116); doc.setFontSize(10);
+  const dateStr = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  doc.text(dateStr, W - M, 36, { align: 'right' });
+  doc.setFontSize(8); doc.setTextColor(180,180,180);
+  doc.text('Prepared in the Client Portal', W - M, 54, { align: 'right' });
+
+  y = 130;
+  // Property title
+  doc.setTextColor(20, 20, 20);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
+  doc.text(unit.building_name + ' · #' + unit.unit_address, M, y);
+  y += 24;
+  doc.setFont('helvetica', 'italic'); doc.setFontSize(11);
+  doc.setTextColor(120, 120, 120);
+  doc.text(scenarioLabel || 'Net sheet scenario', M, y);
+  y += 28;
+
+  // Sale price band (gold)
+  doc.setFillColor(212, 165, 116);
+  doc.rect(M, y, W - 2 * M, 56, 'F');
+  doc.setTextColor(40, 30, 0); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('SALE PRICE', M + 18, y + 22);
+  doc.setFontSize(26);
+  doc.text(fmt(c.sale_price), W - M - 18, y + 38, { align: 'right' });
+  y += 80;
+
+  // Line items header
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+  doc.text('CLOSING COSTS', M, y);
+  doc.text('AMOUNT', W - M, y, { align: 'right' });
+  y += 8;
+  doc.setDrawColor(220, 220, 220); doc.line(M, y, W - M, y); y += 14;
+
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(60, 60, 60);
+  const lines = [
+    ['Listing agent commission (' + c.listing_pct + '%)',    c.listing_commission],
+    ['Buyer agent commission offered (' + c.buyer_pct + '%)', c.buyer_agent_commission],
+    ['SF transfer tax — ' + c.sf_transfer_tax_note,           c.sf_transfer_tax],
+    ["Owner's title insurance (CLTA)",                        c.title_insurance],
+    ['Escrow fees (seller portion)',                          c.escrow_fees],
+    ['HOA transfer fee',                                      c.hoa_transfer_fee],
+    ['HOA document & resale package',                         c.hoa_docs_fee],
+    ['Natural Hazard Disclosure (NHD)',                       c.nhd_report],
+    ['Recording, notary, courier',                            c.recording_notary],
+    ['Professional staging',                                  c.staging],
+    ['Photography & marketing',                               c.marketing],
+    ['Pre-listing inspections',                               c.inspections],
+  ];
+  lines.forEach(([label, amt]) => {
+    doc.text(label, M, y, { maxWidth: W - 2*M - 80 });
+    doc.text(fmt(amt), W - M, y, { align: 'right' });
+    y += 16;
+  });
+  if (c.tenant_occupied) {
+    doc.setFont('helvetica', 'italic'); doc.setTextColor(160, 110, 30);
+    doc.text('Estimated tenant buyout', M, y);
+    doc.text(fmt(c.tenant_buyout), W - M, y, { align: 'right' });
+    y += 12;
+    doc.setFontSize(8); doc.setTextColor(160, 110, 30);
+    doc.text('Discuss tenant buyout in detail with your agent — amounts vary widely.', M, y);
+    y += 14;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(60, 60, 60);
+  }
+
+  // Total
+  y += 6;
+  doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.8); doc.line(M, y, W - M, y); doc.setLineWidth(0.4);
+  y += 18;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(20, 20, 20);
+  doc.text('Total closing costs (' + c.closing_costs_pct.toFixed(2) + '% of sale)', M, y);
+  doc.text('−' + fmt(c.total_closing_costs), W - M, y, { align: 'right' });
+  y += 30;
+
+  // Net before mortgage band
+  doc.setFillColor(15, 19, 29);
+  doc.rect(M, y, W - 2 * M, 72, 'F');
+  doc.setTextColor(212, 165, 116); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('NET BEFORE MORTGAGE PAYOFF', M + 18, y + 24);
+  doc.setFontSize(24); doc.setTextColor(232, 227, 216);
+  doc.text(fmt(c.net_before_mortgage), W - M - 18, y + 48, { align: 'right' });
+  y += 90;
+
+  if (c.mortgage_payoff > 0) {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(20, 20, 20);
+    doc.text('Less: Mortgage payoff balance', M, y);
+    doc.text('−' + fmt(c.mortgage_payoff), W - M, y, { align: 'right' });
+    y += 22;
+
+    doc.setFillColor(132, 217, 160);
+    doc.rect(M, y, W - 2 * M, 64, 'F');
+    doc.setTextColor(20, 50, 25); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('FINAL NET PROCEEDS TO SELLER', M + 18, y + 24);
+    doc.setFontSize(22);
+    doc.text(fmt(c.net_proceeds), W - M - 18, y + 44, { align: 'right' });
+    y += 84;
+  } else {
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(150, 150, 150);
+    doc.text('Mortgage payoff balance not provided. Confirm with your lender via written payoff statement to see final net.', M, y, { maxWidth: W - 2*M });
+    y += 24;
+  }
+
+  // Footer
+  const fy = H - 96;
+  doc.setDrawColor(220, 220, 220); doc.line(M, fy, W - M, fy);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+  doc.text('Tim McMullen · CA DRE #02016832', M, fy + 16);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+  doc.text('McMullen Properties LLC · tim@sanfranciscocondomarket.com', M, fy + 28);
+  doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+  doc.text(
+    'This net sheet is an estimate based on standard SF seller closing costs in effect at the time of generation. Final amounts will vary based on actual escrow, title, and HOA fees. Mortgage payoff balance requires written confirmation from your current lender. SF Real Property Transfer Tax brackets apply per SF ordinance. This document is not a binding offer or financial advice — discuss in detail with your agent before relying on these figures.',
+    M, fy + 44, { maxWidth: W - 2 * M }
+  );
+
+  return doc;
+}
+
+init().catch(e => {
+  document.getElementById('loading').textContent = 'Error loading: ' + (e.message || e);
+});
+</script>
+
+</body>
+</html>
