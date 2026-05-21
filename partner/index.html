@@ -239,6 +239,26 @@ h2.section-h em{font-style:italic;color:var(--blue-gray)}
   .explainer-grid{grid-template-columns:1fr;gap:14px}
 }
 
+/* Explore the platform — live entry-point cards */
+.explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.explore-card{padding:0;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:all .18s;overflow:hidden;cursor:pointer}
+.explore-card:hover{border-color:rgba(212,165,116,.55);transform:translateY(-3px);text-decoration:none;box-shadow:0 12px 32px rgba(0,0,0,.25)}
+.explore-preview{height:180px;background:rgba(0,0,0,.24);border-bottom:1px solid var(--cream-14);position:relative;overflow:hidden}
+.explore-chrome{display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(15,19,29,.7);border-bottom:1px solid var(--cream-14)}
+.explore-chrome-dot{width:7px;height:7px;border-radius:50%;background:rgba(232,227,216,.2)}
+.explore-chrome-url{flex:1;margin-left:6px;padding:3px 9px;background:rgba(15,19,29,.6);border-radius:99px;font-family:var(--mono);font-size:9px;color:var(--cream-58);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.explore-svg{width:100%;height:calc(100% - 26px);padding:8px 10px}
+.explore-body-wrap{padding:18px 22px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.explore-tag{display:inline-block;padding:3px 10px;border:1px solid rgba(212,165,116,.36);border-radius:99px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);align-self:flex-start;margin-bottom:2px}
+.explore-h{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.explore-h em{font-style:italic;color:var(--blue-gray)}
+.explore-body{color:var(--cream-78);font-size:13px;line-height:1.6;flex:1}
+.explore-link{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-top:auto;padding-top:6px;border-top:1px solid var(--cream-14)}
+
+@media(max-width:900px){
+  .explore-grid{grid-template-columns:1fr;gap:14px}
+}
+
 </style>
 </head>
 <body>
@@ -453,6 +473,175 @@ h2.section-h em{font-style:italic;color:var(--blue-gray)}
       </div>
       <div class="explainer-foot">
         <a href="https://www.mcmullen.properties/about" target="_blank" rel="noopener">More about Tim &amp; McMullen Properties →</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-h">Click around the <em>platform</em>.</h2>
+      <p class="section-lead">Three live entry points into the San Francisco condo market. Open any of them — see exactly what your residents, prospective buyers, and your front desk are using.</p>
+      <div class="explore-grid">
+
+        <a class="explore-card" target="_blank" rel="noopener" href="https://www.sanfranciscocondomarket.com/buildings/">
+          <div class="explore-preview">
+            <div class="explore-chrome">
+              <div class="explore-chrome-dot"></div><div class="explore-chrome-dot"></div><div class="explore-chrome-dot"></div>
+              <div class="explore-chrome-url">sanfranciscocondomarket.com/buildings/</div>
+            </div>
+            <svg class="explore-svg" viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <!-- filter chips -->
+              <g stroke="#e8e3d8" stroke-opacity=".4" stroke-width="1">
+                <rect x="6" y="6" width="46" height="13" rx="6"/>
+                <rect x="56" y="6" width="38" height="13" rx="6"/>
+                <rect x="98" y="6" width="50" height="13" rx="6"/>
+                <rect x="152" y="6" width="42" height="13" rx="6"/>
+              </g>
+              <g fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="6" letter-spacing=".5">
+                <text x="12" y="15">SoMa</text>
+                <text x="62" y="15">100+</text>
+                <text x="104" y="15">2010+</text>
+                <text x="158" y="15">Active</text>
+              </g>
+              <!-- building rows -->
+              <g stroke="#e8e3d8" stroke-opacity=".25" stroke-width="1">
+                <line x1="6" y1="30" x2="234" y2="30"/>
+              </g>
+              <g>
+                <!-- row 1 -->
+                <circle cx="14" cy="42" r="2.5" fill="#d4a574"/>
+                <text x="22" y="44" fill="#e8e3d8" font-family="serif" font-size="9" font-weight="500">Lumina</text>
+                <text x="22" y="52" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="6">661 units · SoMa</text>
+                <text x="232" y="44" fill="#d4a574" font-family="serif" font-size="10" font-style="italic" text-anchor="end">$795M</text>
+                <text x="232" y="52" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="5.5" text-anchor="end">423 sales · 10y</text>
+              </g>
+              <line x1="6" y1="58" x2="234" y2="58" stroke="#e8e3d8" stroke-opacity=".15" stroke-width="1"/>
+              <g>
+                <circle cx="14" cy="70" r="2.5" fill="#d4a574"/>
+                <text x="22" y="72" fill="#e8e3d8" font-family="serif" font-size="9" font-weight="500">One Mission Bay</text>
+                <text x="22" y="80" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="6">354 units · Mission Bay</text>
+                <text x="232" y="72" fill="#d4a574" font-family="serif" font-size="10" font-style="italic" text-anchor="end">$375M</text>
+                <text x="232" y="80" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="5.5" text-anchor="end">258 sales · 10y</text>
+              </g>
+              <line x1="6" y1="86" x2="234" y2="86" stroke="#e8e3d8" stroke-opacity=".15" stroke-width="1"/>
+              <g>
+                <circle cx="14" cy="98" r="2.5" fill="#d4a574"/>
+                <text x="22" y="100" fill="#e8e3d8" font-family="serif" font-size="9" font-weight="500">Millennium Tower</text>
+                <text x="22" y="108" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="6">421 units · SoMa</text>
+                <text x="232" y="100" fill="#d4a574" font-family="serif" font-size="10" font-style="italic" text-anchor="end">$226M</text>
+                <text x="232" y="108" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="5.5" text-anchor="end">125 sales · 10y</text>
+              </g>
+              <line x1="6" y1="114" x2="234" y2="114" stroke="#e8e3d8" stroke-opacity=".15" stroke-width="1"/>
+              <g>
+                <circle cx="14" cy="126" r="2.5" fill="#d4a574"/>
+                <text x="22" y="128" fill="#e8e3d8" font-family="serif" font-size="9" font-weight="500">The Brannan</text>
+                <text x="22" y="136" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="6">339 units · SoMa</text>
+                <text x="232" y="128" fill="#d4a574" font-family="serif" font-size="10" font-style="italic" text-anchor="end">$231M</text>
+                <text x="232" y="136" fill="#e8e3d8" fill-opacity=".5" font-family="monospace" font-size="5.5" text-anchor="end">143 sales · 10y</text>
+              </g>
+            </svg>
+          </div>
+          <div class="explore-body-wrap">
+            <div class="explore-tag">Catalog</div>
+            <h3 class="explore-h">Every SF <em>condo building</em>.</h3>
+            <p class="explore-body">Browse all 81 indexed buildings — units, neighborhood, sale history, current activity. Filter by anything. Click into any of them.</p>
+            <span class="explore-link">Open catalog ↗</span>
+          </div>
+        </a>
+
+        <a class="explore-card" id="explore-building-card" target="_blank" rel="noopener" href="https://www.sanfranciscocondomarket.com/#/building/lumina">
+          <div class="explore-preview">
+            <div class="explore-chrome">
+              <div class="explore-chrome-dot"></div><div class="explore-chrome-dot"></div><div class="explore-chrome-dot"></div>
+              <div class="explore-chrome-url" id="explore-building-url">sanfranciscocondomarket.com/#/building/lumina</div>
+            </div>
+            <svg class="explore-svg" viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <!-- hero -->
+              <rect x="6" y="6" width="228" height="38" rx="4" stroke="#9fb4d8" stroke-opacity=".4" stroke-width="1" fill="#9fb4d8" fill-opacity=".05"/>
+              <text x="14" y="22" fill="#9fb4d8" font-family="monospace" font-size="6" letter-spacing="1">BUILDING</text>
+              <text x="14" y="36" fill="#e8e3d8" font-family="serif" font-size="14" font-weight="500" id="explore-bldg-name-svg">Lumina</text>
+              <text x="230" y="22" fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="6" letter-spacing=".5" text-anchor="end">SoMa · 661 units</text>
+              <text x="230" y="36" fill="#d4a574" font-family="serif" font-size="12" font-style="italic" text-anchor="end">$1.88M median</text>
+              <!-- stats row -->
+              <g stroke="#e8e3d8" stroke-opacity=".25" stroke-width="1">
+                <rect x="6" y="50" width="73" height="32" rx="3"/>
+                <rect x="83" y="50" width="73" height="32" rx="3"/>
+                <rect x="160" y="50" width="74" height="32" rx="3"/>
+              </g>
+              <g fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="5.5" letter-spacing=".5">
+                <text x="11" y="60">10Y SALES</text>
+                <text x="88" y="60">10Y VOLUME</text>
+                <text x="165" y="60">LAST SALE</text>
+              </g>
+              <g fill="#e8e3d8" font-family="serif" font-size="13" font-weight="500">
+                <text x="11" y="76">423</text>
+                <text x="88" y="76">$795M</text>
+                <text x="165" y="76" font-size="10">Dec 2025</text>
+              </g>
+              <!-- recent sales preview -->
+              <text x="6" y="96" fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="6" letter-spacing="1">RECENT SALES</text>
+              <g font-family="serif" font-size="9">
+                <text x="6" y="110" fill="#e8e3d8">Unit 28F</text>
+                <text x="234" y="110" fill="#d4a574" font-style="italic" text-anchor="end">$2.1M</text>
+                <line x1="6" y1="115" x2="234" y2="115" stroke="#e8e3d8" stroke-opacity=".12"/>
+                <text x="6" y="126" fill="#e8e3d8">Unit 14B</text>
+                <text x="234" y="126" fill="#d4a574" font-style="italic" text-anchor="end">$1.78M</text>
+                <line x1="6" y1="131" x2="234" y2="131" stroke="#e8e3d8" stroke-opacity=".12"/>
+              </g>
+            </svg>
+          </div>
+          <div class="explore-body-wrap">
+            <div class="explore-tag">Building page</div>
+            <h3 class="explore-h">A live <em>building</em> page.</h3>
+            <p class="explore-body" id="explore-bldg-body">Public marketing page for <strong style="color:var(--cream)" id="explore-bldg-name-1">Lumina</strong> — exactly what your residents and prospective buyers see when they search this address.</p>
+            <span class="explore-link">Open <span id="explore-bldg-name-2">Lumina</span> ↗</span>
+          </div>
+        </a>
+
+        <a class="explore-card" id="explore-dash-card" target="_blank" rel="noopener" href="https://www.sanfranciscocondomarket.com/building-dashboard/?slug=lumina">
+          <div class="explore-preview">
+            <div class="explore-chrome">
+              <div class="explore-chrome-dot"></div><div class="explore-chrome-dot"></div><div class="explore-chrome-dot"></div>
+              <div class="explore-chrome-url" id="explore-dash-url">sanfranciscocondomarket.com/building-dashboard/</div>
+            </div>
+            <svg class="explore-svg" viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <!-- header -->
+              <text x="6" y="14" fill="#9fb4d8" font-family="monospace" font-size="6" letter-spacing="1">BUILDING DASHBOARD</text>
+              <text x="6" y="28" fill="#e8e3d8" font-family="serif" font-size="14" font-style="italic" font-weight="500" id="explore-dash-name-svg">Lumina</text>
+              <!-- 2x2 stat grid -->
+              <g stroke="#e8e3d8" stroke-opacity=".22" stroke-width="1">
+                <rect x="6" y="36" width="112" height="34" rx="3"/>
+                <rect x="122" y="36" width="112" height="34" rx="3"/>
+                <rect x="6" y="74" width="112" height="34" rx="3"/>
+                <rect x="122" y="74" width="112" height="34" rx="3"/>
+              </g>
+              <g fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="5.5" letter-spacing=".5">
+                <text x="11" y="46">12-MONTH SALES</text>
+                <text x="127" y="46">10Y VOLUME</text>
+                <text x="11" y="84">ACTIVE MMM</text>
+                <text x="127" y="84">PARTNER @ 1%</text>
+              </g>
+              <g fill="#e8e3d8" font-family="serif" font-size="15" font-weight="500">
+                <text x="11" y="65">32</text>
+                <text x="127" y="65">$795M</text>
+                <text x="11" y="103">0</text>
+              </g>
+              <text x="127" y="103" fill="#d4a574" font-family="serif" font-size="15" font-style="italic" font-weight="500">$7.96M</text>
+              <!-- mmm panel -->
+              <rect x="6" y="114" width="228" height="22" rx="3" stroke="#d4a574" stroke-opacity=".4" stroke-width="1" fill="#d4a574" fill-opacity=".06"/>
+              <text x="11" y="125" fill="#d4a574" font-family="monospace" font-size="6" letter-spacing=".5">MAKE ME MOVE LISTINGS</text>
+              <text x="230" y="125" fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="6" text-anchor="end">live updates</text>
+              <text x="11" y="133" fill="#e8e3d8" fill-opacity=".55" font-family="monospace" font-size="6">owners willing to sell at target prices</text>
+            </svg>
+          </div>
+          <div class="explore-body-wrap">
+            <div class="explore-tag">Intelligence</div>
+            <h3 class="explore-h">Live <em>dashboard</em>.</h3>
+            <p class="explore-body">12-month sales, 10-year volume, active MMM listings, projected partner revenue — at <strong style="color:var(--cream)" id="explore-dash-name-1">Lumina</strong>. The data view your firm gets at every managed building.</p>
+            <span class="explore-link">Open dashboard ↗</span>
+          </div>
+        </a>
+
       </div>
     </div>
   </section>
@@ -998,6 +1187,34 @@ function renderBuildingCards(data) {
   `).join('')}</div>`;
 }
 
+// Personalize the "Click around the platform" entry-point cards
+function renderExplorePlatform(data) {
+  const buildings = data.buildings || [];
+  // Pick the firm's most-active mapped building for personalization, or fall back to Lumina
+  const pick = buildings.length > 0 ? buildings[0] : null;
+  const featSlug = pick ? pick.slug : 'lumina';
+  const featName = pick ? pick.display_name : 'Lumina';
+  
+  // Building page card
+  const bldgCard = document.getElementById('explore-building-card');
+  if (bldgCard) bldgCard.href = `https://www.sanfranciscocondomarket.com/#/building/${featSlug}`;
+  const bldgUrl = document.getElementById('explore-building-url');
+  if (bldgUrl) bldgUrl.textContent = `sanfranciscocondomarket.com/#/building/${featSlug}`;
+  
+  // Dashboard card
+  const dashCard = document.getElementById('explore-dash-card');
+  if (dashCard) dashCard.href = `https://www.sanfranciscocondomarket.com/building-dashboard/?slug=${featSlug}`;
+  const dashUrl = document.getElementById('explore-dash-url');
+  if (dashUrl) dashUrl.textContent = `sanfranciscocondomarket.com/building-dashboard/?slug=${featSlug}`;
+  
+  // Building name text replacements
+  ['explore-bldg-name-1','explore-bldg-name-2','explore-bldg-name-svg','explore-dash-name-1','explore-dash-name-svg']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = featName;
+    });
+}
+
 // Main data loader
 async function loadFirmData() {
   if (!FIRM_SLUG) {
@@ -1033,6 +1250,7 @@ async function loadFirmData() {
     renderPitchPersonalization(data);
     renderCalculator(data);
     renderBuildingCards(data);
+    renderExplorePlatform(data);
     
     // Show appropriate initial view
     document.getElementById('loading').style.display = 'none';
