@@ -606,8 +606,10 @@ function setupInlineCalc(cma){
     else if (price < 10000000) tax = price * 0.0225;
     else if (price < 25000000) tax = price * 0.055;
     else                       tax = price * 0.06;
-    const title = Math.max(1500, price * 0.0022);
-    const other = title + 500 + 250 + 125 + 150 + 4000 + 1000 + 600;
+    // SF-real line items per First American 2025 data:
+    // title insurance + HOA transfer + HOA docs are buyer-paid in SF condos (seller portion = $0)
+    // Seller pays: NHD $143 + Recording/Notary $95 + Pest $350 + Reconveyance $45 + Payoff statement $30 + Home Warranty $425 + Staging $4000 + Marketing $1000 + Inspections $600
+    const other = 143 + 95 + 350 + 45 + 30 + 425 + 4000 + 1000 + 600;
     const cmTotal = cmListing + cmBuyer + 1200 + tax + other;
     const trTotal = trListing + trBuyer + 1800 + tax + other;
     return { cmComm: cmListing + cmBuyer, trComm: trListing + trBuyer, tax, other,
