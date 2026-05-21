@@ -180,6 +180,35 @@ h2.section-h em{font-style:italic;color:var(--blue-gray)}
   .container{padding:0 20px}
   .tabs{order:3;flex:1 1 100%;justify-content:center;margin-top:8px}
 }
+/* Interactive calculator */
+.calculator{padding:32px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;display:grid;grid-template-columns:1fr 320px;gap:32px;align-items:center}
+.calc-inputs{display:flex;flex-direction:column;gap:24px}
+.calc-input-group label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:10px;display:block}
+.calc-input-row{display:flex;align-items:center;gap:18px}
+.calc-input-row input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
+.calc-input-row output{font-family:var(--serif);font-size:22px;color:var(--cream);min-width:130px;text-align:right;font-weight:500;letter-spacing:-.01em}
+.calc-input-hint{font-size:11px;color:var(--cream-38);font-family:var(--mono);letter-spacing:.04em;margin-top:6px}
+.calc-result{padding:32px 26px;background:linear-gradient(135deg,rgba(212,165,116,.18),rgba(212,165,116,.04));border:1px solid var(--gold);border-radius:12px;text-align:center}
+.calc-result-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.calc-result-value{font-family:var(--serif);font-style:italic;font-weight:500;font-size:48px;color:var(--gold);line-height:1.05;letter-spacing:-.02em}
+.calc-result-sub{font-size:12px;color:var(--cream-78);margin-top:10px;font-family:var(--sans);line-height:1.5}
+
+/* Building cards grid */
+.bldg-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.bldg-card{padding:22px 24px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px;display:flex;flex-direction:column;gap:14px;transition:all .15s;cursor:pointer;text-decoration:none;color:inherit}
+.bldg-card:hover{border-color:rgba(212,165,116,.5);transform:translateY(-2px);text-decoration:none;background:var(--bg-card-lift,#222837)}
+.bldg-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.bldg-card-name{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.bldg-card-meta{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em;margin-top:4px}
+.bldg-card-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--cream-14);border-bottom:1px solid var(--cream-14)}
+.bldg-card-stat-label{font-size:9px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.bldg-card-stat-val{font-family:var(--serif);font-size:18px;color:var(--cream);font-weight:500;letter-spacing:-.01em}
+.bldg-card-stat-val em{font-style:italic;color:var(--gold);font-size:18px}
+.bldg-card-foot{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.bldg-mmm-badge{padding:4px 10px;background:rgba(132,217,160,.14);color:var(--green);border-radius:99px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.bldg-mmm-badge.zero{background:rgba(232,227,216,.06);color:var(--cream-38)}
+.bldg-card-link{color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+
 </style>
 </head>
 <body>
@@ -267,6 +296,22 @@ h2.section-h em{font-style:italic;color:var(--blue-gray)}
       <h2 class="section-h">The <em>math</em>, for your portfolio.</h2>
       <p class="section-lead">No theory — this uses your buildings' actual 12-month sales activity from our index, applied to the partnership terms.</p>
       <div id="pitch-math"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-h">Adjust the <em>variables</em>.</h2>
+      <p class="section-lead">Slide each input to see partner revenue under any assumption. Defaults pre-filled with your buildings' actual 12-month numbers.</p>
+      <div id="pitch-calculator"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-h">Your <em>buildings</em>.</h2>
+      <p class="section-lead">Every building you manage has its own live dashboard tracking sales activity, Make Me Move listings, and projected partner revenue. Boards and owners view it; your firm manages it.</p>
+      <div id="pitch-bldg-cards"></div>
     </div>
   </section>
 
@@ -690,6 +735,103 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// Interactive partnership revenue calculator
+function renderCalculator(data) {
+  const firm = data.firm;
+  const totals = data.totals;
+  const hasMapped = totals.buildings_mapped > 0;
+  
+  const defaultSales  = hasMapped ? (totals.sales_12mo || 0) : Math.round((data.city.sales_12mo_city || 0) / 81 * (firm.buildings_managed_est || 20));
+  const defaultPrice  = totals.median_sale_price || data.city.median_price_city || 1500000;
+  const defaultCapture = 25;
+  const maxSales = Math.max(defaultSales * 4, 200);
+  
+  document.getElementById('pitch-calculator').innerHTML = `
+    <div class="calculator">
+      <div class="calc-inputs">
+        <div class="calc-input-group">
+          <label>Annual sales in your buildings</label>
+          <div class="calc-input-row">
+            <input type="range" min="0" max="${maxSales}" value="${defaultSales}" id="calc-sales" step="1">
+            <output id="calc-sales-out">${defaultSales} / yr</output>
+          </div>
+          <div class="calc-input-hint">${hasMapped ? `default: ${defaultSales} tracked closings in your buildings last 12 months` : `default: estimated from city averages × ~${firm.buildings_managed_est || 20} buildings`}</div>
+        </div>
+        <div class="calc-input-group">
+          <label>% of sales through Condo Market</label>
+          <div class="calc-input-row">
+            <input type="range" min="0" max="100" value="${defaultCapture}" id="calc-capture" step="1">
+            <output id="calc-capture-out">${defaultCapture}%</output>
+          </div>
+          <div class="calc-input-hint">platform capture rate from your book — 25% is our reference assumption</div>
+        </div>
+        <div class="calc-input-group">
+          <label>Average sale price</label>
+          <div class="calc-input-row">
+            <input type="range" min="500000" max="5000000" value="${defaultPrice}" id="calc-price" step="50000">
+            <output id="calc-price-out">${fmtMoney(defaultPrice)}</output>
+          </div>
+          <div class="calc-input-hint">1% partnership commission per closing</div>
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="calc-result-label">Revenue at 1% per sale</div>
+        <div class="calc-result-value" id="calc-result-val">$0</div>
+        <div class="calc-result-sub">per year to ${firm.name}<br>paid at each closing</div>
+      </div>
+    </div>
+  `;
+  
+  const update = () => {
+    const s = parseInt(document.getElementById('calc-sales').value);
+    const c = parseInt(document.getElementById('calc-capture').value);
+    const p = parseInt(document.getElementById('calc-price').value);
+    document.getElementById('calc-sales-out').textContent = s + ' / yr';
+    document.getElementById('calc-capture-out').textContent = c + '%';
+    document.getElementById('calc-price-out').textContent = fmtMoney(p);
+    const revenue = Math.round(s * (c/100) * p * 0.01);
+    document.getElementById('calc-result-val').textContent = fmtMoneyFull(revenue);
+  };
+  ['calc-sales','calc-capture','calc-price'].forEach(id => {
+    document.getElementById(id).addEventListener('input', update);
+  });
+  update();
+}
+
+// Building cards with MMM + dashboard link
+function renderBuildingCards(data) {
+  const buildings = data.buildings || [];
+  const container = document.getElementById('pitch-bldg-cards');
+  if (buildings.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-h">No buildings mapped yet</div><div class="empty-text">Book a 20-minute call and we map your portfolio. Each building gets its own live dashboard.</div></div>';
+    return;
+  }
+  container.innerHTML = `<div class="bldg-cards-grid">${buildings.map(b => `
+    <a class="bldg-card" href="${b.building_dashboard_url}" target="_blank" rel="noopener">
+      <div class="bldg-card-head">
+        <div>
+          <div class="bldg-card-name">${b.display_name}</div>
+          <div class="bldg-card-meta">${(b.unit_count||0).toLocaleString()} units · ${b.neighborhood || 'San Francisco'}${b.year_built ? ' · built ' + b.year_built : ''}</div>
+        </div>
+      </div>
+      <div class="bldg-card-stats">
+        <div>
+          <div class="bldg-card-stat-label">10y volume</div>
+          <div class="bldg-card-stat-val">${fmtMoney(b.volume_10y)}</div>
+        </div>
+        <div>
+          <div class="bldg-card-stat-label">Partner @ 1%</div>
+          <div class="bldg-card-stat-val"><em>${fmtMoney(b.projected_1pct_10y)}</em></div>
+        </div>
+      </div>
+      <div class="bldg-card-foot">
+        <span class="bldg-mmm-badge ${b.mmm_active > 0 ? '' : 'zero'}">${b.mmm_active || 0} MMM listing${b.mmm_active === 1 ? '' : 's'}</span>
+        <span class="bldg-card-link">Open dashboard →</span>
+      </div>
+    </a>
+  `).join('')}</div>`;
+}
+
 // Main data loader
 async function loadFirmData() {
   if (!FIRM_SLUG) {
@@ -723,6 +865,8 @@ async function loadFirmData() {
     renderRecent(data);
     renderScenarios(data);
     renderPitchPersonalization(data);
+    renderCalculator(data);
+    renderBuildingCards(data);
     
     // Show appropriate initial view
     document.getElementById('loading').style.display = 'none';
