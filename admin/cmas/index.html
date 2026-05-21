@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin · CMAs · Condo Market SF</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f131d; --bg-card:#1a1f2e; --bg-row:#161b28;
+  --cream:#e8e3d8; --cream-78:rgba(232,227,216,.78); --cream-58:rgba(232,227,216,.58);
+  --cream-38:rgba(232,227,216,.38); --cream-14:rgba(232,227,216,.14); --cream-8:rgba(232,227,216,.08);
+  --gold:#d4a574; --gold-15:rgba(212,165,116,.15); --gold-30:rgba(212,165,116,.3);
+  --blue:#9fb4d8; --blue-15:rgba(159,180,216,.15);
+  --green:#84d9a0; --green-15:rgba(132,217,160,.15); --green-30:rgba(132,217,160,.3);
+  --red:#e57373; --red-15:rgba(229,115,115,.15);
+  --amber:#f2c97d;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none} a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(15,19,29,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--cream-14);padding:14px 0}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--cream)}
+.brand-sub{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-left:14px;padding:3px 10px;border:1px solid var(--amber);border-radius:999px}
+.nav-links{display:flex;gap:18px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.nav-links a{color:var(--cream-58)}
+.nav-links a.active{color:var(--gold)}
+
+.container{max-width:1400px;margin:0 auto;padding:32px 28px}
+
+.page-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:28px;flex-wrap:wrap;gap:14px}
+.page-h h1{font-family:var(--serif);font-size:36px;font-weight:500;letter-spacing:-.02em}
+.page-h h1 em{font-style:italic;color:var(--gold)}
+.page-meta{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--cream-58)}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px}
+@media(max-width:780px){.summary{grid-template-columns:repeat(2,1fr)}}
+.sum-cell{padding:18px 20px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:10px}
+.sum-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
+.sum-value{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--cream)}
+.sum-value em{font-style:italic;color:var(--gold)}
+
+.table-wrap{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:14px 18px;background:rgba(15,19,29,.5);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);font-weight:500;border-bottom:1px solid var(--cream-14)}
+thead th.num{text-align:right}
+tbody tr{border-bottom:1px solid var(--cream-8);transition:background .12s}
+tbody tr:hover{background:var(--bg-row);cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:14px 18px;vertical-align:top}
+tbody td.num{text-align:right;font-family:var(--mono);font-size:13px}
+.prop-addr{font-family:var(--serif);font-size:16px;color:var(--cream);margin-bottom:2px}
+.prop-sub{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em}
+.client-name{color:var(--cream)}
+.client-email{font-family:var(--mono);font-size:11px;color:var(--cream-58)}
+.tier-badge{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+.tier-coming_soon{background:var(--gold-15);color:var(--gold);border:1px solid var(--gold-30)}
+.tier-make_me_move{background:var(--blue-15);color:var(--blue);border:1px solid rgba(159,180,216,.3)}
+.tier-live_listing{background:var(--green-15);color:var(--green);border:1px solid var(--green-30)}
+.tier-default{background:var(--cream-8);color:var(--cream-58);border:1px solid var(--cream-14)}
+.view-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-family:var(--mono);font-size:11px;background:var(--cream-8);color:var(--cream)}
+.view-pill.zero{color:var(--cream-38)}
+.view-pill.hot{background:var(--green-15);color:var(--green);border:1px solid var(--green-30)}
+.flag-row{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.flag{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase}
+.flag-gmail{background:var(--blue-15);color:var(--blue)}
+.flag-client{background:var(--green-15);color:var(--green)}
+.flag-mmm{background:var(--gold-15);color:var(--gold)}
+.time-rel{font-family:var(--mono);font-size:12px;color:var(--cream)}
+.time-abs{font-family:var(--mono);font-size:10px;color:var(--cream-38);margin-top:2px}
+.engagement-score{font-family:var(--mono);font-size:14px;color:var(--gold)}
+.empty{padding:60px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px}
+.loading{padding:120px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+.error{padding:60px 24px;text-align:center;color:var(--red);font-family:var(--mono);font-size:13px}
+.footer{padding:32px 28px;text-align:center;color:var(--cream-38);font-family:var(--mono);font-size:10px;letter-spacing:.08em;border-top:1px solid var(--cream-14);margin-top:48px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div>
+      <span class="brand">Condo Market SF</span>
+      <span class="brand-sub">Admin</span>
+    </div>
+    <div class="nav-links">
+      <a href="/admin/cmas/" class="active">CMAs</a>
+      <a href="/admin/net-sheets/">Net sheets</a>
+      <a href="/account/">My account</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-h">
+    <h1>All <em>CMAs</em>.</h1>
+    <div class="page-meta" id="meta">—</div>
+  </div>
+
+  <div class="summary" id="summary" style="display:none"></div>
+  <div id="loading" class="loading">Loading CMAs…</div>
+  <div id="error" class="error" style="display:none"></div>
+  <div id="table-wrap" style="display:none">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Client</th>
+            <th>Tier</th>
+            <th class="num">List price</th>
+            <th class="num">Views</th>
+            <th>Last viewed</th>
+            <th class="num">Engagement</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="footer">McMullen Properties LLC · CA DRE #02016832 · Admin view</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+const ADMIN_EMAILS=['tim@sanfranciscocondomarket.com','tim@mcmullen.properties'];
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+const fmtMoney=n=>n==null?'—':n>=1e6?'$'+(n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M':n>=1e3?'$'+Math.round(n/1e3).toLocaleString()+'K':'$'+Math.round(n).toLocaleString();
+const fmtRelTime=iso=>{ if(!iso) return '—'; const d=new Date(iso); const s=Math.floor((Date.now()-d)/1000); if(s<60) return s+'s ago'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago'; if(s<604800) return Math.floor(s/86400)+'d ago'; return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});};
+const fmtAbsTime=iso=>iso?new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Los_Angeles'}):'';
+const tierLabel=t=>({make_me_move:'Make-Me-Move',coming_soon:'Coming Soon',live_listing:'Live Listing'}[t]||t||'—');
+const esc=s=>s==null?'':String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+(async()=>{
+  const {data:{user},error:authErr}=await sb.auth.getUser();
+  if(authErr||!user||!ADMIN_EMAILS.includes(user.email)){
+    window.location.href='/account/?next='+encodeURIComponent(window.location.pathname);
+    return;
+  }
+  document.getElementById('meta').textContent='Signed in as '+user.email;
+
+  const {data,error}=await sb.rpc('get_admin_cma_list');
+  document.getElementById('loading').style.display='none';
+  if(error||!data?.ok){
+    const e=document.getElementById('error');
+    e.style.display='block';
+    e.textContent=data?.error||error?.message||'Unknown error';
+    return;
+  }
+
+  const cmas=data.cmas||[];
+  // Summary stats
+  const totalViews=cmas.reduce((a,c)=>a+(c.view_count||0),0);
+  const totalGmail=cmas.reduce((a,c)=>a+(c.gmail_referrer_view_count||0),0);
+  const totalIdentified=cmas.reduce((a,c)=>a+(c.identified_view_count||0),0);
+  const sum=document.getElementById('summary');
+  sum.style.display='grid';
+  sum.innerHTML=`
+    <div class="sum-cell"><div class="sum-label">Total CMAs</div><div class="sum-value">${cmas.length}</div></div>
+    <div class="sum-cell"><div class="sum-label">Total views</div><div class="sum-value">${totalViews}</div></div>
+    <div class="sum-cell"><div class="sum-label">Gmail-referrer clicks</div><div class="sum-value"><em>${totalGmail}</em></div></div>
+    <div class="sum-cell"><div class="sum-label">Authenticated views</div><div class="sum-value"><em>${totalIdentified}</em></div></div>
+  `;
+
+  if(!cmas.length){
+    document.getElementById('table-wrap').innerHTML='<div class="empty">No CMAs yet.</div>';
+    document.getElementById('table-wrap').style.display='block';
+    return;
+  }
+
+  const rows=cmas.map(c=>{
+    const flags=[];
+    if(c.gmail_referrer_view_count>0) flags.push(`<span class="flag flag-gmail">${c.gmail_referrer_view_count}× Gmail</span>`);
+    if(c.identified_view_count>0) flags.push(`<span class="flag flag-client">${c.identified_view_count}× client</span>`);
+    if(c.total_mmm_interactions>0) flags.push(`<span class="flag flag-mmm">${c.total_mmm_interactions}× MMM</span>`);
+    const tierCls='tier-'+(c.service_tier||'default').replace(/[^a-z_]/g,'');
+    const isHot=c.engagement_score>=200;
+    return `
+      <tr data-id="${esc(c.id)}">
+        <td><div class="prop-addr">${esc(c.property_address||'—')}</div><div class="prop-sub">created ${fmtRelTime(c.created_at)}${c.frontend_verified_at?'':' · ⚠ unverified'}</div></td>
+        <td><div class="client-name">${esc(c.client_name||'—')}</div><div class="client-email">${esc(c.client_email||'—')}</div></td>
+        <td><span class="tier-badge ${tierCls}">${esc(tierLabel(c.service_tier))}</span></td>
+        <td class="num">${fmtMoney(c.recommended_list_price)}</td>
+        <td class="num">
+          <span class="view-pill ${c.view_count===0?'zero':(isHot?'hot':'')}">${c.view_count||0}</span>
+          ${flags.length?`<div class="flag-row">${flags.join('')}</div>`:''}
+        </td>
+        <td>
+          <div class="time-rel">${fmtRelTime(c.last_viewed_at)}</div>
+          ${c.last_viewed_at?`<div class="time-abs">${fmtAbsTime(c.last_viewed_at)}</div>`:''}
+        </td>
+        <td class="num"><span class="engagement-score">${c.engagement_score||0}</span></td>
+      </tr>`;
+  }).join('');
+  document.getElementById('rows').innerHTML=rows;
+  document.getElementById('table-wrap').style.display='block';
+
+  document.querySelectorAll('tbody tr').forEach(r=>{
+    r.addEventListener('click',()=>{
+      window.location.href='/admin/cma/?id='+r.dataset.id;
+    });
+  });
+})();
+</script>
+</body>
+</html>
