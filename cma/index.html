@@ -44,6 +44,7 @@ a:hover{text-decoration:underline}
 .stat{padding:22px 24px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px}
 .stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:8px}
 .stat-value{font-family:var(--serif);font-size:32px;font-weight:500;letter-spacing:-.02em;color:var(--cream);line-height:1.1}
+.stat-value.range{font-size:24px;white-space:nowrap}
 .stat-value em{font-style:italic;color:var(--gold)}
 .stat-sub{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em;margin-top:4px}
 
@@ -54,9 +55,9 @@ a:hover{text-decoration:underline}
 
 .panel{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:24px 26px}
 
-/* Narrative containers — for the four DB-stored HTML blocks */
+/* Narrative containers */
 .narrative{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:28px 32px}
-.narrative h3{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.01em;color:var(--cream);margin-bottom:16px}
+.narrative h3{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.01em;color:var(--cream);margin-bottom:16px;line-height:1.2}
 .narrative p{color:var(--cream-78);margin-bottom:14px}
 .narrative p:last-child{margin-bottom:0}
 .narrative ul{padding-left:22px;margin-bottom:14px}
@@ -74,7 +75,9 @@ a:hover{text-decoration:underline}
 .mmm-prompt{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--cream-78)}
 .mmm-price{font-family:var(--serif);font-size:46px;font-weight:500;letter-spacing:-.02em;color:var(--gold)}
 .mmm-calc input[type=range]{width:100%;accent-color:var(--gold);margin-bottom:6px;height:6px;cursor:pointer}
-.mmm-bounds{display:flex;justify-content:space-between;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;margin-bottom:28px}
+.mmm-bounds{display:flex;justify-content:space-between;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;margin-bottom:8px}
+.mmm-list-marker{position:relative;height:18px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.04em;margin-bottom:18px}
+.mmm-list-marker .pin{position:absolute;transform:translateX(-50%);white-space:nowrap}
 .mmm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:20px}
 .mmm-cell-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
 .mmm-cell-value{font-family:var(--mono);font-size:15px;color:var(--cream)}
@@ -82,7 +85,20 @@ a:hover{text-decoration:underline}
 .mmm-income{padding-top:18px;border-top:1px solid rgba(212,165,116,.18);font-family:var(--mono);font-size:13px;color:var(--cream-58)}
 .mmm-income strong{color:var(--cream);font-weight:500}
 
-/* Peer bars */
+/* Comp cards */
+.comp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.comp-card{background:var(--bg-card);border:1px solid var(--cream-14);border-left:3px solid var(--gold);border-radius:10px;padding:20px 22px}
+.comp-card.peer{border-left-color:var(--blue-gray)}
+.comp-card-unit{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em;color:var(--cream);margin-bottom:2px}
+.comp-card-bldg{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.06em;margin-bottom:14px}
+.comp-card-specs{font-family:var(--mono);font-size:12px;color:var(--cream-78);letter-spacing:.04em;padding-top:12px;border-top:1px solid var(--cream-14);margin-bottom:14px}
+.comp-card-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.comp-card-price{font-family:var(--serif);font-size:24px;font-weight:500;color:var(--gold);letter-spacing:-.01em}
+.comp-card.peer .comp-card-price{color:var(--blue-gray)}
+.comp-card-psf{font-family:var(--mono);font-size:12px;color:var(--cream-58);letter-spacing:.04em}
+.comp-card-date{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em}
+
+/* Peer bars (aggregate) */
 .peer-row{margin-bottom:18px}
 .peer-row:last-child{margin-bottom:0}
 .peer-header{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
@@ -114,9 +130,11 @@ a:hover{text-decoration:underline}
 @media(max-width:780px){
   .hero h1{font-size:36px}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat-value.range{font-size:20px}
   .mmm-grid{grid-template-columns:repeat(2,1fr)}
   .mmm-price{font-size:32px}
   .timeline-grid{grid-template-columns:1fr}
+  .comp-grid{grid-template-columns:1fr}
   .narrative{padding:22px 20px}
   .mmm-calc{padding:22px 20px}
   .container{padding:20px 18px}
@@ -160,6 +178,7 @@ a:hover{text-decoration:underline}
           <span id="mmm-low">—</span>
           <span id="mmm-high">—</span>
         </div>
+        <div class="mmm-list-marker"><span class="pin" id="mmm-list-pin">▲ list price</span></div>
         <div class="mmm-grid">
           <div>
             <div class="mmm-cell-label">Down (<span id="mmm-dp-pct">20</span>%)</div>
@@ -184,11 +203,24 @@ a:hover{text-decoration:underline}
 
     <div class="section"><div class="narrative" id="narrative-market"></div></div>
     <div class="section"><div class="narrative" id="narrative-demand"></div></div>
+    <div class="section"><div class="narrative" id="narrative-neighborhoods"></div></div>
     <div class="section"><div class="narrative" id="narrative-comp"></div></div>
 
+    <div class="section" id="same-bldg-section" style="display:none">
+      <h2 class="section-h">Same-building <em>comps</em>.</h2>
+      <p class="section-sub">Recent 1-bedroom sales at The Harrison. Different lines (D, G, F) show how floorplan variation drives PSF.</p>
+      <div class="comp-grid" id="same-bldg-grid"></div>
+    </div>
+
+    <div class="section" id="peer-comp-section" style="display:none">
+      <h2 class="section-h">Peer-building <em>comps</em>.</h2>
+      <p class="section-sub">What 1-bedrooms are selling for at Lumina and One Rincon Hill — the two closest SoMa luxury peers.</p>
+      <div class="comp-grid" id="peer-comp-grid"></div>
+    </div>
+
     <div class="section" id="peer-section" style="display:none">
-      <h2 class="section-h">Peer <em>buildings</em>.</h2>
-      <p class="section-sub">1-bedroom 12-month medians at SoMa luxury peers.</p>
+      <h2 class="section-h">Peer-building <em>aggregates</em>.</h2>
+      <p class="section-sub">12-month 1-bedroom medians at SoMa luxury peers.</p>
       <div class="panel" id="peer-bars"></div>
     </div>
 
@@ -272,12 +304,12 @@ async function load(){
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
   const emailHint = params.get('email');
-  if(!token){ return showError('Missing ?token= parameter'); }
+  if(!token) return showError('Missing ?token= parameter');
 
   let resp;
   try { resp = await callRPC('get_cma_by_token', { p_public_token: token }); }
   catch(e){ return showError('Failed to load CMA: ' + e.message); }
-  if(!resp || !resp.ok){ return showError(resp?.error || 'CMA not found'); }
+  if(!resp || !resp.ok) return showError(resp?.error || 'CMA not found');
 
   render(resp.cma);
 
@@ -321,20 +353,25 @@ function render(cma){
     name ? `<span>prepared for ${name}</span>` : '',
   ].join('');
 
+  // Stats grid — Estimated value is now a RANGE, not a midpoint
+  const rangeStr = `${fmtMoneyShort(cma.estimated_value_low)}–${fmtMoneyShort(cma.estimated_value_high)}`;
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat"><div class="stat-label">Purchased</div><div class="stat-value">${fmtMoneyShort(cma.purchase_price)}</div><div class="stat-sub">${fmtDate(cma.purchase_date)}</div></div>
-    <div class="stat"><div class="stat-label">Estimated value</div><div class="stat-value">${fmtMoneyShort(cma.estimated_value_midpoint)}</div><div class="stat-sub">${fmtMoneyShort(cma.estimated_value_low)}–${fmtMoneyShort(cma.estimated_value_high)} range</div></div>
+    <div class="stat"><div class="stat-label">Estimated value range</div><div class="stat-value range">${rangeStr}</div><div class="stat-sub">midpoint ${fmtMoneyShort(cma.estimated_value_midpoint)}</div></div>
     <div class="stat"><div class="stat-label">Recommended list</div><div class="stat-value"><em>${fmtMoneyShort(cma.recommended_list_price)}</em></div><div class="stat-sub">${tierLabel(cma.service_tier)}</div></div>
     <div class="stat"><div class="stat-label">Subject PSF</div><div class="stat-value">${cma.estimated_value_psf ? '$' + Math.round(cma.estimated_value_psf).toLocaleString() : '—'}</div><div class="stat-sub">per square foot</div></div>
   `;
 
-  document.getElementById('narrative-listing').innerHTML = cma.listing_analysis_html  || '';
-  document.getElementById('narrative-market').innerHTML  = cma.market_challenges_html || '';
-  document.getElementById('narrative-demand').innerHTML  = cma.surrounding_market_html|| '';
-  document.getElementById('narrative-comp').innerHTML    = cma.comp_walkthrough_html  || '';
+  document.getElementById('narrative-listing').innerHTML       = cma.listing_analysis_html      || '';
+  document.getElementById('narrative-market').innerHTML        = cma.market_challenges_html     || '';
+  document.getElementById('narrative-demand').innerHTML        = cma.surrounding_market_html    || '';
+  document.getElementById('narrative-neighborhoods').innerHTML = cma.neighborhoods_demand_html  || '';
+  document.getElementById('narrative-comp').innerHTML          = cma.comp_walkthrough_html      || '';
 
   setupMMM(cma);
-  setupPeers(cma);
+  setupSameBuildingComps(cma);
+  setupPeerComps(cma);
+  setupPeerBars(cma);
   setupTimeline(cma);
 
   document.getElementById('loading').style.display = 'none';
@@ -360,6 +397,12 @@ function setupMMM(cma){
   document.getElementById('mmm-high').textContent = fmtMoneyShort(high);
   document.getElementById('mmm-dp-pct').textContent = dpPct;
   document.getElementById('mmm-rate').textContent   = rate;
+
+  // Position the "list price" marker pin proportionally along the slider track
+  const listPct = ((start - low) / (high - low)) * 100;
+  const pin = document.getElementById('mmm-list-pin');
+  pin.style.left = listPct + '%';
+  pin.textContent = `▲ list ${fmtMoneyShort(start)}`;
 
   function recompute(price){
     const dp   = price * (dpPct/100);
@@ -388,7 +431,37 @@ function setupMMM(cma){
   });
 }
 
-function setupPeers(cma){
+function compCardHTML(c, peer){
+  const cls = peer ? 'comp-card peer' : 'comp-card';
+  const bldgLine = peer ? c.building : c.address;
+  return `
+    <div class="${cls}">
+      <div class="comp-card-unit">${c.unit}</div>
+      <div class="comp-card-bldg">${bldgLine}</div>
+      <div class="comp-card-specs">${c.beds} bed · ${c.baths} bath · ${(c.sqft || 0).toLocaleString()} sqft</div>
+      <div class="comp-card-row">
+        <span class="comp-card-price">${fmtMoney(c.sale_price)}</span>
+        <span class="comp-card-psf">$${Math.round(c.psf).toLocaleString()}/sqft</span>
+      </div>
+      <div class="comp-card-date">sold ${fmtDate(c.sale_date)}</div>
+    </div>`;
+}
+
+function setupSameBuildingComps(cma){
+  const list = (cma.comp_snapshot || {}).same_building_1bd_comps || [];
+  if(!list.length) return;
+  document.getElementById('same-bldg-section').style.display = 'block';
+  document.getElementById('same-bldg-grid').innerHTML = list.map(c => compCardHTML(c, false)).join('');
+}
+
+function setupPeerComps(cma){
+  const list = (cma.comp_snapshot || {}).peer_building_comps || [];
+  if(!list.length) return;
+  document.getElementById('peer-comp-section').style.display = 'block';
+  document.getElementById('peer-comp-grid').innerHTML = list.map(c => compCardHTML(c, true)).join('');
+}
+
+function setupPeerBars(cma){
   const peers = ((cma.comp_snapshot || {}).peer_buildings_1bd_12mo || []).filter(p => p.median);
   if(!peers.length) return;
   document.getElementById('peer-section').style.display = 'block';
