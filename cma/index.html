@@ -468,7 +468,8 @@ function render(cma){
   setupMMM(cma);
   setupSameBuildingComps(cma);
   setupPeerComps(cma);
-  setupPeerBars(cma);
+ setupPeerBars(cma);
+  setupInlineCalc(cma);
   setupInlineCalc(cma);
   setupTimeline(cma);
 
@@ -630,6 +631,71 @@ function setupInlineCalc(cma){
   }
   range.addEventListener('input', (e) => render(Number(e.target.value)));
   render(start);
+}
+  function setupInlineCalc(cma){
+  const slider = document.getElementById('inlineCalcSlider');
+  if (!slider) return; // inline calc section not on page
+
+  const elPrice   = document.getElementById('inlineCalcPriceDisplay');
+  const elCmComm  = document.getElementById('inlineCalcCmComm');
+  const elCmTax   = document.getElementById('inlineCalcCmTax');
+  const elCmNet   = document.getElementById('inlineCalcCmNet');
+  const elTrComm  = document.getElementById('inlineCalcTrComm');
+  const elTrTax   = document.getElementById('inlineCalcTrTax');
+  const elTrNet   = document.getElementById('inlineCalcTrNet');
+  const elSavings = document.getElementById('inlineCalcSavings');
+
+  const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+
+  function compute(price){
+    const cmListing = price * 0.01;
+    const cmBuyer   = price * 0.02;
+    const trListing = price * 0.025;
+    const trBuyer   = price * 0.025;
+    let tax;
+    if      (price <   250000) tax = price * 0.005;
+    else if (price <  1000000) tax = price * 0.0068;
+    else if (price <  5000000) tax = price * 0.0075;
+    else if (price < 10000000) tax = price * 0.0225;
+    else if (price < 25000000) tax = price * 0.055;
+    else                       tax = price * 0.06;
+    // SF-real line items per First American 2025: title insurance + HOA transfer + HOA docs are buyer-paid in SF condos
+    // Seller pays: NHD $143 + Recording/Notary $95 + Pest $350 + Reconveyance $45 + Payoff $30 + Warranty $425 + Staging $4000 + Marketing $1000 + Inspections $600
+    const other = 143 + 95 + 350 + 45 + 30 + 425 + 4000 + 1000 + 600;
+    const cmTotal = cmListing + cmBuyer + 1200 + tax + other;
+    const trTotal = trListing + trBuyer + 1800 + tax + other;
+    return {
+      cmComm: cmListing + cmBuyer,
+      trComm: trListing + trBuyer,
+      tax,
+      cmNet: price - cmTotal,
+      trNet: price - trTotal,
+      savings: trTotal - cmTotal
+    };
+  }
+
+  function render(price){
+    const r = compute(price);
+    if (elPrice)   elPrice.textContent   = fmt(price);
+    if (elCmComm)  elCmComm.textContent  = fmt(r.cmComm);
+    if (elCmTax)   elCmTax.textContent   = fmt(r.tax);
+    if (elCmNet)   elCmNet.textContent   = fmt(r.cmNet);
+    if (elTrComm)  elTrComm.textContent  = fmt(r.trComm);
+    if (elTrTax)   elTrTax.textContent   = fmt(r.tax);
+    if (elTrNet)   elTrNet.textContent   = fmt(r.trNet);
+    if (elSavings) elSavings.textContent = fmt(r.savings);
+  }
+
+  // Initial price: declared MMM > list price > MLS list > fallback to $950K
+  const initialPrice = Number(cma?.declared_mmm)
+                    || Number(cma?.mmm)
+                    || Number(cma?.list_price)
+                    || Number(cma?.mls_list_price)
+                    || 950000;
+  slider.value = initialPrice;
+
+  slider.addEventListener('input', () => render(parseInt(slider.value, 10)));
+  render(initialPrice);
 }
 function setupTimeline(cma){
   if(cma.service_tier !== 'coming_soon') return;
