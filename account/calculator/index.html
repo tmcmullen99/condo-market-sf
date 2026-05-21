@@ -420,11 +420,13 @@ function computeLocal(i){
   else if (price < 10000000) { tax = price * 0.0225; taxBracket = '$11.25 per $500 ($5M–$10M bracket · Prop I)'; }
   else if (price < 25000000) { tax = price * 0.055;  taxBracket = '$27.50 per $500 ($10M–$25M bracket · Prop I)'; }
   else                       { tax = price * 0.06;   taxBracket = '$30.00 per $500 (>$25M bracket · Prop I)'; }
-  const title = Math.max(1500, price * 0.0022);
-  const escrow = 1800, hoaXfer = 500, hoaDocs = 250, nhd = 125, recording = 150;
+ // SF-real line items per First American 2025 data: title insurance + HOA transfer + HOA docs are buyer-paid in SF condos
+  const title = 0, hoaXfer = 0, hoaDocs = 0;
+  const nhd = 143, recording = 95;
+  const pestControl = 350, reconveyance = 45, payoffStatement = 30, homeWarranty = 425;
   const tenantAmt = i.tenantOccupied ? (Number(i.tenantBuyout) || 0) : 0;
   const staging = Number(i.staging) || 0, marketing = Number(i.marketing) || 0, inspections = Number(i.inspections) || 0;
-  const total = listing + buyer + tax + title + escrow + hoaXfer + hoaDocs + nhd + recording + staging + marketing + inspections + tenantAmt;
+  const total = listing + buyer + tax + title + escrow + hoaXfer + hoaDocs + nhd + recording + pestControl + reconveyance + payoffStatement + homeWarranty + staging + marketing + inspections + tenantAmt;
   const netPre = price - total;
   const mortgage = Number(i.mortgagePayoff) || 0;
   const netFinal = netPre - mortgage;
