@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Building dashboard · Condo Market SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f131d; --bg-card:#1a1f2e; --bg-card-lift:#222837;
+  --cream:#e8e3d8; --cream-78:rgba(232,227,216,.78); --cream-58:rgba(232,227,216,.58);
+  --cream-38:rgba(232,227,216,.38); --cream-14:rgba(232,227,216,.14);
+  --gold:#d4a574; --gold-15:rgba(212,165,116,.15);
+  --blue-gray:#9fb4d8; --blue-gray-15:rgba(159,180,216,.15);
+  --green:#84d9a0; --red:#e57373;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(15,19,29,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--cream-14);padding:14px 0}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--cream)}
+.brand-sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-left:14px}
+.nav-cta{padding:8px 16px;background:var(--gold);color:#1a1f2e;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:500}
+.nav-cta:hover{text-decoration:none;background:#e8b985}
+
+.container{max-width:1100px;margin:0 auto;padding:32px 28px}
+
+/* Hero */
+.hero{padding:32px 0 8px;border-bottom:1px solid var(--cream-14);margin-bottom:36px}
+.tag{display:inline-block;padding:5px 13px;border:1px solid rgba(159,180,216,.34);border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:18px}
+.hero h1{font-family:var(--serif);font-size:54px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-bottom:12px}
+.hero h1 em{font-style:italic;color:var(--blue-gray)}
+.hero-meta{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--cream-58);margin-bottom:18px}
+.hero-meta span{margin-right:18px}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px}
+.stat{padding:22px 24px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:8px}
+.stat-value{font-family:var(--serif);font-size:32px;font-weight:500;letter-spacing:-.02em;color:var(--cream);line-height:1.1}
+.stat-value em{font-style:italic;color:var(--gold);font-size:22px;margin-left:4px}
+.stat-sub{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em;margin-top:4px}
+
+.section{margin-bottom:48px}
+.section-h{font-family:var(--serif);font-size:34px;font-weight:500;letter-spacing:-.02em;margin-bottom:8px}
+.section-h em{font-style:italic;color:var(--blue-gray)}
+.section-sub{color:var(--cream-78);font-size:14px;margin-bottom:22px}
+
+/* Two-column layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* Activity panel */
+.panel{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:24px 26px}
+.panel-h{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:16px}
+.panel-big{font-family:var(--serif);font-size:42px;font-weight:500;letter-spacing:-.02em;color:var(--cream);line-height:1.05}
+.panel-big em{font-style:italic;color:var(--gold);font-size:30px}
+.panel-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--cream-14);font-size:14px}
+.panel-row:last-child{border-bottom:0}
+.panel-row-label{color:var(--cream-58)}
+.panel-row-value{font-family:var(--serif);font-size:18px;color:var(--cream)}
+.panel-row-value em{font-style:italic;color:var(--gold)}
+
+/* MMM listings */
+.mmm-card{padding:14px 18px;border:1px solid rgba(212,165,116,.32);background:rgba(212,165,116,.06);border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.mmm-card:last-child{margin-bottom:0}
+.mmm-unit{font-family:var(--serif);font-size:18px;font-weight:500}
+.mmm-meta{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em;margin-top:3px}
+.mmm-price{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold)}
+.empty-state{padding:32px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:12px;letter-spacing:.04em;background:var(--bg-card);border:1px dashed var(--cream-14);border-radius:10px}
+
+/* Recent sales */
+.sales-row{display:grid;grid-template-columns:1fr 90px 130px;gap:14px;padding:12px 0;border-bottom:1px solid var(--cream-14);align-items:center}
+.sales-row:last-child{border-bottom:0}
+.sales-row.header{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);padding-bottom:14px}
+.sales-unit{font-family:var(--serif);font-size:17px}
+.sales-date{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em}
+.sales-price{font-family:var(--serif);font-size:17px;text-align:right}
+
+/* PM card */
+.pm-card{padding:24px 28px;background:linear-gradient(135deg,rgba(159,180,216,.08),rgba(212,165,116,.05));border:1px solid rgba(159,180,216,.32);border-radius:14px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+.pm-card-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:6px}
+.pm-card-name{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.01em;margin-bottom:4px}
+.pm-card-meta{font-family:var(--mono);font-size:11px;color:var(--cream-58);letter-spacing:.04em}
+.pm-card-btn{padding:12px 22px;background:rgba(212,165,116,.18);border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+.pm-card-btn:hover{background:var(--gold);color:#1a1f2e;text-decoration:none}
+
+/* Schedule CTA */
+.schedule{padding:36px 32px;text-align:center;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px}
+.schedule h3{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.01em;margin-bottom:10px}
+.schedule h3 em{font-style:italic;color:var(--gold)}
+.schedule p{color:var(--cream-78);margin-bottom:20px}
+.btn-primary{display:inline-block;padding:14px 30px;background:var(--gold);color:#1a1f2e;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:500}
+.btn-primary:hover{text-decoration:none;background:#e8b985}
+
+.footer{padding:32px 28px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;border-top:1px solid var(--cream-14);margin-top:48px}
+
+.loading{padding:120px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+.error{padding:80px 24px;text-align:center;color:var(--red);font-family:var(--mono);font-size:13px}
+
+@media(max-width:780px){
+  .hero h1{font-size:36px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .pm-card{grid-template-columns:1fr}
+  .sales-row{grid-template-columns:1fr 110px}
+  .sales-row > div:nth-child(2),.sales-row.header > div:nth-child(2){display:none}
+  .container{padding:20px 18px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div><span class="brand">Condo Market SF</span><span class="brand-sub" id="bldg-nav-name">Building dashboard</span></div>
+    <a href="https://calendar.app.google/uY3yZjquoMB6w6cK8" class="nav-cta" target="_blank" rel="noopener">Book 20 min</a>
+  </div>
+</nav>
+
+<div id="loading" class="loading">Loading building dashboard…</div>
+<div id="error" class="error" style="display:none"></div>
+
+<main id="main" style="display:none">
+  <div class="container">
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="tag">Building dashboard</div>
+      <h1 id="bldg-name"></h1>
+      <div class="hero-meta" id="bldg-meta"></div>
+    </section>
+
+    <!-- Stats grid -->
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <!-- Activity + PM (two col) -->
+    <div class="section two-col">
+      <div class="panel">
+        <div class="panel-h">10-year activity</div>
+        <div class="panel-big" id="panel-volume"></div>
+        <div style="margin-top:6px;color:var(--cream-58);font-size:13px;font-family:var(--mono);letter-spacing:.04em;margin-bottom:16px"><span id="panel-sales-10y"></span> tracked closings · last sale <span id="panel-last-sale"></span></div>
+        <div class="panel-row"><span class="panel-row-label">12-month sales</span><span class="panel-row-value" id="panel-12mo-count"></span></div>
+        <div class="panel-row"><span class="panel-row-label">12-month volume</span><span class="panel-row-value" id="panel-12mo-vol"></span></div>
+        <div class="panel-row"><span class="panel-row-label">Median sale (10y)</span><span class="panel-row-value" id="panel-median"></span></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">Make Me Move listings</div>
+        <div class="panel-big" id="mmm-count-big"><em>0</em> active</div>
+        <div style="margin-top:6px;color:var(--cream-58);font-size:13px;font-family:var(--mono);letter-spacing:.04em;margin-bottom:16px">Owners willing to sell at their target price</div>
+        <div id="mmm-list"></div>
+      </div>
+    </div>
+
+    <!-- PM card (only if mapped) -->
+    <div class="section" id="pm-section" style="display:none">
+      <h2 class="section-h">Managed by <em>your firm</em>.</h2>
+      <p class="section-sub">Condo Market is in active partnership conversation with this building's management company.</p>
+      <div class="pm-card">
+        <div>
+          <div class="pm-card-label">Property manager</div>
+          <div class="pm-card-name" id="pm-name"></div>
+          <div class="pm-card-meta" id="pm-meta"></div>
+        </div>
+        <a class="pm-card-btn" id="pm-link" target="_blank" rel="noopener">View partnership →</a>
+      </div>
+    </div>
+
+    <!-- Recent sales -->
+    <div class="section">
+      <h2 class="section-h">Recent <em>sales</em>.</h2>
+      <p class="section-sub">Last ten transactions recorded at this address. Every closing represents a 1% partner payout at the partnership rate.</p>
+      <div class="panel">
+        <div class="sales-row header">
+          <div>Unit</div>
+          <div>Sold</div>
+          <div style="text-align:right">Price · partner @ 1%</div>
+        </div>
+        <div id="sales-list"></div>
+      </div>
+    </div>
+
+    <!-- Schedule CTA -->
+    <div class="section">
+      <div class="schedule">
+        <h3>Want to bring <em>partnership</em> to this building?</h3>
+        <p>Twenty minutes with Tim — walk through the platform, the partnership terms, and the math for your building.</p>
+        <a href="https://calendar.app.google/uY3yZjquoMB6w6cK8" class="btn-primary" target="_blank" rel="noopener">Book 20 minutes →</a>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">McMullen Properties LLC · CA DRE #02016832 · operating under Real Broker</div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+const fmtMoney = (n) => {
+  if (n == null || n === 0) return '$0';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2).replace(/\.?0+$/,'') + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1e3).toLocaleString() + 'K';
+  return '$' + Math.round(n).toLocaleString();
+};
+const fmtMoneyFull = (n) => n == null ? '$0' : '$' + Math.round(n).toLocaleString();
+const fmtDate = (s) => s ? new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+const fmtMonthYear = (s) => s ? new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—';
+
+function getBuildingSlug() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('slug') || urlParams.get('building');
+}
+
+async function load() {
+  const slug = getBuildingSlug();
+  if (!slug) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error').textContent = 'Missing ?slug= query parameter';
+    return;
+  }
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/building_dashboard_v1`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_building_slug: slug })
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    render(data);
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error').textContent = 'Error loading: ' + err.message;
+  }
+}
+
+function render(data) {
+  const b = data.building, a = data.activity, pm = data.property_manager, mmm = data.mmm_listings || [];
+  document.title = `${b.display_name} · Building dashboard · Condo Market SF`;
+  document.getElementById('bldg-nav-name').textContent = `${b.display_name} dashboard`;
+  
+  document.getElementById('bldg-name').innerHTML = `${b.display_name}, <em>${b.neighborhood || 'San Francisco'}</em>.`;
+  document.getElementById('bldg-meta').innerHTML = `
+    <span>${b.address || ''}</span>
+    <span>${(b.unit_count || 0).toLocaleString()} units</span>
+    <span>built ${b.year_built || '—'}</span>`;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat"><div class="stat-label">12-month sales</div><div class="stat-value">${a.sales_12mo || 0}</div><div class="stat-sub">closings tracked</div></div>
+    <div class="stat"><div class="stat-label">10-year volume</div><div class="stat-value">${fmtMoney(a.volume_10y)}</div><div class="stat-sub">across ${a.sales_10y} sales</div></div>
+    <div class="stat"><div class="stat-label">Active MMM</div><div class="stat-value">${data.mmm_count || 0}</div><div class="stat-sub">${data.mmm_count > 0 ? 'owners ready' : 'no listings yet'}</div></div>
+    <div class="stat"><div class="stat-label">Partner @ 1% · 10y</div><div class="stat-value"><em>${fmtMoney(a.partner_earn_10y_1pct)}</em></div><div class="stat-sub">unrealized partner revenue</div></div>
+  `;
+
+  document.getElementById('panel-volume').innerHTML = `${fmtMoney(a.volume_10y)}`;
+  document.getElementById('panel-sales-10y').textContent = a.sales_10y || 0;
+  document.getElementById('panel-last-sale').textContent = fmtMonthYear(a.last_sale_date);
+  document.getElementById('panel-12mo-count').textContent = a.sales_12mo || 0;
+  document.getElementById('panel-12mo-vol').textContent = fmtMoney(a.volume_12mo);
+  document.getElementById('panel-median').textContent = fmtMoney(a.median_price_10y);
+
+  if (mmm.length > 0) {
+    document.getElementById('mmm-count-big').innerHTML = `<em>${mmm.length}</em> active`;
+    document.getElementById('mmm-list').innerHTML = mmm.map(m => `
+      <div class="mmm-card">
+        <div>
+          <div class="mmm-unit">Unit ${m.unit_address || '—'}</div>
+          <div class="mmm-meta">listed ${fmtDate(m.set_at)}${m.notes ? ' · ' + m.notes : ''}</div>
+        </div>
+        <div class="mmm-price">${fmtMoney(m.target_price)}</div>
+      </div>
+    `).join('');
+  } else {
+    document.getElementById('mmm-list').innerHTML = `<div class="empty-state">No active listings yet. Owners can set their target price at any time.</div>`;
+  }
+
+  if (pm) {
+    document.getElementById('pm-section').style.display = 'block';
+    document.getElementById('pm-name').textContent = pm.name;
+    document.getElementById('pm-meta').textContent = pm.contact_email || pm.phone || 'Contact details pending';
+    document.getElementById('pm-link').href = pm.partner_dashboard_url;
+  }
+
+  const recent = data.recent_sales || [];
+  document.getElementById('sales-list').innerHTML = recent.length ? recent.map(s => `
+    <div class="sales-row">
+      <div class="sales-unit">Unit ${s.unit_label || s.unit_address || '—'}</div>
+      <div class="sales-date">${fmtDate(s.sale_date)}</div>
+      <div class="sales-price">${fmtMoney(s.sale_price)} <span style="color:var(--gold);font-style:italic">· ${fmtMoneyFull(Math.round(s.sale_price * 0.01))}</span></div>
+    </div>
+  `).join('') : '<div class="empty-state">No recent sales recorded.</div>';
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+
+load();
+</script>
+</body>
+</html>
