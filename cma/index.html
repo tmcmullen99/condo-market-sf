@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CMA · Condo Market SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f131d; --bg-card:#1a1f2e; --bg-card-lift:#222837;
+  --cream:#e8e3d8; --cream-78:rgba(232,227,216,.78); --cream-58:rgba(232,227,216,.58);
+  --cream-38:rgba(232,227,216,.38); --cream-14:rgba(232,227,216,.14);
+  --gold:#d4a574; --gold-15:rgba(212,165,116,.15);
+  --blue-gray:#9fb4d8; --blue-gray-15:rgba(159,180,216,.15);
+  --green:#84d9a0; --red:#e57373;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(15,19,29,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--cream-14);padding:14px 0}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--cream)}
+.brand-sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-left:14px}
+.nav-cta{padding:8px 16px;background:var(--gold);color:#1a1f2e;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:500}
+.nav-cta:hover{text-decoration:none;background:#e8b985}
+
+.container{max-width:1100px;margin:0 auto;padding:32px 28px}
+
+.hero{padding:32px 0 8px;border-bottom:1px solid var(--cream-14);margin-bottom:36px}
+.tag{display:inline-block;padding:5px 13px;border:1px solid rgba(159,180,216,.34);border-radius:999px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-gray);margin-bottom:18px}
+.hero h1{font-family:var(--serif);font-size:54px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-bottom:12px}
+.hero h1 em{font-style:italic;color:var(--blue-gray)}
+.hero-meta{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--cream-58);margin-bottom:18px}
+.hero-meta span{margin-right:18px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px}
+.stat{padding:22px 24px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:8px}
+.stat-value{font-family:var(--serif);font-size:32px;font-weight:500;letter-spacing:-.02em;color:var(--cream);line-height:1.1}
+.stat-value em{font-style:italic;color:var(--gold)}
+.stat-sub{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em;margin-top:4px}
+
+.section{margin-bottom:48px}
+.section-h{font-family:var(--serif);font-size:34px;font-weight:500;letter-spacing:-.02em;margin-bottom:8px}
+.section-h em{font-style:italic;color:var(--blue-gray)}
+.section-sub{color:var(--cream-78);font-size:14px;margin-bottom:22px}
+
+.panel{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:24px 26px}
+
+/* Narrative containers — for the four DB-stored HTML blocks */
+.narrative{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px;padding:28px 32px}
+.narrative h3{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.01em;color:var(--cream);margin-bottom:16px}
+.narrative p{color:var(--cream-78);margin-bottom:14px}
+.narrative p:last-child{margin-bottom:0}
+.narrative ul{padding-left:22px;margin-bottom:14px}
+.narrative li{color:var(--cream-78);margin-bottom:8px}
+.narrative strong{color:var(--cream);font-weight:500}
+.narrative table{width:100%;border-collapse:collapse;margin:18px 0;font-family:var(--mono);font-size:13px}
+.narrative table th{text-align:left;padding:10px 12px;color:var(--cream-58);font-size:10px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--cream-14);font-weight:500}
+.narrative table td{padding:12px 12px;border-bottom:1px solid var(--cream-14);color:var(--cream)}
+.narrative table tr:last-child td{border-bottom:0}
+
+/* MMM Calculator */
+.mmm-calc{background:linear-gradient(135deg,rgba(212,165,116,.08),rgba(212,165,116,.02));border:1px solid rgba(212,165,116,.32);border-radius:14px;padding:32px}
+.mmm-h{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.mmm-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;flex-wrap:wrap;gap:8px}
+.mmm-prompt{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--cream-78)}
+.mmm-price{font-family:var(--serif);font-size:46px;font-weight:500;letter-spacing:-.02em;color:var(--gold)}
+.mmm-calc input[type=range]{width:100%;accent-color:var(--gold);margin-bottom:6px;height:6px;cursor:pointer}
+.mmm-bounds{display:flex;justify-content:space-between;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;margin-bottom:28px}
+.mmm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:20px}
+.mmm-cell-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
+.mmm-cell-value{font-family:var(--mono);font-size:15px;color:var(--cream)}
+.mmm-cell-value.accent{color:var(--gold)}
+.mmm-income{padding-top:18px;border-top:1px solid rgba(212,165,116,.18);font-family:var(--mono);font-size:13px;color:var(--cream-58)}
+.mmm-income strong{color:var(--cream);font-weight:500}
+
+/* Peer bars */
+.peer-row{margin-bottom:18px}
+.peer-row:last-child{margin-bottom:0}
+.peer-header{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+.peer-name{color:var(--cream)}
+.peer-meta{color:var(--cream-58)}
+.peer-bar{height:8px;background:var(--bg-card-lift);border-radius:4px;overflow:hidden}
+.peer-bar-fill{height:100%;background:var(--cream-38);transition:width .4s ease}
+.peer-bar-fill.you{background:var(--gold)}
+
+/* Timeline */
+.timeline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.timeline-step{background:var(--bg-card);border:1px solid var(--cream-14);border-top:3px solid var(--gold);border-radius:10px;padding:22px 22px 20px}
+.timeline-day{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.timeline-title{font-family:var(--serif);font-size:19px;color:var(--cream);margin-bottom:8px}
+.timeline-desc{color:var(--cream-78);font-size:14px;line-height:1.5}
+
+/* Schedule CTA */
+.schedule{padding:36px 32px;text-align:center;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:14px}
+.schedule h3{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.01em;margin-bottom:10px}
+.schedule h3 em{font-style:italic;color:var(--gold)}
+.schedule p{color:var(--cream-78);margin-bottom:20px}
+.btn-primary{display:inline-block;padding:14px 30px;background:var(--gold);color:#1a1f2e;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:500}
+.btn-primary:hover{text-decoration:none;background:#e8b985}
+
+.footer{padding:32px 28px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;border-top:1px solid var(--cream-14);margin-top:48px}
+.loading{padding:120px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+.error{padding:80px 24px;text-align:center;color:var(--red);font-family:var(--mono);font-size:13px}
+
+@media(max-width:780px){
+  .hero h1{font-size:36px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .mmm-grid{grid-template-columns:repeat(2,1fr)}
+  .mmm-price{font-size:32px}
+  .timeline-grid{grid-template-columns:1fr}
+  .narrative{padding:22px 20px}
+  .mmm-calc{padding:22px 20px}
+  .container{padding:20px 18px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div><span class="brand">Condo Market SF</span><span class="brand-sub" id="nav-sub">CMA</span></div>
+    <a href="https://calendar.app.google/uY3yZjquoMB6w6cK8" class="nav-cta" target="_blank" rel="noopener">Book 20 min</a>
+  </div>
+</nav>
+
+<div id="loading" class="loading">Loading your CMA…</div>
+<div id="error" class="error" style="display:none"></div>
+
+<main id="main" style="display:none">
+  <div class="container">
+
+    <section class="hero">
+      <div class="tag" id="hero-tag">Comparative Market Analysis</div>
+      <h1 id="hero-title"></h1>
+      <div class="hero-meta" id="hero-meta"></div>
+    </section>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="section"><div class="narrative" id="narrative-listing"></div></div>
+
+    <div class="section">
+      <div class="mmm-calc">
+        <div class="mmm-h">Make-Me-Move calculator</div>
+        <div class="mmm-row">
+          <div class="mmm-prompt">What would a buyer pay at…</div>
+          <div class="mmm-price" id="mmm-price">—</div>
+        </div>
+        <input type="range" id="mmm-range" />
+        <div class="mmm-bounds">
+          <span id="mmm-low">—</span>
+          <span id="mmm-high">—</span>
+        </div>
+        <div class="mmm-grid">
+          <div>
+            <div class="mmm-cell-label">Down (<span id="mmm-dp-pct">20</span>%)</div>
+            <div class="mmm-cell-value" id="mmm-dp">—</div>
+          </div>
+          <div>
+            <div class="mmm-cell-label">P&I @ <span id="mmm-rate">6.875</span>%/30yr</div>
+            <div class="mmm-cell-value" id="mmm-pi">—</div>
+          </div>
+          <div>
+            <div class="mmm-cell-label">HOA + tax</div>
+            <div class="mmm-cell-value" id="mmm-hoa-tax">—</div>
+          </div>
+          <div>
+            <div class="mmm-cell-label">Total monthly</div>
+            <div class="mmm-cell-value accent" id="mmm-monthly">—</div>
+          </div>
+        </div>
+        <div class="mmm-income">Buyer income needed at 28% DTI: <strong id="mmm-income">—</strong> annually</div>
+      </div>
+    </div>
+
+    <div class="section"><div class="narrative" id="narrative-market"></div></div>
+    <div class="section"><div class="narrative" id="narrative-demand"></div></div>
+    <div class="section"><div class="narrative" id="narrative-comp"></div></div>
+
+    <div class="section" id="peer-section" style="display:none">
+      <h2 class="section-h">Peer <em>buildings</em>.</h2>
+      <p class="section-sub">1-bedroom 12-month medians at SoMa luxury peers.</p>
+      <div class="panel" id="peer-bars"></div>
+    </div>
+
+    <div class="section" id="timeline-section" style="display:none">
+      <h2 class="section-h">Coming Soon <em>strategy</em>.</h2>
+      <p class="section-sub">A 30-day controlled test before any public exposure.</p>
+      <div class="timeline-grid" id="timeline"></div>
+    </div>
+
+    <div class="section">
+      <div class="schedule">
+        <h3>Questions about this <em>analysis</em>?</h3>
+        <p>Walk through the numbers, the comps, and the strategy with Tim. Twenty minutes.</p>
+        <a href="https://calendar.app.google/uY3yZjquoMB6w6cK8" class="btn-primary" target="_blank" rel="noopener">Book 20 minutes →</a>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">McMullen Properties LLC · CA DRE #02016832 · operating under Real Broker</div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+const fmtMoney      = (n) => n == null ? '—' : '$' + Math.round(n).toLocaleString();
+const fmtMoneyShort = (n) => {
+  if (n == null) return '—';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1e3).toLocaleString() + 'K';
+  return '$' + Math.round(n).toLocaleString();
+};
+const fmtDate = (s) => s ? new Date(s + (s.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—';
+const tierLabel = (t) => ({make_me_move:'Make-Me-Move',coming_soon:'Coming Soon',live_listing:'Live Listing'}[t] || t);
+
+async function callRPC(name, params){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
+    method:'POST',
+    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':'application/json'},
+    body:JSON.stringify(params)
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+function getSessionId(token){
+  const k = 'cma_session_'+token;
+  let s = sessionStorage.getItem(k);
+  if(!s){ s = crypto.randomUUID(); sessionStorage.setItem(k,s); }
+  return s;
+}
+
+const tracker = { viewId:null, startedAt:Date.now(), scrollPct:0, mmmInteractions:0, compClicks:0, mmmLow:null, mmmHigh:null };
+
+function setupScroll(){
+  const up = () => {
+    const pct = Math.min(100, Math.round(((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight) * 100));
+    if (pct > tracker.scrollPct) tracker.scrollPct = pct;
+  };
+  window.addEventListener('scroll', up, { passive:true });
+  up();
+}
+
+async function flush(){
+  if(!tracker.viewId) return;
+  const duration = Math.round((Date.now() - tracker.startedAt) / 1000);
+  try {
+    await callRPC('update_cma_view_engagement', {
+      p_view_id: tracker.viewId,
+      p_duration_seconds: duration,
+      p_max_scroll_pct: tracker.scrollPct,
+      p_mmm_interactions: tracker.mmmInteractions,
+      p_comp_clicks: tracker.compClicks,
+      p_lowest_mmm_price: tracker.mmmLow,
+      p_highest_mmm_price: tracker.mmmHigh,
+    });
+  } catch(e){}
+}
+
+async function load(){
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const emailHint = params.get('email');
+  if(!token){ return showError('Missing ?token= parameter'); }
+
+  let resp;
+  try { resp = await callRPC('get_cma_by_token', { p_public_token: token }); }
+  catch(e){ return showError('Failed to load CMA: ' + e.message); }
+  if(!resp || !resp.ok){ return showError(resp?.error || 'CMA not found'); }
+
+  render(resp.cma);
+
+  try {
+    const v = await callRPC('open_cma_view', {
+      p_public_token: token,
+      p_session_id: getSessionId(token),
+      p_viewer_email: emailHint || null,
+      p_user_agent: navigator.userAgent.slice(0, 250),
+      p_referrer: document.referrer || null,
+      p_is_authenticated: !!emailHint,
+    });
+    if(v?.ok) tracker.viewId = v.view_id;
+  } catch(e){}
+
+  setupScroll();
+  setInterval(flush, 15000);
+  window.addEventListener('beforeunload', flush);
+  document.addEventListener('visibilitychange', () => { if(document.hidden) flush(); });
+}
+
+function showError(msg){
+  document.getElementById('loading').style.display = 'none';
+  const e = document.getElementById('error');
+  e.style.display = 'block';
+  e.textContent = msg;
+}
+
+function render(cma){
+  document.title = `${cma.property_address} · CMA · Condo Market SF`;
+  document.getElementById('nav-sub').textContent = `CMA · ${tierLabel(cma.service_tier)}`;
+  document.getElementById('hero-tag').textContent = `Comparative Market Analysis · ${tierLabel(cma.service_tier)}`;
+
+  const addr = cma.property_address || '';
+  document.getElementById('hero-title').innerHTML = addr.replace(/, San Francisco/, ', <em>San Francisco</em>');
+  const name = [cma.client_first_name, cma.client_last_name].filter(Boolean).join(' ');
+  document.getElementById('hero-meta').innerHTML = [
+    `<span>${cma.bedrooms || '—'} bed · ${cma.baths || '—'} bath</span>`,
+    `<span>${(cma.sqft || 0).toLocaleString()} sqft</span>`,
+    `<span>built ${cma.year_built || '—'}</span>`,
+    name ? `<span>prepared for ${name}</span>` : '',
+  ].join('');
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat"><div class="stat-label">Purchased</div><div class="stat-value">${fmtMoneyShort(cma.purchase_price)}</div><div class="stat-sub">${fmtDate(cma.purchase_date)}</div></div>
+    <div class="stat"><div class="stat-label">Estimated value</div><div class="stat-value">${fmtMoneyShort(cma.estimated_value_midpoint)}</div><div class="stat-sub">${fmtMoneyShort(cma.estimated_value_low)}–${fmtMoneyShort(cma.estimated_value_high)} range</div></div>
+    <div class="stat"><div class="stat-label">Recommended list</div><div class="stat-value"><em>${fmtMoneyShort(cma.recommended_list_price)}</em></div><div class="stat-sub">${tierLabel(cma.service_tier)}</div></div>
+    <div class="stat"><div class="stat-label">Subject PSF</div><div class="stat-value">${cma.estimated_value_psf ? '$' + Math.round(cma.estimated_value_psf).toLocaleString() : '—'}</div><div class="stat-sub">per square foot</div></div>
+  `;
+
+  document.getElementById('narrative-listing').innerHTML = cma.listing_analysis_html  || '';
+  document.getElementById('narrative-market').innerHTML  = cma.market_challenges_html || '';
+  document.getElementById('narrative-demand').innerHTML  = cma.surrounding_market_html|| '';
+  document.getElementById('narrative-comp').innerHTML    = cma.comp_walkthrough_html  || '';
+
+  setupMMM(cma);
+  setupPeers(cma);
+  setupTimeline(cma);
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+
+function setupMMM(cma){
+  const low   = Number(cma.mmm_range_low  || cma.estimated_value_low  || 700000);
+  const high  = Number(cma.mmm_range_high || cma.recommended_list_price || 1000000);
+  const start = Number(cma.recommended_list_price || high);
+  const rate  = Number(cma.mortgage_rate_assumption || 6.875);
+  const dpPct = Number(cma.downpayment_pct_assumption || 20);
+  const hoa   = Number(cma.hoa_monthly || 1200);
+  const taxPct= Number(cma.property_tax_pct_annual || 1.18);
+
+  const range = document.getElementById('mmm-range');
+  range.min   = low;
+  range.max   = high;
+  range.step  = 5000;
+  range.value = start;
+
+  document.getElementById('mmm-low').textContent  = fmtMoneyShort(low);
+  document.getElementById('mmm-high').textContent = fmtMoneyShort(high);
+  document.getElementById('mmm-dp-pct').textContent = dpPct;
+  document.getElementById('mmm-rate').textContent   = rate;
+
+  function recompute(price){
+    const dp   = price * (dpPct/100);
+    const loan = price - dp;
+    const r    = (rate/100)/12;
+    const pi   = (loan * r) / (1 - Math.pow(1+r, -360));
+    const tax  = (price * (taxPct/100)) / 12;
+    const mo   = pi + hoa + tax;
+    const inc  = (mo * 12) / 0.28;
+
+    document.getElementById('mmm-price').textContent    = fmtMoney(price);
+    document.getElementById('mmm-dp').textContent       = fmtMoney(dp);
+    document.getElementById('mmm-pi').textContent       = fmtMoney(pi) + '/mo';
+    document.getElementById('mmm-hoa-tax').textContent  = fmtMoney(hoa + tax) + '/mo';
+    document.getElementById('mmm-monthly').textContent  = fmtMoney(mo) + '/mo';
+    document.getElementById('mmm-income').textContent   = fmtMoney(inc) + '/yr';
+  }
+  recompute(start);
+
+  range.addEventListener('input', (e) => {
+    const p = Number(e.target.value);
+    recompute(p);
+    tracker.mmmInteractions += 1;
+    if (tracker.mmmLow == null || p < tracker.mmmLow) tracker.mmmLow = p;
+    if (tracker.mmmHigh == null || p > tracker.mmmHigh) tracker.mmmHigh = p;
+  });
+}
+
+function setupPeers(cma){
+  const peers = ((cma.comp_snapshot || {}).peer_buildings_1bd_12mo || []).filter(p => p.median);
+  if(!peers.length) return;
+  document.getElementById('peer-section').style.display = 'block';
+  const max = Math.max(...peers.map(p => p.median));
+  document.getElementById('peer-bars').innerHTML = peers.map(p => `
+    <div class="peer-row">
+      <div class="peer-header">
+        <span class="peer-name">${p.building}</span>
+        <span class="peer-meta">${fmtMoneyShort(p.median)} median · $${p.avg_psf}/sqft · ${p.sales} sales</span>
+      </div>
+      <div class="peer-bar"><div class="peer-bar-fill ${p.building === 'The Harrison' ? 'you' : ''}" style="width:${(p.median / max) * 100}%"></div></div>
+    </div>
+  `).join('');
+}
+
+function setupTimeline(cma){
+  if(cma.service_tier !== 'coming_soon') return;
+  document.getElementById('timeline-section').style.display = 'block';
+  const list = fmtMoneyShort(cma.recommended_list_price);
+  document.getElementById('timeline').innerHTML = `
+    <div class="timeline-step"><div class="timeline-day">Day 0</div><div class="timeline-title">List at ${list} Coming Soon</div><div class="timeline-desc">Visible to 10,000+ MLS agents — never to Zillow or Redfin.</div></div>
+    <div class="timeline-step"><div class="timeline-day">Day 0–30</div><div class="timeline-title">Test the asymmetric price</div><div class="timeline-desc">Qualified agent interest tracked. Cash buyers from the AI cluster are the target.</div></div>
+    <div class="timeline-step"><div class="timeline-day">Day 30 decision</div><div class="timeline-title">Hold, adjust, or go Live</div><div class="timeline-desc">If traction: transition to Live MLS. If not: reposition before public exposure.</div></div>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>
