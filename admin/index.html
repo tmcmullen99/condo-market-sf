@@ -133,6 +133,7 @@ a{color:inherit;text-decoration:none}
       <div class="nav-sub">
         <div class="sub-item" data-route="listings/pipeline"><span class="sub-dot"></span>Pipeline</div>
         <div class="sub-item" data-route="listings/owners"><span class="sub-dot"></span>Owners</div>
+        <div class="sub-item" data-route="listings/clients"><span class="sub-dot"></span>Clients</div>
         <div class="sub-item" data-route="listings/active"><span class="sub-dot"></span>Active deals</div>
         <div class="sub-item" data-route="listings/events"><span class="sub-dot"></span>Funnel events</div>
       </div>
@@ -241,11 +242,11 @@ function handleHashChange() {
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
   const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
+  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -569,7 +570,268 @@ function renderOwnersList(allOwners, filter) {
     await loadOwners();
   }));
 }
+// ---------- LISTINGS · CLIENTS ----------
+async function renderClients() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Listings · Clients</div>
+      <h1>Client operations</h1>
+      <div class="desc">Every claimed-unit owner with their CMAs, net sheets, view forensics, and send activity. Sorted by action urgency — pending claims and Gmail-referrer CMA opens float to the top. Click any row to expand full per-client detail. Auto-refreshes every 30 seconds.</div>
+    </div>
+    <div id="cli-stats" class="stats-grid"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="action">🔥 Needs action</button>
+      <button class="filter-btn" data-filter="has_cma">Has CMA</button>
+      <button class="filter-btn" data-filter="has_ns">Has net sheet</button>
+      <button class="filter-btn" data-filter="no_eng">No engagement</button>
+      <input type="text" class="search-input" id="cli-search" placeholder="filter by name or email…" style="margin-left:auto">
+      <div class="filter-meta" id="cli-count">—</div>
+    </div>
+    <div id="cli-list"><div class="empty">Loading…</div></div>`;
 
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderClientsList(window._allClients || [], b.dataset.filter, document.getElementById('cli-search').value);
+  }));
+  document.getElementById('cli-search').addEventListener('input', () => {
+    const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+    renderClientsList(window._allClients || [], active, document.getElementById('cli-search').value);
+  });
+
+  await loadClients();
+  sectionRefreshTimer = setInterval(loadClients, 30000);
+}
+
+async function loadClients() {
+  const [unitsR, profilesR, mmmR, cmaR, nsR, viewsR, sendsR, intentR, bldgR] = await Promise.all([
+    sb.from('user_units').select('user_id,building_slug,unit_address,status,created_at,claimed_name'),
+    sb.from('profiles').select('id,full_name,email,phone,tos_accepted_at'),
+    sb.from('make_me_move').select('user_id,building_slug,unit_address,target_price,is_active'),
+    sb.from('cma_reports').select('id,public_token,property_address,service_tier,recommended_list_price,created_at,frontend_verified_at,client_email,building_slug,unit_label,estimated_value_midpoint'),
+    sb.from('closing_cost_estimates').select('id,user_id,client_email,scenario_label,sale_price,total_closing_costs,net_before_mortgage,savings_vs_traditional,created_at'),
+    sb.from('cma_views').select('cma_id,opened_at,duration_seconds,max_scroll_pct,mmm_slider_interactions,referrer,is_client_match,is_authenticated,viewer_email'),
+    sb.from('launch_invitations').select('email,sent_at,opened_at,opened_count,first_clicked_at,click_count,delivery_status,last_clicked_url,template_slug,unsubscribed_at').order('sent_at',{ascending:false}).limit(1000),
+    sb.from('v_seller_intent_scores').select('*'),
+    sb.from('buildings').select('slug,display_name,neighborhood')
+  ]);
+
+  const profileMap = Object.fromEntries((profilesR.data||[]).map(p => [p.id, p]));
+  const profileByEmail = Object.fromEntries((profilesR.data||[]).filter(p=>p.email).map(p => [p.email.toLowerCase(), p]));
+  const bldgMap = Object.fromEntries((bldgR.data||[]).map(b => [b.slug, b]));
+
+  const viewsByCma = {};
+  (viewsR.data||[]).forEach(v => { (viewsByCma[v.cma_id] ||= []).push(v); });
+
+  const cmasByEmail = {};
+  (cmaR.data||[]).forEach(c => {
+    if (!c.client_email) return;
+    c.views = viewsByCma[c.id] || [];
+    (cmasByEmail[c.client_email.toLowerCase()] ||= []).push(c);
+  });
+
+  const nsByUser = {}, nsByEmail = {};
+  (nsR.data||[]).forEach(n => {
+    if (n.user_id) (nsByUser[n.user_id] ||= []).push(n);
+    else if (n.client_email) (nsByEmail[n.client_email.toLowerCase()] ||= []).push(n);
+  });
+
+  const sendsByEmail = {};
+  (sendsR.data||[]).forEach(s => {
+    if (!s.email) return;
+    (sendsByEmail[s.email.toLowerCase()] ||= []).push(s);
+  });
+
+  const mmmByUser = {};
+  (mmmR.data||[]).forEach(m => { (mmmByUser[m.user_id] ||= []).push(m); });
+
+  const claimsByUser = {};
+  (unitsR.data||[]).forEach(u => { (claimsByUser[u.user_id] ||= []).push(u); });
+
+  const intentByEmail = Object.fromEntries((intentR.data||[]).filter(i=>i.email).map(i => [i.email.toLowerCase(), i]));
+
+  // Seed set: anyone with a claim, MMM, net sheet, or matchable CMA
+  const clientUserIds = new Set();
+  Object.keys(claimsByUser).forEach(uid => clientUserIds.add(uid));
+  Object.keys(mmmByUser).forEach(uid => clientUserIds.add(uid));
+  Object.keys(nsByUser).forEach(uid => clientUserIds.add(uid));
+  Object.keys(cmasByEmail).forEach(email => { const p = profileByEmail[email]; if (p) clientUserIds.add(p.id); });
+  Object.keys(nsByEmail).forEach(email => { const p = profileByEmail[email]; if (p) clientUserIds.add(p.id); });
+
+  const clients = [];
+  for (const userId of clientUserIds) {
+    const profile = profileMap[userId];
+    if (!profile) continue;
+    const emailKey = profile.email?.toLowerCase();
+    const claims = claimsByUser[userId] || [];
+    const mmms = mmmByUser[userId] || [];
+    const cmas = emailKey ? (cmasByEmail[emailKey] || []) : [];
+    const netSheets = [...(nsByUser[userId] || []), ...(emailKey ? (nsByEmail[emailKey] || []) : [])];
+    const sends = emailKey ? (sendsByEmail[emailKey] || []) : [];
+    const intent = emailKey ? intentByEmail[emailKey] : null;
+
+    const pendingClaims = claims.filter(c => c.status === 'pending').length;
+    const allViews = cmas.flatMap(c => c.views);
+    const now = Date.now();
+    const recentViews24h = allViews.filter(v => v.opened_at && (now - new Date(v.opened_at).getTime()) < 86400*1000);
+    const recentGmailView = recentViews24h.find(v => v.referrer && /mail\.google\.com|gmail/.test(v.referrer));
+    const lastViewAt = allViews.length ? Math.max(...allViews.map(v => new Date(v.opened_at).getTime())) : null;
+    const lastSendActivity = sends.length ? Math.max(...sends.map(s => Math.max(
+      s.first_clicked_at ? new Date(s.first_clicked_at).getTime() : 0,
+      s.opened_at ? new Date(s.opened_at).getTime() : 0,
+      s.sent_at ? new Date(s.sent_at).getTime() : 0
+    ))) : null;
+    const lastActivity = Math.max(lastViewAt || 0, lastSendActivity || 0, ...claims.map(c => new Date(c.created_at).getTime()));
+    const daysSinceLastActivity = lastActivity ? Math.floor((now - lastActivity) / (86400*1000)) : 999;
+
+    let urgency = 0;
+    let urgencyLabel = '';
+    if (pendingClaims) { urgency += 1000; urgencyLabel = `${pendingClaims} pending claim${pendingClaims>1?'s':''} to approve`; }
+    if (recentGmailView) { urgency += 800; if (!urgencyLabel) urgencyLabel = 'Just opened CMA from Gmail — follow up'; }
+    if (intent?.intent_score) urgency += intent.intent_score * 3;
+    if (recentViews24h.length) urgency += recentViews24h.length * 30;
+    if (sends.length && sends[0].click_count > 0 && sends[0].first_clicked_at && (now - new Date(sends[0].first_clicked_at).getTime()) < 7*86400*1000) {
+      urgency += 200;
+      if (!urgencyLabel) urgencyLabel = 'Recently clicked email link';
+    }
+    urgency -= Math.min(daysSinceLastActivity * 2, 200);
+
+    let temp = 'cold';
+    if (intent?.temperature) temp = intent.temperature;
+    else if (urgency >= 500) temp = 'hot';
+    else if (urgency >= 200) temp = 'warm';
+    else if (urgency > 0) temp = 'cool';
+
+    if (!urgencyLabel) {
+      const approvedClaim = claims.find(c => c.status === 'approved');
+      if (cmas.length === 0 && approvedClaim) urgencyLabel = 'No CMA yet — consider generating one';
+      else if (cmas.length && !mmms.length) urgencyLabel = 'CMA exists but no MMM set';
+      else if (lastActivity && daysSinceLastActivity < 3) urgencyLabel = 'Active in last 72 hours';
+      else if (daysSinceLastActivity > 30) urgencyLabel = `Stale · ${daysSinceLastActivity}d since last activity`;
+      else urgencyLabel = '—';
+    }
+
+    clients.push({ profile, claims, mmms, cmas, netSheets, sends, intent, bldgMap, pendingClaims, recentGmailView, recentViews24h, allViews, lastViewAt, lastSendActivity, lastActivity, daysSinceLastActivity, urgency: Math.max(0, Math.round(urgency)), urgencyLabel, temp });
+  }
+
+  window._allClients = clients;
+
+  const totalClients = clients.length;
+  const withCma = clients.filter(c => c.cmas.length > 0).length;
+  const withNs = clients.filter(c => c.netSheets.length > 0).length;
+  const needsAction = clients.filter(c => c.urgency >= 500).length;
+
+  document.getElementById('cli-stats').innerHTML = `
+    <div class="stat"><div class="stat-label">👥 Clients</div><div class="stat-value">${totalClients}</div></div>
+    <div class="stat"><div class="stat-label">🔥 Needs action</div><div class="stat-value hot">${needsAction}</div></div>
+    <div class="stat"><div class="stat-label">📊 Has CMA</div><div class="stat-value cool">${withCma}</div></div>
+    <div class="stat"><div class="stat-label">💵 Has net sheet</div><div class="stat-value success">${withNs}</div></div>`;
+
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderClientsList(clients, active, document.getElementById('cli-search')?.value || '');
+  setUpdated();
+}
+
+function renderClientsList(allClients, filter, searchTerm) {
+  let clients = [...allClients];
+  if (filter === 'action') clients = clients.filter(c => c.urgency >= 500);
+  else if (filter === 'has_cma') clients = clients.filter(c => c.cmas.length > 0);
+  else if (filter === 'has_ns') clients = clients.filter(c => c.netSheets.length > 0);
+  else if (filter === 'no_eng') clients = clients.filter(c => c.cmas.length === 0 && c.netSheets.length === 0 && c.sends.length === 0);
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    clients = clients.filter(c => (c.profile.full_name||'').toLowerCase().includes(q) || (c.profile.email||'').toLowerCase().includes(q));
+  }
+  clients.sort((a, b) => b.urgency - a.urgency);
+  document.getElementById('cli-count').textContent = clients.length + ' client' + (clients.length===1?'':'s');
+  if (!clients.length) { document.getElementById('cli-list').innerHTML = '<div class="empty">No clients match this filter.</div>'; return; }
+  document.getElementById('cli-list').innerHTML = `<div class="row-list">${clients.map(c => renderClientRow(c)).join('')}</div>`;
+  document.querySelectorAll('.client-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) return;
+      const detail = row.querySelector('.client-detail');
+      if (detail) detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+}
+
+function renderClientRow(c) {
+  const profile = c.profile;
+  const claims = c.claims;
+  const primaryUnit = claims.find(cl => cl.status === 'approved') || claims[0];
+  const bldgName = primaryUnit ? (c.bldgMap[primaryUnit.building_slug]?.display_name || prettyBuilding(primaryUnit.building_slug)) : '—';
+  const unitDisplay = primaryUnit ? `${bldgName} · #${primaryUnit.unit_address||''}` : 'no unit claimed';
+  const extraUnits = claims.length > 1 ? ` +${claims.length - 1}` : '';
+  const primaryMmm = c.mmms[0];
+
+  const parts = [];
+  if (primaryMmm?.target_price) parts.push(`<span>MMM <strong>${fmtMoney(primaryMmm.target_price)}</strong>${primaryMmm.is_active ? '' : ' <em>inactive</em>'}</span>`);
+  if (c.cmas.length) parts.push(`<span>📊 ${c.cmas.length} CMA${c.cmas.length>1?'s':''}</span>`);
+  if (c.netSheets.length) parts.push(`<span>💵 ${c.netSheets.length} net sheet${c.netSheets.length>1?'s':''}</span>`);
+  if (c.allViews.length) parts.push(`<span>👁 ${c.allViews.length} view${c.allViews.length>1?'s':''}</span>`);
+  if (c.sends.length) {
+    const totalClicks = c.sends.reduce((a,s)=>a+(s.click_count||0),0);
+    const totalOpens = c.sends.reduce((a,s)=>a+(s.opened_count||0),0);
+    parts.push(`<span>📧 ${c.sends.length} send · ${totalOpens} opens · ${totalClicks} clicks</span>`);
+  }
+  if (c.recentGmailView) parts.push(`<span style="color:var(--gold)">🔥 Gmail click ${fmtAge(c.recentGmailView.opened_at)}</span>`);
+  if (c.pendingClaims) parts.push(`<span style="color:var(--warn)">⏳ ${c.pendingClaims} pending claim${c.pendingClaims>1?'s':''}</span>`);
+
+  return `<div class="row ${c.temp} client-row" style="cursor:pointer">
+    <div class="row-badge"><div class="row-badge-icon">${tempEmoji[c.temp]}</div><div class="row-badge-text" style="color:var(--${c.temp})">${c.urgency}</div></div>
+    <div class="row-main">
+      <h3>${escapeHtml(profile.full_name || profile.email?.split('@')[0] || 'Unknown')}<span class="meta">${escapeHtml(unitDisplay)}${extraUnits}</span></h3>
+      <div class="sub">${escapeHtml(profile.email||'')}${profile.phone ? ` · ${escapeHtml(profile.phone)}` : ''}</div>
+      <div class="details">${parts.join('<span style="opacity:0.4">·</span>') || '<span style="color:rgba(232,227,216,0.4)">no activity</span>'}</div>
+      ${c.urgencyLabel && c.urgencyLabel !== '—' ? `<div style="margin-top:6px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:var(--gold);letter-spacing:0.04em">→ ${escapeHtml(c.urgencyLabel)}</div>` : ''}
+      <div class="client-detail" style="display:none">${renderClientDetail(c)}</div>
+    </div>
+    <div class="row-actions">
+      <div class="age">${c.lastActivity ? fmtAge(new Date(c.lastActivity).toISOString()) : 'no activity'}</div>
+      <div class="action-row"><a href="mailto:${profile.email}" class="btn primary" onclick="event.stopPropagation()">Email →</a></div>
+    </div>
+  </div>`;
+}
+
+function renderClientDetail(c) {
+  const sections = [];
+  if (c.cmas.length) {
+    sections.push(`<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:8px">CMAs (${c.cmas.length})</div>${c.cmas.map(cma => {
+      const views = cma.views || [];
+      const gmailViews = views.filter(v => v.referrer && /mail\.google\.com|gmail/.test(v.referrer)).length;
+      const clientAuthViews = views.filter(v => v.is_client_match).length;
+      return `<div style="padding:8px 10px;background:rgba(15,19,29,0.4);border-radius:6px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:var(--cream)">${escapeHtml(cma.property_address)} <span style="color:rgba(232,227,216,0.4)">${escapeHtml(cma.service_tier)}</span></div><a href="/cma/?token=${escapeHtml(cma.public_token)}" target="_blank" class="btn" onclick="event.stopPropagation()" style="font-size:10px;padding:3px 8px">Open →</a></div><div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:rgba(232,227,216,0.6);margin-top:4px;letter-spacing:0.04em">list <strong style="color:var(--gold)">${fmtMoney(cma.recommended_list_price)}</strong> · ${views.length} view${views.length===1?'':'s'}${gmailViews?` · <span style="color:var(--blue-gray)">${gmailViews}× Gmail</span>`:''}${clientAuthViews?` · <span style="color:var(--success)">${clientAuthViews}× authenticated</span>`:''} · created ${fmtAge(cma.created_at)}${!cma.frontend_verified_at?' · <span style="color:var(--coral)">⚠ unverified</span>':''}</div></div>`;
+    }).join('')}</div>`);
+  }
+  if (c.netSheets.length) {
+    sections.push(`<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:8px">Net sheets (${c.netSheets.length})</div>${c.netSheets.slice(0,5).map(n => `<div style="padding:6px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75);margin-bottom:4px"><strong style="color:var(--cream)">${escapeHtml(n.scenario_label||'Scenario')}</strong> · ${fmtMoney(n.sale_price)} → net <strong style="color:var(--gold)">${fmtMoney(n.net_before_mortgage)}</strong>${n.savings_vs_traditional ? ` · <span style="color:var(--success)">+${fmtMoney(n.savings_vs_traditional)} saved</span>` : ''} · ${fmtAge(n.created_at)}</div>`).join('')}</div>`);
+  }
+  if (c.sends.length) {
+    sections.push(`<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:8px">Recent sends (${c.sends.length})</div>${c.sends.slice(0,5).map(s => {
+      const status = s.unsubscribed_at ? `<span style="color:var(--coral)">unsubscribed</span>` : s.click_count ? `<span style="color:var(--gold)">${s.click_count}× clicked</span>` : s.opened_count ? `<span style="color:var(--success)">${s.opened_count}× opened</span>` : s.delivery_status === 'delivered' ? `<span style="color:rgba(232,227,216,0.5)">delivered</span>` : escapeHtml(s.delivery_status||'sent');
+      return `<div style="padding:6px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75);margin-bottom:4px"><strong style="color:var(--cream)">${escapeHtml(s.template_slug||'(no template)')}</strong> · sent ${fmtAge(s.sent_at)} · ${status}</div>`;
+    }).join('')}</div>`);
+  }
+  if (c.allViews.length) {
+    const recentViews = [...c.allViews].sort((a,b) => new Date(b.opened_at) - new Date(a.opened_at)).slice(0,5);
+    sections.push(`<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:8px">Recent CMA views (${c.allViews.length} total)</div>${recentViews.map(v => {
+      const isGmail = v.referrer && /mail\.google\.com|gmail/.test(v.referrer);
+      const cls = v.is_client_match ? 'success' : isGmail ? 'gold' : v.duration_seconds > 120 ? 'warm' : 'cool';
+      const tag = v.is_client_match ? 'authenticated' : isGmail ? 'gmail referrer' : v.duration_seconds > 120 ? 'engaged' : 'anonymous';
+      return `<div style="padding:6px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75);margin-bottom:4px"><span style="color:var(--${cls})">${tag}</span> · ${fmtDuration(v.duration_seconds)} · ${v.max_scroll_pct||0}% scroll · ${(v.mmm_slider_interactions||0)} MMM moves · ${fmtAge(v.opened_at)}</div>`;
+    }).join('')}</div>`);
+  }
+  if (c.claims.length) {
+    sections.push(`<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:8px">Claims (${c.claims.length})</div>${c.claims.map(cl => {
+      const b = c.bldgMap[cl.building_slug];
+      const name = b?.display_name || prettyBuilding(cl.building_slug);
+      const statusColor = ({pending:'warn', approved:'success', rejected:'coral'})[cl.status] || 'cool';
+      return `<div style="padding:6px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75);margin-bottom:4px"><span style="color:var(--${statusColor})">${escapeHtml(cl.status)}</span> · ${escapeHtml(name)} · #${escapeHtml(cl.unit_address||'')} · ${fmtAge(cl.created_at)}</div>`;
+    }).join('')}</div>`);
+  }
+  return sections.length ? sections.join('') : `<div style="margin-top:10px;padding:10px;font-size:11px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',ui-monospace,monospace;font-style:italic">No additional activity to show.</div>`;
+}
 // ---------- LISTINGS · ACTIVE DEALS ----------
 async function renderListingsActive() {
   document.getElementById('content').innerHTML = `
