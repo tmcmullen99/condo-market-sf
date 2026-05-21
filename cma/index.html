@@ -64,9 +64,8 @@ a:hover{text-decoration:underline}
 .narrative li{color:var(--cream-78);margin-bottom:8px}
 .narrative strong{color:var(--cream);font-weight:500}
 .narrative table{width:100%;border-collapse:collapse;margin:18px 0;font-family:var(--mono);font-size:13px}
-.narrative table th{text-align:left;padding:10px 12px;color:var(--cream-58);font-size:10px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--cream-14);font-weight:500}
-.narrative table td{padding:12px 12px;border-bottom:1px solid var(--cream-14);color:var(--cream)}
-.narrative table tr:last-child td{border-bottom:0}
+.narrative table th{text-align:left;padding:10px 12px;color:var(--cream-58);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}
+.narrative table td{padding:12px 12px;color:var(--cream)}
 
 /* MMM Calculator */
 .mmm-calc{background:linear-gradient(135deg,rgba(212,165,116,.08),rgba(212,165,116,.02));border:1px solid rgba(212,165,116,.32);border-radius:14px;padding:32px}
@@ -133,6 +132,45 @@ a:hover{text-decoration:underline}
 
 .footer{padding:32px 28px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;border-top:1px solid var(--cream-14);margin-top:48px}
 .loading{padding:120px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+  .inline-calc{background:linear-gradient(135deg,rgba(212,165,116,.06),rgba(15,19,29,0));border:1px solid var(--cream-14);border-radius:14px;padding:30px 32px}
+.inline-calc-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.inline-calc-label::before{content:'';width:8px;height:8px;border-radius:50%;background:#84d9a0;box-shadow:0 0 12px #84d9a0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.inline-calc-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.inline-calc-prompt{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--cream-78)}
+.inline-calc-price{font-family:var(--serif);font-size:42px;font-weight:500;letter-spacing:-.02em;color:var(--gold)}
+.inline-calc input[type=range]{width:100%;accent-color:var(--gold);margin-bottom:6px;height:6px;cursor:pointer}
+.inline-calc-bounds{display:flex;justify-content:space-between;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;margin-bottom:26px}
+.inline-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.inline-card{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px;padding:20px 22px}
+.inline-card.cm{border-left:3px solid var(--gold)}
+.inline-card.trad{border-left:3px solid #9fb4d8;opacity:.9}
+.inline-card-label{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
+.inline-card.cm  .inline-card-label{color:var(--gold)}
+.inline-card.trad .inline-card-label{color:#9fb4d8}
+.inline-card-badge{font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:3px 8px;border-radius:999px;background:rgba(132,217,160,.18);color:#84d9a0;text-transform:uppercase}
+.inline-card-line{display:flex;justify-content:space-between;padding:6px 0;font-family:var(--mono);font-size:12px}
+.inline-card-line span:first-child{color:var(--cream-78)}
+.inline-card-line span:last-child{color:var(--cream);font-variant-numeric:tabular-nums}
+.inline-card-net{margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,227,216,.38);display:flex;justify-content:space-between;align-items:baseline}
+.inline-card-net-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-78)}
+.inline-card-net-amount{font-family:var(--serif);font-size:24px;font-weight:500;letter-spacing:-.01em}
+.inline-card.cm  .inline-card-net-amount{color:var(--gold)}
+.inline-card.trad .inline-card-net-amount{color:#9fb4d8}
+.inline-savings{background:linear-gradient(135deg,rgba(132,217,160,.18),rgba(212,165,116,.12));border:1px solid rgba(132,217,160,.42);border-radius:12px;padding:22px 26px;text-align:center;margin-bottom:22px}
+.inline-savings-label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#84d9a0;margin-bottom:6px}
+.inline-savings-amount{font-family:var(--serif);font-size:48px;font-weight:500;letter-spacing:-.02em;color:#84d9a0;line-height:1.05;margin-bottom:4px}
+.inline-savings-sub{font-family:var(--mono);font-size:12px;color:var(--cream-78);letter-spacing:.04em}
+.inline-cta{text-align:center;padding-top:8px;border-top:1px dashed var(--cream-14)}
+.inline-cta-text{color:var(--cream-78);font-size:14px;margin-bottom:14px;margin-top:18px}
+.inline-cta a{display:inline-block;padding:13px 26px;background:var(--gold);color:#1a1f2e;border-radius:10px;font-family:var(--sans);font-size:14px;font-weight:500;text-decoration:none}
+.inline-cta a:hover{background:#e8b985;text-decoration:none}
+@media(max-width:780px){
+  .inline-compare{grid-template-columns:1fr}
+  .inline-calc-price{font-size:32px}
+  .inline-savings-amount{font-size:36px}
+  .inline-calc{padding:22px 20px}
+}
 .error{padding:80px 24px;text-align:center;color:var(--red);font-family:var(--mono);font-size:13px}
 
 @media(max-width:780px){
@@ -243,7 +281,46 @@ a:hover{text-decoration:underline}
       <p class="section-sub">12-month 1-bedroom medians at SoMa luxury peers.</p>
       <div class="panel" id="peer-bars"></div>
     </div>
-
+<div class="section" id="inline-calc-section" style="display:none">
+      <h2 class="section-h">Model your own <em>scenarios</em>.</h2>
+      <p class="section-sub">Drag the slider to see what you'd net at any price — and how much more you keep with Condo Market vs a traditional 5% sale.</p>
+      <div class="inline-calc">
+        <div class="inline-calc-label">Live preview · drag to model any sale price</div>
+        <div class="inline-calc-row">
+          <div class="inline-calc-prompt">What if you sold for…</div>
+          <div class="inline-calc-price" id="ic-price">$0</div>
+        </div>
+        <input type="range" id="ic-range" />
+        <div class="inline-calc-bounds"><span id="ic-low">—</span><span id="ic-high">—</span></div>
+        <div class="inline-compare">
+          <div class="inline-card cm">
+            <div class="inline-card-label"><span>With Condo Market</span><span class="inline-card-badge">3% fee</span></div>
+            <div class="inline-card-line"><span>Total commission (3%)</span><span id="ic-cm-comm">$0</span></div>
+            <div class="inline-card-line"><span>Escrow (discounted)</span><span id="ic-cm-escrow">$1,200</span></div>
+            <div class="inline-card-line"><span>SF transfer tax</span><span id="ic-cm-tax">$0</span></div>
+            <div class="inline-card-line"><span>All other costs</span><span id="ic-cm-other">$0</span></div>
+            <div class="inline-card-net"><span class="inline-card-net-label">Net before mortgage</span><span class="inline-card-net-amount" id="ic-cm-net">$0</span></div>
+          </div>
+          <div class="inline-card trad">
+            <div class="inline-card-label"><span>Traditional sale</span><span style="font-size:9px;color:var(--cream-58)">5% fee</span></div>
+            <div class="inline-card-line"><span>Total commission (5%)</span><span id="ic-trad-comm">$0</span></div>
+            <div class="inline-card-line"><span>Escrow (avg SF)</span><span id="ic-trad-escrow">$1,800</span></div>
+            <div class="inline-card-line"><span>SF transfer tax</span><span id="ic-trad-tax">$0</span></div>
+            <div class="inline-card-line"><span>All other costs</span><span id="ic-trad-other">$0</span></div>
+            <div class="inline-card-net"><span class="inline-card-net-label">Net before mortgage</span><span class="inline-card-net-amount" id="ic-trad-net">$0</span></div>
+          </div>
+        </div>
+        <div class="inline-savings">
+          <div class="inline-savings-label">Your savings with Condo Market</div>
+          <div class="inline-savings-amount" id="ic-savings">$0</div>
+          <div class="inline-savings-sub">more in your pocket vs a traditional 5% sale</div>
+        </div>
+        <div class="inline-cta">
+          <p class="inline-cta-text">Save scenarios, add your mortgage payoff balance, and generate a professional PDF in your Client Portal.</p>
+          <a href="/account/calculator/">Open the full Calculator →</a>
+        </div>
+      </div>
+    </div>
     <div class="section" id="timeline-section" style="display:none">
       <h2 class="section-h">Coming Soon <em>strategy</em>.</h2>
       <p class="section-sub">A 30-day controlled test before any public exposure.</p>
