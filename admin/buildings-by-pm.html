@@ -73,16 +73,21 @@ a:hover{text-decoration:underline}
 .pm-folder.expanded{border-color:rgba(212,165,116,.36)}
 .pm-folder.highlight{animation:pulse 1.4s ease-out 1}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,165,116,0)}50%{box-shadow:0 0 0 4px rgba(212,165,116,.32)}}
-.pm-folder-head{display:grid;grid-template-columns:32px 1.8fr 1fr 1fr 140px;gap:18px;align-items:center;padding:18px 22px;cursor:pointer;transition:background .12s}
+.pm-folder-head{display:grid;grid-template-columns:32px 1fr auto 150px;gap:22px;align-items:center;padding:18px 22px;cursor:pointer;transition:background .12s}
 .pm-folder-head:hover{background:var(--bg-card-lift)}
 .pm-folder-toggle{font-family:var(--mono);font-size:14px;color:var(--cream-58);transition:transform .2s}
 .pm-folder.expanded .pm-folder-toggle{transform:rotate(90deg);color:var(--gold)}
 .pm-folder-name{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
 .pm-folder-meta{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em;margin-top:4px}
+.pm-folder-compact-stats{display:flex;gap:24px;align-items:baseline;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--cream-58);white-space:nowrap}
+.pm-folder-compact-stats strong{font-family:var(--serif);font-size:17px;color:var(--cream);font-weight:500;letter-spacing:-.01em;margin-right:4px}
+.pm-folder-compact-stats .vol-rev{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:17px;font-weight:500}
 .pm-folder-stat{font-family:var(--serif);font-size:18px;color:var(--cream)}
 .pm-folder-stat-label{font-size:10px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
 .pm-folder-revenue{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:20px;letter-spacing:-.01em}
 .pm-folder-actions{display:flex;flex-direction:column;gap:4px}
+.pm-open-btn{display:inline-block;padding:10px 16px;background:rgba(212,165,116,.14);border:1px solid rgba(212,165,116,.42);border-radius:8px;color:var(--gold);font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-align:center;transition:all .12s;font-weight:500}
+.pm-open-btn:hover{background:var(--gold);color:#1a1f2e;text-decoration:none;border-color:var(--gold)}
 .pm-pitch-btn{display:inline-block;padding:6px 12px;background:rgba(212,165,116,.12);border:1px solid rgba(212,165,116,.32);border-radius:6px;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center;transition:all .12s}
 .pm-pitch-btn:hover{background:var(--gold);color:#1a1f2e;text-decoration:none}
 .pm-dash-btn{display:inline-block;padding:6px 12px;background:rgba(159,180,216,.10);border:1px solid rgba(159,180,216,.32);border-radius:6px;color:var(--blue-gray);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center;transition:all .12s}
@@ -119,7 +124,7 @@ a:hover{text-decoration:underline}
   .bldg-row{grid-template-columns:2fr 1.4fr 80px 1fr;gap:12px}
   .bldg-row > div:nth-child(5){display:none}
   .bldg-row.header > div:nth-child(5){display:none}
-  .pm-folder-head{grid-template-columns:24px 1.6fr 1fr 1fr 120px}
+  .pm-folder-head{grid-template-columns:24px 1fr auto 130px;gap:14px}
   .pm-bldg-row{grid-template-columns:30px 2fr 80px 1fr 1fr;gap:10px}
   .pm-bldg-row > div:nth-child(5){display:none}
 }
@@ -288,17 +293,12 @@ function renderFirms() {
               ${f.contact_email || 'No email yet'}${f.contact_name ? ' · ' + f.contact_name : ''}${f.contact_phone ? ' · ' + f.contact_phone : ''}
             </div>
           </div>
-          <div>
-            <div class="pm-folder-stat-label">Mapped buildings</div>
-            <div class="pm-folder-stat">${f.mapped_buildings}${f.buildings_managed_est ? ` <span style="color:var(--cream-58);font-size:13px">/ ~${f.buildings_managed_est} est.</span>` : ''}</div>
-          </div>
-          <div>
-            <div class="pm-folder-stat-label">10y volume</div>
-            <div class="pm-folder-stat">${fmtMoney(f.total_volume_10y)}</div>
+          <div class="pm-folder-compact-stats">
+            <span><strong>${f.mapped_buildings}</strong>${f.buildings_managed_est ? `/~${f.buildings_managed_est}` : ''} bldgs</span>
+            <span class="vol-rev">${fmtMoney(f.total_volume_10y)}</span>
           </div>
           <div class="pm-folder-actions">
-            <a class="pm-dash-btn" href="${f.dashboard_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Dashboard ↗</a>
-            <a class="pm-pitch-btn" href="${f.pitch_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Pitch ↗</a>
+            <a class="pm-open-btn" href="${f.dashboard_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open portal ↗</a>
           </div>
         </div>
         <div class="pm-folder-body">
