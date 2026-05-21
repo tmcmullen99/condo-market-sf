@@ -78,7 +78,7 @@ a:hover{text-decoration:underline}
 .mmm-bounds{display:flex;justify-content:space-between;color:var(--cream-58);font-family:var(--mono);font-size:11px;letter-spacing:.04em;margin-bottom:8px}
 .mmm-list-marker{position:relative;height:18px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.04em;margin-bottom:18px}
 .mmm-list-marker .pin{position:absolute;transform:translateX(-50%);white-space:nowrap}
-.mmm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:20px}
+.mmm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
 .mmm-cell-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
 .mmm-cell-value{font-family:var(--mono);font-size:15px;color:var(--cream)}
 .mmm-cell-value.accent{color:var(--gold)}
@@ -197,8 +197,12 @@ a:hover{text-decoration:underline}
             <div class="mmm-cell-value" id="mmm-pi">—</div>
           </div>
           <div>
-            <div class="mmm-cell-label">HOA + tax</div>
-            <div class="mmm-cell-value" id="mmm-hoa-tax">—</div>
+            <div class="mmm-cell-label">HOA <span style="color:var(--cream-38)">· constant</span></div>
+            <div class="mmm-cell-value" id="mmm-hoa-display">—</div>
+          </div>
+          <div>
+            <div class="mmm-cell-label">Tax <span style="color:var(--cream-38)">· monthly</span></div>
+            <div class="mmm-cell-value" id="mmm-tax-display">—</div>
           </div>
           <div>
             <div class="mmm-cell-label">Total monthly</div>
@@ -443,7 +447,8 @@ document.getElementById('mmm-rate').textContent   = rate;
     document.getElementById('mmm-price').textContent    = fmtMoney(price);
     document.getElementById('mmm-dp').textContent       = fmtMoney(dp);
     document.getElementById('mmm-pi').textContent       = fmtMoney(pi) + '/mo';
-    document.getElementById('mmm-hoa-tax').textContent  = fmtMoney(hoa + tax) + '/mo';
+    document.getElementById('mmm-hoa-display').textContent = fmtMoney(hoa) + '/mo';
+    document.getElementById('mmm-tax-display').textContent = fmtMoney(tax) + '/mo';
     document.getElementById('mmm-monthly').textContent  = fmtMoney(mo) + '/mo';
     document.getElementById('mmm-income').textContent   = fmtMoney(inc) + '/yr';
   }
