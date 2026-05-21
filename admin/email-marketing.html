@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Email marketing · Admin · Condo Market SF</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f131d; --bg-card:#1a1f2e; --bg-card-lift:#222837;
+  --cream:#e8e3d8; --cream-78:rgba(232,227,216,.78); --cream-58:rgba(232,227,216,.58);
+  --cream-38:rgba(232,227,216,.38); --cream-14:rgba(232,227,216,.14);
+  --gold:#d4a574; --blue-gray:#9fb4d8; --green:#84d9a0; --red:#e57373; --yellow:#e8c882;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:50;background:rgba(15,19,29,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--cream-14);padding:14px 0}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--cream)}
+.brand-sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);margin-left:14px}
+.nav-links{display:flex;gap:18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream-58)}
+.nav-links a{color:var(--cream-58)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px 28px}
+
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
+.stat{padding:18px 20px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:10px}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58);margin-bottom:6px}
+.stat-value{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.02em;color:var(--cream)}
+.stat-value em{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:18px;margin-left:4px;letter-spacing:-.01em}
+.stat-sub{font-size:11px;color:var(--cream-58);margin-top:2px;font-family:var(--mono);letter-spacing:.04em}
+
+.section-title{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.02em;margin:32px 0 6px;color:var(--cream)}
+.section-title em{font-style:italic;color:var(--blue-gray)}
+.section-sub{color:var(--cream-78);font-size:13px;margin-bottom:18px}
+
+/* Campaigns table */
+.card{background:var(--bg-card);border:1px solid var(--cream-14);border-radius:12px;overflow:hidden}
+.row{display:grid;gap:18px;padding:14px 22px;align-items:center;border-bottom:1px solid var(--cream-14);transition:background .12s}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--bg-card-lift)}
+.row.header{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-58);background:rgba(0,0,0,.18);padding:12px 22px}
+.row.header:hover{background:rgba(0,0,0,.18)}
+
+.row-camp{grid-template-columns:2fr 110px 1fr 1fr 130px}
+.camp-name{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:-.01em}
+.camp-meta{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.03em;margin-top:3px}
+.status-pill{display:inline-block;padding:3px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;border-radius:4px;text-align:center}
+.status-active{background:rgba(132,217,160,.16);color:var(--green)}
+.status-draft{background:rgba(232,200,130,.16);color:var(--yellow)}
+.status-paused{background:rgba(159,180,216,.16);color:var(--blue-gray)}
+.status-complete{background:rgba(232,227,216,.12);color:var(--cream-58)}
+
+/* Template performance table */
+.row-tpl{grid-template-columns:2fr 80px 70px 70px 70px 90px}
+.tpl-name{font-family:var(--mono);font-size:12px;color:var(--cream);letter-spacing:.02em;word-break:break-word}
+.tpl-num{font-family:var(--serif);font-size:18px;color:var(--cream)}
+.tpl-rate{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:17px}
+
+/* Recent sends feed */
+.feed-row{grid-template-columns:200px 1fr 110px 110px 90px}
+.feed-email{font-family:var(--mono);font-size:12px;color:var(--cream);letter-spacing:.02em;word-break:break-word}
+.feed-tpl{font-size:12px;color:var(--cream-58);font-family:var(--mono)}
+.feed-time{font-size:11px;color:var(--cream-58);font-family:var(--mono);letter-spacing:.04em}
+.feed-badge{display:inline-block;padding:2px 8px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-radius:4px}
+.badge-opened{background:rgba(132,217,160,.16);color:var(--green)}
+.badge-clicked{background:rgba(212,165,116,.16);color:var(--gold)}
+.badge-unsub{background:rgba(229,115,115,.16);color:var(--red)}
+.badge-bounce{background:rgba(229,115,115,.22);color:var(--red)}
+.badge-none{color:var(--cream-38);font-family:var(--mono);font-size:11px}
+
+.queue-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:8px}
+.queue-card{padding:14px 18px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:8px;display:flex;justify-content:space-between;align-items:baseline}
+.queue-label{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cream-58)}
+.queue-val{font-family:var(--serif);font-size:22px;color:var(--cream)}
+
+.loading{padding:80px 24px;text-align:center;color:var(--cream-58);font-family:var(--mono);font-size:13px;letter-spacing:.06em}
+.empty{padding:24px;text-align:center;color:var(--cream-58);font-size:12px;font-family:var(--mono);letter-spacing:.04em}
+
+.search{flex:1;max-width:360px;min-width:180px}
+.search input{width:100%;padding:9px 14px;background:var(--bg-card);border:1px solid var(--cream-14);border-radius:8px;color:var(--cream);font-family:var(--sans);font-size:14px;outline:none}
+.search input:focus{border-color:var(--gold)}
+.search input::placeholder{color:var(--cream-38)}
+
+@media(max-width:1000px){
+  .stats-row{grid-template-columns:repeat(3,1fr)}
+  .row-camp{grid-template-columns:2fr 90px 1fr 110px}
+  .row-camp > div:nth-child(4){display:none}
+  .row.header.row-camp > div:nth-child(4){display:none}
+  .feed-row{grid-template-columns:1fr 90px 90px}
+  .feed-row > div:nth-child(3),.row.header.feed-row > div:nth-child(3){display:none}
+  .row-tpl{grid-template-columns:2fr 70px 70px 80px}
+  .row-tpl > div:nth-child(4),.row-tpl > div:nth-child(5),.row.header.row-tpl > div:nth-child(4),.row.header.row-tpl > div:nth-child(5){display:none}
+}
+@media(max-width:700px){
+  .stats-row,.queue-row{grid-template-columns:repeat(2,1fr)}
+  .row{grid-template-columns:1fr!important;gap:6px}
+  .row.header{display:none}
+  .container{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div><span class="brand">Condo Market SF</span><span class="brand-sub">Admin · Email marketing</span></div>
+    <div class="search"><input id="search-input" type="text" placeholder="Search by email or template…" autocomplete="off"></div>
+    <div class="nav-links">
+      <a href="/admin/buildings-by-pm.html">Buildings × PM</a>
+      <a href="/admin/">Admin home</a>
+    </div>
+  </div>
+</nav>
+
+<div id="loading" class="loading">Loading email marketing data…</div>
+
+<main id="main" style="display:none">
+  <div class="container">
+
+    <!-- Summary stats -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- Campaigns -->
+    <h2 class="section-title">Active <em>campaigns</em>.</h2>
+    <p class="section-sub">All campaign rows from the <code style="font-family:var(--mono);font-size:12px;color:var(--gold)">campaigns</code> table. Status, audience, fire cadence.</p>
+    <div class="card">
+      <div class="row row-camp header">
+        <div>Campaign</div>
+        <div>Status</div>
+        <div>Template</div>
+        <div>Last wave</div>
+        <div>Cadence</div>
+      </div>
+      <div id="campaigns-rows"></div>
+    </div>
+
+    <!-- Per-template performance -->
+    <h2 class="section-title">Performance <em>by template</em>.</h2>
+    <p class="section-sub">Open and click rates per template, all-time.</p>
+    <div class="card">
+      <div class="row row-tpl header">
+        <div>Template</div>
+        <div>Sends</div>
+        <div>Opens</div>
+        <div>Clicks</div>
+        <div>Unsubs</div>
+        <div>Open rate</div>
+      </div>
+      <div id="template-rows"></div>
+    </div>
+
+    <!-- Queue status -->
+    <h2 class="section-title">Queue <em>status</em>.</h2>
+    <p class="section-sub">Last 30 days of <code style="font-family:var(--mono);font-size:12px;color:var(--gold)">email_queue</code> activity.</p>
+    <div class="queue-row" id="queue-row"></div>
+
+    <!-- Recent sends -->
+    <h2 class="section-title">Recent <em>sends</em>.</h2>
+    <p class="section-sub">Last 50 sends from <code style="font-family:var(--mono);font-size:12px;color:var(--gold)">launch_invitations</code>, newest first.</p>
+    <div class="card">
+      <div class="row feed-row header">
+        <div>Recipient</div>
+        <div>Template</div>
+        <div>Sent</div>
+        <div>Status</div>
+        <div></div>
+      </div>
+      <div id="recent-rows"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+const fmtNum = (n) => (n||0).toLocaleString();
+const fmtPct = (n) => (n == null ? '—' : n + '%');
+const relTime = (s) => {
+  if (!s) return '—';
+  const diff = (new Date() - new Date(s)) / 1000;
+  if (diff < 60) return Math.floor(diff)+'s ago';
+  if (diff < 3600) return Math.floor(diff/60)+'m ago';
+  if (diff < 86400) return Math.floor(diff/3600)+'h ago';
+  if (diff < 86400*7) return Math.floor(diff/86400)+'d ago';
+  return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+};
+const absTime = (s) => s ? new Date(s).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '—';
+
+let state = { data: null, filter: '' };
+
+function renderSummary(s) {
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat"><div class="stat-label">Total sends</div><div class="stat-value">${fmtNum(s.total_sends)}</div><div class="stat-sub">${s.sends_7d} last 7d</div></div>
+    <div class="stat"><div class="stat-label">Open rate</div><div class="stat-value">${s.open_rate}<em>%</em></div><div class="stat-sub">${fmtNum(s.total_opens)} opens</div></div>
+    <div class="stat"><div class="stat-label">Click rate</div><div class="stat-value">${s.click_rate}<em>%</em></div><div class="stat-sub">${fmtNum(s.total_clicks)} clicks</div></div>
+    <div class="stat"><div class="stat-label">Unsubscribe</div><div class="stat-value">${s.unsub_rate}<em>%</em></div><div class="stat-sub">${fmtNum(s.total_unsubs)} unsubs</div></div>
+    <div class="stat"><div class="stat-label">Bounces</div><div class="stat-value">${fmtNum(s.total_bounces)}</div><div class="stat-sub">all-time</div></div>
+  `;
+}
+
+function renderCampaigns(campaigns) {
+  const filter = state.filter.toLowerCase();
+  const rows = campaigns.filter(c => !filter || c.slug.toLowerCase().includes(filter) || c.name.toLowerCase().includes(filter) || (c.template_slug||'').toLowerCase().includes(filter));
+  document.getElementById('campaigns-rows').innerHTML = rows.length ? rows.map(c => `
+    <div class="row row-camp">
+      <div>
+        <div class="camp-name">${c.name}</div>
+        <div class="camp-meta">${c.slug} · audience: ${c.audience_view || '—'}</div>
+      </div>
+      <div><span class="status-pill status-${c.status}">${c.status}</span></div>
+      <div class="feed-tpl">${c.template_slug || '—'}</div>
+      <div class="feed-time">${c.last_wave_at ? absTime(c.last_wave_at) : 'never fired'}</div>
+      <div class="feed-time">${c.cadence_hours}h ${c.per_building_max_per_wave ? ' · ' + c.per_building_max_per_wave + '/bldg' : ''}</div>
+    </div>
+  `).join('') : '<div class="empty">No campaigns match.</div>';
+}
+
+function renderTemplates(templates) {
+  const filter = state.filter.toLowerCase();
+  const rows = templates.filter(t => !filter || t.template_slug.toLowerCase().includes(filter));
+  document.getElementById('template-rows').innerHTML = rows.length ? rows.map(t => `
+    <div class="row row-tpl">
+      <div class="tpl-name">${t.template_slug}</div>
+      <div class="tpl-num">${fmtNum(t.sends)}</div>
+      <div class="tpl-num">${fmtNum(t.opens)}</div>
+      <div class="tpl-num">${fmtNum(t.clicks)}</div>
+      <div class="tpl-num">${fmtNum(t.unsubs)}</div>
+      <div class="tpl-rate">${fmtPct(t.open_rate)}</div>
+    </div>
+  `).join('') : '<div class="empty">No template send data yet.</div>';
+}
+
+function renderQueue(q) {
+  document.getElementById('queue-row').innerHTML = `
+    <div class="queue-card"><span class="queue-label">Pending</span><span class="queue-val">${fmtNum(q.pending)}</span></div>
+    <div class="queue-card"><span class="queue-label">Sending</span><span class="queue-val">${fmtNum(q.sending)}</span></div>
+    <div class="queue-card"><span class="queue-label">Failed</span><span class="queue-val" style="color:var(--red)">${fmtNum(q.failed)}</span></div>
+    <div class="queue-card"><span class="queue-label">Skipped</span><span class="queue-val" style="color:var(--cream-58)">${fmtNum(q.skipped)}</span></div>
+  `;
+}
+
+function renderRecent(recent) {
+  const filter = state.filter.toLowerCase();
+  const rows = recent.filter(r => !filter || (r.email||'').toLowerCase().includes(filter) || (r.template_slug||'').toLowerCase().includes(filter));
+  document.getElementById('recent-rows').innerHTML = rows.length ? rows.map(r => {
+    let status;
+    if (r.unsubscribed_at) status = '<span class="feed-badge badge-unsub">Unsub</span>';
+    else if (r.delivery_status === 'bounced') status = '<span class="feed-badge badge-bounce">Bounced</span>';
+    else if (r.click_count > 0) status = `<span class="feed-badge badge-clicked">Clicked ${r.click_count}×</span>`;
+    else if (r.opened_at) status = '<span class="feed-badge badge-opened">Opened</span>';
+    else status = '<span class="badge-none">Sent</span>';
+    return `
+    <div class="row feed-row">
+      <div class="feed-email">${r.email}</div>
+      <div class="feed-tpl">${r.template_slug}</div>
+      <div class="feed-time">${relTime(r.sent_at)}</div>
+      <div>${status}</div>
+      <div class="feed-time">${r.resend_id ? r.resend_id.slice(0,8) : ''}</div>
+    </div>`;
+  }).join('') : '<div class="empty">No sends yet. Fire your first wave to populate this view.</div>';
+}
+
+async function load() {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_email_marketing`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    state.data = await response.json();
+    renderSummary(state.data.summary);
+    renderCampaigns(state.data.campaigns);
+    renderTemplates(state.data.by_template);
+    renderQueue(state.data.queue);
+    renderRecent(state.data.recent);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+  } catch (err) {
+    document.getElementById('loading').innerHTML = 'Error loading: ' + err.message;
+  }
+}
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+  state.filter = e.target.value;
+  if (state.data) {
+    renderCampaigns(state.data.campaigns);
+    renderTemplates(state.data.by_template);
+    renderRecent(state.data.recent);
+  }
+});
+
+load();
+// Auto-refresh every 30s
+setInterval(load, 30000);
+</script>
+</body>
+</html>
