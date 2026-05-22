@@ -2040,15 +2040,19 @@ function renderLeadRow(l) {
   if (l.cma_sessions>1) parts.push(`<span style="color:var(--success)">↩ ${l.cma_sessions} sessions</span>`);
   if (l.cma_dwell_s) parts.push(`<span>⏱ ${fmtDuration(l.cma_dwell_s)} on CMA</span>`);
   if (l.mmm_moves) parts.push(`<span style="color:var(--warm)">🎚 ${l.mmm_moves} MMM moves</span>`);
-  const bldgs = l.building_names ? (Array.isArray(l.building_names) ? l.building_names.join(' · ') : l.building_names) : '';
   const acct = l.has_account ? `<span style="color:var(--success)">✓ has account</span>` : `<span style="color:var(--warn)">no account</span>`;
   const subInvite = encodeURIComponent("Quick 15-min walkthrough of your building's market?");
+  const units = Array.isArray(l.owned_units) ? l.owned_units : [];
+  const ownsTab = units.length
+    ? `<div style="margin-top:7px"><span style="display:inline-flex;align-items:center;gap:7px;padding:3px 11px;background:rgba(212,165,116,0.12);border:1px solid rgba(212,165,116,0.35);border-radius:999px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:0.04em;color:var(--gold)"><span style="opacity:0.7">🏠 Likely owns</span> ${units.slice(0,3).map(u=>escapeHtml((u.building_name||prettyBuilding(u.building_slug))+' · '+(u.unit||'?'))).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}${units.length>3?` <span style="opacity:0.6">+${units.length-3}</span>`:''}</span></div>`
+    : '';
   return `<div class="row ${temp} lead-row" data-email="${escapeHtml((l.email||'').toLowerCase())}" style="cursor:pointer">
     <div class="row-badge"><div class="row-badge-icon">${tempEmoji[temp]}</div><div class="row-badge-text" style="color:var(--${temp})">${Math.round(l.score)}</div></div>
     <div class="row-main">
-      <h3>${escapeHtml(l.full_name || l.email.split('@')[0])}<span class="meta">${escapeHtml(bldgs || '—')}</span></h3>
+      <h3>${escapeHtml(l.full_name || l.email.split('@')[0])}</h3>
       <div class="sub">${escapeHtml(l.email)}${l.phone?` · ${escapeHtml(l.phone)}`:''} · ${acct}${l.is_corporate?' · <span style="color:var(--blue-gray)">corporate</span>':''}</div>
-      <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+      ${ownsTab}
+      <div class="details" style="margin-top:7px">${parts.join('<span style="opacity:0.4">·</span>')}</div>
       <div class="lead-detail" style="display:none"></div>
     </div>
     <div class="row-actions"><div class="age">${l.last_activity && l.last_activity > '2000-01-01' ? fmtAge(l.last_activity) : '—'}</div><div class="action-row"><a href="mailto:${l.email}?subject=${subInvite}" class="btn primary" onclick="event.stopPropagation()">Email →</a></div></div>
