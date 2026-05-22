@@ -128,6 +128,13 @@ a{color:inherit;text-decoration:none}
       <div class="brand-sub">Admin · v2</div>
     </div>
     <div class="nav-section" data-section="dashboard"><div class="nav-item" data-route="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div></div>
+    <div class="nav-section" data-section="platform">
+      <div class="nav-item" data-route="platform"><span class="nav-icon">📈</span><span>Platform</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="platform/overview"><span class="sub-dot"></span>Overview</div>
+        <div class="sub-item" data-route="platform/leads"><span class="sub-dot"></span>Hot leads</div>
+      </div>
+    </div>
     <div class="nav-section" data-section="listings">
       <div class="nav-item" data-route="listings"><span class="nav-icon">📋</span><span>Listings</span></div>
       <div class="nav-sub">
@@ -248,12 +255,12 @@ function handleHashChange() {
   const topEl = document.querySelector(`.nav-section[data-section="${topSection}"]`);
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
- const sectionName = { dashboard:'Dashboard', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
+ const sectionName = { dashboard:'Dashboard', platform:'Platform', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
+  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'platform/overview':'Overview', 'platform/leads':'Hot leads', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -1869,6 +1876,155 @@ function renderQueueCard(c) {
     </div>
     <div class="row-actions"><div class="age">${escapeHtml(whenStr)}</div><div class="action-row"><a href="/admin/campaigns.html" class="btn primary">Fire (legacy) →</a></div></div>
   </div>`;
+}
+  // ---------- PLATFORM · OVERVIEW ----------
+async function renderPlatformOverview() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Platform · Overview</div>
+      <h1>Platform usage</h1>
+      <div class="desc">Accounts, activity, and building engagement across the platform. New-account dates and active windows are Pacific-time. Auto-refreshes every 60 seconds.</div>
+    </div>
+    <div id="pf-content"><div class="empty">Loading…</div></div>`;
+  await loadPlatformOverview();
+  sectionRefreshTimer = setInterval(loadPlatformOverview, 60000);
+}
+
+async function loadPlatformOverview() {
+  const { data, error } = await sb.rpc('platform_usage_overview');
+  if (error) { document.getElementById('pf-content').innerHTML = `<div class="empty">Error: ${escapeHtml(error.message)}</div>`; return; }
+  const u = data.users||{}, a = data.actions||{}, crm = data.people_crm||{}, signups = data.signups_daily||[], bldgs = data.buildings_engagement||[];
+
+  const maxSign = Math.max(1, ...signups.map(s => s.count));
+  const bars = signups.map(s => {
+    const h = Math.round((s.count/maxSign)*100);
+    return `<div title="${s.day}: ${s.count} new account${s.count===1?'':'s'}" style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="height:${h}%;min-height:${s.count?3:0}px;background:linear-gradient(180deg,var(--blue-gray),rgba(159,180,216,0.3));border-radius:2px 2px 0 0"></div></div>`;
+  }).join('');
+  const axis = signups.map((s,i)=>(i%5===0||i===signups.length-1)?`<span style="flex:1;text-align:center">${new Date(s.day+'T00:00').toLocaleDateString([],{month:'numeric',day:'numeric'})}</span>`:`<span style="flex:1"></span>`).join('');
+
+  document.getElementById('pf-content').innerHTML = `
+    <div class="eyebrow" style="margin-bottom:10px">Accounts</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">👤 Total accounts</div><div class="stat-value">${u.total||0}</div><div class="stat-sub">${u.ever_signed_in||0} have signed in</div></div>
+      <div class="stat"><div class="stat-label">🟢 Active (7d)</div><div class="stat-value success">${u.active_7d||0}</div><div class="stat-sub">${u.active_30d||0} active in 30d</div></div>
+      <div class="stat"><div class="stat-label">✨ New (7d)</div><div class="stat-value warm">${u.new_7d||0}</div><div class="stat-sub">${u.new_30d||0} new in 30d</div></div>
+      <div class="stat"><div class="stat-label">📇 People in CRM</div><div class="stat-value">${(crm.total||0).toLocaleString()}</div><div class="stat-sub">${(crm.with_account||0)} with accounts · ${(crm.corporate||0).toLocaleString()} corporate</div></div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">New accounts · last 30 days (Pacific)</div>
+    <div style="border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2);padding:16px 18px;margin-bottom:28px">
+      <div style="display:flex;align-items:flex-end;gap:3px;height:120px">${bars}</div>
+      <div style="display:flex;gap:3px;margin-top:8px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:rgba(232,227,216,0.4)">${axis}</div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">Platform actions</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">🏷 Unit claims</div><div class="stat-value">${a.claims_total||0}</div><div class="stat-sub">${a.claims_approved||0} approved · ${a.claims_pending||0} pending</div></div>
+      <div class="stat"><div class="stat-label">💰 MMM prices set</div><div class="stat-value warm">${a.mmm_active||0}</div><div class="stat-sub">active targets</div></div>
+      <div class="stat"><div class="stat-label">📊 CMAs / views</div><div class="stat-value">${a.cma_reports||0}<span style="font-size:14px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',monospace;margin-left:6px">/ ${a.cma_views||0}</span></div><div class="stat-sub">reports / total views</div></div>
+      <div class="stat"><div class="stat-label">💵 Net sheets</div><div class="stat-value">${a.net_sheets||0}</div><div class="stat-sub">closing estimates saved</div></div>
+      <div class="stat"><div class="stat-label">👁 Watchlist</div><div class="stat-value cool">${a.watchlist||0}</div></div>
+      <div class="stat"><div class="stat-label">💵 Offers</div><div class="stat-value">${a.offers||0}</div></div>
+      <div class="stat"><div class="stat-label">📅 Appointments</div><div class="stat-value">${a.appointments||0}</div></div>
+      <div class="stat"><div class="stat-label">✍️ Petitions</div><div class="stat-value">${a.petitions||0}</div></div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">Buildings by engagement</div>
+    <div style="padding:10px 14px;border:1px dashed rgba(212,165,116,0.3);border-radius:10px;background:rgba(212,165,116,0.03);margin-bottom:12px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.65);line-height:1.6">
+      ⚠ Ranked by <strong>CMA views + watchlist adds + claims</strong> — the only building signals captured today. True page-view ranking needs site tracking (see Hot leads).
+    </div>
+    <div style="overflow-x:auto;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+      <table class="events-table">
+        <thead><tr><th>Building</th><th>CMA views</th><th>Watches</th><th>Claims</th><th>Total</th></tr></thead>
+        <tbody>${bldgs.length ? bldgs.map(b => `<tr>
+          <td><strong style="color:var(--cream)">${escapeHtml(b.display_name||prettyBuilding(b.slug))}</strong> <span style="color:rgba(232,227,216,0.4)">${escapeHtml(b.neighborhood||'')}</span></td>
+          <td>${b.cma_views}</td><td>${b.watches}</td><td>${b.claims}</td>
+          <td><strong style="color:var(--gold)">${b.total_engagement}</strong></td>
+        </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;color:rgba(232,227,216,0.5)">No building engagement yet.</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  setUpdated();
+}
+
+// ---------- PLATFORM · HOT LEADS ----------
+async function renderPlatformLeads() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Platform · Hot leads</div>
+      <h1>Engagement-ranked leads</h1>
+      <div class="desc">Everyone engaging with your outreach, scored by clicks, opens, CMA dwell, return visits, and MMM-slider activity. The top names are your best candidates for a quick Google Meet to walk them through an account + Make Me Move price. Operator addresses and unsubscribes excluded. Auto-refreshes every 60 seconds.</div>
+    </div>
+    <div style="padding:10px 14px;border:1px dashed rgba(212,165,116,0.3);border-radius:10px;background:rgba(212,165,116,0.03);margin-bottom:18px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.7);line-height:1.6">
+      📡 <strong>Site tracking not live yet.</strong> Scores use email clicks/opens + CMA-page dwell only. Once a tracking beacon goes on the public site, this board will also rank by who lingers on building pages and returns — the strongest buy signal. Ask me to ship it.
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="hot">🔥 Hot</button>
+      <button class="filter-btn" data-filter="clicked">Clicked email</button>
+      <button class="filter-btn" data-filter="cma">Viewed CMA</button>
+      <button class="filter-btn" data-filter="noacct">No account yet</button>
+      <input type="text" class="search-input" id="lead-search" placeholder="filter by name or email…" style="margin-left:auto">
+      <div class="filter-meta" id="lead-count">—</div>
+    </div>
+    <div id="lead-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderLeadsList(window._allLeads || [], b.dataset.filter, document.getElementById('lead-search').value);
+  }));
+  document.getElementById('lead-search').addEventListener('input', () => {
+    const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+    renderLeadsList(window._allLeads || [], active, document.getElementById('lead-search').value);
+  });
+  await loadPlatformLeads();
+  sectionRefreshTimer = setInterval(loadPlatformLeads, 60000);
+}
+
+async function loadPlatformLeads() {
+  const { data, error } = await sb.rpc('engagement_hot_leads', { p_limit: 60 });
+  if (error) { document.getElementById('lead-list').innerHTML = `<div class="empty">Error: ${escapeHtml(error.message)}</div>`; return; }
+  window._allLeads = data || [];
+  const active = document.querySelector('#content .filter-btn.active')?.dataset.filter || 'all';
+  renderLeadsList(window._allLeads, active, document.getElementById('lead-search')?.value || '');
+  setUpdated();
+}
+
+function leadTemp(score) { return score>=150?'hot':score>=80?'warm':score>=30?'cool':'cold'; }
+
+function renderLeadsList(allLeads, filter, searchTerm) {
+  let leads = [...allLeads];
+  if (filter === 'hot') leads = leads.filter(l => l.score >= 150);
+  else if (filter === 'clicked') leads = leads.filter(l => l.clicks > 0);
+  else if (filter === 'cma') leads = leads.filter(l => l.cma_views > 0);
+  else if (filter === 'noacct') leads = leads.filter(l => !l.has_account);
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    leads = leads.filter(l => (l.full_name||'').toLowerCase().includes(q) || (l.email||'').toLowerCase().includes(q));
+  }
+  document.getElementById('lead-count').textContent = leads.length + ' lead' + (leads.length===1?'':'s');
+  if (!leads.length) { document.getElementById('lead-list').innerHTML = '<div class="empty">No leads match this filter.</div>'; return; }
+  document.getElementById('lead-list').innerHTML = `<div class="row-list">${leads.map(l => {
+    const temp = leadTemp(l.score);
+    const parts = [];
+    if (l.clicks) parts.push(`<span style="color:var(--gold)">🖱 ${l.clicks} click${l.clicks>1?'s':''}</span>`);
+    if (l.opens) parts.push(`<span>👁 ${l.opens} open${l.opens>1?'s':''}</span>`);
+    if (l.cma_views) parts.push(`<span style="color:var(--blue-gray)">📊 ${l.cma_views} CMA view${l.cma_views>1?'s':''}</span>`);
+    if (l.cma_sessions>1) parts.push(`<span style="color:var(--success)">↩ ${l.cma_sessions} sessions</span>`);
+    if (l.cma_dwell_s) parts.push(`<span>⏱ ${fmtDuration(l.cma_dwell_s)} on CMA</span>`);
+    if (l.mmm_moves) parts.push(`<span style="color:var(--warm)">🎚 ${l.mmm_moves} MMM moves</span>`);
+    const bldgs = l.building_names ? (Array.isArray(l.building_names) ? l.building_names.join(' · ') : l.building_names) : '';
+    const acct = l.has_account ? `<span style="color:var(--success)">✓ has account</span>` : `<span style="color:var(--warn)">no account</span>`;
+    const subInvite = encodeURIComponent("Quick 15-min walkthrough of your building's market?");
+    return `<div class="row ${temp}">
+      <div class="row-badge"><div class="row-badge-icon">${tempEmoji[temp]}</div><div class="row-badge-text" style="color:var(--${temp})">${Math.round(l.score)}</div></div>
+      <div class="row-main">
+        <h3>${escapeHtml(l.full_name || l.email.split('@')[0])}<span class="meta">${escapeHtml(bldgs || '—')}</span></h3>
+        <div class="sub">${escapeHtml(l.email)}${l.phone?` · ${escapeHtml(l.phone)}`:''} · ${acct}${l.is_corporate?' · <span style="color:var(--blue-gray)">corporate</span>':''}</div>
+        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+      </div>
+      <div class="row-actions"><div class="age">${l.last_activity && l.last_activity > '2000-01-01' ? fmtAge(l.last_activity) : '—'}</div><div class="action-row"><a href="mailto:${l.email}?subject=${subInvite}" class="btn primary">Email →</a></div></div>
+    </div>`;
+  }).join('')}</div>`;
 }
 // ---------- OPERATIONS · TASKS ----------
 async function renderOpsTasks() {
