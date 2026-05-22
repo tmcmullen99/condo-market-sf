@@ -308,50 +308,6 @@ function renderActionItem(it) {
   </div>`;
 }
 
-// ---------- DASHBOARD · ACTION QUEUE ----------
-const actionTypeMeta = {
-  pending_claim:      { icon:'⏳', label:'Claim' },
-  client_cma_hot:     { icon:'📊', label:'Client' },
-  hot_lead_call:      { icon:'🔥', label:'Lead' },
-  listing_unsigned:   { icon:'📝', label:'Listing' },
-  mmm_no_listing:     { icon:'💰', label:'MMM' },
-  campaign_due:       { icon:'📨', label:'Campaign' },
-  partner_action_due: { icon:'🤝', label:'Partner' },
-  new_account:        { icon:'✨', label:'Signup' }
-};
-
-async function loadActionQueue() {
-  const mount = document.getElementById('action-queue-mount');
-  if (!mount) return;
-  const { data, error } = await sb.rpc('operator_action_queue', { p_limit: 40 });
-  if (error) { mount.innerHTML = `<div class="empty" style="margin-bottom:28px">Action queue error: ${escapeHtml(error.message)}</div>`; return; }
-  mount.innerHTML = renderActionQueue(data || {});
-}
-
-function renderActionQueue(payload) {
-  const items = Array.isArray(payload.items) ? payload.items : [];
-  const head = `<div class="eyebrow" style="margin-bottom:10px">🎯 Do this next${items.length ? ` · ${items.length} action${items.length===1?'':'s'}` : ''}</div>`;
-  if (!items.length) return head + `<div class="empty" style="margin-bottom:28px">You're all caught up — nothing needs action right now.</div>`;
-  return head + `<div class="row-list" style="margin-bottom:28px">${items.map(renderActionItem).join('')}</div>`;
-}
-
-function renderActionItem(it) {
-  const temp = ['hot','warm','cool','cold'].includes(it.temperature) ? it.temperature : 'cool';
-  const meta = actionTypeMeta[it.type] || { icon:'•', label:'Action' };
-  const href = it.action_href || '#';
-  const isExternal = !href.startsWith('#') && !href.startsWith('mailto:');
-  const target = isExternal ? ' target="_blank"' : '';
-  const showAge = it.type !== 'hot_lead_call' && it.age;
-  return `<div class="row ${temp}">
-    <div class="row-badge"><div class="row-badge-icon">${meta.icon}</div><div class="row-badge-text" style="color:var(--${temp})">${escapeHtml(meta.label)}</div></div>
-    <div class="row-main">
-      <h3>${escapeHtml(it.title||'')}</h3>
-      <div class="sub">${escapeHtml(it.subtitle||'')}</div>
-    </div>
-    <div class="row-actions"><div class="age">${showAge ? fmtAge(it.age) : ''}</div><div class="action-row"><a href="${escapeHtml(href)}" class="btn primary"${target}>${escapeHtml(it.action_label||'Open')} →</a></div></div>
-  </div>`;
-}
-
 // ---------- DASHBOARD v2 ----------
 async function renderDashboard() {
   document.getElementById('content').innerHTML = `
