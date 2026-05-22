@@ -312,3 +312,13 @@ if (location.pathname.startsWith('/building/')) {
   // v22.5 Sales & pricing section (public + enhanced layers)
   import('/assets/cm-building-sales.js').catch(() => {});
 }
+
+// Site-tracking beacon — load on EVERY page (building detail, dashboard, cma, index…).
+// Skips if a beacon <script> is already present (e.g. the direct include still on
+// /buildings/), so it can never double-load or double-count.
+if (!document.querySelector('script[src*="cm-beacon.js"]')) {
+  const cmBeacon = document.createElement('script');
+  cmBeacon.src = '/assets/cm-beacon.js';
+  cmBeacon.async = true;
+  document.head.appendChild(cmBeacon);
+}
