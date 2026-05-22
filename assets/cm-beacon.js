@@ -1,12 +1,6 @@
 (function () {
   var SUPA_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-  // Prefers a global if your site already defines one (your admin app reads
-  // window.CMSF_ANON_KEY); otherwise replace the placeholder with the public anon key.
-  var ANON = window.CMSF_ANON_KEY || 'PASTE_PUBLIC_ANON_KEY_HERE';
-  if (!ANON || ANON === 'PASTE_PUBLIC_ANON_KEY_HERE') {
-    if (!window.CMSF_ANON_KEY) { console.warn('[cm-beacon] no anon key'); return; }
-    ANON = window.CMSF_ANON_KEY;
-  }
+  var ANON = window.CMSF_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
   var LS = window.localStorage;
   function uuid() {
@@ -33,9 +27,10 @@
   }
   function param(k) { try { return new URLSearchParams(location.search).get(k); } catch (e) { return null; } }
 
+  // Real building pages are /building/<slug>/ ; hash form kept as a fallback.
   function buildingSlug() {
-    var m = (location.hash || '').match(/#\/building\/([^\/?#]+)/); if (m) return decodeURIComponent(m[1]);
-    var m2 = (location.pathname || '').match(/\/buildings\/([^\/?#]+)/); if (m2) return decodeURIComponent(m2[1]);
+    var mp = (location.pathname || '').match(/\/building\/([^\/?#]+)/); if (mp) return decodeURIComponent(mp[1]);
+    var mh = (location.hash || '').match(/#\/building\/([^\/?#]+)/); if (mh) return decodeURIComponent(mh[1]);
     return null;
   }
 
