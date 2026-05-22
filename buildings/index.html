@@ -158,6 +158,22 @@ img { display: block; max-width: 100%; }
   pointer-events: none;
   user-select: none;
 }
+/* Contrast scrim so the ivory headline/lede read over the bright sky (worst on mobile) */
+.cm-hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      rgba(10,13,18,0)   0%,
+      rgba(10,13,18,.04) 20%,
+      rgba(10,13,18,.30) 38%,
+      rgba(10,13,18,.55) 56%,
+      rgba(10,13,18,.78) 78%,
+      rgba(10,13,18,.93) 100%),
+    linear-gradient(90deg,
+      rgba(10,13,18,.45) 0%,
+      rgba(10,13,18,.12) 45%,
+      transparent       75%);
+}
 
 /* Liquid glass treatment for the stat tag */
 .cm-liquid-glass {
