@@ -605,14 +605,13 @@ async function renderClients() {
 }
 
 async function loadClients() {
-  const [unitsR, profilesR, mmmR, cmaR, nsR, viewsR, sendsR, intentR, bldgR] = await Promise.all([
+  // Phase 1 — bounded core tables that define the client set
+  const [unitsR, profilesR, mmmR, cmaR, nsR, intentR, bldgR] = await Promise.all([
     sb.from('user_units').select('user_id,building_slug,unit_address,status,created_at,claimed_name'),
     sb.from('profiles').select('id,full_name,email,phone,tos_accepted_at'),
     sb.from('make_me_move').select('user_id,building_slug,unit_address,target_price,is_active'),
     sb.from('cma_reports').select('id,public_token,property_address,service_tier,recommended_list_price,created_at,frontend_verified_at,client_email,building_slug,unit_label,estimated_value_midpoint'),
     sb.from('closing_cost_estimates').select('id,user_id,client_email,scenario_label,sale_price,total_closing_costs,net_before_mortgage,savings_vs_traditional,created_at'),
-    sb.from('cma_views').select('cma_id,opened_at,duration_seconds,max_scroll_pct,mmm_slider_interactions,referrer,is_client_match,is_authenticated,viewer_email'),
-    sb.from('launch_invitations').select('email,sent_at,opened_at,opened_count,first_clicked_at,click_count,delivery_status,last_clicked_url,template_slug,unsubscribed_at').order('sent_at',{ascending:false}).limit(1000),
     sb.from('v_seller_intent_scores').select('*'),
     sb.from('buildings').select('slug,display_name,neighborhood')
   ]);
@@ -621,13 +620,9 @@ async function loadClients() {
   const profileByEmail = Object.fromEntries((profilesR.data||[]).filter(p=>p.email).map(p => [p.email.toLowerCase(), p]));
   const bldgMap = Object.fromEntries((bldgR.data||[]).map(b => [b.slug, b]));
 
-  const viewsByCma = {};
-  (viewsR.data||[]).forEach(v => { (viewsByCma[v.cma_id] ||= []).push(v); });
-
   const cmasByEmail = {};
   (cmaR.data||[]).forEach(c => {
     if (!c.client_email) return;
-    c.views = viewsByCma[c.id] || [];
     (cmasByEmail[c.client_email.toLowerCase()] ||= []).push(c);
   });
 
@@ -635,12 +630,6 @@ async function loadClients() {
   (nsR.data||[]).forEach(n => {
     if (n.user_id) (nsByUser[n.user_id] ||= []).push(n);
     else if (n.client_email) (nsByEmail[n.client_email.toLowerCase()] ||= []).push(n);
-  });
-
-  const sendsByEmail = {};
-  (sendsR.data||[]).forEach(s => {
-    if (!s.email) return;
-    (sendsByEmail[s.email.toLowerCase()] ||= []).push(s);
   });
 
   const mmmByUser = {};
@@ -658,6 +647,30 @@ async function loadClients() {
   Object.keys(nsByUser).forEach(uid => clientUserIds.add(uid));
   Object.keys(cmasByEmail).forEach(email => { const p = profileByEmail[email]; if (p) clientUserIds.add(p.id); });
   Object.keys(nsByEmail).forEach(email => { const p = profileByEmail[email]; if (p) clientUserIds.add(p.id); });
+
+  // Phase 2 — heavy tables (launch_invitations is 1,700+ rows and growing) fetched FILTERED
+  // to just our client emails / CMA ids, so the 1,000-row cap can never truncate a client's send.
+  const clientEmails = [...new Set([...clientUserIds].map(uid => profileMap[uid]?.email).filter(Boolean))];
+  const cmaIds = (cmaR.data||[]).map(c => c.id);
+  const [sendsR, viewsR] = await Promise.all([
+    clientEmails.length
+      ? sb.from('launch_invitations').select('email,sent_at,opened_at,opened_count,first_clicked_at,click_count,delivery_status,last_clicked_url,template_slug,unsubscribed_at').in('email', clientEmails)
+      : Promise.resolve({ data: [] }),
+    cmaIds.length
+      ? sb.from('cma_views').select('cma_id,opened_at,duration_seconds,max_scroll_pct,mmm_slider_interactions,referrer,is_client_match,is_authenticated,viewer_email').in('cma_id', cmaIds)
+      : Promise.resolve({ data: [] })
+  ]);
+
+  const viewsByCma = {};
+  (viewsR.data||[]).forEach(v => { (viewsByCma[v.cma_id] ||= []).push(v); });
+  (cmaR.data||[]).forEach(c => { c.views = viewsByCma[c.id] || []; });
+
+  const sendsByEmail = {};
+  (sendsR.data||[]).forEach(s => {
+    if (!s.email) return;
+    (sendsByEmail[s.email.toLowerCase()] ||= []).push(s);
+  });
+  Object.values(sendsByEmail).forEach(arr => arr.sort((a,b) => new Date(b.sent_at||0) - new Date(a.sent_at||0)));
 
   const clients = [];
   for (const userId of clientUserIds) {
