@@ -2003,28 +2003,112 @@ function renderLeadsList(allLeads, filter, searchTerm) {
   }
   document.getElementById('lead-count').textContent = leads.length + ' lead' + (leads.length===1?'':'s');
   if (!leads.length) { document.getElementById('lead-list').innerHTML = '<div class="empty">No leads match this filter.</div>'; return; }
-  document.getElementById('lead-list').innerHTML = `<div class="row-list">${leads.map(l => {
-    const temp = leadTemp(l.score);
-    const parts = [];
-    if (l.clicks) parts.push(`<span style="color:var(--gold)">🖱 ${l.clicks} click${l.clicks>1?'s':''}</span>`);
-    if (l.opens) parts.push(`<span>👁 ${l.opens} open${l.opens>1?'s':''}</span>`);
-    if (l.cma_views) parts.push(`<span style="color:var(--blue-gray)">📊 ${l.cma_views} CMA view${l.cma_views>1?'s':''}</span>`);
-    if (l.cma_sessions>1) parts.push(`<span style="color:var(--success)">↩ ${l.cma_sessions} sessions</span>`);
-    if (l.cma_dwell_s) parts.push(`<span>⏱ ${fmtDuration(l.cma_dwell_s)} on CMA</span>`);
-    if (l.mmm_moves) parts.push(`<span style="color:var(--warm)">🎚 ${l.mmm_moves} MMM moves</span>`);
-    const bldgs = l.building_names ? (Array.isArray(l.building_names) ? l.building_names.join(' · ') : l.building_names) : '';
-    const acct = l.has_account ? `<span style="color:var(--success)">✓ has account</span>` : `<span style="color:var(--warn)">no account</span>`;
-    const subInvite = encodeURIComponent("Quick 15-min walkthrough of your building's market?");
-    return `<div class="row ${temp}">
-      <div class="row-badge"><div class="row-badge-icon">${tempEmoji[temp]}</div><div class="row-badge-text" style="color:var(--${temp})">${Math.round(l.score)}</div></div>
-      <div class="row-main">
-        <h3>${escapeHtml(l.full_name || l.email.split('@')[0])}<span class="meta">${escapeHtml(bldgs || '—')}</span></h3>
-        <div class="sub">${escapeHtml(l.email)}${l.phone?` · ${escapeHtml(l.phone)}`:''} · ${acct}${l.is_corporate?' · <span style="color:var(--blue-gray)">corporate</span>':''}</div>
-        <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
-      </div>
-      <div class="row-actions"><div class="age">${l.last_activity && l.last_activity > '2000-01-01' ? fmtAge(l.last_activity) : '—'}</div><div class="action-row"><a href="mailto:${l.email}?subject=${subInvite}" class="btn primary">Email →</a></div></div>
-    </div>`;
-  }).join('')}</div>`;
+  document.getElementById('lead-list').innerHTML = `<div class="row-list">${leads.map(l => renderLeadRow(l)).join('')}</div>`;
+  document.querySelectorAll('.lead-row').forEach(row => {
+    row.addEventListener('click', async (e) => {
+      if (e.target.tagName==='A'||e.target.tagName==='BUTTON'||e.target.closest('a')||e.target.closest('button')) return;
+      const detail = row.querySelector('.lead-detail');
+      if (!detail) return;
+      if (detail.style.display === 'none') {
+        detail.style.display = 'block';
+        if (!detail.dataset.loaded) {
+          const email = row.dataset.email;
+          detail.innerHTML = '<div style="padding:12px 4px;font-size:11px;color:rgba(232,227,216,0.5);font-family:\'JetBrains Mono\',monospace">Loading activity…</div>';
+          window._leadDetailCache = window._leadDetailCache || {};
+          let data = window._leadDetailCache[email];
+          if (!data) {
+            const { data: d, error } = await sb.rpc('lead_activity_detail', { p_email: email });
+            if (error) { detail.innerHTML = `<div style="padding:12px 4px;color:var(--coral);font-size:11px;font-family:'JetBrains Mono',monospace">Error: ${escapeHtml(error.message)}</div>`; detail.dataset.loaded='1'; return; }
+            data = d; window._leadDetailCache[email] = d;
+          }
+          detail.innerHTML = renderLeadDetailContent(data);
+          detail.dataset.loaded = '1';
+        }
+      } else {
+        detail.style.display = 'none';
+      }
+    });
+  });
+}
+
+function renderLeadRow(l) {
+  const temp = leadTemp(l.score);
+  const parts = [];
+  if (l.clicks) parts.push(`<span style="color:var(--gold)">🖱 ${l.clicks} click${l.clicks>1?'s':''}</span>`);
+  if (l.opens) parts.push(`<span>👁 ${l.opens} open${l.opens>1?'s':''}</span>`);
+  if (l.cma_views) parts.push(`<span style="color:var(--blue-gray)">📊 ${l.cma_views} CMA view${l.cma_views>1?'s':''}</span>`);
+  if (l.cma_sessions>1) parts.push(`<span style="color:var(--success)">↩ ${l.cma_sessions} sessions</span>`);
+  if (l.cma_dwell_s) parts.push(`<span>⏱ ${fmtDuration(l.cma_dwell_s)} on CMA</span>`);
+  if (l.mmm_moves) parts.push(`<span style="color:var(--warm)">🎚 ${l.mmm_moves} MMM moves</span>`);
+  const bldgs = l.building_names ? (Array.isArray(l.building_names) ? l.building_names.join(' · ') : l.building_names) : '';
+  const acct = l.has_account ? `<span style="color:var(--success)">✓ has account</span>` : `<span style="color:var(--warn)">no account</span>`;
+  const subInvite = encodeURIComponent("Quick 15-min walkthrough of your building's market?");
+  return `<div class="row ${temp} lead-row" data-email="${escapeHtml((l.email||'').toLowerCase())}" style="cursor:pointer">
+    <div class="row-badge"><div class="row-badge-icon">${tempEmoji[temp]}</div><div class="row-badge-text" style="color:var(--${temp})">${Math.round(l.score)}</div></div>
+    <div class="row-main">
+      <h3>${escapeHtml(l.full_name || l.email.split('@')[0])}<span class="meta">${escapeHtml(bldgs || '—')}</span></h3>
+      <div class="sub">${escapeHtml(l.email)}${l.phone?` · ${escapeHtml(l.phone)}`:''} · ${acct}${l.is_corporate?' · <span style="color:var(--blue-gray)">corporate</span>':''}</div>
+      <div class="details">${parts.join('<span style="opacity:0.4">·</span>')}</div>
+      <div class="lead-detail" style="display:none"></div>
+    </div>
+    <div class="row-actions"><div class="age">${l.last_activity && l.last_activity > '2000-01-01' ? fmtAge(l.last_activity) : '—'}</div><div class="action-row"><a href="mailto:${l.email}?subject=${subInvite}" class="btn primary" onclick="event.stopPropagation()">Email →</a></div></div>
+  </div>`;
+}
+
+function parseClickUrl(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    return { campaign: u.searchParams.get('utm_campaign'), content: u.searchParams.get('utm_content'), source: u.searchParams.get('utm_source'), dest: (u.pathname + (u.hash||'')).replace(/\/$/,'') || '/' };
+  } catch { return { campaign:null, content:null, source:null, dest:url }; }
+}
+
+function renderLeadDetailContent(d) {
+  const sends = d.sends||[], views = d.cma_views||[], ns = d.net_sheets||[], acct = d.account||null, person = d.person||{};
+  const sec = (title, body) => `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:8px">${title}</div>${body}</div>`;
+  const sections = [];
+
+  if (person && person.emails_received != null) {
+    sections.push(sec('Lifetime email engagement',
+      `<div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75)">${person.emails_received||0} received · ${person.emails_opened||0} opened · ${person.emails_clicked||0} clicked${person.last_opened_at?` · last opened ${fmtAge(person.last_opened_at)}`:''}</div>`));
+  }
+
+  if (sends.length) {
+    sections.push(sec(`Email sends (${sends.length})`, sends.map(s => {
+      const click = parseClickUrl(s.last_clicked_url);
+      const camp = s.campaign_name || (click && click.campaign) || s.template_slug || '(untagged drip)';
+      const status = s.unsubscribed_at ? `<span style="color:var(--coral)">unsubscribed</span>` : s.click_count ? `<span style="color:var(--gold)">${s.click_count}× clicked</span>` : s.opened_count ? `<span style="color:var(--success)">${s.opened_count}× opened</span>` : `<span style="color:rgba(232,227,216,0.5)">${escapeHtml(s.delivery_status||'sent')}</span>`;
+      return `<div style="padding:8px 10px;background:rgba(15,19,29,0.4);border-radius:6px;margin-bottom:6px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75)">
+        <div><strong style="color:var(--cream)">${escapeHtml(camp)}</strong>${s.wave_number?` · wave ${s.wave_number}`:''}${click && click.content?` · ${escapeHtml(click.content)}`:''}</div>
+        <div style="margin-top:3px">sent ${fmtAge(s.sent_at)} · ${status}</div>
+        ${click && s.click_count && click.dest ? `<div style="margin-top:3px;color:var(--gold)">clicked → ${escapeHtml(click.dest)}</div>` : ''}
+      </div>`;
+    }).join('')));
+  }
+
+  if (views.length) {
+    sections.push(sec(`CMA views (${views.length})`, views.map(v => {
+      const isGmail = v.referrer && /mail\.google\.com|gmail/.test(v.referrer);
+      const tag = v.is_client_match ? 'authenticated' : isGmail ? 'gmail referrer' : (v.duration_seconds>120?'engaged':'anonymous');
+      return `<div style="padding:6px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75);margin-bottom:4px">
+        <strong style="color:var(--cream)">${escapeHtml(v.property_address||'CMA')}</strong> · ${escapeHtml(tag)} · ${fmtDuration(v.duration_seconds)} · ${v.max_scroll_pct||0}% scroll · ${v.mmm_slider_interactions||0} MMM moves${v.comp_clicks?` · ${v.comp_clicks} comp clicks`:''} · ${fmtAge(v.opened_at)}
+      </div>`;
+    }).join('')));
+  }
+
+  if (ns.length) {
+    sections.push(sec(`Net sheets (${ns.length})`, ns.map(n => `<div style="padding:6px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75);margin-bottom:4px"><strong style="color:var(--cream)">${escapeHtml(n.scenario_label||'Scenario')}</strong> · ${fmtMoney(n.sale_price)} → net <strong style="color:var(--gold)">${fmtMoney(n.net_before_mortgage)}</strong>${n.savings_vs_traditional?` · <span style="color:var(--success)">+${fmtMoney(n.savings_vs_traditional)} saved</span>`:''} · ${fmtAge(n.created_at)}</div>`).join('')));
+  }
+
+  if (acct) {
+    const claims = acct.claims||[], mmm = acct.mmm||[];
+    let body = '';
+    if (claims.length) body += claims.map(c => `<div style="padding:5px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75)"><span style="color:var(--${({pending:'warn',approved:'success',rejected:'coral'})[c.status]||'cool'})">${escapeHtml(c.status)}</span> · ${escapeHtml(prettyBuilding(c.building_slug))} · #${escapeHtml(c.unit_address||'')} · ${fmtAge(c.created_at)}</div>`).join('');
+    if (mmm.length) body += mmm.map(m => `<div style="padding:5px 10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.75)">MMM <strong style="color:var(--gold)">${fmtMoney(m.target_price)}</strong>${m.is_active?'':' (inactive)'} · ${escapeHtml(prettyBuilding(m.building_slug))} #${escapeHtml(m.unit_address||'')}</div>`).join('');
+    if (body) sections.push(sec('Account actions', body));
+  }
+
+  return sections.length ? sections.join('') : '<div style="margin-top:10px;padding:10px 4px;font-size:11px;color:rgba(232,227,216,0.5);font-family:\'JetBrains Mono\',monospace;font-style:italic">No detailed activity recorded.</div>';
 }
 // ---------- OPERATIONS · TASKS ----------
 async function renderOpsTasks() {
