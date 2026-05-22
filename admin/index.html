@@ -138,6 +138,13 @@ a{color:inherit;text-decoration:none}
         <div class="sub-item" data-route="listings/events"><span class="sub-dot"></span>Funnel events</div>
       </div>
     </div>
+    <div class="nav-section" data-section="email">
+      <div class="nav-item" data-route="email"><span class="nav-icon">📨</span><span>Email</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="email/dashboard"><span class="sub-dot"></span>Dashboard</div>
+        <div class="sub-item" data-route="email/queue"><span class="sub-dot"></span>Queue</div>
+      </div>
+    </div>
     <div class="nav-section" data-section="buyers">
       <div class="nav-item" data-route="buyers"><span class="nav-icon">👥</span><span>Buyers</span></div>
       <div class="nav-sub">
@@ -241,12 +248,12 @@ function handleHashChange() {
   const topEl = document.querySelector(`.nav-section[data-section="${topSection}"]`);
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
-  const sectionName = { dashboard:'Dashboard', listings:'Listings', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
+ const sectionName = { dashboard:'Dashboard', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
+  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
+  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -1663,7 +1670,206 @@ function renderAcqReputation() {
     </div>`;
   setUpdated();
 }
+// ---------- EMAIL · DASHBOARD ----------
+async function renderEmailDashboard() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Email · Dashboard</div>
+      <h1>Email marketing performance</h1>
+      <div class="desc">Deliverability, engagement, and daily volume across every send (Resend + manual). Day boundaries and the send cap are Pacific-time. Auto-refreshes every 60 seconds.</div>
+    </div>
+    <div id="em-stats"><div class="empty">Loading…</div></div>`;
+  await loadEmailDashboard();
+  sectionRefreshTimer = setInterval(loadEmailDashboard, 60000);
+}
 
+async function loadEmailDashboard() {
+  const [ovRes, dailyRes, tmplRes] = await Promise.all([
+    sb.rpc('email_marketing_overview'),
+    sb.rpc('email_daily_stats', { p_days: 30 }),
+    sb.rpc('email_template_stats')
+  ]);
+  if (ovRes.error) { document.getElementById('em-stats').innerHTML = `<div class="empty">Error: ${escapeHtml(ovRes.error.message)}</div>`; return; }
+  const ov = ovRes.data || {};
+  const daily = dailyRes.data || [];
+  const tmpl = tmplRes.data || [];
+  const lt = ov.lifetime || {}, today = ov.today || {}, l7 = ov.last7 || {}, sup = ov.suppression || {};
+  const openRate = lt.sent ? Math.round((lt.opened/lt.sent)*1000)/10 : 0;
+  const clickRate = lt.sent ? Math.round((lt.clicked/lt.sent)*1000)/10 : 0;
+  const bounceRate = lt.sent ? Math.round((lt.bounced/lt.sent)*1000)/10 : 0;
+  const capUsed = today.cap ? Math.round((today.sent/today.cap)*100) : 0;
+  const headroom = Math.max(0, (today.cap||0) - (today.sent||0));
+
+  const maxSent = Math.max(1, ...daily.map(d => d.sent));
+  const bars = daily.map(d => {
+    const h = Math.round((d.sent/maxSent)*100);
+    const orate = d.sent ? Math.round((d.opened/d.sent)*100) : 0;
+    return `<div title="${d.day} · ${d.sent} sent · ${d.opened} opened (${orate}%) · ${d.clicked} clicked · ${d.bounced} bounced" style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;height:100%">
+      <div style="height:${h}%;min-height:${d.sent?3:0}px;background:linear-gradient(180deg,var(--gold),rgba(212,165,116,0.35));border-radius:2px 2px 0 0"></div>
+    </div>`;
+  }).join('');
+  const axisLabels = daily.map((d,i) => (i % 5 === 0 || i === daily.length-1)
+    ? `<span style="flex:1;text-align:center">${new Date(d.day+'T00:00').toLocaleDateString([],{month:'numeric',day:'numeric'})}</span>`
+    : `<span style="flex:1"></span>`).join('');
+
+  document.getElementById('em-stats').innerHTML = `
+    <div class="eyebrow" style="margin-bottom:10px">Today · Pacific</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">📤 Sent today</div><div class="stat-value ${headroom===0?'warm':''}">${today.sent||0}<span style="font-size:14px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',monospace;margin-left:6px">/ ${today.cap||'—'}</span></div><div class="stat-sub">${headroom} of cap remaining · ${capUsed}% used</div></div>
+      <div class="stat"><div class="stat-label">📨 Sent last 7d</div><div class="stat-value">${l7.sent||0}</div><div class="stat-sub">${l7.opened||0} opened · ${l7.clicked||0} clicked</div></div>
+      <div class="stat"><div class="stat-label">👁 Lifetime open rate</div><div class="stat-value success">${openRate}%</div><div class="stat-sub">${(lt.opened||0).toLocaleString()} of ${(lt.sent||0).toLocaleString()} sent</div></div>
+      <div class="stat"><div class="stat-label">🖱 Lifetime click rate</div><div class="stat-value warm">${clickRate}%</div><div class="stat-sub">${(lt.clicked||0).toLocaleString()} clicks</div></div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">Deliverability &amp; suppression</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">⚠ Bounce rate</div><div class="stat-value" style="${bounceRate>5?'color:var(--coral)':''}">${bounceRate}%</div><div class="stat-sub">${(lt.bounced||0).toLocaleString()} bounced sends</div></div>
+      <div class="stat"><div class="stat-label">🚫 Bounced list</div><div class="stat-value">${(sup.bounced||0).toLocaleString()}</div><div class="stat-sub">suppressed addresses</div></div>
+      <div class="stat"><div class="stat-label">✋ Unsubscribed</div><div class="stat-value">${(sup.unsubscribed||0).toLocaleString()}</div><div class="stat-sub">one-click opt-outs</div></div>
+      <div class="stat"><div class="stat-label">⛔ Do-not-contact</div><div class="stat-value">${(sup.do_not_contact||0).toLocaleString()}</div><div class="stat-sub">abuse / complaints</div></div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">Daily volume · last 30 days (Pacific)</div>
+    <div style="border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2);padding:16px 18px;margin-bottom:28px">
+      <div style="display:flex;align-items:flex-end;gap:3px;height:150px">${bars}</div>
+      <div style="display:flex;gap:3px;margin-top:8px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;color:rgba(232,227,216,0.4);letter-spacing:0.02em">${axisLabels}</div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:10px">By template</div>
+    <div style="overflow-x:auto;border:1px solid rgba(232,227,216,0.12);border-radius:12px;background:var(--navy2)">
+      <table class="events-table">
+        <thead><tr><th>Template</th><th>Sent</th><th>Open rate</th><th>Click rate</th><th>Last sent</th></tr></thead>
+        <tbody>${tmpl.length ? tmpl.map(t => {
+          const orate = t.sent ? Math.round((t.opened/t.sent)*1000)/10 : 0;
+          const crate = t.sent ? Math.round((t.clicked/t.sent)*1000)/10 : 0;
+          return `<tr>
+            <td><strong style="color:var(--gold)">${escapeHtml(t.template_slug)}</strong></td>
+            <td>${(t.sent||0).toLocaleString()}</td>
+            <td>${orate}% <span style="color:rgba(232,227,216,0.4)">(${t.opened})</span></td>
+            <td>${crate}% <span style="color:rgba(232,227,216,0.4)">(${t.clicked})</span></td>
+            <td style="color:rgba(232,227,216,0.5)">${t.last_sent ? fmtAge(t.last_sent) : '—'}</td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;color:rgba(232,227,216,0.5)">No sends yet.</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  setUpdated();
+}
+
+// ---------- EMAIL · QUEUE ----------
+async function renderEmailQueue() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Email · Queue</div>
+      <h1>Upcoming campaign waves</h1>
+      <div class="desc">What fires next, when, and exactly who's eligible. Each card previews the live audience view for that campaign. Firing still happens via the cron / legacy <a href="/admin/campaigns.html" style="color:var(--gold);text-decoration:underline">campaigns.html</a>. Auto-refreshes every 60 seconds.</div>
+    </div>
+    <div id="eq-cap"></div>
+    <div id="eq-list"><div class="empty">Loading…</div></div>`;
+  await loadEmailQueue();
+  sectionRefreshTimer = setInterval(loadEmailQueue, 60000);
+}
+
+async function loadEmailQueue() {
+  const [ovRes, campsRes, wavesRes, tmplRes] = await Promise.all([
+    sb.rpc('email_marketing_overview'),
+    sb.from('campaigns').select('*'),
+    sb.from('campaign_waves').select('campaign_id,wave_number,batch_size,sent_count,delivered_count,opened_count,clicked_count,bounced_count,fired_at').order('wave_number',{ascending:true}),
+    sb.from('email_templates').select('slug,subject')
+  ]);
+  const ov = ovRes.data || {}, today = ov.today || {};
+  const headroom = Math.max(0, (today.cap||0) - (today.sent||0));
+  document.getElementById('eq-cap').innerHTML = `
+    <div class="stats-grid" style="margin-bottom:22px">
+      <div class="stat"><div class="stat-label">📤 Sent today (Pacific)</div><div class="stat-value">${today.sent||0}<span style="font-size:14px;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',monospace;margin-left:6px">/ ${today.cap||'—'}</span></div><div class="stat-sub">${headroom} of cap remaining</div></div>
+    </div>`;
+
+  const templateMap = Object.fromEntries((tmplRes.data||[]).map(t => [t.slug, t]));
+  const wavesByCamp = {};
+  (wavesRes.data||[]).forEach(w => { (wavesByCamp[w.campaign_id] ||= []).push(w); });
+  let camps = (campsRes.data||[]).map(c => ({ ...c, waves: wavesByCamp[c.id]||[], template: templateMap[c.template_slug] }));
+
+  const statusRank = { active:0, paused:1, draft:2, completed:3 };
+  camps.sort((a,b) => {
+    const sr = (statusRank[a.status]??9) - (statusRank[b.status]??9);
+    if (sr) return sr;
+    const at = a.next_batch_at ? new Date(a.next_batch_at).getTime() : Infinity;
+    const bt = b.next_batch_at ? new Date(b.next_batch_at).getTime() : Infinity;
+    return at - bt;
+  });
+
+  const previews = await Promise.all(camps.map(c =>
+    c.audience_view ? sb.rpc('campaign_audience_preview', { p_audience_view: c.audience_view, p_limit: 10 }) : Promise.resolve({ data: null })
+  ));
+  camps.forEach((c, i) => { c.preview = previews[i]?.data || null; c.previewErr = previews[i]?.error || null; });
+
+  if (!camps.length) { document.getElementById('eq-list').innerHTML = '<div class="empty">No campaigns defined.</div>'; setUpdated(); return; }
+  document.getElementById('eq-list').innerHTML = `<div class="row-list">${camps.map(c => renderQueueCard(c)).join('')}</div>`;
+  setUpdated();
+}
+
+function renderQueueCard(c) {
+  const statusClass = ({active:'approved', draft:'cool', paused:'pending', completed:'cold'})[c.status] || 'cool';
+  const wavesFired = c.waves.length;
+  const lastWave = wavesFired ? c.waves[c.waves.length-1] : null;
+  const growth = parseFloat(c.batch_growth_factor||1);
+  let nextBatch = c.batch_size_initial || 0;
+  if (wavesFired > 0) nextBatch = Math.min(c.batch_size_max||nextBatch, Math.round((c.batch_size_initial||1) * Math.pow(growth, wavesFired)));
+  const eligible = c.preview && typeof c.preview.total === 'number' ? c.preview.total : null;
+  const sample = (c.preview && c.preview.sample) || [];
+
+  const nextDue = c.next_batch_at ? new Date(c.next_batch_at).getTime() : null;
+  let whenStr;
+  if (c.status === 'draft') whenStr = c.next_batch_at ? `${new Date(c.next_batch_at).toLocaleDateString([],{month:'short',day:'numeric'})} · draft` : 'draft';
+  else if (c.status === 'paused') whenStr = c.pause_until ? `paused to ${new Date(c.pause_until).toLocaleDateString([],{month:'short',day:'numeric'})}` : 'paused';
+  else if (nextDue && nextDue <= Date.now()) whenStr = '⚠️ batch due now';
+  else if (nextDue) whenStr = `next ${fmtAge(c.next_batch_at)}`;
+  else whenStr = '—';
+
+  const meta = [];
+  meta.push(`<span>tmpl <strong>${escapeHtml(c.template_slug||'—')}</strong></span>`);
+  meta.push(`<span>audience <strong>${escapeHtml(c.audience_view||'—')}</strong></span>`);
+  meta.push(`<span>batch ${c.batch_size_initial}→${c.batch_size_max} ×${c.batch_growth_factor}</span>`);
+  meta.push(`<span>cadence ${c.cadence_hours}h</span>`);
+  meta.push(`<span>cooldown ${c.per_recipient_min_days}d</span>`);
+  if (c.per_building_max_per_wave) meta.push(`<span>max ${c.per_building_max_per_wave}/bldg/wave</span>`);
+  meta.push(c.auto_fire ? `<span style="color:var(--gold)">auto-fire</span>` : `<span style="color:rgba(232,227,216,0.5)">manual fire</span>`);
+
+  let whoBlock = '';
+  if (c.previewErr) {
+    whoBlock = `<div style="margin-top:10px;font-size:11px;color:var(--coral);font-family:'JetBrains Mono',monospace">audience preview error: ${escapeHtml(c.previewErr.message)}</div>`;
+  } else if (eligible === 0) {
+    whoBlock = `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,227,216,0.08)"><div class="eyebrow" style="margin-bottom:6px">Who's next</div><div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.55);font-style:italic">0 eligible right now${c.status_reason ? ` — ${escapeHtml(c.status_reason)}` : ''}</div></div>`;
+  } else if (eligible !== null) {
+    const chips = sample.map(r => {
+      const nm = [r.first_name, r.last_name].filter(Boolean).join(' ') || (r.email||'').split('@')[0];
+      const bldg = r.building_name ? ` · ${escapeHtml(r.building_name)}` : '';
+      return `<span style="display:inline-block;padding:3px 9px;background:rgba(232,227,216,0.05);border-radius:999px;margin:2px 4px 2px 0;font-size:11px;font-family:'JetBrains Mono',ui-monospace,monospace;color:rgba(232,227,216,0.85)" title="${escapeHtml(r.email||'')}${r.property_address?(' · '+escapeHtml(r.property_address)):''}">${escapeHtml(nm)}${bldg}</span>`;
+    }).join('');
+    const hitsNext = Math.min(nextBatch, eligible);
+    whoBlock = `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,227,216,0.08)">
+      <div class="eyebrow" style="margin-bottom:6px">Who's next · ${eligible} eligible</div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:var(--gold);margin-bottom:8px;letter-spacing:0.03em">→ next wave hits up to <strong>${hitsNext}</strong> (batch ${nextBatch}, ${eligible} eligible)</div>
+      <div>${chips}${eligible > sample.length ? `<span style="color:rgba(232,227,216,0.5);font-size:11px;font-family:'JetBrains Mono',monospace">+${eligible-sample.length} more</span>` : ''}</div>
+    </div>`;
+  }
+
+  const lastWaveStr = lastWave
+    ? `${lastWave.sent_count||0} sent · ${lastWave.delivered_count||0} delivered · ${lastWave.opened_count||0} opened · ${lastWave.clicked_count||0} clicked · ${lastWave.bounced_count||0} bounced · ${lastWave.fired_at?fmtAge(lastWave.fired_at):'—'}`
+    : 'no waves fired yet';
+
+  return `<div class="row ${statusClass}">
+    <div class="row-badge"><div class="row-badge-icon">📧</div><div class="row-badge-text">${escapeHtml(c.status||'—')}</div></div>
+    <div class="row-main">
+      <h3>${escapeHtml(c.name||c.slug)}<span class="meta">${escapeHtml(c.slug)}</span></h3>
+      <div class="sub">${escapeHtml(c.template?.subject || c.template_slug || '—')}</div>
+      <div class="details">${meta.join('<span style="opacity:0.4">·</span>')}</div>
+      <div style="margin-top:6px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.55)">last wave: ${escapeHtml(lastWaveStr)}${wavesFired?` · ${wavesFired} wave${wavesFired>1?'s':''} total`:''}</div>
+      ${c.status_reason && eligible !== 0 ? `<div style="margin-top:6px;font-size:11px;line-height:1.5;color:rgba(232,227,216,0.5);font-family:'JetBrains Mono',monospace;font-style:italic">${escapeHtml(c.status_reason.substring(0,200))}${c.status_reason.length>200?'…':''}</div>` : ''}
+      ${whoBlock}
+    </div>
+    <div class="row-actions"><div class="age">${escapeHtml(whenStr)}</div><div class="action-row"><a href="/admin/campaigns.html" class="btn primary">Fire (legacy) →</a></div></div>
+  </div>`;
+}
 // ---------- OPERATIONS · TASKS ----------
 async function renderOpsTasks() {
   document.getElementById('content').innerHTML = `
