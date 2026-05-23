@@ -171,6 +171,31 @@
   .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid rgba(241,237,228,0.10); font-size: 12px; opacity: 0.7; text-align: center; }
   .skel { display: inline-block; background: rgba(31,36,48,0.08); border-radius: 4px; height: 1em; min-width: 60px; animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+  /* ── Building comparison + owner tenure ── */
+  .cmp-shell { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; box-shadow: var(--cm-shadow); overflow: hidden; }
+  .cmp-toolbar { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--cm-rule); }
+  .cmp-sorts { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; }
+  .cmp-sorts button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 13px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; transition: all .15s; }
+  .cmp-sorts button.on { background: var(--cm-peri); color: #14181f; }
+  .cmp-filter { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory); background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 999px; padding: 9px 16px; cursor: pointer; }
+  .cmp-filter:focus { outline: none; border-color: var(--cm-peri); }
+  .cmp-scroll { overflow-x: auto; }
+  .cmp-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  .cmp-table th { text-align: right; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 14px 18px; border-bottom: 1px solid var(--cm-rule); font-weight: 500; white-space: nowrap; }
+  .cmp-table th:first-child, .cmp-table th:nth-child(2) { text-align: left; }
+  .cmp-table td { padding: 13px 18px; border-bottom: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 13px; color: var(--cm-ivory); text-align: right; white-space: nowrap; }
+  .cmp-table tbody tr:last-child td { border-bottom: none; }
+  .cmp-table tbody tr { transition: background .12s; }
+  .cmp-table tbody tr:hover { background: var(--cm-peri-dim); }
+  .cmp-name { text-align: left !important; font-family: var(--ff-display) !important; font-style: italic; font-size: 16px !important; }
+  .cmp-name a:hover { color: #5a73a8; }
+  .cmp-hood { text-align: left !important; color: var(--cm-ivory-dim); font-size: 11px !important; letter-spacing: 0.06em; text-transform: uppercase; }
+  .cmp-bar-wrap { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .cmp-bar { width: 46px; height: 6px; border-radius: 3px; background: var(--cm-rule); overflow: hidden; }
+  .cmp-bar > i { display: block; height: 100%; background: var(--cm-peri); }
+  .cmp-dim { color: var(--cm-ivory-dim); }
+  .cmp-count { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 16px 24px; }
+  .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: var(--cm-ivory-dim); }
 </style>
 </head>
 <body>
@@ -291,6 +316,48 @@
         <span class="section-sub">Real medians, last 36 months</span>
       </div>
       <div class="rank-grid" id="rank-grid"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">Buildings, <em>head to head</em></h2>
+        <span class="section-sub">Every on-market building · medians last 36 months</span>
+      </div>
+      <div class="cmp-shell">
+        <div class="cmp-toolbar">
+          <div class="cmp-sorts" id="cmp-sorts" role="tablist">
+            <button class="on" data-sort="psf">$/sf</button>
+            <button data-sort="sales">Most traded</button>
+            <button data-sort="turnover">Turnover</button>
+            <button data-sort="tenure">Longest held</button>
+            <button data-sort="held7">Held 7y+</button>
+          </div>
+          <select class="cmp-filter" id="cmp-filter" aria-label="Filter by district">
+            <option value="">All districts</option>
+          </select>
+        </div>
+        <div class="cmp-scroll">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Building</th>
+                <th>District</th>
+                <th>Median $/sf</th>
+                <th>Sales · 3y</th>
+                <th>Turnover</th>
+                <th>Median tenure</th>
+                <th>Held 7y+</th>
+              </tr>
+            </thead>
+            <tbody id="cmp-body">
+              <tr><td colspan="7" class="cmp-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cmp-count" id="cmp-count"></div>
+      </div>
     </div>
   </section>
 
@@ -894,12 +961,96 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
+  // ───────── Building comparison + owner tenure ─────────
+  let cmpRows = [];
+  let cmpSort = 'psf';
+  let cmpHood = '';
+
+  async function loadComparison() {
+    try {
+      const [stats, tenure] = await Promise.all([
+        rpc('intelligence_building_stats', { p_window_months: 36 }),
+        rpc('intelligence_owner_tenure', {})
+      ]);
+      const tenureBySlug = new Map(tenure.map(t => [t.building_slug, t]));
+      cmpRows = stats.map(s => {
+        const t = tenureBySlug.get(s.slug) || null;
+        const turnover = (s.unit_count && s.sales != null) ? (s.sales / s.unit_count) * 100 : null;
+        const hasTenure = t && t.units_measured >= 10;
+        return {
+          slug: s.slug,
+          name: s.display_name || s.slug,
+          hood: s.neighborhood || '',
+          psf: s.median_psf != null ? Number(s.median_psf) : null,
+          sales: s.sales != null ? Number(s.sales) : 0,
+          turnover,
+          tenure: hasTenure ? Number(t.median_years_held) : null,
+          held7: hasTenure ? Number(t.pct_held_7y_plus) : null
+        };
+      });
+      const hoods = [...new Set(cmpRows.map(r => r.hood).filter(Boolean))].sort();
+      const sel = document.getElementById('cmp-filter');
+      sel.innerHTML = '<option value="">All districts</option>' +
+        hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
+      renderComparison();
+    } catch (e) {
+      document.getElementById('cmp-body').innerHTML = '<tr><td colspan="7" class="cmp-empty">Comparison data could not load.</td></tr>';
+      console.warn('comparison load failed', e);
+    }
+  }
+
+  function renderComparison() {
+    const rows = (cmpHood ? cmpRows.filter(r => r.hood === cmpHood) : [...cmpRows]);
+    const getVal = r => r[cmpSort];
+    rows.sort((a, b) => {
+      const av = getVal(a), bv = getVal(b);
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;   // nulls sort last
+      if (bv == null) return -1;
+      return bv - av;             // descending
+    });
+    const maxHeld7 = Math.max(1, ...rows.map(r => r.held7 || 0));
+    const body = document.getElementById('cmp-body');
+    if (rows.length === 0) {
+      body.innerHTML = '<tr><td colspan="7" class="cmp-empty">No buildings in this district.</td></tr>';
+    } else {
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td class="cmp-name"><a href="/buildings/${escapeAttr(r.slug)}/">${escapeHtml(r.name)}</a></td>
+          <td class="cmp-hood">${r.hood ? escapeHtml(r.hood) : '—'}</td>
+          <td>${r.psf != null ? '$' + r.psf.toLocaleString() : '<span class="cmp-dim">—</span>'}</td>
+          <td>${r.sales ? r.sales.toLocaleString() : '<span class="cmp-dim">0</span>'}</td>
+          <td>${r.turnover != null ? r.turnover.toFixed(0) + '%' : '<span class="cmp-dim">—</span>'}</td>
+          <td>${r.tenure != null ? r.tenure.toFixed(1) + ' yr' : '<span class="cmp-dim">—</span>'}</td>
+          <td>${r.held7 != null
+                ? `<span class="cmp-bar-wrap"><span class="cmp-bar"><i style="width:${Math.round((r.held7 / maxHeld7) * 100)}%"></i></span>${r.held7.toFixed(0)}%</span>`
+                : '<span class="cmp-dim">—</span>'}</td>
+        </tr>`).join('');
+    }
+    document.getElementById('cmp-count').textContent =
+      rows.length + (rows.length === 1 ? ' building' : ' buildings') + (cmpHood ? ` · ${cmpHood}` : '');
+  }
+
+  document.querySelectorAll('#cmp-sorts button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#cmp-sorts button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      cmpSort = btn.dataset.sort;
+      renderComparison();
+    });
+  });
+  document.getElementById('cmp-filter').addEventListener('change', e => {
+    cmpHood = e.target.value;
+    renderComparison();
+  });
+
   // ───────── Boot ─────────
   loadKPIs();
   initHeatmap();
   initTimeline();
   loadActivity();
   loadRankings();
+  loadComparison();
 })();
 </script>
 </body>
