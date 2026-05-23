@@ -67,7 +67,7 @@
     transition: border-color .15s, background .15s;
   }
   .search-input::placeholder { color: var(--cm-ivory-dim); font-weight: 300; }
-  .search-input:focus { outline: none; border-color: var(--cm-peri); background: rgba(159,180,216,0.10); }
+  .search-input:focus { outline: none; border-color: var(--cm-peri); background: rgba(72,99,160,0.10); }
   .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--cm-ivory-dim); pointer-events: none; }
   .search-status {
     position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
@@ -332,7 +332,7 @@
   footer li { padding: 4px 0; }
   .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--cm-rule); font-size: 12px; opacity: 0.7; text-align: center; }
 
-  .skel { display: inline-block; background: rgba(159,180,216,0.10); border-radius: 4px; height: 1em; min-width: 60px; animation: pulse 1.4s ease-in-out infinite; }
+  .skel { display: inline-block; background: rgba(72,99,160,0.10); border-radius: 4px; height: 1em; min-width: 60px; animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 </style>
 </head>
@@ -684,7 +684,7 @@
       map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true })
             .setView([37.778, -122.404], 13);
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
         subdomains: 'abcd', maxZoom: 19,
         attribution: '© OpenStreetMap, © CartoDB'
       }).addTo(map);
@@ -803,8 +803,8 @@
         datasets: [{
           label: 'Median $/sf',
           data,
-          borderColor: '#9fb4d8',
-          backgroundColor: 'rgba(159,180,216,0.10)',
+          borderColor: '#4863a0',
+          backgroundColor: 'rgba(72,99,160,0.10)',
           borderWidth: 2,
           tension: 0.32,
           fill: true,
@@ -833,17 +833,17 @@
         },
         scales: {
           x: {
-            grid: { color: 'rgba(232,227,216,0.06)' },
+            grid: { color: 'rgba(31,36,48,0.08)' },
             ticks: {
-              color: 'rgba(232,227,216,0.50)',
+              color: 'rgba(31,36,48,0.55)',
               font: { family: 'JetBrains Mono', size: 10 },
               maxRotation: 0, autoSkip: true, autoSkipPadding: 24
             }
           },
           y: {
-            grid: { color: 'rgba(232,227,216,0.06)' },
+            grid: { color: 'rgba(31,36,48,0.08)' },
             ticks: {
-              color: 'rgba(232,227,216,0.50)',
+              color: 'rgba(31,36,48,0.55)',
               font: { family: 'JetBrains Mono', size: 10 },
               callback: v => '$' + v.toLocaleString()
             }
@@ -1018,7 +1018,7 @@
               label: 'Sale price',
               data: sorted.map(r => r.sale_price),
               borderColor: '#9fb4d8',
-              backgroundColor: 'rgba(159,180,216,0.12)',
+              backgroundColor: 'rgba(72,99,160,0.12)',
               borderWidth: 2, tension: 0.2, fill: true,
               pointRadius: 4, pointBackgroundColor: '#9fb4d8', pointBorderColor: '#0f131d'
             }]
@@ -1029,8 +1029,8 @@
               callbacks: { label: c => fmtMoneyShort(c.parsed.y) }
             } },
             scales: {
-              x: { ticks: { color: 'rgba(232,227,216,0.50)', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(232,227,216,0.05)' } },
-              y: { ticks: { color: 'rgba(232,227,216,0.50)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtMoneyShort(v) }, grid: { color: 'rgba(232,227,216,0.05)' } }
+              x: { ticks: { color: 'rgba(31,36,48,0.55)', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(31,36,48,0.08)' } },
+              y: { ticks: { color: 'rgba(31,36,48,0.55)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtMoneyShort(v) }, grid: { color: 'rgba(31,36,48,0.08)' } }
             }
           }
         });
