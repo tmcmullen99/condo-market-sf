@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neighborhood Supply & Demand — Condo Market SF Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0f131d; --card:#1a1f2e; --card-lift:#222838;
+    --ivory:#e8e3d8; --ivory-dim:rgba(232,227,216,.62); --ivory-faint:rgba(232,227,216,.4);
+    --bronze:#d4a574; --peri:#9fb4d8; --gain:#84d9a0; --loss:#c97865; --amber:#d9a44b;
+    --rule:rgba(232,227,216,.12); --rule-soft:rgba(232,227,216,.06);
+    --ff-display:'Playfair Display',Georgia,serif; --ff-mono:'JetBrains Mono',ui-monospace,monospace;
+    --ff-body:'DM Sans',-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--ivory);font-family:var(--ff-body);line-height:1.5;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 560px at 80% -12%, rgba(159,180,216,.06), transparent 60%),
+                     radial-gradient(820px 460px at 2% 112%, rgba(212,165,116,.05), transparent 55%);}
+  .wrap{max-width:1240px;margin:0 auto;padding:34px 26px 90px}
+  .eyebrow{font-family:var(--ff-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--bronze);margin-bottom:10px}
+  h1{font-family:var(--ff-display);font-weight:600;font-size:clamp(30px,4.2vw,46px);line-height:1.04;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--peri);font-weight:500}
+  .sub{color:var(--ivory-dim);font-size:15px;margin-top:10px;max-width:64ch}
+
+  .stage{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;margin-top:30px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+  .card-head{padding:16px 20px 12px;border-bottom:1px solid var(--rule-soft)}
+  .card-head h2{font-family:var(--ff-display);font-size:20px;font-weight:500}
+  .card-head h2 em{font-style:italic;color:var(--peri)}
+  .card-head .cs{font-family:var(--ff-mono);font-size:10.5px;letter-spacing:.05em;color:var(--ivory-faint);margin-top:4px}
+
+  svg{display:block;width:100%;height:auto}
+  .q-tint-hot{fill:rgba(132,217,160,.05)} .q-tint-buy{fill:rgba(201,120,101,.05)}
+  .grid-line{stroke:var(--rule-soft);stroke-width:1}
+  .axis-line{stroke:var(--rule);stroke-width:1}
+  .axis-txt{font-family:var(--ff-mono);font-size:11px;fill:var(--ivory-faint)}
+  .q-label{font-family:var(--ff-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;fill:var(--ivory-faint)}
+  .bub{cursor:pointer} .bub circle{transition:stroke .15s} .bub:hover circle{stroke:var(--ivory);stroke-width:1.8}
+  .bub-lab{font-family:var(--ff-mono);font-size:10.5px;fill:var(--ivory);paint-order:stroke;stroke:rgba(15,19,29,.75);stroke-width:3px;pointer-events:none}
+
+  /* table */
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{font-family:var(--ff-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ivory-faint);
+    text-align:right;padding:10px 12px;background:rgba(0,0,0,.16);cursor:pointer;user-select:none;white-space:nowrap}
+  .tbl th:first-child{text-align:left} .tbl th:hover{color:var(--ivory)}
+  .tbl th.sorted{color:var(--bronze)}
+  .tbl td{padding:11px 12px;border-bottom:1px solid var(--rule-soft);text-align:right;font-family:var(--ff-mono);font-size:12.5px}
+  .tbl td:first-child{text-align:left;font-family:var(--ff-body);font-size:13.5px;font-weight:500}
+  .tbl tr:last-child td{border-bottom:0} .tbl tbody tr{transition:background .12s} .tbl tbody tr:hover{background:var(--card-lift)}
+  .pill{display:inline-block;font-family:var(--ff-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:4px}
+  .p-hot{background:rgba(132,217,160,.16);color:var(--gain)} .p-app{background:rgba(159,180,216,.16);color:var(--peri)}
+  .p-liq{background:rgba(212,165,116,.16);color:var(--bronze)} .p-cool{background:rgba(201,120,101,.16);color:var(--loss)}
+  .p-steady{background:rgba(232,227,216,.1);color:var(--ivory-dim)} .p-thin{background:rgba(232,227,216,.06);color:var(--ivory-faint)}
+  .up{color:var(--gain)} .down{color:var(--loss)}
+
+  .tip{position:fixed;pointer-events:none;z-index:30;background:rgba(20,25,38,.97);border:1px solid var(--rule);border-radius:10px;
+    padding:11px 14px;min-width:180px;opacity:0;transform:translateY(4px);transition:opacity .12s;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .tip.show{opacity:1;transform:none}
+  .tip .nm{font-family:var(--ff-display);font-size:16px;font-weight:500}
+  .tip .pl{margin:6px 0 9px}
+  .tip .r{display:flex;justify-content:space-between;gap:16px;font-family:var(--ff-mono);font-size:11.5px;margin-top:3px}
+  .tip .r span{color:var(--ivory-faint)} .tip .r b{font-weight:500}
+
+  .foot{margin-top:22px;font-size:11.5px;color:var(--ivory-faint);font-family:var(--ff-mono);letter-spacing:.02em;line-height:1.7;max-width:98ch}
+  .foot b{color:var(--bronze);font-weight:500} .foot .warn{color:var(--amber)}
+  @media(max-width:940px){ .stage{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Condo Market SF · Intelligence</div>
+  <h1>Supply &amp; <em>demand</em>, by neighborhood</h1>
+  <p class="sub">Where demand is heating and where it's cooling — read through what actually moves: how fast stock turns over and which direction price per foot is heading. Each neighborhood placed on the demand map and broken out in full below.</p>
+
+  <div class="stage">
+    <div class="card">
+      <div class="card-head"><h2>Demand <em>quadrant</em></h2><div class="cs">price momentum (YoY $/ft) × turnover · bubble = 12mo sales</div></div>
+      <svg id="quad" viewBox="0 0 640 520" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Neighborhood demand quadrant"></svg>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>All <em>neighborhoods</em></h2><div class="cs">click any column to sort</div></div>
+      <div style="overflow-x:auto">
+        <table class="tbl" id="tbl">
+          <thead><tr>
+            <th data-k="hood">Neighborhood</th>
+            <th data-k="psf">$/ft</th>
+            <th data-k="yoy">YoY</th>
+            <th data-k="sold">Sold</th>
+            <th data-k="turnover">Turn</th>
+            <th data-k="units">Stock</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>Turnover</b> = share of a neighborhood's units that traded in the last 12 months (liquidity). <b>YoY</b> = median $/ft vs the prior year (demand pressure). Together they place each neighborhood: <b>rising + liquid = hot</b>, <b>falling + churning = a buyers' market</b>. <span class="warn">Note:</span> the active-listing feed is currently partial (concentrated in Mission Bay: 7 active / 5 pending), so live months-of-inventory isn't reliable yet — demand here is read from velocity, turnover, and momentum, all from closed sales. Production reads live from <b>v_building_market_stats</b> + <b>building_sales</b>.
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const N = [
+ {hood:"Mission Bay",units:2486,active:7,pending:5,sold:174,turnover:7.00,psf:1052,median:1180000,yoy:3.8},
+ {hood:"SoMa",units:4729,active:1,pending:0,sold:167,turnover:3.53,psf:1193,median:1218000,yoy:4.4},
+ {hood:"Nob Hill",units:970,active:0,pending:0,sold:32,turnover:3.30,psf:1192,median:1370000,yoy:-1.5},
+ {hood:"Civic Center",units:452,active:0,pending:0,sold:26,turnover:5.75,psf:1188,median:926250,yoy:4.1},
+ {hood:"Pacific Heights",units:259,active:0,pending:0,sold:17,turnover:6.56,psf:1819,median:1460000,yoy:-19.3},
+ {hood:"Marina",units:226,active:0,pending:0,sold:11,turnover:4.87,psf:1386,median:1262000,yoy:37.0},
+ {hood:"North Beach",units:236,active:0,pending:0,sold:7,turnover:2.97,psf:2106,median:2472500,yoy:11.9},
+ {hood:"Financial District",units:103,active:0,pending:0,sold:5,turnover:4.85,psf:924,median:885000,yoy:0.7},
+ {hood:"Mission",units:126,active:0,pending:0,sold:2,turnover:1.59,psf:653,median:421750,yoy:null},
+ {hood:"Chinatown",units:44,active:0,pending:0,sold:1,turnover:2.27,psf:1578,median:2075000,yoy:null},
+ {hood:"Cow Hollow",units:null,active:0,pending:0,sold:2,turnover:null,psf:1875,median:3150000,yoy:null}
+];
+
+function classify(n){
+  if(n.yoy==null||n.turnover==null) return {k:'thin',label:'Thin data',cls:'p-thin'};
+  if(n.yoy<0)                       return {k:'cool',label:'Cooling',cls:'p-cool'};
+  if(n.yoy>=10 && n.turnover>=4.5)  return {k:'hot',label:'Hot',cls:'p-hot'};
+  if(n.yoy>=8)                      return {k:'app',label:'Appreciating',cls:'p-app'};
+  if(n.turnover>=6)                 return {k:'liq',label:'Liquid',cls:'p-liq'};
+  return {k:'steady',label:'Steady',cls:'p-steady'};
+}
+const COL={hot:'#84d9a0',app:'#9fb4d8',liq:'#d4a574',cool:'#c97865',steady:'rgba(232,227,216,.55)',thin:'rgba(232,227,216,.3)'};
+const fmtK=n=>n>=1e6?"$"+(n/1e6).toFixed(2).replace(/\.?0+$/,'')+"M":"$"+Math.round(n/1000)+"K";
+const NS='http://www.w3.org/2000/svg';
+const tip=document.getElementById('tip');
+function el(t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e}
+function showTip(h,e){const c=classify(h);
+  tip.innerHTML=`<div class="nm">${h.hood}</div><div class="pl"><span class="pill ${c.cls}">${c.label}</span></div>
+    <div class="r"><span>$/ft</span><b>$${h.psf.toLocaleString()}</b></div>
+    <div class="r"><span>YoY $/ft</span><b class="${h.yoy>=0?'up':'down'}">${h.yoy==null?'—':(h.yoy>=0?'+':'')+h.yoy.toFixed(1)+'%'}</b></div>
+    <div class="r"><span>Sold 12mo</span><b>${h.sold}</b></div>
+    <div class="r"><span>Turnover</span><b>${h.turnover==null?'—':h.turnover.toFixed(1)+'%'}</b></div>
+    <div class="r"><span>Stock</span><b>${h.units?h.units.toLocaleString()+' units':'—'}</b></div>`;
+  tip.classList.add('show'); moveTip(e);}
+function moveTip(e){let x=e.clientX+16,y=e.clientY+16;const w=tip.offsetWidth,h=tip.offsetHeight;
+  if(x+w>innerWidth)x=e.clientX-w-16; if(y+h>innerHeight)y=e.clientY-h-16; tip.style.left=x+'px';tip.style.top=y+'px';}
+function hideTip(){tip.classList.remove('show')}
+
+// ---- Quadrant scatter ----
+function drawQuad(){
+  const svg=document.getElementById('quad'); const W=640,H=520;
+  const m={l:54,r:24,t:30,b:46}; const pw=W-m.l-m.r, ph=H-m.t-m.b;
+  const XMIN=-25,XMAX=40, YMIN=0,YMAX=8;
+  const px=v=>m.l+(v-XMIN)/(XMAX-XMIN)*pw;
+  const py=v=>m.t+(YMAX-v)/(YMAX-YMIN)*ph;
+  const pts=N.filter(n=>n.yoy!=null&&n.turnover!=null);
+  const x0=px(0), yMid=py(4.5);
+  // quadrant tints
+  svg.appendChild(el('rect',{x:x0,y:m.t,width:m.l+pw-x0,height:yMid-m.t,class:'q-tint-hot'}));
+  svg.appendChild(el('rect',{x:m.l,y:yMid,width:x0-m.l,height:m.t+ph-yMid,class:'q-tint-buy'}));
+  // gridlines
+  [-20,-10,0,10,20,30,40].forEach(v=>{const x=px(v);
+    svg.appendChild(el('line',{x1:x,y1:m.t,x2:x,y2:m.t+ph,class:v===0?'axis-line':'grid-line'}));
+    svg.appendChild(el('text',{x,y:m.t+ph+16,class:'axis-txt','text-anchor':'middle'},(v>0?'+':'')+v+'%'));});
+  [0,2,4,6,8].forEach(v=>{const y=py(v);
+    svg.appendChild(el('line',{x1:m.l,y1:y,x2:m.l+pw,y2:y,class:Math.abs(v-4.5)<0.01?'axis-line':'grid-line'}));
+    svg.appendChild(el('text',{x:m.l-10,y:y+4,class:'axis-txt','text-anchor':'end'},v+'%'));});
+  // quadrant labels
+  svg.appendChild(el('text',{x:m.l+pw-6,y:m.t+13,class:'q-label','text-anchor':'end'},'Hot · rising & liquid'));
+  svg.appendChild(el('text',{x:m.l+6,y:m.t+13,class:'q-label'},'Buyers\u2019 · falling & churning'));
+  svg.appendChild(el('text',{x:m.l+pw-6,y:m.t+ph-8,class:'q-label','text-anchor':'end'},'Tight · rising, low churn'));
+  svg.appendChild(el('text',{x:m.l+6,y:m.t+ph-8,class:'q-label'},'Quiet'));
+  // axis titles
+  svg.appendChild(el('text',{x:m.l+pw/2,y:H-6,class:'axis-txt','text-anchor':'middle'},'Price momentum — YoY $/ft  \u2192'));
+  const yt=el('text',{x:14,y:m.t+ph/2,class:'axis-txt','text-anchor':'middle',transform:`rotate(-90 14 ${m.t+ph/2})`},'Turnover (% of stock / yr)  \u2192');
+  svg.appendChild(yt);
+  // bubbles
+  pts.sort((a,b)=>b.sold-a.sold).forEach(n=>{
+    const c=classify(n), x=px(n.yoy), y=py(n.turnover), r=7+Math.sqrt(n.sold)*1.6;
+    const g=el('g',{class:'bub'});
+    g.appendChild(el('circle',{cx:x,cy:y,r,fill:COL[c.k],'fill-opacity':.82,stroke:'rgba(15,19,29,.6)','stroke-width':1}));
+    g.appendChild(el('text',{x,y:y-r-5,class:'bub-lab','text-anchor':'middle'},n.hood));
+    g.addEventListener('mousemove',e=>showTip(n,e)); g.addEventListener('mouseleave',hideTip);
+    svg.appendChild(g);
+  });
+}
+
+// ---- Table ----
+let sortK='psf', sortDir=-1;
+function renderTable(){
+  const rows=[...N].sort((a,b)=>{
+    let av=a[sortK],bv=b[sortK];
+    if(sortK==='hood') return sortDir*String(av).localeCompare(String(bv));
+    if(av==null)av=-Infinity; if(bv==null)bv=-Infinity; return sortDir*(av-bv);
+  });
+  document.getElementById('tbody').innerHTML=rows.map(n=>{const c=classify(n);
+    return `<tr>
+      <td>${n.hood}<div style="margin-top:4px"><span class="pill ${c.cls}">${c.label}</span></div></td>
+      <td>$${n.psf.toLocaleString()}</td>
+      <td class="${n.yoy>=0?'up':'down'}">${n.yoy==null?'—':(n.yoy>=0?'+':'')+n.yoy.toFixed(1)+'%'}</td>
+      <td>${n.sold}</td>
+      <td>${n.turnover==null?'—':n.turnover.toFixed(1)+'%'}</td>
+      <td>${n.units?n.units.toLocaleString():'—'}</td>
+    </tr>`;}).join("");
+  document.querySelectorAll('#tbl th').forEach(th=>th.classList.toggle('sorted',th.getAttribute('data-k')===sortK));
+}
+document.querySelectorAll('#tbl th').forEach(th=>th.addEventListener('click',()=>{
+  const k=th.getAttribute('data-k');
+  if(k===sortK)sortDir*=-1; else{sortK=k;sortDir=(k==='hood')?1:-1;}
+  renderTable();
+}));
+
+drawQuad(); renderTable();
+</script>
+</body>
+</html>
