@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$/Foot Map — Condo Market SF Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0f131d; --card:#1a1f2e; --card-lift:#222838;
+    --ivory:#e8e3d8; --ivory-dim:rgba(232,227,216,.62); --ivory-faint:rgba(232,227,216,.4);
+    --bronze:#d4a574; --peri:#9fb4d8; --gain:#84d9a0; --loss:#c97865; --amber:#d9a44b;
+    --rule:rgba(232,227,216,.12); --rule-soft:rgba(232,227,216,.06);
+    --ff-display:'Playfair Display',Georgia,serif;
+    --ff-mono:'JetBrains Mono',ui-monospace,monospace;
+    --ff-body:'DM Sans',-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--ivory);font-family:var(--ff-body);line-height:1.5;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 560px at 78% -12%, rgba(159,180,216,.06), transparent 60%),
+                     radial-gradient(820px 460px at 4% 112%, rgba(212,165,116,.05), transparent 55%);}
+  .wrap{max-width:1280px;margin:0 auto;padding:34px 26px 90px}
+  .eyebrow{font-family:var(--ff-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--bronze);margin-bottom:10px}
+  h1{font-family:var(--ff-display);font-weight:600;font-size:clamp(30px,4.2vw,46px);line-height:1.04;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--peri);font-weight:500}
+  .sub{color:var(--ivory-dim);font-size:15px;margin-top:10px;max-width:64ch}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:26px 0 18px}
+  .seg{display:inline-flex;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:3px;gap:2px}
+  .seg button{background:none;border:none;color:var(--ivory-dim);font-family:var(--ff-mono);font-size:11.5px;letter-spacing:.06em;
+    text-transform:uppercase;padding:8px 14px;border-radius:7px;cursor:pointer;transition:.14s}
+  .seg button.on{background:var(--peri);color:var(--navy);font-weight:500}
+  .seg button:not(.on):hover{color:var(--ivory)}
+  .seg.sub button.on{background:var(--bronze)}
+  .ctl-lab{font-family:var(--ff-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ivory-faint);margin-right:2px}
+  #change-seg{display:none}
+
+  .stage{display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start;margin-top:6px}
+  .mapcard{position:relative;background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+  svg{display:block;width:100%;height:auto}
+  .water-label{font-family:var(--ff-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;fill:rgba(159,180,216,.34)}
+  .hood-label{font-family:var(--ff-mono);font-size:11px;letter-spacing:.04em;fill:var(--ivory);text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:rgba(15,19,29,.7);stroke-width:3px}
+  .node{cursor:pointer;transition:opacity .15s}
+  .node circle{transition:transform .15s, stroke .15s}
+  .node:hover circle{stroke:var(--ivory);stroke-width:1.6}
+  .dim{opacity:.18}
+
+  /* legend */
+  .legend{position:absolute;left:18px;bottom:16px;background:rgba(15,19,29,.74);backdrop-filter:blur(4px);
+    border:1px solid var(--rule);border-radius:10px;padding:12px 14px;font-family:var(--ff-mono)}
+  .legend .lab{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ivory-faint);margin-bottom:8px}
+  .legend .ramp{height:9px;width:188px;border-radius:5px}
+  .legend .ends{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ivory-dim);margin-top:6px}
+
+  /* tooltip */
+  .tip{position:fixed;pointer-events:none;z-index:30;background:rgba(20,25,38,.97);border:1px solid var(--rule);
+    border-radius:10px;padding:11px 14px;min-width:172px;opacity:0;transform:translateY(4px);transition:opacity .12s;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .tip.show{opacity:1;transform:none}
+  .tip .t-nm{font-family:var(--ff-display);font-size:16px;font-weight:500}
+  .tip .t-hd{font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bronze);margin:3px 0 9px}
+  .tip .t-psf{font-family:var(--ff-display);font-style:italic;font-size:26px;color:var(--ivory);line-height:1}
+  .tip .t-psf small{font-family:var(--ff-mono);font-style:normal;font-size:11px;color:var(--ivory-faint);letter-spacing:.04em}
+  .tip .t-rows{margin-top:9px;display:grid;gap:3px}
+  .tip .t-row{display:flex;justify-content:space-between;gap:16px;font-family:var(--ff-mono);font-size:11.5px}
+  .tip .t-row span{color:var(--ivory-faint)} .tip .t-row b{font-weight:500;color:var(--ivory)}
+  .up{color:var(--gain)!important} .down{color:var(--loss)!important}
+
+  /* ranking panel */
+  .panel{background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+  .panel-head{padding:15px 18px 12px;border-bottom:1px solid var(--rule-soft)}
+  .panel-head h3{font-family:var(--ff-display);font-size:18px;font-weight:500}
+  .panel-head .ps{font-family:var(--ff-mono);font-size:10.5px;color:var(--ivory-faint);letter-spacing:.04em;margin-top:3px}
+  .hrow{padding:11px 18px;border-bottom:1px solid var(--rule-soft);cursor:default;transition:background .12s}
+  .hrow:last-child{border-bottom:0}
+  .hrow:hover{background:var(--card-lift)}
+  .hrow .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .hrow .hn{font-size:14px;font-weight:500}
+  .hrow .hp{font-family:var(--ff-mono);font-size:13px;color:var(--bronze)}
+  .hrow .meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+  .hrow .chg{font-family:var(--ff-mono);font-size:11px;font-weight:500}
+  .hrow .nn{font-family:var(--ff-mono);font-size:10px;color:var(--ivory-faint)}
+  .hbar{height:5px;background:rgba(232,227,216,.08);border-radius:4px;margin-top:8px;overflow:hidden}
+  .hbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--peri),var(--bronze));width:0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+
+  .foot{margin-top:20px;font-size:11.5px;color:var(--ivory-faint);font-family:var(--ff-mono);letter-spacing:.02em;line-height:1.7;max-width:96ch}
+  .foot b{color:var(--bronze);font-weight:500}
+  @media(max-width:920px){ .stage{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Condo Market SF · Intelligence</div>
+  <h1>Price per foot, <em>mapped</em></h1>
+  <p class="sub">Where the money is, block by block. Every catalogued building plotted by location and shaded by its trailing-12-month price per square foot — then rolled up to blocks and neighborhoods, with a year-over-year change view.</p>
+
+  <div class="controls">
+    <span class="ctl-lab">Granularity</span>
+    <div class="seg" id="gran-seg">
+      <button data-m="building" class="on">Buildings</button>
+      <button data-m="block">Blocks</button>
+      <button data-m="hood">Neighborhoods</button>
+    </div>
+    <div class="seg sub" id="change-seg">
+      <button data-c="price" class="on">Price $/ft</button>
+      <button data-c="change">YoY change</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="mapcard">
+      <svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="$/foot map of San Francisco condo buildings"></svg>
+      <div class="legend">
+        <div class="lab" id="leg-lab">Price per foot</div>
+        <div class="ramp" id="leg-ramp"></div>
+        <div class="ends"><span id="leg-lo">$600</span><span id="leg-hi">$2,650</span></div>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="panel-head"><h3>Neighborhood $/ft</h3><div class="ps">median · 12mo vs prior yr</div></div>
+      <div id="hood-rank"></div>
+    </aside>
+  </div>
+
+  <div class="foot">
+    <b>$/foot</b> normalizes price across unit sizes — the cleanest cross-location yardstick. <b>Blocks</b> cluster nearby buildings (~one city block); <b>neighborhoods</b> roll up median $/ft from raw closings. <b>YoY change</b> compares the trailing 12 months to the 12 before it: right now <b>Marina +37%</b> and <b>Pacific Heights −19%</b> are the standout moves. Dot size = sales volume (liquidity). Demo data embedded; production reads live from <b>building_sales</b> + <b>v_building_market_stats</b>.
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const B = [
+{name:"The Pacific",hood:"Pacific Heights",lat:37.79180,lng:-122.43410,psf:2646,median:4995000,sold12:5},
+{name:"Royal Towers",hood:"North Beach",lat:37.80180,lng:-122.41280,psf:2404,median:8750000,sold12:1},
+{name:"The Summit",hood:"North Beach",lat:37.79840,lng:-122.41680,psf:2059,median:2472500,sold12:4},
+{name:"181 Fremont",hood:"SoMa",lat:37.78950,lng:-122.39640,psf:1918,median:3562500,sold12:10},
+{name:"The Belvedere",hood:"Cow Hollow",lat:37.79850,lng:-122.42400,psf:1875,median:3150000,sold12:2},
+{name:"Green Hill Tower",hood:"North Beach",lat:37.79830,lng:-122.41660,psf:1856,median:2350000,sold12:2},
+{name:"The Amero",hood:"Marina",lat:37.79970,lng:-122.42160,psf:1720,median:2810000,sold12:1},
+{name:"The Avery",hood:"SoMa",lat:37.78590,lng:-122.39510,psf:1662,median:2554000,sold12:18},
+{name:"Broadway Towers",hood:"Nob Hill",lat:37.79620,lng:-122.43020,psf:1634,median:1637500,sold12:2},
+{name:"2200 Sacramento",hood:"Pacific Heights",lat:37.78990,lng:-122.43220,psf:1627,median:1460000,sold12:7},
+{name:"MIRA",hood:"SoMa",lat:37.79050,lng:-122.39200,psf:1620,median:2100000,sold12:1},
+{name:"The Crescent",hood:"Chinatown",lat:37.79200,lng:-122.41060,psf:1578,median:2075000,sold12:1},
+{name:"Arden",hood:"Mission Bay",lat:37.77220,lng:-122.39050,psf:1498,median:1802500,sold12:20},
+{name:"1645 Pacific",hood:"Nob Hill",lat:37.79520,lng:-122.42250,psf:1441,median:1675000,sold12:3},
+{name:"Union House",hood:"Marina",lat:37.79800,lng:-122.42450,psf:1420,median:2525000,sold12:3},
+{name:"Murano",hood:"Marina",lat:37.80090,lng:-122.44100,psf:1413,median:1524000,sold12:2},
+{name:"Maison Au Pont",hood:"Marina",lat:37.79970,lng:-122.44320,psf:1386,median:775000,sold12:1},
+{name:"Lumina",hood:"SoMa",lat:37.78730,lng:-122.39200,psf:1357,median:1625000,sold12:37},
+{name:"480 Mission Bay Blvd N",hood:"Mission Bay",lat:37.77080,lng:-122.38950,psf:1327,median:2550000,sold12:2},
+{name:"1598 Bay",hood:"Marina",lat:37.80330,lng:-122.42950,psf:1277,median:1000000,sold12:1},
+{name:"The Knox",hood:"SoMa",lat:37.75750,lng:-122.39070,psf:1272,median:1150000,sold12:3},
+{name:"The Rockwell",hood:"Nob Hill",lat:37.78980,lng:-122.42260,psf:1268,median:1050000,sold12:7},
+{name:"72 Townsend St",hood:"Mission Bay",lat:37.78220,lng:-122.39020,psf:1263,median:1525000,sold12:4},
+{name:"388 Fulton",hood:"Civic Center",lat:37.77780,lng:-122.42620,psf:1255,median:655000,sold12:4},
+{name:"950 Tennessee",hood:"SoMa",lat:37.75860,lng:-122.38950,psf:1247,median:1350000,sold12:1},
+{name:"Laguna Hayes",hood:"Civic Center",lat:37.77610,lng:-122.42580,psf:1246,median:1650000,sold12:1},
+{name:"The Harrison",hood:"SoMa",lat:37.78590,lng:-122.39210,psf:1240,median:1198000,sold12:15},
+{name:"300 Ivy",hood:"Civic Center",lat:37.77750,lng:-122.42590,psf:1231,median:1097500,sold12:2},
+{name:"One Mission Bay",hood:"Mission Bay",lat:37.77580,lng:-122.39000,psf:1228,median:1320000,sold12:19},
+{name:"One Rincon Hill",hood:"SoMa",lat:37.78620,lng:-122.39300,psf:1221,median:1198000,sold12:23},
+{name:"420 Mission Bay Blvd N",hood:"Mission Bay",lat:37.77150,lng:-122.39000,psf:1220,median:1525000,sold12:7},
+{name:"The Brannan",hood:"SoMa",lat:37.78240,lng:-122.39240,psf:1217,median:1750000,sold12:13},
+{name:"766 Harrison St",hood:"Mission Bay",lat:37.78180,lng:-122.40120,psf:1203,median:320000,sold12:2},
+{name:"The Marlow",hood:"Nob Hill",lat:37.79200,lng:-122.42260,psf:1203,median:1149000,sold12:3},
+{name:"1200 California",hood:"Nob Hill",lat:37.79170,lng:-122.41480,psf:1191,median:1985000,sold12:2},
+{name:"88 Arkansas St",hood:"Mission Bay",lat:37.76380,lng:-122.40080,psf:1187,median:960000,sold12:1},
+{name:"Four Seasons Residences",hood:"SoMa",lat:37.79050,lng:-122.39900,psf:1186,median:3512500,sold12:2},
+{name:"2200 Pacific",hood:"Pacific Heights",lat:37.79440,lng:-122.43530,psf:1185,median:1459000,sold12:5},
+{name:"450 Hayes",hood:"Civic Center",lat:37.77690,lng:-122.42330,psf:1179,median:925000,sold12:3},
+{name:"The Metropolitan",hood:"SoMa",lat:37.78680,lng:-122.39400,psf:1171,median:1567500,sold12:3},
+{name:"The Hayes",hood:"Civic Center",lat:37.77300,lng:-122.42250,psf:1168,median:927500,sold12:8},
+{name:"Madrone",hood:"Mission Bay",lat:37.77230,lng:-122.38960,psf:1154,median:1330000,sold12:6},
+{name:"The Infinity",hood:"SoMa",lat:37.79060,lng:-122.39040,psf:1152,median:1218000,sold12:3},
+{name:"Bellaire Tower",hood:"Nob Hill",lat:37.79850,lng:-122.41780,psf:1131,median:1039500,sold12:2},
+{name:"88 King St",hood:"Mission Bay",lat:37.78050,lng:-122.38950,psf:1111,median:1240000,sold12:19},
+{name:"Marina Chateau",hood:"Marina",lat:37.80160,lng:-122.42430,psf:1100,median:605000,sold12:3},
+{name:"Park Terrace",hood:"Mission Bay",lat:37.77660,lng:-122.39330,psf:1096,median:1489000,sold12:3},
+{name:"Clay Jones",hood:"Nob Hill",lat:37.79220,lng:-122.41600,psf:1095,median:1315000,sold12:5},
+{name:"325 China Basin St",hood:"Mission Bay",lat:37.77420,lng:-122.39020,psf:1074,median:1457500,sold12:2},
+{name:"1150 Lombard",hood:"Nob Hill",lat:37.80180,lng:-122.42060,psf:1068,median:1425000,sold12:1},
+{name:"300 Berry St",hood:"Mission Bay",lat:37.77580,lng:-122.39250,psf:1062,median:887750,sold12:8},
+{name:"Linea",hood:"Civic Center",lat:37.77060,lng:-122.42670,psf:1048,median:920750,sold12:8},
+{name:"ClockTower",hood:"SoMa",lat:37.78200,lng:-122.39550,psf:1032,median:1182500,sold12:2},
+{name:"235 Berry",hood:"Mission Bay",lat:37.77640,lng:-122.39250,psf:1030,median:1180000,sold12:4},
+{name:"325 Berry",hood:"Mission Bay",lat:37.77570,lng:-122.39120,psf:1006,median:850000,sold12:3},
+{name:"The Rowan",hood:"SoMa",lat:37.76580,lng:-122.40820,psf:998,median:840000,sold12:3},
+{name:"Jackson Towers",hood:"Nob Hill",lat:37.79530,lng:-122.42430,psf:995,median:975000,sold12:3},
+{name:"1001 17th St",hood:"Mission Bay",lat:37.76520,lng:-122.39920,psf:975,median:800000,sold12:3},
+{name:"555 4th St",hood:"Mission Bay",lat:37.77850,lng:-122.39850,psf:949,median:664000,sold12:16},
+{name:"177 Townsend St",hood:"Mission Bay",lat:37.77930,lng:-122.39420,psf:946,median:635000,sold12:4},
+{name:"Parc Telegraph",hood:"Financial District",lat:37.80240,lng:-122.40560,psf:924,median:885000,sold12:5},
+{name:"250 King St",hood:"Mission Bay",lat:37.77620,lng:-122.39220,psf:909,median:754250,sold12:12},
+{name:"200 Brannan",hood:"SoMa",lat:37.78300,lng:-122.39240,psf:906,median:1225000,sold12:6},
+{name:"170 Off Third",hood:"SoMa",lat:37.77850,lng:-122.39420,psf:906,median:899000,sold12:5},
+{name:"Watermark",hood:"SoMa",lat:37.78980,lng:-122.39030,psf:896,median:680000,sold12:1},
+{name:"The Comstock",hood:"Nob Hill",lat:37.79320,lng:-122.41650,psf:893,median:1677216,sold12:4},
+{name:"Millennium Tower",hood:"SoMa",lat:37.79010,lng:-122.39730,psf:876,median:1104000,sold12:20},
+{name:"175 Bluxome St",hood:"Mission Bay",lat:37.77600,lng:-122.39920,psf:858,median:765000,sold12:6},
+{name:"260 King St",hood:"Mission Bay",lat:37.77700,lng:-122.39150,psf:835,median:640000,sold12:21},
+{name:"200 Townsend St",hood:"Mission Bay",lat:37.77950,lng:-122.39380,psf:792,median:695000,sold12:2},
+{name:"207 King St",hood:"Mission Bay",lat:37.77780,lng:-122.38980,psf:776,median:1300000,sold12:1},
+{name:"1 Bluxome St",hood:"Mission Bay",lat:37.77700,lng:-122.39700,psf:719,median:1138000,sold12:2},
+{name:"1188 Valencia",hood:"Mission",lat:37.75510,lng:-122.42120,psf:653,median:421750,sold12:2},
+{name:"601 4th St",hood:"Mission Bay",lat:37.77730,lng:-122.39580,psf:604,median:1069500,sold12:2}
+];
+const HOODS = [
+{hood:"North Beach",psf:1789,prior:1599,n:6},
+{hood:"Pacific Heights",psf:1398,prior:1733,n:17},
+{hood:"Marina",psf:1386,prior:1012,n:11},
+{hood:"SoMa",psf:1192,prior:1142,n:166},
+{hood:"Nob Hill",psf:1156,prior:1174,n:32},
+{hood:"Civic Center",psf:1145,prior:1100,n:26},
+{hood:"Mission Bay",psf:1023,prior:986,n:134},
+{hood:"Financial District",psf:884,prior:878,n:5}
+];
+
+const svg = document.getElementById('map'), tip = document.getElementById('tip');
+const VW=1000, VH=720;
+const lats=B.map(b=>b.lat), lngs=B.map(b=>b.lng);
+const latMin=Math.min(...lats),latMax=Math.max(...lats),lngMin=Math.min(...lngs),lngMax=Math.max(...lngs);
+const cosL=Math.cos(37.78*Math.PI/180);
+const padX=(lngMax-lngMin)*0.10, padY=(latMax-latMin)*0.10;
+// fit projected aspect into viewBox
+const realW=(lngMax-lngMin+2*padX)*cosL, realH=(latMax-latMin+2*padY);
+const scale=Math.min(VW/realW, VH/realH);
+const offX=(VW-realW*scale)/2, offY=(VH-realH*scale)/2;
+function proj(lat,lng){
+  const x=offX + (((lng-(lngMin-padX))*cosL))*scale;
+  const y=offY + (((latMax+padY)-lat))*scale;
+  return [x,y];
+}
+const PSF_LO=600, PSF_HI=2200;
+function lerp(a,b,t){return a+(b-a)*t}
+function hx(c){return c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('')}
+function rgb(s){return [parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)]}
+function mix(c1,c2,t){const a=rgb(c1),b=rgb(c2);return '#'+hx([lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)])}
+function psfColor(p){
+  const t=Math.max(0,Math.min(1,(p-PSF_LO)/(PSF_HI-PSF_LO)));
+  return t<0.5 ? mix('#46577d','#d4a574',t/0.5) : mix('#d4a574','#f0d9a8',(t-0.5)/0.5);
+}
+function chgColor(pct){
+  if(pct>=0){const t=Math.min(1,pct/30);return mix('#6c7384','#84d9a0',t);}
+  const t=Math.min(1,-pct/30);return mix('#6c7384','#c97865',t);
+}
+function rad(sold,base){return base + Math.sqrt(sold)*2.0}
+const fmtK=n=>n>=1e6?"$"+(n/1e6).toFixed(2).replace(/\.?0+$/,'')+"M":"$"+Math.round(n/1000)+"K";
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e}
+
+let mode='building', cmode='price';
+
+function clear(){while(svg.firstChild)svg.removeChild(svg.firstChild)}
+
+function drawBase(){
+  // subtle bay gradient (east + south = water) for orientation
+  const defs=el('defs',{});
+  defs.innerHTML=`<linearGradient id="bay" x1="0" y1="0" x2="1" y2="0.5">
+    <stop offset="0%" stop-color="rgba(159,180,216,0)"/><stop offset="78%" stop-color="rgba(159,180,216,0)"/>
+    <stop offset="100%" stop-color="rgba(159,180,216,0.10)"/></linearGradient>`;
+  svg.appendChild(defs);
+  svg.appendChild(el('rect',{x:0,y:0,width:VW,height:VH,fill:'url(#bay)'}));
+  const wl=el('text',{x:VW-16,y:VH-22,class:'water-label','text-anchor':'end'});wl.textContent='↑ Bay  ·  East';svg.appendChild(wl);
+}
+
+function tipFor(html,e){ tip.innerHTML=html; tip.classList.add('show'); moveTip(e); }
+function moveTip(e){ const r=16; let x=e.clientX+r,y=e.clientY+r;
+  const w=tip.offsetWidth,h=tip.offsetHeight;
+  if(x+w>innerWidth)x=e.clientX-w-r; if(y+h>innerHeight)y=e.clientY-h-r; tip.style.left=x+'px';tip.style.top=y+'px'; }
+function hideTip(){tip.classList.remove('show')}
+
+function nodeEl(cx,cy,r,fill,html){
+  const g=el('g',{class:'node'});
+  g.appendChild(el('circle',{cx,cy,r,fill,'fill-opacity':0.86,stroke:'rgba(15,19,29,.55)','stroke-width':1}));
+  g.addEventListener('mousemove',e=>tipFor(html,e));
+  g.addEventListener('mouseleave',hideTip);
+  return g;
+}
+
+function render(){
+  clear(); drawBase();
+  document.getElementById('change-seg').style.display = mode==='hood' ? 'inline-flex' : 'none';
+  const usingChange = (mode==='hood' && cmode==='change');
+
+  // legend
+  if(usingChange){
+    document.getElementById('leg-lab').textContent='YoY change';
+    document.getElementById('leg-ramp').style.background='linear-gradient(90deg,#c97865,#6c7384,#84d9a0)';
+    document.getElementById('leg-lo').textContent='−30%';
+    document.getElementById('leg-hi').textContent='+30%';
+  } else {
+    document.getElementById('leg-lab').textContent='Price per foot';
+    document.getElementById('leg-ramp').style.background='linear-gradient(90deg,#46577d,#d4a574,#f0d9a8)';
+    document.getElementById('leg-lo').textContent='$600'; document.getElementById('leg-hi').textContent='$2,200+';
+  }
+
+  if(mode==='building'){
+    [...B].sort((a,b)=>a.psf-b.psf).forEach(b=>{
+      const [x,y]=proj(b.lat,b.lng);
+      svg.appendChild(nodeEl(x,y,rad(b.sold12,4),psfColor(b.psf),
+        `<div class="t-nm">${b.name}</div><div class="t-hd">${b.hood}</div>
+         <div class="t-psf">$${b.psf.toLocaleString()}<small>/ft</small></div>
+         <div class="t-rows"><div class="t-row"><span>Median</span><b>${fmtK(b.median)}</b></div>
+         <div class="t-row"><span>Sold 12mo</span><b>${b.sold12}</b></div></div>`));
+    });
+  } else if(mode==='block'){
+    const cl={};
+    B.forEach(b=>{const k=b.lat.toFixed(3)+','+b.lng.toFixed(3);(cl[k]=cl[k]||[]).push(b);});
+    Object.values(cl).map(arr=>{
+      const sold=arr.reduce((s,b)=>s+b.sold12,0);
+      const wpsf=Math.round(arr.reduce((s,b)=>s+b.psf*b.sold12,0)/Math.max(1,sold));
+      const lat=arr.reduce((s,b)=>s+b.lat,0)/arr.length, lng=arr.reduce((s,b)=>s+b.lng,0)/arr.length;
+      return {arr,sold,wpsf,lat,lng};
+    }).sort((a,b)=>a.wpsf-b.wpsf).forEach(c=>{
+      const [x,y]=proj(c.lat,c.lng);
+      svg.appendChild(nodeEl(x,y,rad(c.sold,7),psfColor(c.wpsf),
+        `<div class="t-nm">Block · ${c.arr[0].hood}</div><div class="t-hd">${c.arr.length} building${c.arr.length>1?'s':''}</div>
+         <div class="t-psf">$${c.wpsf.toLocaleString()}<small>/ft avg</small></div>
+         <div class="t-rows"><div class="t-row"><span>Sold 12mo</span><b>${c.sold}</b></div>
+         <div class="t-row"><span>Buildings</span><b>${c.arr.map(b=>b.name).slice(0,3).join(', ')}${c.arr.length>3?'…':''}</b></div></div>`));
+    });
+  } else { // hood
+    const cents={};
+    B.forEach(b=>{(cents[b.hood]=cents[b.hood]||{lat:0,lng:0,n:0}); cents[b.hood].lat+=b.lat;cents[b.hood].lng+=b.lng;cents[b.hood].n++;});
+    HOODS.forEach(h=>{
+      const c=cents[h.hood]; if(!c)return;
+      const [x,y]=proj(c.lat/c.n,c.lng/c.n);
+      const pct=((h.psf-h.prior)/h.prior*100);
+      const fill=usingChange?chgColor(pct):psfColor(h.psf);
+      const r=10+Math.sqrt(h.n)*1.7;
+      svg.appendChild(nodeEl(x,y,r,fill,
+        `<div class="t-nm">${h.hood}</div><div class="t-hd">${h.n} sales · 12mo</div>
+         <div class="t-psf">$${h.psf.toLocaleString()}<small>/ft median</small></div>
+         <div class="t-rows"><div class="t-row"><span>YoY</span><b class="${pct>=0?'up':'down'}">${pct>=0?'+':''}${pct.toFixed(1)}%</b></div>
+         <div class="t-row"><span>Prior yr</span><b>$${h.prior.toLocaleString()}</b></div></div>`));
+      const tx=el('text',{x,y:y-r-7,class:'hood-label'});tx.textContent=h.hood;svg.appendChild(tx);
+    });
+  }
+}
+
+function renderRank(){
+  const max=Math.max(...HOODS.map(h=>h.psf));
+  document.getElementById('hood-rank').innerHTML = HOODS.map(h=>{
+    const pct=((h.psf-h.prior)/h.prior*100);
+    return `<div class="hrow">
+      <div class="top"><span class="hn">${h.hood}</span><span class="hp">$${h.psf.toLocaleString()}/ft</span></div>
+      <div class="hbar"><i data-w="${Math.round(h.psf/max*100)}"></i></div>
+      <div class="meta"><span class="chg ${pct>=0?'up':'down'}">${pct>=0?'▲ +':'▼ '}${pct.toFixed(1)}% YoY</span><span class="nn">${h.n} sales</span></div>
+    </div>`;
+  }).join("");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.hbar i').forEach(b=>b.style.width=b.getAttribute('data-w')+'%');
+  }));
+}
+
+document.querySelectorAll('#gran-seg button').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('#gran-seg button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); mode=btn.getAttribute('data-m'); render();
+}));
+document.querySelectorAll('#change-seg button').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('#change-seg button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); cmode=btn.getAttribute('data-c'); render();
+}));
+
+render(); renderRank();
+</script>
+</body>
+</html>
