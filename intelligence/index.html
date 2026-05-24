@@ -159,6 +159,16 @@
   .drawer-loading { text-align: center; padding: 60px 0; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); }
   .drawer-bldg-link { display: inline-block; margin-top: 20px; padding: 10px 20px; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 999px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory); }
   .drawer-bldg-link:hover { border-color: var(--cm-peri); color: #5a73a8; }
+  .tool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  @media (max-width: 880px) { .tool-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .tool-grid { grid-template-columns: 1fr; } }
+  .tool-card { display: flex; flex-direction: column; gap: 9px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 20px; box-shadow: var(--cm-shadow); transition: transform 0.16s, border-color 0.16s; min-height: 172px; }
+  .tool-card:hover { transform: translateY(-3px); border-color: var(--cm-peri); }
+  .tool-kicker { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-bronze); }
+  .tool-card h3 { font-family: var(--ff-display); font-weight: 500; font-size: 21px; line-height: 1.1; }
+  .tool-card h3 em { font-style: italic; color: var(--cm-peri); }
+  .tool-desc { font-size: 13.5px; color: var(--cm-ivory-dim); line-height: 1.5; flex: 1; }
+  .tool-open { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--cm-peri); margin-top: 2px; }
   footer { padding: 48px 0 40px; background: var(--cm-header); color: rgba(241,237,228,0.6); font-size: 13px; border-top: 1px solid rgba(241,237,228,0.10); }
   footer .wordmark { color: var(--cm-header-ink); }
   footer a { color: rgba(241,237,228,0.6); }
@@ -242,6 +252,41 @@
         <div class="results-meta" id="results-meta"></div>
       </div>
       <div class="results-grid" id="results-grid"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">Explore the <em>data</em></h2>
+        <span class="section-sub">Four interactive tools · built on closed sales</span>
+      </div>
+      <div class="tool-grid">
+        <a class="tool-card" href="/intelligence/building-comparison.html">
+          <div class="tool-kicker">Compare</div>
+          <h3>Building <em>vs</em> building</h3>
+          <div class="tool-desc">Stack up to four buildings on $/ft, median price, sale velocity, supply, and owner equity.</div>
+          <div class="tool-open">Open →</div>
+        </a>
+        <a class="tool-card" href="/intelligence/price-per-foot-map.html">
+          <div class="tool-kicker">Map</div>
+          <h3>$/foot <em>map</em></h3>
+          <div class="tool-desc">Every building shaded by price per foot. Toggle building, block, and neighborhood — price or YoY change.</div>
+          <div class="tool-open">Open →</div>
+        </a>
+        <a class="tool-card" href="/intelligence/neighborhood-supply-demand.html">
+          <div class="tool-kicker">Demand</div>
+          <h3>Supply &amp; <em>demand</em></h3>
+          <div class="tool-desc">A demand quadrant — price momentum against turnover — placing every neighborhood on the map.</div>
+          <div class="tool-open">Open →</div>
+        </a>
+        <a class="tool-card" href="/intelligence/unit-comparison.html">
+          <div class="tool-kicker">Comps</div>
+          <h3>Unit <em>comps</em></h3>
+          <div class="tool-desc">703 closings on one chart. Filter by beds and area, read the market line, pin units to compare.</div>
+          <div class="tool-open">Open →</div>
+        </a>
+      </div>
     </div>
   </section>
 
