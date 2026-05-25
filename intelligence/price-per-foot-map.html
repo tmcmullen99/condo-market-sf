@@ -2,371 +2,1074 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>$/Foot Map — Condo Market SF Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market intelligence · Condo Market SF</title>
+<meta name="description" content="Search every San Francisco condo — ten years of sale history, citywide $/sf trend, live activity, owner tenure, and per-unit detail.">
+<link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
-  :root{
-    --navy:#f4f5f8; --card:#ffffff; --card-lift:#eef1f6;
-    --ivory:#1f2430; --ivory-dim:rgba(31,36,48,.62); --ivory-faint:rgba(31,36,48,.42);
-    --bronze:#9c6b2e; --peri:#5f77b4; --gain:#4f7a39; --loss:#b8472f; --amber:#b07d22;
-    --rule:rgba(31,36,48,.10); --rule-soft:rgba(31,36,48,.06);
-    --ff-display:'Playfair Display',Georgia,serif;
-    --ff-mono:'JetBrains Mono',ui-monospace,monospace;
-    --ff-body:'DM Sans',-apple-system,Segoe UI,sans-serif;
+  :root {
+    --cm-navy: #ffffff; --cm-navy-deep: #f4f5f8; --cm-peri: #9fb4d8;
+    --cm-peri-dim: rgba(159,180,216,0.18);
+    --cm-ivory: #1f2430; --cm-ivory-dim: rgba(31,36,48,0.56);
+    --cm-rule: rgba(31,36,48,0.10);
+    --cm-bronze: #9c6b2e; --cm-rust: #b8472f; --cm-gain: #4f7a39;
+    --cm-card: #ffffff; --cm-header: #0f131d; --cm-header-ink: #f1ede4;
+    --cm-shadow: 0 1px 2px rgba(31,36,48,0.04), 0 8px 24px rgba(31,36,48,0.06);
+    --ff-display: 'Playfair Display', Georgia, serif;
+    --ff-body: 'DM Sans', -apple-system, sans-serif;
+    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --page-max: 1280px;
+    --gutter: clamp(20px, 4vw, 56px);
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--navy);color:var(--ivory);font-family:var(--ff-body);line-height:1.5;-webkit-font-smoothing:antialiased;
-    background-image:radial-gradient(1100px 560px at 78% -12%, rgba(159,180,216,.06), transparent 60%),
-                     radial-gradient(820px 460px at 4% 112%, rgba(212,165,116,.05), transparent 55%);}
-  .wrap{max-width:1280px;margin:0 auto;padding:34px 26px 90px}
-  .eyebrow{font-family:var(--ff-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--bronze);margin-bottom:10px}
-  h1{font-family:var(--ff-display);font-weight:600;font-size:clamp(30px,4.2vw,46px);line-height:1.04;letter-spacing:-.01em}
-  h1 em{font-style:italic;color:var(--peri);font-weight:500}
-  .sub{color:var(--ivory-dim);font-size:15px;margin-top:10px;max-width:64ch}
-
-  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:26px 0 18px}
-  .seg{display:inline-flex;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:3px;gap:2px}
-  .seg button{background:none;border:none;color:var(--ivory-dim);font-family:var(--ff-mono);font-size:11.5px;letter-spacing:.06em;
-    text-transform:uppercase;padding:8px 14px;border-radius:7px;cursor:pointer;transition:.14s}
-  .seg button.on{background:var(--peri);color:var(--navy);font-weight:500}
-  .seg button:not(.on):hover{color:var(--ivory)}
-  .seg.sub button.on{background:var(--bronze)}
-  .ctl-lab{font-family:var(--ff-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ivory-faint);margin-right:2px}
-  #change-seg{display:none}
-
-  .stage{display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start;margin-top:6px}
-  .mapcard{position:relative;background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
-  svg{display:block;width:100%;height:auto}
-  .water-label{font-family:var(--ff-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;fill:rgba(159,180,216,.34)}
-  .hood-label{font-family:var(--ff-mono);font-size:11px;letter-spacing:.04em;fill:var(--ivory);text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:rgba(15,19,29,.7);stroke-width:3px}
-  .node{cursor:pointer;transition:opacity .15s}
-  .node circle{transition:transform .15s, stroke .15s}
-  .node:hover circle{stroke:var(--ivory);stroke-width:1.6}
-  .dim{opacity:.18}
-
-  /* legend */
-  .legend{position:absolute;left:18px;bottom:16px;background:rgba(15,19,29,.74);backdrop-filter:blur(4px);
-    border:1px solid var(--rule);border-radius:10px;padding:12px 14px;font-family:var(--ff-mono)}
-  .legend .lab{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ivory-faint);margin-bottom:8px}
-  .legend .ramp{height:9px;width:188px;border-radius:5px}
-  .legend .ends{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ivory-dim);margin-top:6px}
-
-  /* tooltip */
-  .tip{position:fixed;pointer-events:none;z-index:30;background:rgba(255,255,255,.98);border:1px solid var(--rule);
-    border-radius:10px;padding:11px 14px;min-width:172px;opacity:0;transform:translateY(4px);transition:opacity .12s;box-shadow:0 14px 40px rgba(0,0,0,.5)}
-  .tip.show{opacity:1;transform:none}
-  .tip .t-nm{font-family:var(--ff-display);font-size:16px;font-weight:500}
-  .tip .t-hd{font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bronze);margin:3px 0 9px}
-  .tip .t-psf{font-family:var(--ff-display);font-style:italic;font-size:26px;color:var(--ivory);line-height:1}
-  .tip .t-psf small{font-family:var(--ff-mono);font-style:normal;font-size:11px;color:var(--ivory-faint);letter-spacing:.04em}
-  .tip .t-rows{margin-top:9px;display:grid;gap:3px}
-  .tip .t-row{display:flex;justify-content:space-between;gap:16px;font-family:var(--ff-mono);font-size:11.5px}
-  .tip .t-row span{color:var(--ivory-faint)} .tip .t-row b{font-weight:500;color:var(--ivory)}
-  .up{color:var(--gain)!important} .down{color:var(--loss)!important}
-
-  /* ranking panel */
-  .panel{background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
-  .panel-head{padding:15px 18px 12px;border-bottom:1px solid var(--rule-soft)}
-  .panel-head h3{font-family:var(--ff-display);font-size:18px;font-weight:500}
-  .panel-head .ps{font-family:var(--ff-mono);font-size:10.5px;color:var(--ivory-faint);letter-spacing:.04em;margin-top:3px}
-  .hrow{padding:11px 18px;border-bottom:1px solid var(--rule-soft);cursor:default;transition:background .12s}
-  .hrow:last-child{border-bottom:0}
-  .hrow:hover{background:var(--card-lift)}
-  .hrow .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-  .hrow .hn{font-size:14px;font-weight:500}
-  .hrow .hp{font-family:var(--ff-mono);font-size:13px;color:var(--bronze)}
-  .hrow .meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
-  .hrow .chg{font-family:var(--ff-mono);font-size:11px;font-weight:500}
-  .hrow .nn{font-family:var(--ff-mono);font-size:10px;color:var(--ivory-faint)}
-  .hbar{height:5px;background:rgba(232,227,216,.08);border-radius:4px;margin-top:8px;overflow:hidden}
-  .hbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--peri),var(--bronze));width:0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
-
-  .foot{margin-top:20px;font-size:11.5px;color:var(--ivory-faint);font-family:var(--ff-mono);letter-spacing:.02em;line-height:1.7;max-width:96ch}
-  .foot b{color:var(--bronze);font-weight:500}
-  @media(max-width:920px){ .stage{grid-template-columns:1fr} }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--cm-navy-deep); color: var(--cm-ivory); font-family: var(--ff-body); font-weight: 300; line-height: 1.55; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.02 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1; mix-blend-mode: multiply; opacity: 0.4; }
+  main { position: relative; z-index: 2; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
+  .masthead { padding: 22px 0; border-bottom: 1px solid rgba(241,237,228,0.10); position: relative; z-index: 10; background: var(--cm-header); }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+  .wordmark em { color: var(--cm-peri); }
+  .masthead .wordmark { color: var(--cm-header-ink); }
+  .masthead .wordmark em { color: var(--cm-peri); }
+  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(241,237,228,0.62); display: flex; gap: 22px; align-items: center; }
+  .nav-meta a { color: rgba(241,237,228,0.62); transition: color 0.15s; }
+  .nav-meta a:hover { color: var(--cm-header-ink); }
+  .nav-meta a.active { color: var(--cm-peri); }
+  .signin-btn { color: var(--cm-header-ink) !important; border: 1px solid rgba(241,237,228,0.22); padding: 7px 14px; border-radius: 999px; }
+  .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
+  .search-hero { padding: 64px 0 48px; }
+  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 20px; text-align: center; }
+  .hero-h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.015em; text-align: center; margin-bottom: 36px; color: var(--cm-ivory); }
+  .hero-h1 em { font-style: italic; color: var(--cm-peri); }
+  .search-shell { position: relative; max-width: 760px; margin: 0 auto 28px; }
+  .search-input { width: 100%; padding: 22px 60px 22px 56px; font-size: 18px; font-family: var(--ff-body); font-weight: 400; background: var(--cm-card); color: var(--cm-ivory); border: 1px solid var(--cm-rule); border-radius: 999px; box-shadow: var(--cm-shadow); transition: border-color .15s, background .15s; }
+  .search-input::placeholder { color: var(--cm-ivory-dim); font-weight: 300; }
+  .search-input:focus { outline: none; border-color: var(--cm-peri); background: #fff; }
+  .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--cm-ivory-dim); pointer-events: none; }
+  .search-status { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .search-clear { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: var(--cm-rule); color: var(--cm-ivory); border: none; cursor: pointer; font-size: 16px; display: none; align-items: center; justify-content: center; }
+  .search-clear.show { display: flex; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--cm-rule); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; max-width: 980px; margin: 0 auto; box-shadow: var(--cm-shadow); }
+  .kpi-tile { background: var(--cm-card); padding: 18px 20px; text-align: center; }
+  .kpi-val { font-family: var(--ff-display); font-weight: 500; font-size: 22px; color: var(--cm-ivory); line-height: 1.1; letter-spacing: -0.01em; }
+  .kpi-label { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 4px; }
+  @media (max-width: 760px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  .section { padding: 72px 0; border-bottom: 1px solid var(--cm-rule); }
+  .section-head { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 16px; }
+  .section-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; color: var(--cm-ivory); }
+  .section-title em { font-style: italic; color: var(--cm-peri); }
+  .section-sub { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .search-results { padding: 48px 0 72px; border-bottom: 1px solid var(--cm-rule); display: none; }
+  .search-results.active { display: block; }
+  .results-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+  .results-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); }
+  .results-title strong { color: var(--cm-peri); font-style: normal; font-weight: 500; }
+  .results-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .result-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; cursor: pointer; box-shadow: var(--cm-shadow); transition: border-color .15s, transform .15s; }
+  .result-card:hover { border-color: var(--cm-peri); transform: translateY(-2px); }
+  .result-addr { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 18px; color: var(--cm-ivory); margin-bottom: 4px; }
+  .result-addr-unit { color: var(--cm-peri); font-style: normal; font-weight: 400; font-size: 15px; margin-left: 6px; }
+  .result-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 14px; }
+  .result-stats { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory); }
+  .result-stat-label { color: var(--cm-ivory-dim); margin-right: 4px; }
+  .results-empty { text-align: center; padding: 40px 20px; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); font-size: 18px; }
+  .heatmap-shell { position: relative; }
+  .heatmap-toggle { display: inline-flex; margin-bottom: 18px; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; background: var(--cm-card); box-shadow: var(--cm-shadow); }
+  .heatmap-toggle button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; transition: all .15s; }
+  .heatmap-toggle button.on { background: var(--cm-peri); color: #14181f; }
+  #heatmap { height: 540px; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-rule); background: #e7eaef; box-shadow: var(--cm-shadow); }
+  .leaflet-container { background: #e7eaef !important; font-family: var(--ff-body) !important; }
+  .leaflet-popup-content-wrapper { background: var(--cm-card) !important; color: var(--cm-ivory) !important; border-radius: 8px !important; border: 1px solid var(--cm-rule); box-shadow: var(--cm-shadow); }
+  .leaflet-popup-tip { background: var(--cm-card) !important; }
+  .leaflet-popup-content { font-family: var(--ff-body); font-size: 13px; margin: 12px 14px !important; }
+  .leaflet-popup-content strong { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 16px; color: var(--cm-ivory); display: block; margin-bottom: 4px; }
+  .leaflet-popup-content .pop-stat { font-family: var(--ff-mono); font-size: 11px; color: #5a73a8; margin-top: 6px; }
+  .leaflet-popup-content .pop-link { display: inline-block; margin-top: 8px; padding: 5px 12px; background: var(--cm-peri); color: #14181f; border-radius: 999px; font-size: 11px; font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .leaflet-control-attribution { background: rgba(255,255,255,0.8) !important; color: var(--cm-ivory-dim) !important; }
+  .leaflet-control-attribution a { color: #5a73a8 !important; }
+  .heatmap-legend { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .legend-bar { display: inline-block; width: 180px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--cm-peri), var(--cm-bronze), var(--cm-rust)); }
+  .timeline-shell { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 32px; box-shadow: var(--cm-shadow); }
+  .timeline-toggle { margin-bottom: 22px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .timeline-period { display: inline-flex; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; }
+  .timeline-period button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; }
+  .timeline-period button.on { background: var(--cm-peri); color: #14181f; }
+  .timeline-canvas-wrap { position: relative; height: 320px; }
+  .timeline-bookends { display: flex; justify-content: space-between; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
+  .bookend-date { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 4px; }
+  .bookend-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
+  .bookend-r { text-align: right; }
+  .activity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .activity-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; box-shadow: var(--cm-shadow); transition: transform .15s ease, box-shadow .15s ease, border-color .15s; cursor: pointer; display: flex; flex-direction: column; }
+  .activity-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(31,36,48,0.14); border-color: var(--cm-peri); }
+  .activity-img-wrap { position: relative; width: 100%; height: 140px; background: #e7eaef; overflow: hidden; }
+  .activity-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+  .activity-card:hover .activity-img { transform: scale(1.04); }
+  .activity-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eef0f4, #e2e6ee); color: #5a73a8; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .activity-body { padding: 16px 18px 18px; }
+  .activity-addr { font-family: var(--ff-body); font-weight: 600; font-size: 16px; color: #1f2430; line-height: 1.3; margin-bottom: 4px; letter-spacing: -0.005em; }
+  .activity-addr-unit { color: #5a73a8; margin-left: 6px; font-weight: 500; }
+  .activity-bldg { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; margin-bottom: 14px; }
+  .activity-row { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--ff-mono); font-size: 12px; padding: 5px 0; border-top: 1px solid #ececf1; }
+  .activity-row:first-of-type { border-top: none; padding-top: 8px; }
+  .activity-row span:first-child { color: #6b7280; letter-spacing: 0.04em; text-transform: uppercase; font-size: 10px; }
+  .activity-row span:last-child { color: #1f2430; font-weight: 500; }
+  .activity-row.price span:last-child { color: #1f2430; font-weight: 600; font-size: 13px; }
+  .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .rank-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 26px; box-shadow: var(--cm-shadow); }
+  .rank-card h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 4px; }
+  .rank-card .sub { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 18px; }
+  .rank-list { list-style: none; }
+  .rank-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--cm-rule); gap: 12px; }
+  .rank-list li:last-child { border-bottom: none; }
+  .rank-n { font-family: var(--ff-mono); font-size: 11px; color: #5a73a8; }
+  .rank-name { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); }
+  .rank-name a { text-decoration: none; color: inherit; }
+  .rank-name a:hover { color: #5a73a8; }
+  .rank-val { font-family: var(--ff-mono); font-size: 13px; color: #5a73a8; }
+  .cta-strip { padding: 64px 0; background: var(--cm-card); border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); text-align: center; }
+  .cta-strip h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); margin-bottom: 14px; color: var(--cm-ivory); }
+  .cta-strip h2 em { font-style: italic; color: var(--cm-peri); }
+  .cta-strip p { color: var(--cm-ivory-dim); max-width: 52ch; margin: 0 auto 26px; }
+  .btn-p { display: inline-block; background: var(--cm-header); color: var(--cm-header-ink); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; }
+  .btn-p:hover { opacity: 0.9; }
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(31,36,48,0.35); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .detail-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 92vw); background: var(--cm-card); border-left: 1px solid var(--cm-rule); z-index: 101; transform: translateX(100%); transition: transform .25s ease-out; overflow-y: auto; box-shadow: -8px 0 40px rgba(31,36,48,0.12); }
+  .detail-drawer.open { transform: translateX(0); }
+  .drawer-head { padding: 24px 28px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .drawer-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); line-height: 1.2; }
+  .drawer-title-unit { color: #5a73a8; }
+  .drawer-bldg { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 6px; }
+  .drawer-close { width: 36px; height: 36px; border-radius: 50%; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); color: var(--cm-ivory); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .drawer-body { padding: 24px 28px; }
+  .drawer-mini-canvas { height: 180px; margin-bottom: 24px; }
+  .drawer-history-table { width: 100%; border-collapse: collapse; font-family: var(--ff-mono); font-size: 12.5px; }
+  .drawer-history-table th { text-align: left; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 10px 0; border-bottom: 1px solid var(--cm-rule); font-weight: 500; }
+  .drawer-history-table td { padding: 12px 0; border-bottom: 1px solid var(--cm-rule); color: var(--cm-ivory); }
+  .drawer-history-table td:last-child, .drawer-history-table th:last-child { text-align: right; color: #5a73a8; }
+  .drawer-loading { text-align: center; padding: 60px 0; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); }
+  .drawer-bldg-link { display: inline-block; margin-top: 20px; padding: 10px 20px; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 999px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory); }
+  .drawer-bldg-link:hover { border-color: var(--cm-peri); color: #5a73a8; }
+  .tool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  @media (max-width: 880px) { .tool-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .tool-grid { grid-template-columns: 1fr; } }
+  .tool-card { display: flex; flex-direction: column; gap: 9px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 20px; box-shadow: var(--cm-shadow); transition: transform 0.16s, border-color 0.16s; min-height: 172px; }
+  .tool-card:hover { transform: translateY(-3px); border-color: var(--cm-peri); }
+  .tool-kicker { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-bronze); }
+  .tool-card h3 { font-family: var(--ff-display); font-weight: 500; font-size: 21px; line-height: 1.1; }
+  .tool-card h3 em { font-style: italic; color: var(--cm-peri); }
+  .tool-desc { font-size: 13.5px; color: var(--cm-ivory-dim); line-height: 1.5; flex: 1; }
+  .tool-open { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--cm-peri); margin-top: 2px; }
+  footer { padding: 48px 0 40px; background: var(--cm-header); color: rgba(241,237,228,0.6); font-size: 13px; border-top: 1px solid rgba(241,237,228,0.10); }
+  footer .wordmark { color: var(--cm-header-ink); }
+  footer a { color: rgba(241,237,228,0.6); }
+  footer a:hover { color: var(--cm-header-ink); }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+  footer h5 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-header-ink); margin-bottom: 14px; font-weight: 500; }
+  footer ul { list-style: none; }
+  footer li { padding: 4px 0; }
+  .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid rgba(241,237,228,0.10); font-size: 12px; opacity: 0.7; text-align: center; }
+  .skel { display: inline-block; background: rgba(31,36,48,0.08); border-radius: 4px; height: 1em; min-width: 60px; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+  /* ── Building comparison + owner tenure ── */
+  .cmp-shell { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; box-shadow: var(--cm-shadow); overflow: hidden; }
+  .cmp-toolbar { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--cm-rule); }
+  .cmp-sorts { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; }
+  .cmp-sorts button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 13px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; transition: all .15s; }
+  .cmp-sorts button.on { background: var(--cm-peri); color: #14181f; }
+  .cmp-filter { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory); background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 999px; padding: 9px 16px; cursor: pointer; }
+  .cmp-filter:focus { outline: none; border-color: var(--cm-peri); }
+  .cmp-scroll { overflow-x: auto; }
+  .cmp-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  .cmp-table th { text-align: right; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 14px 18px; border-bottom: 1px solid var(--cm-rule); font-weight: 500; white-space: nowrap; }
+  .cmp-table th:first-child, .cmp-table th:nth-child(2) { text-align: left; }
+  .cmp-table td { padding: 13px 18px; border-bottom: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 13px; color: var(--cm-ivory); text-align: right; white-space: nowrap; }
+  .cmp-table tbody tr:last-child td { border-bottom: none; }
+  .cmp-table tbody tr { transition: background .12s; }
+  .cmp-table tbody tr:hover { background: var(--cm-peri-dim); }
+  .cmp-name { text-align: left !important; font-family: var(--ff-display) !important; font-style: italic; font-size: 16px !important; }
+  .cmp-name a:hover { color: #5a73a8; }
+  .cmp-hood { text-align: left !important; color: var(--cm-ivory-dim); font-size: 11px !important; letter-spacing: 0.06em; text-transform: uppercase; }
+  .cmp-bar-wrap { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .cmp-bar { width: 46px; height: 6px; border-radius: 3px; background: var(--cm-rule); overflow: hidden; }
+  .cmp-bar > i { display: block; height: 100%; background: var(--cm-peri); }
+  .cmp-dim { color: var(--cm-ivory-dim); }
+  .cmp-count { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 16px 24px; }
+  .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: var(--cm-ivory-dim); }
+</style>
+<style>
+  .workbench-wrap { display: grid; grid-template-columns: minmax(0,1fr) 332px; gap: 24px; align-items: start; }
+  @media (max-width: 980px) { .workbench-wrap { grid-template-columns: 1fr; } }
+  .wb-tabs { display: flex; flex-wrap: nowrap; gap: 4px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .wb-tabs::-webkit-scrollbar { height: 0; }
+  .wb-tabs button { background: none; border: 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 9px 15px; border-radius: 8px; cursor: pointer; transition: 0.15s; white-space: nowrap; flex: 0 0 auto; }
+  .wb-tabs button.on { background: var(--cm-peri); color: #14181f; }
+  .wb-tabs button:not(.on):hover { color: var(--cm-ivory); }
+  .wb-panel { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; }
+  .wb-frame { display: none; width: 100%; min-height: 480px; border: 0; background: var(--cm-card); }
+  .wb-frame.on { display: block; }
+  @media (max-width: 980px) { .wb-frame { min-height: 420px; } }
+  .wb-feed { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; position: sticky; top: 18px; }
+  .wb-feed-head { padding: 15px 18px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: baseline; }
+  .wb-feed-head h3 { font-family: var(--ff-display); font-weight: 500; font-size: 19px; } .wb-feed-head h3 em { font-style: italic; color: var(--cm-peri); }
+  .wb-feed-head span { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .wb-feed-list { max-height: 736px; overflow-y: auto; }
+  .activity-grid { display: flex; flex-direction: column; }
+  .feed-row { padding: 12px 18px; border-bottom: 1px solid var(--cm-rule); cursor: pointer; transition: background 0.12s; }
+  .feed-row:last-child { border-bottom: 0; }
+  .feed-row:hover { background: #f5f6f9; }
+  .feed-row-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .feed-addr { font-family: var(--ff-body); font-weight: 500; font-size: 13.5px; color: var(--cm-ivory); }
+  .feed-unit { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-peri); margin-left: 5px; }
+  .feed-price { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); white-space: nowrap; }
+  .feed-row-bot { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; }
+  .feed-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .feed-meta { font-family: var(--ff-mono); font-size: 10.5px; color: var(--cm-ivory-faint); white-space: nowrap; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="eyebrow">Condo Market SF · Intelligence</div>
-  <h1>Price per foot, <em>mapped</em></h1>
-  <p class="sub">Where the money is, block by block. Every catalogued building plotted by location and shaded by its trailing-12-month price per square foot — then rolled up to blocks and neighborhoods, with a year-over-year change view.</p>
-
-  <div class="controls">
-    <span class="ctl-lab">Granularity</span>
-    <div class="seg" id="gran-seg">
-      <button data-m="building" class="on">Buildings</button>
-      <button data-m="block">Blocks</button>
-      <button data-m="hood">Neighborhoods</button>
-    </div>
-    <div class="seg sub" id="change-seg">
-      <button data-c="price" class="on">Price $/ft</button>
-      <button data-c="change">YoY change</button>
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <nav class="nav-meta">
+        <a href="/buildings/">Buildings</a>
+        <a href="/intelligence/" class="active">Intelligence</a>
+        <a href="/how-it-works/">How it works</a>
+        <a href="/refer/">Refer</a>
+        <a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>
+      </nav>
     </div>
   </div>
+</header>
 
-  <div class="stage">
-    <div class="mapcard">
-      <svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="$/foot map of San Francisco condo buildings"></svg>
-      <div class="legend">
-        <div class="lab" id="leg-lab">Price per foot</div>
-        <div class="ramp" id="leg-ramp"></div>
-        <div class="ends"><span id="leg-lo">$600</span><span id="leg-hi">$2,650</span></div>
+<main>
+  <section class="search-hero">
+    <div class="wrap">
+      <div class="hero-kicker">Market Intelligence</div>
+      <h1 class="hero-h1">Search every <em>condo</em>. Every sale. Every owner tenure.</h1>
+      <div class="search-shell">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search any address, building, or neighborhood…">
+        <button id="search-clear" class="search-clear" type="button" aria-label="Clear search">×</button>
+        <span id="search-status" class="search-status"></span>
+      </div>
+      <div class="kpi-strip" id="kpi-strip">
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Median $/sf</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Units indexed</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Sales · 10y</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Volume · 10y</div></div>
+        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Latest sale</div></div>
       </div>
     </div>
+  </section>
 
-    <aside class="panel">
-      <div class="panel-head"><h3>Neighborhood $/ft</h3><div class="ps">median · 12mo vs prior yr</div></div>
-      <div id="hood-rank"></div>
-    </aside>
+  <section class="search-results" id="search-results">
+    <div class="wrap">
+      <div class="results-head">
+        <div class="results-title" id="results-title">Results</div>
+        <div class="results-meta" id="results-meta"></div>
+      </div>
+      <div class="results-grid" id="results-grid"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">The <em>workbench</em></h2>
+        <span class="section-sub">Toggle the view · every tool built on closed sales</span>
+      </div>
+      <div class="workbench-wrap">
+        <div class="wb-main">
+          <div class="wb-tabs" id="wb-tabs" role="tablist">
+            <button data-f="price-per-foot-map" class="on">$/Foot map</button>
+            <button data-f="building-comparison">Compare buildings</button>
+            <button data-f="neighborhood-supply-demand">Supply &amp; demand</button>
+            <button data-f="unit-comparison">Unit comps</button>
+          </div>
+          <div class="wb-panel" id="wb-panel">
+            <iframe class="wb-frame on" data-f="price-per-foot-map" title="$/foot map" loading="lazy"></iframe>
+            <iframe class="wb-frame" data-f="building-comparison" title="Building comparison" loading="lazy"></iframe>
+            <iframe class="wb-frame" data-f="neighborhood-supply-demand" title="Supply and demand" loading="lazy"></iframe>
+            <iframe class="wb-frame" data-f="unit-comparison" title="Unit comparison" loading="lazy"></iframe>
+          </div>
+        </div>
+        <aside class="wb-feed">
+          <div class="wb-feed-head"><h3>Live <em>activity</em></h3><span>Recent sales</span></div>
+          <div class="wb-feed-list"><div class="activity-grid" id="activity-grid"></div></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">How prices have <em>moved</em></h2>
+        <span class="section-sub">Citywide median $/sf, by quarter</span>
+      </div>
+      <div class="timeline-shell">
+        <div class="timeline-toggle">
+          <div class="timeline-period" id="timeline-period">
+            <button data-range="1">1y</button>
+            <button data-range="3">3y</button>
+            <button class="on" data-range="10">10y</button>
+          </div>
+        </div>
+        <div class="timeline-canvas-wrap">
+          <canvas id="timeline-chart"></canvas>
+        </div>
+        <div class="timeline-bookends">
+          <div>
+            <div class="bookend-date" id="bookend-start-date">--</div>
+            <div class="bookend-val" id="bookend-start">--</div>
+          </div>
+          <div class="bookend-r">
+            <div class="bookend-date" id="bookend-end-date">--</div>
+            <div class="bookend-val" id="bookend-end">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <section class="cta-strip">
+    <div class="wrap">
+      <h2>Want <em>unit-level</em> history?</h2>
+      <p>Free account unlocks per-unit sale history, owner tenure, and offer notifications for any building in San Francisco.</p>
+      <a class="btn-p" href="#signup" data-cm-auth="signup">Create a free account →</a>
+    </div>
+  </section>
+</main>
+
+<aside class="drawer-backdrop" id="drawer-backdrop"></aside>
+<aside class="detail-drawer" id="detail-drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-title" id="drawer-title">Loading…</div>
+      <div class="drawer-bldg" id="drawer-bldg"></div>
+    </div>
+    <button class="drawer-close" id="drawer-close" aria-label="Close detail panel">×</button>
   </div>
-
-  <div class="foot">
-    <b>$/foot</b> normalizes price across unit sizes — the cleanest cross-location yardstick. <b>Blocks</b> cluster nearby buildings (~one city block); <b>neighborhoods</b> roll up median $/ft from raw closings. <b>YoY change</b> compares the trailing 12 months to the 12 before it: right now <b>Marina +37%</b> and <b>Pacific Heights −19%</b> are the standout moves. Dot size = sales volume (liquidity). Demo data embedded; production reads live from <b>building_sales</b> + <b>v_building_market_stats</b>.
+  <div class="drawer-body" id="drawer-body">
+    <div class="drawer-loading">Loading…</div>
   </div>
-</div>
+</aside>
 
-<div class="tip" id="tip"></div>
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
+        <p style="max-width:42ch;">A private exchange for every condo in San Francisco.</p>
+      </div>
+      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/refer/">Refer</a></li></ul></div>
+      <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
+      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
+    </div>
+    <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-const B = [
-{name:"The Pacific",hood:"Pacific Heights",lat:37.79180,lng:-122.43410,psf:2646,median:4995000,sold12:5},
-{name:"Royal Towers",hood:"North Beach",lat:37.80180,lng:-122.41280,psf:2404,median:8750000,sold12:1},
-{name:"The Summit",hood:"North Beach",lat:37.79840,lng:-122.41680,psf:2059,median:2472500,sold12:4},
-{name:"181 Fremont",hood:"SoMa",lat:37.78950,lng:-122.39640,psf:1918,median:3562500,sold12:10},
-{name:"The Belvedere",hood:"Cow Hollow",lat:37.79850,lng:-122.42400,psf:1875,median:3150000,sold12:2},
-{name:"Green Hill Tower",hood:"North Beach",lat:37.79830,lng:-122.41660,psf:1856,median:2350000,sold12:2},
-{name:"The Amero",hood:"Marina",lat:37.79970,lng:-122.42160,psf:1720,median:2810000,sold12:1},
-{name:"The Avery",hood:"SoMa",lat:37.78590,lng:-122.39510,psf:1662,median:2554000,sold12:18},
-{name:"Broadway Towers",hood:"Nob Hill",lat:37.79620,lng:-122.43020,psf:1634,median:1637500,sold12:2},
-{name:"2200 Sacramento",hood:"Pacific Heights",lat:37.78990,lng:-122.43220,psf:1627,median:1460000,sold12:7},
-{name:"MIRA",hood:"SoMa",lat:37.79050,lng:-122.39200,psf:1620,median:2100000,sold12:1},
-{name:"The Crescent",hood:"Chinatown",lat:37.79200,lng:-122.41060,psf:1578,median:2075000,sold12:1},
-{name:"Arden",hood:"Mission Bay",lat:37.77220,lng:-122.39050,psf:1498,median:1802500,sold12:20},
-{name:"1645 Pacific",hood:"Nob Hill",lat:37.79520,lng:-122.42250,psf:1441,median:1675000,sold12:3},
-{name:"Union House",hood:"Marina",lat:37.79800,lng:-122.42450,psf:1420,median:2525000,sold12:3},
-{name:"Murano",hood:"Marina",lat:37.80090,lng:-122.44100,psf:1413,median:1524000,sold12:2},
-{name:"Maison Au Pont",hood:"Marina",lat:37.79970,lng:-122.44320,psf:1386,median:775000,sold12:1},
-{name:"Lumina",hood:"SoMa",lat:37.78730,lng:-122.39200,psf:1357,median:1625000,sold12:37},
-{name:"480 Mission Bay Blvd N",hood:"Mission Bay",lat:37.77080,lng:-122.38950,psf:1327,median:2550000,sold12:2},
-{name:"1598 Bay",hood:"Marina",lat:37.80330,lng:-122.42950,psf:1277,median:1000000,sold12:1},
-{name:"The Knox",hood:"SoMa",lat:37.75750,lng:-122.39070,psf:1272,median:1150000,sold12:3},
-{name:"The Rockwell",hood:"Nob Hill",lat:37.78980,lng:-122.42260,psf:1268,median:1050000,sold12:7},
-{name:"72 Townsend St",hood:"Mission Bay",lat:37.78220,lng:-122.39020,psf:1263,median:1525000,sold12:4},
-{name:"388 Fulton",hood:"Civic Center",lat:37.77780,lng:-122.42620,psf:1255,median:655000,sold12:4},
-{name:"950 Tennessee",hood:"SoMa",lat:37.75860,lng:-122.38950,psf:1247,median:1350000,sold12:1},
-{name:"Laguna Hayes",hood:"Civic Center",lat:37.77610,lng:-122.42580,psf:1246,median:1650000,sold12:1},
-{name:"The Harrison",hood:"SoMa",lat:37.78590,lng:-122.39210,psf:1240,median:1198000,sold12:15},
-{name:"300 Ivy",hood:"Civic Center",lat:37.77750,lng:-122.42590,psf:1231,median:1097500,sold12:2},
-{name:"One Mission Bay",hood:"Mission Bay",lat:37.77580,lng:-122.39000,psf:1228,median:1320000,sold12:19},
-{name:"One Rincon Hill",hood:"SoMa",lat:37.78620,lng:-122.39300,psf:1221,median:1198000,sold12:23},
-{name:"420 Mission Bay Blvd N",hood:"Mission Bay",lat:37.77150,lng:-122.39000,psf:1220,median:1525000,sold12:7},
-{name:"The Brannan",hood:"SoMa",lat:37.78240,lng:-122.39240,psf:1217,median:1750000,sold12:13},
-{name:"766 Harrison St",hood:"Mission Bay",lat:37.78180,lng:-122.40120,psf:1203,median:320000,sold12:2},
-{name:"The Marlow",hood:"Nob Hill",lat:37.79200,lng:-122.42260,psf:1203,median:1149000,sold12:3},
-{name:"1200 California",hood:"Nob Hill",lat:37.79170,lng:-122.41480,psf:1191,median:1985000,sold12:2},
-{name:"88 Arkansas St",hood:"Mission Bay",lat:37.76380,lng:-122.40080,psf:1187,median:960000,sold12:1},
-{name:"Four Seasons Residences",hood:"SoMa",lat:37.79050,lng:-122.39900,psf:1186,median:3512500,sold12:2},
-{name:"2200 Pacific",hood:"Pacific Heights",lat:37.79440,lng:-122.43530,psf:1185,median:1459000,sold12:5},
-{name:"450 Hayes",hood:"Civic Center",lat:37.77690,lng:-122.42330,psf:1179,median:925000,sold12:3},
-{name:"The Metropolitan",hood:"SoMa",lat:37.78680,lng:-122.39400,psf:1171,median:1567500,sold12:3},
-{name:"The Hayes",hood:"Civic Center",lat:37.77300,lng:-122.42250,psf:1168,median:927500,sold12:8},
-{name:"Madrone",hood:"Mission Bay",lat:37.77230,lng:-122.38960,psf:1154,median:1330000,sold12:6},
-{name:"The Infinity",hood:"SoMa",lat:37.79060,lng:-122.39040,psf:1152,median:1218000,sold12:3},
-{name:"Bellaire Tower",hood:"Nob Hill",lat:37.79850,lng:-122.41780,psf:1131,median:1039500,sold12:2},
-{name:"88 King St",hood:"Mission Bay",lat:37.78050,lng:-122.38950,psf:1111,median:1240000,sold12:19},
-{name:"Marina Chateau",hood:"Marina",lat:37.80160,lng:-122.42430,psf:1100,median:605000,sold12:3},
-{name:"Park Terrace",hood:"Mission Bay",lat:37.77660,lng:-122.39330,psf:1096,median:1489000,sold12:3},
-{name:"Clay Jones",hood:"Nob Hill",lat:37.79220,lng:-122.41600,psf:1095,median:1315000,sold12:5},
-{name:"325 China Basin St",hood:"Mission Bay",lat:37.77420,lng:-122.39020,psf:1074,median:1457500,sold12:2},
-{name:"1150 Lombard",hood:"Nob Hill",lat:37.80180,lng:-122.42060,psf:1068,median:1425000,sold12:1},
-{name:"300 Berry St",hood:"Mission Bay",lat:37.77580,lng:-122.39250,psf:1062,median:887750,sold12:8},
-{name:"Linea",hood:"Civic Center",lat:37.77060,lng:-122.42670,psf:1048,median:920750,sold12:8},
-{name:"ClockTower",hood:"SoMa",lat:37.78200,lng:-122.39550,psf:1032,median:1182500,sold12:2},
-{name:"235 Berry",hood:"Mission Bay",lat:37.77640,lng:-122.39250,psf:1030,median:1180000,sold12:4},
-{name:"325 Berry",hood:"Mission Bay",lat:37.77570,lng:-122.39120,psf:1006,median:850000,sold12:3},
-{name:"The Rowan",hood:"SoMa",lat:37.76580,lng:-122.40820,psf:998,median:840000,sold12:3},
-{name:"Jackson Towers",hood:"Nob Hill",lat:37.79530,lng:-122.42430,psf:995,median:975000,sold12:3},
-{name:"1001 17th St",hood:"Mission Bay",lat:37.76520,lng:-122.39920,psf:975,median:800000,sold12:3},
-{name:"555 4th St",hood:"Mission Bay",lat:37.77850,lng:-122.39850,psf:949,median:664000,sold12:16},
-{name:"177 Townsend St",hood:"Mission Bay",lat:37.77930,lng:-122.39420,psf:946,median:635000,sold12:4},
-{name:"Parc Telegraph",hood:"Financial District",lat:37.80240,lng:-122.40560,psf:924,median:885000,sold12:5},
-{name:"250 King St",hood:"Mission Bay",lat:37.77620,lng:-122.39220,psf:909,median:754250,sold12:12},
-{name:"200 Brannan",hood:"SoMa",lat:37.78300,lng:-122.39240,psf:906,median:1225000,sold12:6},
-{name:"170 Off Third",hood:"SoMa",lat:37.77850,lng:-122.39420,psf:906,median:899000,sold12:5},
-{name:"Watermark",hood:"SoMa",lat:37.78980,lng:-122.39030,psf:896,median:680000,sold12:1},
-{name:"The Comstock",hood:"Nob Hill",lat:37.79320,lng:-122.41650,psf:893,median:1677216,sold12:4},
-{name:"Millennium Tower",hood:"SoMa",lat:37.79010,lng:-122.39730,psf:876,median:1104000,sold12:20},
-{name:"175 Bluxome St",hood:"Mission Bay",lat:37.77600,lng:-122.39920,psf:858,median:765000,sold12:6},
-{name:"260 King St",hood:"Mission Bay",lat:37.77700,lng:-122.39150,psf:835,median:640000,sold12:21},
-{name:"200 Townsend St",hood:"Mission Bay",lat:37.77950,lng:-122.39380,psf:792,median:695000,sold12:2},
-{name:"207 King St",hood:"Mission Bay",lat:37.77780,lng:-122.38980,psf:776,median:1300000,sold12:1},
-{name:"1 Bluxome St",hood:"Mission Bay",lat:37.77700,lng:-122.39700,psf:719,median:1138000,sold12:2},
-{name:"1188 Valencia",hood:"Mission",lat:37.75510,lng:-122.42120,psf:653,median:421750,sold12:2},
-{name:"601 4th St",hood:"Mission Bay",lat:37.77730,lng:-122.39580,psf:604,median:1069500,sold12:2}
-];
-const HOODS = [
-{hood:"North Beach",psf:1789,prior:1599,n:6},
-{hood:"Pacific Heights",psf:1398,prior:1733,n:17},
-{hood:"Marina",psf:1386,prior:1012,n:11},
-{hood:"SoMa",psf:1192,prior:1142,n:166},
-{hood:"Nob Hill",psf:1156,prior:1174,n:32},
-{hood:"Civic Center",psf:1145,prior:1100,n:26},
-{hood:"Mission Bay",psf:1023,prior:986,n:134},
-{hood:"Financial District",psf:884,prior:878,n:5}
-];
+(() => {
+  'use strict';
 
-const svg = document.getElementById('map'), tip = document.getElementById('tip');
-const VW=1000, VH=720;
-const lats=B.map(b=>b.lat), lngs=B.map(b=>b.lng);
-const latMin=Math.min(...lats),latMax=Math.max(...lats),lngMin=Math.min(...lngs),lngMax=Math.max(...lngs);
-const cosL=Math.cos(37.78*Math.PI/180);
-const padX=(lngMax-lngMin)*0.10, padY=(latMax-latMin)*0.10;
-// fit projected aspect into viewBox
-const realW=(lngMax-lngMin+2*padX)*cosL, realH=(latMax-latMin+2*padY);
-const scale=Math.min(VW/realW, VH/realH);
-const offX=(VW-realW*scale)/2, offY=(VH-realH*scale)/2;
-function proj(lat,lng){
-  const x=offX + (((lng-(lngMin-padX))*cosL))*scale;
-  const y=offY + (((latMax+padY)-lat))*scale;
-  return [x,y];
-}
-const PSF_LO=600, PSF_HI=2200;
-function lerp(a,b,t){return a+(b-a)*t}
-function hx(c){return c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('')}
-function rgb(s){return [parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)]}
-function mix(c1,c2,t){const a=rgb(c1),b=rgb(c2);return '#'+hx([lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)])}
-function psfColor(p){
-  const t=Math.max(0,Math.min(1,(p-PSF_LO)/(PSF_HI-PSF_LO)));
-  return t<0.5 ? mix('#46577d','#d4a574',t/0.5) : mix('#d4a574','#a9651f',(t-0.5)/0.5);
-}
-function chgColor(pct){
-  if(pct>=0){const t=Math.min(1,pct/30);return mix('#6c7384','#84d9a0',t);}
-  const t=Math.min(1,-pct/30);return mix('#6c7384','#c97865',t);
-}
-function rad(sold,base){return base + Math.sqrt(sold)*2.0}
-const fmtK=n=>n>=1e6?"$"+(n/1e6).toFixed(2).replace(/\.?0+$/,'')+"M":"$"+Math.round(n/1000)+"K";
-const NS='http://www.w3.org/2000/svg';
-function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e}
+  const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
-let mode='building', cmode='price';
-
-function clear(){while(svg.firstChild)svg.removeChild(svg.firstChild)}
-
-function drawBase(){
-  // subtle bay gradient (east + south = water) for orientation
-  const defs=el('defs',{});
-  defs.innerHTML=`<linearGradient id="bay" x1="0" y1="0" x2="1" y2="0.5">
-    <stop offset="0%" stop-color="rgba(159,180,216,0)"/><stop offset="78%" stop-color="rgba(159,180,216,0)"/>
-    <stop offset="100%" stop-color="rgba(159,180,216,0.10)"/></linearGradient>`;
-  svg.appendChild(defs);
-  svg.appendChild(el('rect',{x:0,y:0,width:VW,height:VH,fill:'url(#bay)'}));
-  const wl=el('text',{x:VW-16,y:VH-22,class:'water-label','text-anchor':'end'});wl.textContent='↑ Bay  ·  East';svg.appendChild(wl);
-}
-
-function tipFor(html,e){ tip.innerHTML=html; tip.classList.add('show'); moveTip(e); }
-function moveTip(e){ const r=16; let x=e.clientX+r,y=e.clientY+r;
-  const w=tip.offsetWidth,h=tip.offsetHeight;
-  if(x+w>innerWidth)x=e.clientX-w-r; if(y+h>innerHeight)y=e.clientY-h-r; tip.style.left=x+'px';tip.style.top=y+'px'; }
-function hideTip(){tip.classList.remove('show')}
-
-function nodeEl(cx,cy,r,fill,html){
-  const g=el('g',{class:'node'});
-  g.appendChild(el('circle',{cx,cy,r,fill,'fill-opacity':0.86,stroke:'rgba(15,19,29,.55)','stroke-width':1}));
-  g.addEventListener('mousemove',e=>tipFor(html,e));
-  g.addEventListener('mouseleave',hideTip);
-  return g;
-}
-
-function render(){
-  clear(); drawBase();
-  document.getElementById('change-seg').style.display = mode==='hood' ? 'inline-flex' : 'none';
-  const usingChange = (mode==='hood' && cmode==='change');
-
-  // legend
-  if(usingChange){
-    document.getElementById('leg-lab').textContent='YoY change';
-    document.getElementById('leg-ramp').style.background='linear-gradient(90deg,#c97865,#6c7384,#84d9a0)';
-    document.getElementById('leg-lo').textContent='−30%';
-    document.getElementById('leg-hi').textContent='+30%';
-  } else {
-    document.getElementById('leg-lab').textContent='Price per foot';
-    document.getElementById('leg-ramp').style.background='linear-gradient(90deg,#46577d,#d4a574,#a9651f)';
-    document.getElementById('leg-lo').textContent='$600'; document.getElementById('leg-hi').textContent='$2,200+';
+  async function rpc(name, body) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(body || {})
+    });
+    if (!r.ok) throw new Error(`rpc ${name} ${r.status}`);
+    return r.json();
   }
 
-  if(mode==='building'){
-    [...B].sort((a,b)=>a.psf-b.psf).forEach(b=>{
-      const [x,y]=proj(b.lat,b.lng);
-      svg.appendChild(nodeEl(x,y,rad(b.sold12,4),psfColor(b.psf),
-        `<div class="t-nm">${b.name}</div><div class="t-hd">${b.hood}</div>
-         <div class="t-psf">$${b.psf.toLocaleString()}<small>/ft</small></div>
-         <div class="t-rows"><div class="t-row"><span>Median</span><b>${fmtK(b.median)}</b></div>
-         <div class="t-row"><span>Sold 12mo</span><b>${b.sold12}</b></div></div>`));
+  const fmtMoney = n => '$' + Math.round(n).toLocaleString();
+  const fmtMoneyShort = n => {
+    if (!n && n !== 0) return '—';
+    if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + Math.round(n/1e3) + 'K';
+    return '$' + n;
+  };
+  const fmtDate = d => {
+    if (!d) return '—';
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  const fmtDateShort = d => {
+    if (!d) return '—';
+    const dt = new Date(d + 'T00:00:00');
+    return (dt.getMonth()+1) + '/' + dt.getDate();
+  };
+  const buildingName = (slug, buildings) => {
+    const b = buildings.find(x => (x.href || '').split('/').pop() === slug);
+    return b ? b.name : slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  // Load buildings.json once and cache
+  let _buildings = null;
+  async function getBuildings() {
+    if (_buildings) return _buildings;
+    const r = await fetch('/assets/buildings.json');
+    _buildings = await r.json();
+    return _buildings;
+  }
+
+  // ───────── KPI strip ─────────
+  async function loadKPIs() {
+    try {
+      const [agg] = await rpc('homepage_aggregates');
+      const tiles = document.querySelectorAll('#kpi-strip .kpi-val');
+      tiles[0].textContent = '$' + agg.median_psf_36mo.toLocaleString();
+      tiles[0].classList.remove('skel');
+      tiles[1].textContent = agg.total_units.toLocaleString();
+      tiles[1].classList.remove('skel');
+      tiles[2].textContent = agg.sales_last_10y.toLocaleString();
+      tiles[2].classList.remove('skel');
+      tiles[3].textContent = fmtMoneyShort(agg.total_volume_10y);
+      tiles[3].classList.remove('skel');
+      tiles[4].textContent = fmtDate(agg.most_recent_sale_date);
+      tiles[4].classList.remove('skel');
+      try {
+        const _bs = await getBuildings();
+        const _hoods = new Set(_bs.map(b => b.hood).filter(Boolean)).size;
+        const _si = document.getElementById('search-input');
+        if (_si) _si.placeholder = 'Search ' + agg.total_units.toLocaleString() + ' units · ' + agg.buildings_with_data.toLocaleString() + ' buildings · ' + _hoods + ' neighborhoods…';
+      } catch (e2) {}
+    } catch (e) { console.warn('KPI load failed', e); }
+  }
+
+  // ───────── Search ─────────
+  let searchTimer = null;
+  let searchSeq = 0;
+  const $input = document.getElementById('search-input');
+  const $clear = document.getElementById('search-clear');
+  const $status = document.getElementById('search-status');
+  const $results = document.getElementById('search-results');
+  const $resultsGrid = document.getElementById('results-grid');
+  const $resultsTitle = document.getElementById('results-title');
+  const $resultsMeta = document.getElementById('results-meta');
+
+  $input.addEventListener('input', () => {
+    const q = $input.value.trim();
+    $clear.classList.toggle('show', q.length > 0);
+    if (searchTimer) clearTimeout(searchTimer);
+    if (q.length === 0) {
+      $results.classList.remove('active');
+      $status.textContent = '';
+      return;
+    }
+    if (q.length < 2) {
+      $status.textContent = 'keep typing';
+      return;
+    }
+    $status.textContent = 'searching…';
+    searchTimer = setTimeout(() => doSearch(q), 220);
+  });
+
+  $clear.addEventListener('click', () => {
+    $input.value = '';
+    $clear.classList.remove('show');
+    $results.classList.remove('active');
+    $status.textContent = '';
+    $input.focus();
+  });
+
+  async function doSearch(q) {
+    const seq = ++searchSeq;
+    try {
+      const [rows, buildings] = await Promise.all([
+        rpc('intelligence_search', { q, p_limit: 30 }),
+        getBuildings()
+      ]);
+      if (seq !== searchSeq) return;
+      $resultsTitle.innerHTML = `Results for <strong>"${escapeHtml(q)}"</strong>`;
+      $resultsMeta.textContent = rows.length + (rows.length === 1 ? ' match' : ' matches');
+      $status.textContent = '';
+      if (rows.length === 0) {
+        $resultsGrid.innerHTML = '<div class="results-empty">No matches. Try a partial address or building name.</div>';
+      } else {
+        $resultsGrid.innerHTML = rows.map(r => renderResult(r, buildings)).join('');
+        document.querySelectorAll('.result-card').forEach(card => {
+          card.addEventListener('click', () => {
+            openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
+          });
+        });
+      }
+      $results.classList.add('active');
+    } catch (e) {
+      $status.textContent = 'search failed';
+      console.warn('search failed', e);
+    }
+  }
+
+  function renderResult(r, buildings) {
+    const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
+    return `
+      <div class="result-card" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
+        <div class="result-addr">${escapeHtml(r.unit_address)}${r.unit_label ? ` <span class="result-addr-unit">${escapeHtml(r.unit_label)}</span>` : ''}</div>
+        <div class="result-bldg">${escapeHtml(buildingName(r.building_slug, buildings))}</div>
+        <div class="result-stats">
+          ${r.sale_price ? `<span><span class="result-stat-label">last</span>${fmtMoneyShort(r.sale_price)}</span>` : ''}
+          ${psf ? `<span><span class="result-stat-label">$/sf</span>$${psf.toLocaleString()}</span>` : ''}
+          ${r.sale_date ? `<span><span class="result-stat-label">date</span>${fmtDate(r.sale_date)}</span>` : ''}
+          ${r.sqft ? `<span><span class="result-stat-label">sqft</span>${r.sqft.toLocaleString()}</span>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // ───────── Heatmap ─────────
+  let map = null;
+  let buildingMarkers = [];
+  let buildingCardMap = null;
+  let currentMetric = 'psf';
+  let cachedBuildings = null;
+
+  function colorForMetric(value, min, max) {
+    if (value == null || max <= min) return '#9fb4d8';
+    const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
+    // peri (#9fb4d8) → bronze (#d4a574) → rust (#c95742)
+    if (t < 0.5) {
+      const k = t * 2;
+      return lerpColor([0x9f, 0xb4, 0xd8], [0xd4, 0xa5, 0x74], k);
+    } else {
+      const k = (t - 0.5) * 2;
+      return lerpColor([0xd4, 0xa5, 0x74], [0xc9, 0x57, 0x42], k);
+    }
+  }
+  function lerpColor(a, b, t) {
+    const r = Math.round(a[0] + (b[0] - a[0]) * t);
+    const g = Math.round(a[1] + (b[1] - a[1]) * t);
+    const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  async function initHeatmap() {
+    try {
+      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
+      cachedBuildings = buildings;
+      buildingCardMap = new Map(cards.map(c => [c.building_slug, c]));
+
+      map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true })
+            .setView([37.778, -122.404], 13);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        subdomains: 'abcd', maxZoom: 19,
+        attribution: '© OpenStreetMap, © CartoDB'
+      }).addTo(map);
+
+      drawMarkers();
+    } catch (e) {
+      console.warn('heatmap init failed', e);
+      document.getElementById('heatmap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-style:italic;">Heatmap could not load.</div>';
+    }
+  }
+
+  function drawMarkers() {
+    if (!map || !cachedBuildings) return;
+    buildingMarkers.forEach(m => map.removeLayer(m));
+    buildingMarkers = [];
+
+    // Compute min/max for the active metric
+    const valuesByBldg = new Map();
+    cachedBuildings.forEach(b => {
+      const slug = (b.href || '').split('/').pop();
+      const card = buildingCardMap.get(slug);
+      if (!card) return;
+      let v = null;
+      if (currentMetric === 'psf') v = card.median_psf_36mo;
+      else if (currentMetric === 'volume') v = (card.most_recent_sale_price || 0) * (card.sales_36mo || 0); // rough total
+      else if (currentMetric === 'velocity') v = card.sales_36mo;
+      if (v != null) valuesByBldg.set(slug, v);
     });
-  } else if(mode==='block'){
-    const cl={};
-    B.forEach(b=>{const k=b.lat.toFixed(3)+','+b.lng.toFixed(3);(cl[k]=cl[k]||[]).push(b);});
-    Object.values(cl).map(arr=>{
-      const sold=arr.reduce((s,b)=>s+b.sold12,0);
-      const wpsf=Math.round(arr.reduce((s,b)=>s+b.psf*b.sold12,0)/Math.max(1,sold));
-      const lat=arr.reduce((s,b)=>s+b.lat,0)/arr.length, lng=arr.reduce((s,b)=>s+b.lng,0)/arr.length;
-      return {arr,sold,wpsf,lat,lng};
-    }).sort((a,b)=>a.wpsf-b.wpsf).forEach(c=>{
-      const [x,y]=proj(c.lat,c.lng);
-      svg.appendChild(nodeEl(x,y,rad(c.sold,7),psfColor(c.wpsf),
-        `<div class="t-nm">Block · ${c.arr[0].hood}</div><div class="t-hd">${c.arr.length} building${c.arr.length>1?'s':''}</div>
-         <div class="t-psf">$${c.wpsf.toLocaleString()}<small>/ft avg</small></div>
-         <div class="t-rows"><div class="t-row"><span>Sold 12mo</span><b>${c.sold}</b></div>
-         <div class="t-row"><span>Buildings</span><b>${c.arr.map(b=>b.name).slice(0,3).join(', ')}${c.arr.length>3?'…':''}</b></div></div>`));
-    });
-  } else { // hood
-    const cents={};
-    B.forEach(b=>{(cents[b.hood]=cents[b.hood]||{lat:0,lng:0,n:0}); cents[b.hood].lat+=b.lat;cents[b.hood].lng+=b.lng;cents[b.hood].n++;});
-    HOODS.forEach(h=>{
-      const c=cents[h.hood]; if(!c)return;
-      const [x,y]=proj(c.lat/c.n,c.lng/c.n);
-      const pct=((h.psf-h.prior)/h.prior*100);
-      const fill=usingChange?chgColor(pct):psfColor(h.psf);
-      const r=10+Math.sqrt(h.n)*1.7;
-      svg.appendChild(nodeEl(x,y,r,fill,
-        `<div class="t-nm">${h.hood}</div><div class="t-hd">${h.n} sales · 12mo</div>
-         <div class="t-psf">$${h.psf.toLocaleString()}<small>/ft median</small></div>
-         <div class="t-rows"><div class="t-row"><span>YoY</span><b class="${pct>=0?'up':'down'}">${pct>=0?'+':''}${pct.toFixed(1)}%</b></div>
-         <div class="t-row"><span>Prior yr</span><b>$${h.prior.toLocaleString()}</b></div></div>`));
-      const tx=el('text',{x,y:y-r-7,class:'hood-label'});tx.textContent=h.hood;svg.appendChild(tx);
+    const vals = [...valuesByBldg.values()].filter(v => v != null);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+
+    // Update legend labels
+    const legendLow = document.getElementById('legend-low');
+    const legendHigh = document.getElementById('legend-high');
+    if (currentMetric === 'psf') {
+      legendLow.textContent = '$' + Math.round(min).toLocaleString() + '/sf';
+      legendHigh.textContent = '$' + Math.round(max).toLocaleString() + '/sf';
+    } else if (currentMetric === 'volume') {
+      legendLow.textContent = fmtMoneyShort(min);
+      legendHigh.textContent = fmtMoneyShort(max);
+    } else {
+      legendLow.textContent = Math.round(min) + ' sales';
+      legendHigh.textContent = Math.round(max) + ' sales';
+    }
+
+    cachedBuildings.forEach(b => {
+      const slug = (b.href || '').split('/').pop();
+      const card = buildingCardMap.get(slug);
+      if (!card || !b.lat || !b.lng) return;
+      const v = valuesByBldg.get(slug);
+      const sales = card.sales_36mo || 0;
+      const radius = 6 + Math.sqrt(sales) * 0.9;
+      const color = colorForMetric(v, min, max);
+
+      const marker = L.circleMarker([b.lat, b.lng], {
+        radius, fillColor: color, color: '#f6f2ea',
+        weight: 1, opacity: 1, fillOpacity: 0.85
+      }).addTo(map);
+
+      const psf = card.median_psf_36mo ? '$' + card.median_psf_36mo.toLocaleString() + '/sf' : '—';
+      const lastPrice = card.most_recent_sale_price ? fmtMoneyShort(card.most_recent_sale_price) : '—';
+      const lastDate = card.most_recent_sale_date ? fmtDate(card.most_recent_sale_date) : '—';
+      marker.bindPopup(`
+        <strong>${escapeHtml(b.name)}</strong>
+        <div>${escapeHtml(b.hood || '')} · ${b.units || '?'} units · built ${b.year || '—'}</div>
+        <div class="pop-stat">${psf} · ${sales} sales (3y)</div>
+        <div class="pop-stat">Last sale: ${lastPrice} on ${lastDate}</div>
+        <a class="pop-link" href="${b.href}/">View building →</a>
+      `);
+      buildingMarkers.push(marker);
     });
   }
-}
 
-function renderRank(){
-  const max=Math.max(...HOODS.map(h=>h.psf));
-  document.getElementById('hood-rank').innerHTML = HOODS.map(h=>{
-    const pct=((h.psf-h.prior)/h.prior*100);
-    return `<div class="hrow">
-      <div class="top"><span class="hn">${h.hood}</span><span class="hp">$${h.psf.toLocaleString()}/ft</span></div>
-      <div class="hbar"><i data-w="${Math.round(h.psf/max*100)}"></i></div>
-      <div class="meta"><span class="chg ${pct>=0?'up':'down'}">${pct>=0?'▲ +':'▼ '}${pct.toFixed(1)}% YoY</span><span class="nn">${h.n} sales</span></div>
-    </div>`;
-  }).join("");
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    document.querySelectorAll('.hbar i').forEach(b=>b.style.width=b.getAttribute('data-w')+'%');
-  }));
-}
+  document.querySelectorAll('#heatmap-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#heatmap-toggle button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      currentMetric = btn.dataset.metric;
+      drawMarkers();
+    });
+  });
 
-document.querySelectorAll('#gran-seg button').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('#gran-seg button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); mode=btn.getAttribute('data-m'); render();
-}));
-document.querySelectorAll('#change-seg button').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('#change-seg button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); cmode=btn.getAttribute('data-c'); render();
-}));
+  // ───────── Timeline ─────────
+  let timelineChart = null;
+  let allQuarters = [];
 
-render(); renderRank();
+  async function initTimeline() {
+    try {
+      allQuarters = await rpc('intelligence_psf_quarterly');
+      drawTimeline(10);
+    } catch (e) {
+      console.warn('timeline failed', e);
+    }
+  }
+
+  function drawTimeline(years) {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - years);
+    const filtered = allQuarters.filter(q => new Date(q.quarter_start + 'T00:00:00') >= cutoff);
+    if (filtered.length === 0) return;
+
+    const labels = filtered.map(q => {
+      const d = new Date(q.quarter_start + 'T00:00:00');
+      const qNum = Math.floor(d.getMonth() / 3) + 1;
+      return `Q${qNum} ${d.getFullYear()}`;
+    });
+    const data = filtered.map(q => q.median_psf);
+
+    const ctx = document.getElementById('timeline-chart');
+    if (timelineChart) timelineChart.destroy();
+    timelineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Median $/sf',
+          data,
+          borderColor: '#4863a0',
+          backgroundColor: 'rgba(72,99,160,0.10)',
+          borderWidth: 2,
+          tension: 0.32,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#9fb4d8',
+          pointHoverBorderColor: '#f6f2ea'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1f2e',
+            borderColor: 'rgba(232,227,216,0.14)', borderWidth: 1,
+            titleColor: '#e8e3d8', bodyColor: '#9fb4d8',
+            titleFont: { family: 'JetBrains Mono', size: 11 },
+            bodyFont: { family: 'JetBrains Mono', size: 13 },
+            padding: 12, displayColors: false,
+            callbacks: {
+              label: ctx => '$' + ctx.parsed.y.toLocaleString() + '/sf'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(31,36,48,0.08)' },
+            ticks: {
+              color: 'rgba(31,36,48,0.55)',
+              font: { family: 'JetBrains Mono', size: 10 },
+              maxRotation: 0, autoSkip: true, autoSkipPadding: 24
+            }
+          },
+          y: {
+            grid: { color: 'rgba(31,36,48,0.08)' },
+            ticks: {
+              color: 'rgba(31,36,48,0.55)',
+              font: { family: 'JetBrains Mono', size: 10 },
+              callback: v => '$' + v.toLocaleString()
+            }
+          }
+        }
+      }
+    });
+
+    // Bookends
+    const first = filtered[0];
+    const last = filtered[filtered.length - 1];
+    document.getElementById('bookend-start-date').textContent = labels[0];
+    document.getElementById('bookend-end-date').textContent = labels[labels.length - 1];
+    document.getElementById('bookend-start').textContent = '$' + first.median_psf.toLocaleString() + '/sf';
+    document.getElementById('bookend-end').textContent = '$' + last.median_psf.toLocaleString() + '/sf';
+  }
+
+  document.querySelectorAll('#timeline-period button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#timeline-period button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      drawTimeline(parseInt(btn.dataset.range, 10));
+    });
+  });
+
+  // ───────── Live activity ─────────
+  async function loadActivity() {
+    try {
+      const [rows, buildings] = await Promise.all([
+        rpc('intelligence_recent_sales', { p_limit: 18 }),
+        getBuildings()
+      ]);
+      // Index buildings by slug so we can resolve image + name in O(1)
+      const bldgBySlug = new Map();
+      buildings.forEach(b => {
+        const slug = (b.href || '').replace(/\/$/, '').split('/').pop();
+        if (slug) bldgBySlug.set(slug, b);
+      });
+      const grid = document.getElementById('activity-grid');
+      grid.innerHTML = rows.map(r => {
+        const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
+        const bldg = bldgBySlug.get(r.building_slug);
+        const bldgName = bldg ? bldg.name : r.building_slug;
+        return `
+          <div class="feed-row" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
+            <div class="feed-row-top">
+              <span class="feed-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="feed-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span>
+              <span class="feed-price">${fmtMoneyShort(r.sale_price)}</span>
+            </div>
+            <div class="feed-row-bot">
+              <span class="feed-bldg">${escapeHtml(bldgName)}</span>
+              <span class="feed-meta">${psf ? '$' + psf.toLocaleString() + '/sf' : ''}${r.sqft ? ' · ' + r.sqft.toLocaleString() + ' sf' : ''} · ${fmtDateShort(r.sale_date)}</span>
+            </div>
+          </div>`;
+      }).join('');
+      grid.querySelectorAll('.feed-row').forEach(card => {
+        card.addEventListener('click', () => {
+          openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
+        });
+      });
+    } catch (e) { console.warn('activity load failed', e); }
+  }
+
+  // ───────── Rankings ─────────
+  async function loadRankings() {
+    try {
+      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
+      const cardBySlug = new Map(cards.map(c => [c.building_slug, c]));
+
+      // Join card data into buildings
+      const enriched = buildings.map(b => {
+        const slug = (b.href || '').split('/').pop();
+        const c = cardBySlug.get(slug) || {};
+        return {
+          ...b, slug,
+          median_psf_36mo: c.median_psf_36mo,
+          sales_36mo: c.sales_36mo,
+          most_recent_sale_date: c.most_recent_sale_date,
+          year_built_mode: c.year_built_mode,
+          unit_count: c.unit_count
+        };
+      }).filter(b => b.slug);
+
+      const byPsf = [...enriched].filter(b => b.median_psf_36mo).sort((a,b) => b.median_psf_36mo - a.median_psf_36mo).slice(0, 5);
+      const byTraded = [...enriched].filter(b => b.sales_36mo != null).sort((a,b) => (b.sales_36mo||0) - (a.sales_36mo||0)).slice(0, 5);
+      const byUnits = [...enriched].filter(b => b.unit_count || b.units).sort((a,b) => (b.unit_count||b.units||0) - (a.unit_count||a.units||0)).slice(0, 5);
+      const newest = [...enriched].filter(b => b.year_built_mode || b.year).sort((a,b) => (b.year_built_mode||b.year||0) - (a.year_built_mode||a.year||0)).slice(0, 5);
+
+      function card(title, sub, rows, formatVal) {
+        return `
+          <div class="rank-card">
+            <h3>${title}</h3>
+            <div class="sub">${sub}</div>
+            <ul class="rank-list">
+              ${rows.map((b, i) => `
+                <li>
+                  <span class="rank-n">0${i+1}</span>
+                  <span class="rank-name"><a href="${b.href}/">${escapeHtml(b.name)}</a></span>
+                  <span class="rank-val">${formatVal(b)}</span>
+                </li>`).join('')}
+            </ul>
+          </div>`;
+      }
+      document.getElementById('rank-grid').innerHTML = [
+        card('Highest $/sf', 'Median, last 36 months', byPsf, b => '$' + b.median_psf_36mo.toLocaleString()),
+        card('Most traded', 'Sales · last 36 months', byTraded, b => (b.sales_36mo||0).toLocaleString()),
+        card('Largest towers', 'By total unit count', byUnits, b => (b.unit_count || b.units || 0).toLocaleString() + ' units'),
+        card('Newest', 'By year completed', newest, b => (b.year_built_mode || b.year || '—'))
+      ].join('');
+    } catch (e) { console.warn('rankings failed', e); }
+  }
+
+  // ───────── Detail drawer ─────────
+  let drawerChart = null;
+  const $drawer = document.getElementById('detail-drawer');
+  const $backdrop = document.getElementById('drawer-backdrop');
+  const $drawerClose = document.getElementById('drawer-close');
+  const $drawerTitle = document.getElementById('drawer-title');
+  const $drawerBldg = document.getElementById('drawer-bldg');
+  const $drawerBody = document.getElementById('drawer-body');
+
+  async function openDrawer(address, label, slug, buildings) {
+    $drawer.classList.add('open');
+    $backdrop.classList.add('open');
+    $drawer.setAttribute('aria-hidden', 'false');
+    $drawerTitle.innerHTML = escapeHtml(address) + (label ? ` <span class="drawer-title-unit">${escapeHtml(label)}</span>` : '');
+    $drawerBldg.textContent = buildingName(slug, buildings);
+    $drawerBody.innerHTML = '<div class="drawer-loading">Loading sale history…</div>';
+
+    try {
+      const rows = await rpc('intelligence_unit_history', { p_address: address, p_label: label || null });
+      if (rows.length === 0) {
+        $drawerBody.innerHTML = '<div class="drawer-loading">No recorded sales for this unit.</div>';
+        return;
+      }
+      const sorted = [...rows].sort((a,b) => new Date(a.sale_date) - new Date(b.sale_date));
+      const tableRows = [...rows].sort((a,b) => new Date(b.sale_date) - new Date(a.sale_date));
+
+      $drawerBody.innerHTML = `
+        <div class="drawer-mini-canvas"><canvas id="drawer-chart"></canvas></div>
+        <table class="drawer-history-table">
+          <thead><tr><th>Date</th><th>Price</th><th>$/sf</th></tr></thead>
+          <tbody>
+            ${tableRows.map(r => {
+              const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
+              return `<tr>
+                <td>${fmtDate(r.sale_date)}</td>
+                <td>${fmtMoneyShort(r.sale_price)}</td>
+                <td>${psf ? '$' + psf.toLocaleString() : '—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        ${sorted[0].sqft ? `<div style="margin-top:18px;font-family:var(--ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${sorted[0].sqft.toLocaleString()} sqft${sorted[0].beds ? ` · ${sorted[0].beds} bed` : ''}${sorted[0].baths_total ? ` · ${sorted[0].baths_total} bath` : ''}</div>` : ''}
+        <a class="drawer-bldg-link" href="/buildings/">View ${escapeHtml(buildingName(slug, buildings))} →</a>
+      `;
+
+      if (sorted.length > 1) {
+        if (drawerChart) drawerChart.destroy();
+        const ctx = document.getElementById('drawer-chart');
+        drawerChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: sorted.map(r => fmtDate(r.sale_date)),
+            datasets: [{
+              label: 'Sale price',
+              data: sorted.map(r => r.sale_price),
+              borderColor: '#9fb4d8',
+              backgroundColor: 'rgba(72,99,160,0.12)',
+              borderWidth: 2, tension: 0.2, fill: true,
+              pointRadius: 4, pointBackgroundColor: '#9fb4d8', pointBorderColor: '#f6f2ea'
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: {
+              callbacks: { label: c => fmtMoneyShort(c.parsed.y) }
+            } },
+            scales: {
+              x: { ticks: { color: 'rgba(31,36,48,0.55)', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(31,36,48,0.08)' } },
+              y: { ticks: { color: 'rgba(31,36,48,0.55)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtMoneyShort(v) }, grid: { color: 'rgba(31,36,48,0.08)' } }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      $drawerBody.innerHTML = '<div class="drawer-loading">Could not load history.</div>';
+      console.warn('drawer load failed', e);
+    }
+  }
+
+  function closeDrawer() {
+    $drawer.classList.remove('open');
+    $backdrop.classList.remove('open');
+    $drawer.setAttribute('aria-hidden', 'true');
+    if (drawerChart) { drawerChart.destroy(); drawerChart = null; }
+  }
+  $drawerClose.addEventListener('click', closeDrawer);
+  $backdrop.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $drawer.classList.contains('open')) closeDrawer(); });
+
+  // ───────── Helpers ─────────
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  // ───────── Building comparison + owner tenure ─────────
+  let cmpRows = [];
+  let cmpSort = 'psf';
+  let cmpHood = '';
+
+  async function loadComparison() {
+    try {
+      const [stats, tenure] = await Promise.all([
+        rpc('intelligence_building_stats', { p_window_months: 36 }),
+        rpc('intelligence_owner_tenure', {})
+      ]);
+      const tenureBySlug = new Map(tenure.map(t => [t.building_slug, t]));
+      cmpRows = stats.map(s => {
+        const t = tenureBySlug.get(s.slug) || null;
+        const turnover = (s.unit_count && s.sales != null) ? (s.sales / s.unit_count) * 100 : null;
+        const hasTenure = t && t.units_measured >= 10;
+        return {
+          slug: s.slug,
+          name: s.display_name || s.slug,
+          hood: s.neighborhood || '',
+          psf: s.median_psf != null ? Number(s.median_psf) : null,
+          sales: s.sales != null ? Number(s.sales) : 0,
+          turnover,
+          tenure: hasTenure ? Number(t.median_years_held) : null,
+          held7: hasTenure ? Number(t.pct_held_7y_plus) : null
+        };
+      });
+      const hoods = [...new Set(cmpRows.map(r => r.hood).filter(Boolean))].sort();
+      const sel = document.getElementById('cmp-filter');
+      sel.innerHTML = '<option value="">All districts</option>' +
+        hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
+      renderComparison();
+    } catch (e) {
+      document.getElementById('cmp-body').innerHTML = '<tr><td colspan="7" class="cmp-empty">Comparison data could not load.</td></tr>';
+      console.warn('comparison load failed', e);
+    }
+  }
+
+  function renderComparison() {
+    const rows = (cmpHood ? cmpRows.filter(r => r.hood === cmpHood) : [...cmpRows]);
+    const getVal = r => r[cmpSort];
+    rows.sort((a, b) => {
+      const av = getVal(a), bv = getVal(b);
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;   // nulls sort last
+      if (bv == null) return -1;
+      return bv - av;             // descending
+    });
+    const maxHeld7 = Math.max(1, ...rows.map(r => r.held7 || 0));
+    const body = document.getElementById('cmp-body');
+    if (rows.length === 0) {
+      body.innerHTML = '<tr><td colspan="7" class="cmp-empty">No buildings in this district.</td></tr>';
+    } else {
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td class="cmp-name"><a href="/buildings/${escapeAttr(r.slug)}/">${escapeHtml(r.name)}</a></td>
+          <td class="cmp-hood">${r.hood ? escapeHtml(r.hood) : '—'}</td>
+          <td>${r.psf != null ? '$' + r.psf.toLocaleString() : '<span class="cmp-dim">—</span>'}</td>
+          <td>${r.sales ? r.sales.toLocaleString() : '<span class="cmp-dim">0</span>'}</td>
+          <td>${r.turnover != null ? r.turnover.toFixed(0) + '%' : '<span class="cmp-dim">—</span>'}</td>
+          <td>${r.tenure != null ? r.tenure.toFixed(1) + ' yr' : '<span class="cmp-dim">—</span>'}</td>
+          <td>${r.held7 != null
+                ? `<span class="cmp-bar-wrap"><span class="cmp-bar"><i style="width:${Math.round((r.held7 / maxHeld7) * 100)}%"></i></span>${r.held7.toFixed(0)}%</span>`
+                : '<span class="cmp-dim">—</span>'}</td>
+        </tr>`).join('');
+    }
+    document.getElementById('cmp-count').textContent =
+      rows.length + (rows.length === 1 ? ' building' : ' buildings') + (cmpHood ? ` · ${cmpHood}` : '');
+  }
+
+  // building comparison, rankings, and heatmap now live in the workbench tools
+
+  // ───────── Boot ─────────
+  loadKPIs();
+  initTimeline();
+  loadActivity();
+})();
+</script>
+<script>
+(function () {
+  var base = '/intelligence/';
+  function fit(fr) {
+    if (!fr || !fr.classList.contains('on')) return;
+    try {
+      var d = fr.contentDocument;
+      if (d && d.body) {
+        var h = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight);
+        if (h > 200 && Math.abs((parseInt(fr.style.height) || 0) - h) > 2) fr.style.height = h + 'px';
+      }
+    } catch (e) {}
+  }
+  function wake(fr) {
+    try { fr.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+    setTimeout(function () { fit(fr); }, 140);
+  }
+  function mount(f) {
+    var fr = document.querySelector('.wb-frame[data-f="' + f + '"]');
+    if (!fr) return;
+    if (!fr.getAttribute('src')) {
+      fr.addEventListener('load', function () {
+        fit(fr);
+        try { var ro = new ResizeObserver(function () { fit(fr); }); ro.observe(fr.contentDocument.body); } catch (e) {}
+        wake(fr);
+      });
+      fr.setAttribute('src', base + f + '.html');
+    } else {
+      wake(fr);
+    }
+  }
+  var tabs = document.getElementById('wb-tabs');
+  if (tabs) {
+    tabs.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var f = b.dataset.f;
+        tabs.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        document.querySelectorAll('.wb-frame').forEach(function (fr) { fr.classList.toggle('on', fr.dataset.f === f); });
+        mount(f);
+      });
+    });
+    mount('price-per-foot-map');
+    window.addEventListener('resize', function () { var on = document.querySelector('.wb-frame.on'); if (on) fit(on); });
+  }
+})();
 </script>
 </body>
 </html>
