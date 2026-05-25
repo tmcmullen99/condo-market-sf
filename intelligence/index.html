@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Market intelligence · Condo Market SF</title>
-<meta name="description" content="Search every San Francisco condo. 5,082 units indexed across 64 buildings. 10 years of sale history, citywide $/sf trend, live activity, and per-unit detail.">
+<meta name="description" content="Search every San Francisco condo — ten years of sale history, citywide $/sf trend, live activity, owner tenure, and per-unit detail.">
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -209,14 +209,15 @@
 <style>
   .workbench-wrap { display: grid; grid-template-columns: minmax(0,1fr) 332px; gap: 24px; align-items: start; }
   @media (max-width: 980px) { .workbench-wrap { grid-template-columns: 1fr; } }
-  .wb-tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; }
-  .wb-tabs button { background: none; border: 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 9px 15px; border-radius: 8px; cursor: pointer; transition: 0.15s; }
+  .wb-tabs { display: flex; flex-wrap: nowrap; gap: 4px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .wb-tabs::-webkit-scrollbar { height: 0; }
+  .wb-tabs button { background: none; border: 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 9px 15px; border-radius: 8px; cursor: pointer; transition: 0.15s; white-space: nowrap; flex: 0 0 auto; }
   .wb-tabs button.on { background: var(--cm-peri); color: #14181f; }
   .wb-tabs button:not(.on):hover { color: var(--cm-ivory); }
   .wb-panel { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; }
-  .wb-frame { display: none; width: 100%; height: 768px; border: 0; background: var(--cm-card); }
+  .wb-frame { display: none; width: 100%; min-height: 480px; border: 0; background: var(--cm-card); }
   .wb-frame.on { display: block; }
-  @media (max-width: 980px) { .wb-frame { height: 700px; } }
+  @media (max-width: 980px) { .wb-frame { min-height: 420px; } }
   .wb-feed { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; position: sticky; top: 18px; }
   .wb-feed-head { padding: 15px 18px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: baseline; }
   .wb-feed-head h3 { font-family: var(--ff-display); font-weight: 500; font-size: 19px; } .wb-feed-head h3 em { font-style: italic; color: var(--cm-peri); }
@@ -258,7 +259,7 @@
       <h1 class="hero-h1">Search every <em>condo</em>. Every sale. Every owner tenure.</h1>
       <div class="search-shell">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search 5,082 units, 64 buildings, 15 neighborhoods…">
+        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search any address, building, or neighborhood…">
         <button id="search-clear" class="search-clear" type="button" aria-label="Clear search">×</button>
         <span id="search-status" class="search-status"></span>
       </div>
@@ -455,6 +456,12 @@
       tiles[3].classList.remove('skel');
       tiles[4].textContent = fmtDate(agg.most_recent_sale_date);
       tiles[4].classList.remove('skel');
+      try {
+        const _bs = await getBuildings();
+        const _hoods = new Set(_bs.map(b => b.hood).filter(Boolean)).size;
+        const _si = document.getElementById('search-input');
+        if (_si) _si.placeholder = 'Search ' + agg.total_units.toLocaleString() + ' units · ' + agg.buildings_with_data.toLocaleString() + ' buildings · ' + _hoods + ' neighborhoods…';
+      } catch (e2) {}
     } catch (e) { console.warn('KPI load failed', e); }
   }
 
@@ -1020,9 +1027,33 @@
 <script>
 (function () {
   var base = '/intelligence/';
+  function fit(fr) {
+    if (!fr || !fr.classList.contains('on')) return;
+    try {
+      var d = fr.contentDocument;
+      if (d && d.body) {
+        var h = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight);
+        if (h > 200 && Math.abs((parseInt(fr.style.height) || 0) - h) > 2) fr.style.height = h + 'px';
+      }
+    } catch (e) {}
+  }
+  function wake(fr) {
+    try { fr.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+    setTimeout(function () { fit(fr); }, 140);
+  }
   function mount(f) {
     var fr = document.querySelector('.wb-frame[data-f="' + f + '"]');
-    if (fr && !fr.getAttribute('src')) fr.setAttribute('src', base + f + '.html');
+    if (!fr) return;
+    if (!fr.getAttribute('src')) {
+      fr.addEventListener('load', function () {
+        fit(fr);
+        try { var ro = new ResizeObserver(function () { fit(fr); }); ro.observe(fr.contentDocument.body); } catch (e) {}
+        wake(fr);
+      });
+      fr.setAttribute('src', base + f + '.html');
+    } else {
+      wake(fr);
+    }
   }
   var tabs = document.getElementById('wb-tabs');
   if (tabs) {
@@ -1036,6 +1067,7 @@
       });
     });
     mount('price-per-foot-map');
+    window.addEventListener('resize', function () { var on = document.querySelector('.wb-frame.on'); if (on) fit(on); });
   }
 })();
 </script>
