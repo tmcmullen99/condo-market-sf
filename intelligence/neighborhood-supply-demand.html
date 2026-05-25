@@ -88,7 +88,7 @@
         <table class="tbl" id="tbl">
           <thead><tr>
             <th data-k="hood">Neighborhood</th>
-            <th data-k="psf">$/ft</th>
+            <th data-k="psf">Med $/ft</th>
             <th data-k="yoy">YoY</th>
             <th data-k="sold">Sold</th>
             <th data-k="turnover">Turn</th>
@@ -101,22 +101,22 @@
   </div>
 
   <div class="foot">
-    <b>Turnover</b> = share of a neighborhood's units that traded in the last 12 months (liquidity). <b>YoY</b> = median $/ft vs the prior year (demand pressure). Together they place each neighborhood: <b>rising + liquid = hot</b>, <b>falling + churning = a buyers' market</b>. <span class="warn">Note:</span> the active-listing feed is currently partial (concentrated in Mission Bay: 7 active / 5 pending), so live months-of-inventory isn't reliable yet — demand here is read from velocity, turnover, and momentum, all from closed sales. Production reads live from <b>v_building_market_stats</b> + <b>building_sales</b>.
+    <b>Turnover</b> = share of a neighborhood's units that traded in the last 12 months (liquidity). <b>YoY</b> = median $/ft vs the prior year (demand pressure). Together they place each neighborhood: <b>rising + liquid = hot</b>, <b>falling + churning = a buyers' market</b>. <span class="warn">Note:</span> the active-listing feed is currently partial (concentrated in Mission Bay: 7 active / 5 pending), so live months-of-inventory isn't reliable yet — demand here is read from velocity, turnover, and momentum, all from closed sales. The <b>$/ft</b> shown is the median sale price per foot — the same figure as the map. Production reads live from <b>v_building_market_stats</b> + <b>building_sales</b>.
   </div>
 </div>
 <div class="tip" id="tip"></div>
 
 <script>
 const N = [
- {hood:"Mission Bay",units:2486,active:7,pending:5,sold:174,turnover:7.00,psf:1052,median:1180000,yoy:3.8},
+ {hood:"Mission Bay",units:2486,active:7,pending:5,sold:174,turnover:7.00,psf:1024,median:1180000,yoy:3.8},
  {hood:"SoMa",units:4729,active:1,pending:0,sold:167,turnover:3.53,psf:1193,median:1218000,yoy:4.4},
- {hood:"Nob Hill",units:970,active:0,pending:0,sold:32,turnover:3.30,psf:1192,median:1370000,yoy:-1.5},
- {hood:"Civic Center",units:452,active:0,pending:0,sold:26,turnover:5.75,psf:1188,median:926250,yoy:4.1},
- {hood:"Pacific Heights",units:259,active:0,pending:0,sold:17,turnover:6.56,psf:1819,median:1460000,yoy:-19.3},
+ {hood:"Nob Hill",units:970,active:0,pending:0,sold:32,turnover:3.30,psf:1157,median:1370000,yoy:-1.5},
+ {hood:"Civic Center",units:452,active:0,pending:0,sold:26,turnover:5.75,psf:1145,median:926250,yoy:4.1},
+ {hood:"Pacific Heights",units:259,active:0,pending:0,sold:17,turnover:6.56,psf:1398,median:1460000,yoy:-19.3},
  {hood:"Marina",units:226,active:0,pending:0,sold:11,turnover:4.87,psf:1386,median:1262000,yoy:37.0},
- {hood:"North Beach",units:236,active:0,pending:0,sold:7,turnover:2.97,psf:2106,median:2472500,yoy:11.9},
- {hood:"Financial District",units:103,active:0,pending:0,sold:5,turnover:4.85,psf:924,median:885000,yoy:0.7},
- {hood:"Mission",units:126,active:0,pending:0,sold:2,turnover:1.59,psf:653,median:421750,yoy:null},
+ {hood:"North Beach",units:236,active:0,pending:0,sold:7,turnover:2.97,psf:1789,median:2472500,yoy:11.9},
+ {hood:"Financial District",units:103,active:0,pending:0,sold:5,turnover:4.85,psf:884,median:885000,yoy:0.7},
+ {hood:"Mission",units:126,active:0,pending:0,sold:2,turnover:1.59,psf:1024,median:421750,yoy:null},
  {hood:"Chinatown",units:44,active:0,pending:0,sold:1,turnover:2.27,psf:1578,median:2075000,yoy:null},
  {hood:"Cow Hollow",units:null,active:0,pending:0,sold:2,turnover:null,psf:1875,median:3150000,yoy:null}
 ];
