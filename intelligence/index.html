@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
   :root {
@@ -207,6 +206,34 @@
   .cmp-count { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 16px 24px; }
   .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: var(--cm-ivory-dim); }
 </style>
+<style>
+  .workbench-wrap { display: grid; grid-template-columns: minmax(0,1fr) 332px; gap: 24px; align-items: start; }
+  @media (max-width: 980px) { .workbench-wrap { grid-template-columns: 1fr; } }
+  .wb-tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; }
+  .wb-tabs button { background: none; border: 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 9px 15px; border-radius: 8px; cursor: pointer; transition: 0.15s; }
+  .wb-tabs button.on { background: var(--cm-peri); color: #14181f; }
+  .wb-tabs button:not(.on):hover { color: var(--cm-ivory); }
+  .wb-panel { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; }
+  .wb-frame { display: none; width: 100%; height: 768px; border: 0; background: var(--cm-card); }
+  .wb-frame.on { display: block; }
+  @media (max-width: 980px) { .wb-frame { height: 700px; } }
+  .wb-feed { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; position: sticky; top: 18px; }
+  .wb-feed-head { padding: 15px 18px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: baseline; }
+  .wb-feed-head h3 { font-family: var(--ff-display); font-weight: 500; font-size: 19px; } .wb-feed-head h3 em { font-style: italic; color: var(--cm-peri); }
+  .wb-feed-head span { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .wb-feed-list { max-height: 736px; overflow-y: auto; }
+  .activity-grid { display: flex; flex-direction: column; }
+  .feed-row { padding: 12px 18px; border-bottom: 1px solid var(--cm-rule); cursor: pointer; transition: background 0.12s; }
+  .feed-row:last-child { border-bottom: 0; }
+  .feed-row:hover { background: #f5f6f9; }
+  .feed-row-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .feed-addr { font-family: var(--ff-body); font-weight: 500; font-size: 13.5px; color: var(--cm-ivory); }
+  .feed-unit { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-peri); margin-left: 5px; }
+  .feed-price { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); white-space: nowrap; }
+  .feed-row-bot { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; }
+  .feed-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .feed-meta { font-family: var(--ff-mono); font-size: 10.5px; color: var(--cm-ivory-faint); white-space: nowrap; }
+</style>
 </head>
 <body>
 <header class="masthead">
@@ -258,60 +285,32 @@
   <section class="section">
     <div class="wrap">
       <div class="section-head">
-        <h2 class="section-title">Explore the <em>data</em></h2>
-        <span class="section-sub">Four interactive tools · built on closed sales</span>
+        <h2 class="section-title">The <em>workbench</em></h2>
+        <span class="section-sub">Toggle the view · every tool built on closed sales</span>
       </div>
-      <div class="tool-grid">
-        <a class="tool-card" href="/intelligence/building-comparison.html">
-          <div class="tool-kicker">Compare</div>
-          <h3>Building <em>vs</em> building</h3>
-          <div class="tool-desc">Stack up to four buildings on $/ft, median price, sale velocity, supply, and owner equity.</div>
-          <div class="tool-open">Open →</div>
-        </a>
-        <a class="tool-card" href="/intelligence/price-per-foot-map.html">
-          <div class="tool-kicker">Map</div>
-          <h3>$/foot <em>map</em></h3>
-          <div class="tool-desc">Every building shaded by price per foot. Toggle building, block, and neighborhood — price or YoY change.</div>
-          <div class="tool-open">Open →</div>
-        </a>
-        <a class="tool-card" href="/intelligence/neighborhood-supply-demand.html">
-          <div class="tool-kicker">Demand</div>
-          <h3>Supply &amp; <em>demand</em></h3>
-          <div class="tool-desc">A demand quadrant — price momentum against turnover — placing every neighborhood on the map.</div>
-          <div class="tool-open">Open →</div>
-        </a>
-        <a class="tool-card" href="/intelligence/unit-comparison.html">
-          <div class="tool-kicker">Comps</div>
-          <h3>Unit <em>comps</em></h3>
-          <div class="tool-desc">703 closings on one chart. Filter by beds and area, read the market line, pin units to compare.</div>
-          <div class="tool-open">Open →</div>
-        </a>
+      <div class="workbench-wrap">
+        <div class="wb-main">
+          <div class="wb-tabs" id="wb-tabs" role="tablist">
+            <button data-f="price-per-foot-map" class="on">$/Foot map</button>
+            <button data-f="building-comparison">Compare buildings</button>
+            <button data-f="neighborhood-supply-demand">Supply &amp; demand</button>
+            <button data-f="unit-comparison">Unit comps</button>
+          </div>
+          <div class="wb-panel" id="wb-panel">
+            <iframe class="wb-frame on" data-f="price-per-foot-map" title="$/foot map" loading="lazy"></iframe>
+            <iframe class="wb-frame" data-f="building-comparison" title="Building comparison" loading="lazy"></iframe>
+            <iframe class="wb-frame" data-f="neighborhood-supply-demand" title="Supply and demand" loading="lazy"></iframe>
+            <iframe class="wb-frame" data-f="unit-comparison" title="Unit comparison" loading="lazy"></iframe>
+          </div>
+        </div>
+        <aside class="wb-feed">
+          <div class="wb-feed-head"><h3>Live <em>activity</em></h3><span>Recent sales</span></div>
+          <div class="wb-feed-list"><div class="activity-grid" id="activity-grid"></div></div>
+        </aside>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">Where the <em>money</em> lives</h2>
-        <span class="section-sub">Click any building for its full history</span>
-      </div>
-      <div class="heatmap-shell">
-        <div class="heatmap-toggle" id="heatmap-toggle" role="tablist">
-          <button class="on" data-metric="psf">$/sf</button>
-          <button data-metric="volume">Volume</button>
-          <button data-metric="velocity">Velocity</button>
-        </div>
-        <div id="heatmap" aria-label="San Francisco condo buildings heatmap"></div>
-        <div class="heatmap-legend">
-          <span id="legend-low">low</span>
-          <span class="legend-bar" id="legend-bar"></span>
-          <span id="legend-high">high</span>
-          <span style="margin-left: auto;">marker size = sales count</span>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section class="section">
     <div class="wrap">
@@ -344,67 +343,8 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">Live <em>activity</em></h2>
-        <span class="section-sub">Most recent recorded sales</span>
-      </div>
-      <div class="activity-grid" id="activity-grid"></div>
-    </div>
-  </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">Building <em>rankings</em></h2>
-        <span class="section-sub">Real medians, last 36 months</span>
-      </div>
-      <div class="rank-grid" id="rank-grid"></div>
-    </div>
-  </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">Buildings, <em>head to head</em></h2>
-        <span class="section-sub">Every on-market building · medians last 36 months</span>
-      </div>
-      <div class="cmp-shell">
-        <div class="cmp-toolbar">
-          <div class="cmp-sorts" id="cmp-sorts" role="tablist">
-            <button class="on" data-sort="psf">$/sf</button>
-            <button data-sort="sales">Most traded</button>
-            <button data-sort="turnover">Turnover</button>
-            <button data-sort="tenure">Longest held</button>
-            <button data-sort="held7">Held 7y+</button>
-          </div>
-          <select class="cmp-filter" id="cmp-filter" aria-label="Filter by district">
-            <option value="">All districts</option>
-          </select>
-        </div>
-        <div class="cmp-scroll">
-          <table class="cmp-table">
-            <thead>
-              <tr>
-                <th>Building</th>
-                <th>District</th>
-                <th>Median $/sf</th>
-                <th>Sales · 3y</th>
-                <th>Turnover</th>
-                <th>Median tenure</th>
-                <th>Held 7y+</th>
-              </tr>
-            </thead>
-            <tbody id="cmp-body">
-              <tr><td colspan="7" class="cmp-empty">Loading…</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="cmp-count" id="cmp-count"></div>
-      </div>
-    </div>
-  </section>
 
   <section class="cta-strip">
     <div class="wrap">
@@ -444,7 +384,6 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
@@ -822,7 +761,7 @@
   async function loadActivity() {
     try {
       const [rows, buildings] = await Promise.all([
-        rpc('intelligence_recent_sales', { p_limit: 12 }),
+        rpc('intelligence_recent_sales', { p_limit: 18 }),
         getBuildings()
       ]);
       // Index buildings by slug so we can resolve image + name in O(1)
@@ -836,25 +775,19 @@
         const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
         const bldg = bldgBySlug.get(r.building_slug);
         const bldgName = bldg ? bldg.name : r.building_slug;
-        const imgUrl = bldg && bldg.img ? bldg.img : '';
         return `
-          <div class="activity-card" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
-            <div class="activity-img-wrap">
-              ${imgUrl
-                ? `<img class="activity-img" src="${escapeAttr(imgUrl)}" alt="${escapeAttr(bldgName)}" loading="lazy">`
-                : `<div class="activity-img-fallback">${escapeHtml(bldgName)}</div>`}
+          <div class="feed-row" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
+            <div class="feed-row-top">
+              <span class="feed-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="feed-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span>
+              <span class="feed-price">${fmtMoneyShort(r.sale_price)}</span>
             </div>
-            <div class="activity-body">
-              <div class="activity-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="activity-addr-unit">${escapeHtml(r.unit_label)}</span>` : ''}</div>
-              <div class="activity-bldg">${escapeHtml(bldgName)}</div>
-              <div class="activity-row price"><span>Price</span><span>${fmtMoneyShort(r.sale_price)}</span></div>
-              <div class="activity-row"><span>Date</span><span>${fmtDate(r.sale_date)}</span></div>
-              ${psf ? `<div class="activity-row"><span>$/sf</span><span>$${psf.toLocaleString()}</span></div>` : ''}
-              ${r.sqft ? `<div class="activity-row"><span>Size</span><span>${r.sqft.toLocaleString()} sf</span></div>` : ''}
+            <div class="feed-row-bot">
+              <span class="feed-bldg">${escapeHtml(bldgName)}</span>
+              <span class="feed-meta">${psf ? '$' + psf.toLocaleString() + '/sf' : ''}${r.sqft ? ' · ' + r.sqft.toLocaleString() + ' sf' : ''} · ${fmtDateShort(r.sale_date)}</span>
             </div>
           </div>`;
       }).join('');
-      grid.querySelectorAll('.activity-card').forEach(card => {
+      grid.querySelectorAll('.feed-row').forEach(card => {
         card.addEventListener('click', () => {
           openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
         });
@@ -1076,26 +1009,34 @@
       rows.length + (rows.length === 1 ? ' building' : ' buildings') + (cmpHood ? ` · ${cmpHood}` : '');
   }
 
-  document.querySelectorAll('#cmp-sorts button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#cmp-sorts button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      cmpSort = btn.dataset.sort;
-      renderComparison();
-    });
-  });
-  document.getElementById('cmp-filter').addEventListener('change', e => {
-    cmpHood = e.target.value;
-    renderComparison();
-  });
+  // building comparison, rankings, and heatmap now live in the workbench tools
 
   // ───────── Boot ─────────
   loadKPIs();
-  initHeatmap();
   initTimeline();
   loadActivity();
-  loadRankings();
-  loadComparison();
+})();
+</script>
+<script>
+(function () {
+  var base = '/intelligence/';
+  function mount(f) {
+    var fr = document.querySelector('.wb-frame[data-f="' + f + '"]');
+    if (fr && !fr.getAttribute('src')) fr.setAttribute('src', base + f + '.html');
+  }
+  var tabs = document.getElementById('wb-tabs');
+  if (tabs) {
+    tabs.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var f = b.dataset.f;
+        tabs.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        document.querySelectorAll('.wb-frame').forEach(function (fr) { fr.classList.toggle('on', fr.dataset.f === f); });
+        mount(f);
+      });
+    });
+    mount('price-per-foot-map');
+  }
 })();
 </script>
 </body>
