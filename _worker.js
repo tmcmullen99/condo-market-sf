@@ -196,6 +196,17 @@ function renderBuilding(p) {
   if (ls && ls.price != null) dcards.push(card('Last sale', money(ls.price), (ls.unit ? 'Unit ' + esc(ls.unit) + ' \u00b7 ' : '') + fmtDate(ls.date)));
   if (p.unit_count != null) dcards.push(card('Unit count', intc(p.unit_count), tierLabel(p.unit_count)));
   if (p.year_built != null) dcards.push(card('Built', String(p.year_built), (p.floors ? p.floors + ' floors \u00b7 ' : '') + (decade(p.year_built) || '')));
+  const cmpRows = [];
+  if (hood && st.psf_vs_hood_pct != null && st.median_psf_hood != null) {
+    const dH = Number(st.psf_vs_hood_pct);
+    cmpRows.push('<div class="psf-compare-row"><span>vs ' + hood + ' median (' + money(st.median_psf_hood) + '/sf)</span><span class="' + (dH >= 0 ? 'up' : 'dn') + '">' + (dH >= 0 ? '+' : '') + dH + '%</span></div>');
+  }
+  if (st.psf_vs_city_pct != null && st.median_psf_city != null) {
+    const dC = Number(st.psf_vs_city_pct);
+    cmpRows.push('<div class="psf-compare-row"><span>vs San Francisco median (' + money(st.median_psf_city) + '/sf)</span><span class="' + (dC >= 0 ? 'up' : 'dn') + '">' + (dC >= 0 ? '+' : '') + dC + '%</span></div>');
+  }
+  const psfCompare = cmpRows.length ? '<div class="psf-compare">' + cmpRows.join('') + '</div>' : '';
+
   let dossierSection = '';
   if (dcards.length) {
     dossierSection =
@@ -203,6 +214,7 @@ function renderBuilding(p) {
       '<div class="dossier-head"><div class="dossier-kicker">The Dossier</div>' +
       '<h2 class="dossier-title">' + name + ', by the <em>numbers</em></h2></div>' +
       '<div class="dossier-grid">' + dcards.join('') + '</div>' +
+      psfCompare +
       '<div class="dossier-enhanced-cta">' +
       '<h4>Sign in to see the <em style="color:var(--cm-peri);">full dossier</em></h4>' +
       '<p>Unit-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.</p>' +
@@ -210,6 +222,32 @@ function renderBuilding(p) {
       '<div class="cm-inline-cta" style="margin-top:32px;text-align:center;">' +
       '<a href="#offer" data-cm-offer-trigger data-building-slug="' + slug + '" class="cm-inline-cta-link" style="display:inline-flex;align-items:center;gap:8px;color:var(--cm-bronze, #d4a574);font-family:var(--cm-ff-mono, \'JetBrains Mono\', monospace);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;padding:10px 20px;border:1px solid rgba(212, 165, 116, 0.4);border-radius:999px;transition:all 150ms ease;">See a number worth acting on? Make an offer \u2192</a></div>' +
       '</div></section>';
+  }
+
+  /* ---- COMPARE (neighborhood peers by $/sf; hide when none) ---- */
+  const peers = Array.isArray(p.peers) ? p.peers.filter(function (x) { return x && x.median_psf != null; }) : [];
+  let compareSection = '';
+  if (peers.length) {
+    const crows = peers.map(function (pe) {
+      return { slug: pe.slug, name: pe.name, psf: Number(pe.median_psf), units: pe.unit_count, year: pe.year_built, self: false };
+    });
+    if (psf != null) crows.push({ slug: p.slug, name: p.name, psf: psf, units: p.unit_count, year: p.year_built, self: true });
+    crows.sort(function (a, b) { return b.psf - a.psf; });
+    const crowHtml = crows.map(function (r) {
+      const meta = (r.units != null ? intc(r.units) + ' units' : '') + (r.year != null ? ((r.units != null ? ' \u00b7 ' : '') + r.year) : '');
+      const nameCell = '<div class="nb-name">' + esc(r.name) + (r.self ? '<span class="nb-badge">This building</span>' : '') + '</div>';
+      const metaCell = '<div class="nb-meta" style="font-size:13px;color:var(--cm-ivory-dim);font-family:var(--ff-mono);letter-spacing:0.02em;">' + meta + '</div>';
+      const psfCell  = '<div class="nb-psf">' + money(r.psf) + ' <span class="nb-unit">/sf</span></div>';
+      return r.self
+        ? '<div class="nb-row nb-row--self">' + nameCell + metaCell + psfCell + '</div>'
+        : '<a class="nb-row" href="/building/' + esc(r.slug) + '">' + nameCell + metaCell + psfCell + '</a>';
+    }).join('');
+    compareSection =
+      '<section class="section" id="compare"><div class="wrap">' +
+      '<div class="section-head"><div class="section-kicker">How it compares</div>' +
+      '<h2 class="section-title">' + (hood ? hood : 'The neighborhood') + ', by <em>$/sf</em></h2>' +
+      '<p class="section-sub">Median price per square foot across ' + (hood ? hood : 'nearby') + ' buildings \u2014 last 12 months of closed sales. ' + name + ' is highlighted.</p></div>' +
+      '<div class="nb-grid">' + crowHtml + '</div></div></section>';
   }
 
   /* ---- MORTGAGE (always; defaults from this building) ---- */
@@ -266,6 +304,7 @@ function renderBuilding(p) {
   nav.push('<a href="#about">About</a>');
   if (feats.length) nav.push('<a href="#amenities">Amenities</a>');
   if (dcards.length) nav.push('<a href="#dossier">Dossier</a>');
+  if (peers.length) nav.push('<a href="#compare">Compare</a>');
   nav.push('<a href="#mortgage">Mortgage</a>');
   nav.push('<a href="#offer">Buy or sell</a>');
   const stickyNav =
@@ -337,6 +376,7 @@ function renderBuilding(p) {
     aboutSection +
     amenitiesSection +
     dossierSection +
+    compareSection +
     mortgageSection +
     offerSection +
     '</main>\n\n' +
@@ -366,6 +406,10 @@ function renderBuilding(p) {
 /* Small additive styles: hero placeholder for buildings with no hero image,
    and a graceful single-image gallery. Everything else is the proven CSS. */
 const EXTRA_CSS =
+  '.nb-meta{font-size:13px;color:var(--cm-ivory-dim);font-family:var(--ff-mono);}' +
+  '.nb-row--self{background:rgba(159,180,216,0.07);padding-left:12px;padding-right:12px;}' +
+  '.nb-row--self::after{content:"";opacity:0;}' +
+  '.nb-badge{display:inline-block;margin-left:10px;font-family:var(--ff-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--cm-navy);background:var(--cm-peri);padding:2px 8px;border-radius:999px;vertical-align:middle;}' +
   '.hero-img--ph{position:absolute;inset:0;width:100%;height:100%;' +
   'background:radial-gradient(120% 90% at 30% 15%,rgba(159,180,216,0.22),transparent 58%),' +
   'linear-gradient(165deg,#2a3247 0%,#171d2a 58%,#0f131d 100%);}' +
