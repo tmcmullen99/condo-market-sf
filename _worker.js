@@ -103,6 +103,12 @@ function renderBuilding(p) {
   const hood = p.neighborhood ? esc(p.neighborhood) : '';
   const addr = p.address ? esc(p.address) : '';
   const st   = p.stats || {};
+  const mk       = p.market || {};
+  const mkBrand  = mk.brand  || 'Condo Market SF';
+  const mkRegion = mk.region || 'San Francisco';
+  const mkTag    = mk.tag    || 'sf';
+  const mkEmail  = mk.email  || 'tim@sanfranciscocondomarket.com';
+  const mkDomain = mk.domain || 'sanfranciscocondomarket.com';
   const psf  = (st.median_psf_12mo != null) ? Number(st.median_psf_12mo) : null;
   const medPrice = (st.median_price_12mo != null) ? Number(st.median_price_12mo) : null;
 
@@ -150,7 +156,7 @@ function renderBuilding(p) {
     bits.push(p.name +
       ' is a ' + (p.unit_count != null ? intc(p.unit_count) + '-unit ' : '') +
       'condominium building' +
-      (hood ? ' in ' + p.neighborhood + ', San Francisco' : ' in San Francisco') +
+      (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built in ' + p.year_built : '') + '.');
     if (psf != null) bits.push('Over the last 12 months, units here have traded at a median of ' + money(psf) + ' per square foot.');
     aboutBody = '<div class="prose"><p>' + esc(bits.join(' ')) + '</p></div>';
@@ -203,7 +209,7 @@ function renderBuilding(p) {
   }
   if (st.psf_vs_city_pct != null && st.median_psf_city != null) {
     const dC = Number(st.psf_vs_city_pct);
-    cmpRows.push('<div class="psf-compare-row"><span>vs San Francisco median (' + money(st.median_psf_city) + '/sf)</span><span class="' + (dC >= 0 ? 'up' : 'dn') + '">' + (dC >= 0 ? '+' : '') + dC + '%</span></div>');
+    cmpRows.push('<div class="psf-compare-row"><span>vs ' + mkRegion + ' median (' + money(st.median_psf_city) + '/sf)</span><span class="' + (dC >= 0 ? 'up' : 'dn') + '">' + (dC >= 0 ? '+' : '') + dC + '%</span></div>');
   }
   const psfCompare = cmpRows.length ? '<div class="psf-compare">' + cmpRows.join('') + '</div>' : '';
 
@@ -312,15 +318,15 @@ function renderBuilding(p) {
 
   /* ---- SEO head ---- */
   const seo = p.seo || {};
-  const title = esc(seo.title || (p.name + ' · Condo Market SF'));
+  const title = esc(seo.title || (p.name + ' · ' + mkBrand));
   const descPlain = seo.description ||
     (p.name + ' \u2014 ' + (p.unit_count != null ? intc(p.unit_count) + ' units' : 'condominiums') +
-      (hood ? ' in ' + p.neighborhood + ', San Francisco' : ' in San Francisco') +
+      (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built ' + p.year_built : '') +
       '. Sales, $/ft, owner tenure, and live offer activity.');
   const desc = esc(descPlain);
   const ogImg = seo.og_image ? '<meta property="og:image" content="' + esc(seo.og_image) + '">' : '';
-  const canonical = esc(p.canonical_url || ('https://www.sanfranciscocondomarket.com/building/' + p.slug));
+  const canonical = esc(p.canonical_url || ('https://www.' + mkDomain + '/building/' + p.slug));
   const jsonLd = p.json_ld
     ? '<script type="application/ld+json">' + JSON.stringify(p.json_ld).replace(/</g, '\\u003c') + '</script>'
     : '';
@@ -333,7 +339,7 @@ function renderBuilding(p) {
     '<meta name="description" content="' + desc + '">\n' +
     '<link rel="canonical" href="' + canonical + '">\n' +
     '<meta property="og:type" content="website">\n' +
-    '<meta property="og:title" content="' + esc((p.name || '') + ' · Condo Market SF') + '">\n' +
+    '<meta property="og:title" content="' + esc((p.name || '') + ' · ' + mkBrand) + '">\n' +
     '<meta property="og:description" content="' + desc + '">\n' +
     '<meta property="og:url" content="' + canonical + '">\n' +
     ogImg + '\n' +
@@ -347,7 +353,7 @@ function renderBuilding(p) {
     '<style>' + EXTRA_CSS + '</style>\n' +
     '</head>\n<body>\n\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
-    '<a href="/" class="wordmark">Condo <em>Market</em> · sf</a>' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> · ' + mkTag + '</a>' +
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/history/">History</a><a href="/how-it-works/">How it works</a>' +
@@ -381,8 +387,8 @@ function renderBuilding(p) {
     offerSection +
     '</main>\n\n' +
     '<footer><div class="wrap"><div class="footer-grid">' +
-    '<div><div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>' +
-    '<p style="max-width:42ch;">A private exchange for every condo in San Francisco. Live offer signals, editorial dossiers.</p></div>' +
+    '<div><div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · ' + mkTag + '</div>' +
+    '<p style="max-width:42ch;">A private exchange for every condo in ' + mkRegion + '. Live offer signals, editorial dossiers.</p></div>' +
     '<div><h5>Explore</h5><ul>' +
     '<li><a href="/buildings/">All buildings</a></li><li><a href="/intelligence/">Intelligence</a></li>' +
     '<li><a href="/history/">History</a></li><li><a href="/refer/">Refer</a></li></ul></div>' +
@@ -393,8 +399,8 @@ function renderBuilding(p) {
     '<div><h5>About</h5><ul>' +
     '<li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li>' +
     '<li><a href="tel:+14156919272">415-691-9272</a></li>' +
-    '<li><a href="mailto:tim@sanfranciscocondomarket.com">Contact</a></li></ul></div>' +
-    '</div><div class="footer-fine">\u00a9 2026 Condo Market SF \u00b7 McMullen Properties \u00b7 DRE #02016832</div>' +
+    '<li><a href="mailto:' + mkEmail + '">Contact</a></li></ul></div>' +
+    '</div><div class="footer-fine">\u00a9 2026 ' + mkBrand + ' \u00b7 McMullen Properties \u00b7 DRE #02016832</div>' +
     '</div></footer>\n\n' +
     '<script>' + MORT_CALC + '</script>\n' +
     '<script type="module" src="/assets/cm-featured.js"></script>\n' +
