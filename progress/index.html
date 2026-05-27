@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Condo Market · State of the Build, May 2026</title>
-<meta name="description" content="Two condominium marketplaces, $13.3B in tracked sales, 10,000+ identified owners. The state of Condo Market.">
+<meta name="description" content="Two condominium marketplaces, $13.3B in tracked sales, 10,000+ identified owners, 195 buildings mapped across the Bay Area.">
 <meta property="og:title" content="Condo Market · State of the Build">
 <meta property="og:description" content="Two condominium marketplaces, $13.3B in tracked sales, 10,000+ identified owners.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
 :root{--navy:#1a1f2e;--cream:#faf7f0;--charcoal:#353535;--bluegray:#91a1ba;--sf:#C2410C;--sv:#00A8B5;--border:#e8e3d8}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -24,7 +25,7 @@ a{color:inherit;text-decoration:none}
 nav.top{position:sticky;top:0;z-index:50;background:rgba(250,247,240,.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
 nav.top .container{display:flex;align-items:center;justify-content:space-between;height:64px}
 .brand{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;color:var(--navy);font-size:20px}
-nav.top .links{display:flex;gap:32px;font-size:14px}
+nav.top .links{display:flex;gap:28px;font-size:14px}
 nav.top .links a{color:var(--charcoal);font-weight:500;transition:color .2s}
 nav.top .links a:hover{color:var(--navy)}
 .cta-btn{display:inline-block;background:var(--navy);color:var(--cream);padding:11px 22px;border-radius:4px;font-weight:600;font-size:14px;letter-spacing:.02em;transition:all .2s;border:1px solid var(--navy);cursor:pointer}
@@ -68,6 +69,29 @@ section.numbers .sub{color:rgba(250,247,240,.75);max-width:580px;margin-bottom:6
 .num-cell .v{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,52px);font-weight:600;color:var(--cream);line-height:1;margin-bottom:12px}
 .num-cell .l{font-size:14px;color:rgba(250,247,240,.65);max-width:240px}
 
+section.coverage{padding:100px 0;background:white;border-bottom:1px solid var(--border)}
+section.coverage h2{font-size:clamp(32px,4vw,48px);max-width:760px;margin-bottom:18px}
+section.coverage .sub{max-width:680px;color:var(--charcoal);font-size:17px;margin-bottom:36px}
+.map-tabs{display:inline-flex;background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:4px;margin-bottom:24px;flex-wrap:wrap}
+.map-tab{padding:9px 18px;font-weight:500;font-size:13px;cursor:pointer;border-radius:4px;transition:all .2s;color:var(--charcoal);border:none;background:transparent;font-family:inherit;letter-spacing:.02em}
+.map-tab.active{background:var(--navy);color:var(--cream)}
+.map-tab .badge{margin-left:8px;padding:2px 9px;background:rgba(26,31,46,.08);border-radius:99px;font-size:11px;font-weight:700}
+.map-tab.active .badge{background:rgba(250,247,240,.18);color:var(--cream)}
+#coverage-map{height:560px;width:100%;border:1px solid var(--border);border-radius:6px;z-index:1;background:#eef1f4}
+.map-legend{display:flex;gap:32px;align-items:center;margin-top:20px;font-size:13px;color:var(--charcoal);flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:8px}
+.legend-dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid white;box-shadow:0 0 0 1px var(--border)}
+.legend-dot.sf{background:var(--sf)}
+.legend-dot.sv{background:var(--sv)}
+.legend-note{margin-left:auto;color:var(--bluegray);font-style:italic;font-family:'Playfair Display',serif}
+.leaflet-popup-content-wrapper{border-radius:6px;font-family:'DM Sans',sans-serif;color:var(--charcoal);box-shadow:0 6px 24px rgba(26,31,46,.16)}
+.leaflet-popup-content{margin:14px 16px;font-size:13px;line-height:1.45;min-width:200px}
+.popup-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.popup-hood{font-size:11px;color:var(--bluegray);letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}
+.popup-row{font-size:13px;color:var(--charcoal);margin-bottom:3px}
+.popup-row strong{font-weight:600;color:var(--navy)}
+.popup-link{display:inline-block;margin-top:10px;font-weight:600;color:var(--navy);font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--navy);padding-bottom:1px}
+
 section.value{padding:100px 0;border-bottom:1px solid var(--border)}
 section.value h2{font-size:clamp(32px,4vw,48px);margin-bottom:32px;max-width:720px}
 .tabs{display:inline-flex;background:white;border:1px solid var(--border);border-radius:6px;padding:4px;margin-bottom:48px}
@@ -109,7 +133,7 @@ section.roadmap .lead{max-width:640px;color:var(--charcoal);font-size:17px;margi
 
 section.founder{padding:100px 0;background:white;border-bottom:1px solid var(--border)}
 .founder-row{display:grid;grid-template-columns:200px 1fr;gap:56px;align-items:start}
-.founder-avatar{width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,var(--navy),#2a3242);display:flex;align-items:center;justify-content:center;color:var(--cream);font-family:'Playfair Display',serif;font-style:italic;font-size:64px;font-weight:600}
+img.founder-avatar{width:180px;height:180px;border-radius:50%;object-fit:cover;background:var(--cream);border:1px solid var(--border);display:block}
 .founder-quote{font-family:'Playfair Display',serif;font-size:22px;line-height:1.5;color:var(--navy);font-weight:400}
 .founder-quote em{color:var(--navy);font-weight:500}
 .founder-sig{margin-top:28px;font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--navy)}
@@ -134,10 +158,14 @@ footer a:hover{color:var(--cream)}
   .numbers-grid{grid-template-columns:repeat(2,1fr)}
   .megaphone-stats{grid-template-columns:repeat(2,1fr)}
   .founder-row{grid-template-columns:1fr;gap:24px}
-  .founder-avatar{width:120px;height:120px;font-size:44px}
+  img.founder-avatar{width:140px;height:140px}
   section.hero{padding:60px 0 50px}
   section.hero .stat-strip{grid-template-columns:1fr;gap:32px;margin-top:48px}
-  section.numbers,section.value,section.megaphone,section.roadmap,section.founder{padding:64px 0}
+  section.numbers,section.coverage,section.value,section.megaphone,section.roadmap,section.founder{padding:64px 0}
+  #coverage-map{height:440px}
+  .map-tab{padding:8px 14px;font-size:12px}
+  .map-legend{flex-direction:column;align-items:flex-start;gap:12px}
+  .legend-note{margin-left:0}
 }
 </style>
 </head>
@@ -148,7 +176,8 @@ footer a:hover{color:var(--cream)}
     <a href="#top" class="brand">Condo Market</a>
     <div class="links">
       <a href="#marketplaces">Marketplaces</a>
-      <a href="#numbers">By the numbers</a>
+      <a href="#numbers">Numbers</a>
+      <a href="#coverage">Coverage</a>
       <a href="#value">What it does</a>
       <a href="#megaphone">Our advantage</a>
       <a href="#roadmap">What's next</a>
@@ -225,6 +254,25 @@ footer a:hover{color:var(--cream)}
       <div class="num-cell"><div class="v">6,204</div><div class="l">Individual parcels mapped with ownership</div></div>
       <div class="num-cell"><div class="v">573</div><div class="l">Closings in the trailing 12 months</div></div>
       <div class="num-cell"><div class="v">195</div><div class="l">Buildings live, 1,901+ queued</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="coverage" class="coverage">
+  <div class="container">
+    <div class="eyebrow">Coverage</div>
+    <h2>Every catalogued building, on one map.</h2>
+    <p class="sub">From the SoMa towers to the Rivermark complexes — 195 buildings, 14,741 units, all live and queryable today. Tap any building for its median $/ft² and the link to its page.</p>
+    <div class="map-tabs">
+      <button class="map-tab active" data-filter="all">All markets <span class="badge">195</span></button>
+      <button class="map-tab" data-filter="sf">San Francisco <span class="badge">115</span></button>
+      <button class="map-tab" data-filter="sv">Silicon Valley <span class="badge">80</span></button>
+    </div>
+    <div id="coverage-map"></div>
+    <div class="map-legend">
+      <div class="legend-item"><span class="legend-dot sf"></span> San Francisco market</div>
+      <div class="legend-item"><span class="legend-dot sv"></span> Silicon Valley market</div>
+      <div class="legend-note">Marker size scales with unit count.</div>
     </div>
   </div>
 </section>
@@ -317,36 +365,12 @@ footer a:hover{color:var(--cream)}
     <h2>The next <em>90 days</em>.</h2>
     <p class="lead">Five sprints shipping into the next quarter — each adding either reach, depth, or activation.</p>
     <div class="road-grid">
-      <div class="road-item">
-        <div class="step">Sprint one</div>
-        <h4>The first wave</h4>
-        <p>An approved launch announcement sent directly to roughly 1,250 SF condo homeowners — through our owned channel, not a paid one.</p>
-      </div>
-      <div class="road-item">
-        <div class="step">Sprint two</div>
-        <h4>The visual catalogue</h4>
-        <p>Hero photography and a curated gallery for every one of the 195 live buildings, plus auto-import tooling for the next 200.</p>
-      </div>
-      <div class="road-item">
-        <div class="step">Sprint three</div>
-        <h4>Compare buildings</h4>
-        <p>A side-by-side interactive map. Pick any two buildings and see $/ft², sales velocity, age, and unit mix — instantly.</p>
-      </div>
-      <div class="road-item">
-        <div class="step">Sprint four</div>
-        <h4>Owner intelligence daily</h4>
-        <p>A daily digest for claimed-unit owners: new Make-Me-Move asks in their building, new sales nearby, watchlist activity.</p>
-      </div>
-      <div class="road-item">
-        <div class="step">Sprint five</div>
-        <h4>Catalogue expansion</h4>
-        <p>Two hundred to four hundred additional Silicon Valley buildings activated from our existing parcel dataset — no new ingest pipeline.</p>
-      </div>
-      <div class="road-item dark">
-        <div class="step">And beyond</div>
-        <h4>Direct offers. Escrow. Closing.</h4>
-        <p>A vertically integrated path from owner intent → buyer interest → executed transaction. Inside the marketplace. Inside one experience.</p>
-      </div>
+      <div class="road-item"><div class="step">Sprint one</div><h4>The first wave</h4><p>An approved launch announcement sent directly to roughly 1,250 SF condo homeowners — through our owned channel, not a paid one.</p></div>
+      <div class="road-item"><div class="step">Sprint two</div><h4>The visual catalogue</h4><p>Hero photography and a curated gallery for every one of the 195 live buildings, plus auto-import tooling for the next 200.</p></div>
+      <div class="road-item"><div class="step">Sprint three</div><h4>Compare buildings</h4><p>A side-by-side interactive map. Pick any two buildings and see $/ft², sales velocity, age, and unit mix — instantly.</p></div>
+      <div class="road-item"><div class="step">Sprint four</div><h4>Owner intelligence daily</h4><p>A daily digest for claimed-unit owners: new Make-Me-Move asks in their building, new sales nearby, watchlist activity.</p></div>
+      <div class="road-item"><div class="step">Sprint five</div><h4>Catalogue expansion</h4><p>Two hundred to four hundred additional Silicon Valley buildings activated from our existing parcel dataset — no new ingest pipeline.</p></div>
+      <div class="road-item dark"><div class="step">And beyond</div><h4>Direct offers. Escrow. Closing.</h4><p>A vertically integrated path from owner intent → buyer interest → executed transaction. Inside the marketplace. Inside one experience.</p></div>
     </div>
   </div>
 </section>
@@ -355,7 +379,7 @@ footer a:hover{color:var(--cream)}
   <div class="container">
     <div class="eyebrow">A note from the founder</div>
     <div class="founder-row">
-      <div class="founder-avatar">T</div>
+      <img class="founder-avatar" src="https://cdn.prod.website-files.com/65a1ca4354f63bd7376b5027/69c80ce57f8eb578cffe771b_image%20(82).jpg" alt="Tim McMullen, founder of Condo Market">
       <div>
         <p class="founder-quote">"Most real estate technology is built for agents. <em>Condo Market is built for the owners.</em> The data we've assembled — ten thousand verified condo owners across two of the densest markets in California — isn't a contact list. It's the foundation of a marketplace where homeowners control the conversation about their own homes."</p>
         <div class="founder-sig">— Tim McMullen, founder</div>
@@ -386,13 +410,250 @@ footer a:hover{color:var(--cream)}
 
 </main>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
+const BLDGS=[
+{n:"The Belvedere",s:"the-belvedere",la:37.7985,lo:-122.4240,u:null,t:"sf",h:"Cow Hollow",p:1875,so:2},
+{n:"Lumina",s:"lumina",la:37.7873,lo:-122.3920,u:661,t:"sf",h:"SoMa",p:1246,so:37},
+{n:"The Infinity",s:"the-infinity",la:37.7906,lo:-122.3904,u:650,t:"sf",h:"SoMa",p:1058,so:3},
+{n:"Millennium Tower",s:"millennium-tower",la:37.7901,lo:-122.3973,u:421,t:"sf",h:"SoMa",p:807,so:20},
+{n:"MIRA",s:"mira",la:37.7905,lo:-122.3920,u:392,t:"sf",h:"SoMa",p:1620,so:1},
+{n:"One Rincon Hill",s:"one-rincon-hill",la:37.7862,lo:-122.3930,u:376,t:"sf",h:"SoMa",p:1190,so:23},
+{n:"One Mission Bay",s:"one-mission-bay",la:37.7758,lo:-122.3900,u:354,t:"sf",h:"Mission Bay",p:1201,so:16},
+{n:"The Metropolitan",s:"the-metropolitan",la:37.7868,lo:-122.3940,u:342,t:"sf",h:"SoMa",p:1179,so:3},
+{n:"The Brannan",s:"the-brannan",la:37.7824,lo:-122.3924,u:339,t:"sf",h:"SoMa",p:1291,so:13},
+{n:"Sonora",s:"san-jose-sonora",la:37.3900,lo:-121.9120,u:315,t:"sv",h:"North San Jose",p:674,so:20},
+{n:"The Harrison",s:"the-harrison",la:37.7859,lo:-122.3921,u:300,t:"sf",h:"SoMa",p:1193,so:15},
+{n:"49 Showers Drive",s:"mountain-view-49-showers",la:37.3960,lo:-122.0880,u:279,t:"sv",h:"Mountain View",p:849,so:14},
+{n:"Arden",s:"arden",la:37.7722,lo:-122.3905,u:266,t:"sf",h:"Mission Bay",p:1443,so:16},
+{n:"Mansion Grove South",s:"santa-clara-mansion-grove-south",la:37.3982,lo:-121.9620,u:264,t:"sv",h:"Rivermark",p:744,so:11},
+{n:"The Rockwell",s:"the-rockwell",la:37.7898,lo:-122.4226,u:259,t:"sf",h:"Nob Hill",p:1260,so:7},
+{n:"1 Daniel Burnham",s:"1-daniel-burnham",la:37.7864,lo:-122.4220,u:247,t:"sf",h:"Civic Center",p:null,so:0},
+{n:"Monte Vista",s:"san-jose-monte-vista",la:37.3215,lo:-121.9000,u:235,t:"sv",h:"Midtown",p:579,so:5},
+{n:"The Metropolitan",s:"cupertino-metropolitan",la:37.3230,lo:-122.0095,u:206,t:"sv",h:"Cupertino",p:902,so:6},
+{n:"Mission Terrace",s:"santa-clara-mission-terrace",la:37.3937,lo:-121.9560,u:202,t:"sv",h:"Rivermark",p:720,so:7},
+{n:"200 Brannan",s:"200-brannan",la:37.7830,lo:-122.3924,u:193,t:"sf",h:"SoMa",p:896,so:6},
+{n:"Villa Cortina",s:"san-jose-villa-cortina",la:37.3190,lo:-121.9510,u:193,t:"sv",h:"West San Jose",p:819,so:9},
+{n:"Willow Park",s:"mountain-view-willow-park",la:37.4012,lo:-122.0863,u:192,t:"sv",h:"Mountain View",p:736,so:3},
+{n:"Hampton Place",s:"santa-clara-hampton-place",la:37.3530,lo:-121.9780,u:182,t:"sv",h:"Central Santa Clara",p:706,so:9},
+{n:"255 S Rengstorff Ave",s:"mountain-view-255-s-rengstorff",la:37.4003,lo:-122.0959,u:180,t:"sv",h:"Mountain View",p:727,so:5},
+{n:"170 Off Third",s:"170-off-third",la:37.7785,lo:-122.3942,u:151,t:"sf",h:"SoMa",p:923,so:4},
+{n:"260 King St",s:"260-king-st",la:37.7770,lo:-122.3915,u:148,t:"sf",h:"Mission Bay",p:855,so:15},
+{n:"250 King St",s:"250-king-st",la:37.7762,lo:-122.3922,u:147,t:"sf",h:"Mission Bay",p:878,so:8},
+{n:"Four Seasons Residences",s:"four-seasons-residences",la:37.7905,lo:-122.3990,u:146,t:"sf",h:"SoMa",p:1186,so:2},
+{n:"Axis Condominiums",s:"san-jose-axis-condominiums",la:37.3347,lo:-121.8956,u:142,t:"sv",h:"Downtown San Jose",p:804,so:3},
+{n:"Centria",s:"milpitas-centria",la:37.4286,lo:-121.9097,u:137,t:"sv",h:"Milpitas",p:502,so:2},
+{n:"Watermark",s:"watermark",la:37.7898,lo:-122.3903,u:136,t:"sf",h:"SoMa",p:896,so:1},
+{n:"300 Berry St",s:"300-berry-st",la:37.7758,lo:-122.3925,u:130,t:"sf",h:"Mission Bay",p:1027,so:7},
+{n:"The Comstock",s:"the-comstock",la:37.7932,lo:-122.4165,u:129,t:"sf",h:"Nob Hill",p:888,so:4},
+{n:"The Landings at Rivermark (Fitzpatrick Way)",s:"santa-clara-landings-fitzpatrick",la:37.3930,lo:-121.9530,u:129,t:"sv",h:"Rivermark",p:null,so:0},
+{n:"Madrone",s:"madrone",la:37.7723,lo:-122.3896,u:129,t:"sf",h:"Mission Bay",p:1118,so:4},
+{n:"The Hayes",s:"the-hayes",la:37.7730,lo:-122.4225,u:129,t:"sf",h:"Civic Center",p:1149,so:8},
+{n:"2200 Sacramento",s:"2200-sacramento",la:37.7899,lo:-122.4322,u:128,t:"sf",h:"Pacific Heights",p:1398,so:7},
+{n:"ClockTower",s:"clocktower",la:37.7820,lo:-122.3955,u:127,t:"sf",h:"SoMa",p:1032,so:2},
+{n:"The Park at Rivermark (Rivermark Pkwy)",s:"santa-clara-park-rivermark-pkwy",la:37.3905,lo:-121.9560,u:125,t:"sv",h:"Rivermark",p:null,so:0},
+{n:"Plant 51",s:"san-jose-plant-51",la:37.3292,lo:-121.9040,u:124,t:"sv",h:"Downtown San Jose",p:672,so:6},
+{n:"88 King St",s:"88-king-st",la:37.7805,lo:-122.3895,u:120,t:"sf",h:"Mission Bay",p:999,so:16},
+{n:"Linea",s:"linea",la:37.7706,lo:-122.4267,u:119,t:"sf",h:"Civic Center",p:1020,so:8},
+{n:"The Avery",s:"the-avery",la:37.7859,lo:-122.3951,u:118,t:"sf",h:"SoMa",p:1507,so:18},
+{n:"The Park at Rivermark (Laird Circle)",s:"santa-clara-park-laird",la:37.3960,lo:-121.9585,u:112,t:"sv",h:"Rivermark",p:null,so:0},
+{n:"The Summit",s:"the-summit",la:37.7984,lo:-122.4168,u:112,t:"sf",h:"North Beach",p:1650,so:4},
+{n:"325 Berry",s:"325-berry",la:37.7757,lo:-122.3912,u:111,t:"sf",h:"Mission Bay",p:1005,so:3},
+{n:"555 4th St",s:"555-4th-st",la:37.7785,lo:-122.3985,u:108,t:"sf",h:"Mission Bay",p:975,so:15},
+{n:"Wedgewood Manor",s:"los-gatos-wedgewood-manor",la:37.2360,lo:-121.9620,u:108,t:"sv",h:"Los Gatos",p:484,so:8},
+{n:"Parc Telegraph",s:"parc-telegraph",la:37.8024,lo:-122.4056,u:103,t:"sf",h:"Financial District",p:884,so:5},
+{n:"950 Tennessee",s:"950-tennessee",la:37.7586,lo:-122.3895,u:100,t:"sf",h:"SoMa",p:1247,so:1},
+{n:"Park Terrace",s:"park-terrace",la:37.7766,lo:-122.3933,u:100,t:"sf",h:"Mission Bay",p:1091,so:2},
+{n:"235 Berry",s:"235-berry",la:37.7764,lo:-122.3925,u:99,t:"sf",h:"Mission Bay",p:1030,so:2},
+{n:"St Regis",s:"st-regis",la:37.7851,lo:-122.4017,u:99,t:"sf",h:"SoMa",p:null,so:0},
+{n:"1200 California",s:"1200-california",la:37.7917,lo:-122.4148,u:98,t:"sf",h:"Nob Hill",p:1191,so:2},
+{n:"Central Place",s:"san-jose-central-place",la:37.3350,lo:-121.8873,u:96,t:"sv",h:"Downtown San Jose",p:665,so:3},
+{n:"The Marlow",s:"the-marlow",la:37.7920,lo:-122.4226,u:95,t:"sf",h:"Nob Hill",p:1178,so:3},
+{n:"The Landings at Rivermark (E River Pkwy)",s:"santa-clara-landings-river-pkwy",la:37.3915,lo:-121.9505,u:92,t:"sv",h:"Rivermark",p:null,so:0},
+{n:"The Knox",s:"the-knox",la:37.7575,lo:-122.3907,u:91,t:"sf",h:"SoMa",p:1300,so:3},
+{n:"280 Easy Street",s:"mountain-view-280-easy",la:37.4010,lo:-122.0820,u:84,t:"sv",h:"Mountain View",p:759,so:5},
+{n:"Broadway Towers",s:"broadway-towers",la:37.7962,lo:-122.4302,u:82,t:"sf",h:"Nob Hill",p:1634,so:2},
+{n:"Jackson Towers",s:"jackson-towers",la:37.7953,lo:-122.4243,u:80,t:"sf",h:"Nob Hill",p:1100,so:3},
+{n:"Royal Towers",s:"royal-towers",la:37.8018,lo:-122.4128,u:76,t:"sf",h:"North Beach",p:2404,so:1},
+{n:"Paseo Plaza",s:"san-jose-paseo-plaza",la:37.3346,lo:-121.8860,u:76,t:"sv",h:"Downtown San Jose",p:422,so:5},
+{n:"The Landings at Rivermark (Billings Circle)",s:"santa-clara-landings-billings",la:37.3925,lo:-121.9575,u:76,t:"sv",h:"Rivermark",p:null,so:0},
+{n:"Broderick Place",s:"broderick-place",la:37.7764,lo:-122.4389,u:70,t:"sf",h:"Mission",p:null,so:0},
+{n:"The Rowan",s:"the-rowan",la:37.7658,lo:-122.4082,u:70,t:"sf",h:"SoMa",p:1018,so:3},
+{n:"388 Fulton",s:"388-fulton",la:37.7778,lo:-122.4262,u:69,t:"sf",h:"Civic Center",p:1233,so:4},
+{n:"733 Front",s:"733-front",la:37.7975,lo:-122.4003,u:69,t:"sf",h:"Financial District",p:null,so:0},
+{n:"181 Fremont",s:"181-fremont",la:37.7895,lo:-122.3964,u:68,t:"sf",h:"SoMa",p:1853,so:10},
+{n:"The Pacific",s:"the-pacific",la:37.7918,lo:-122.4341,u:66,t:"sf",h:"Pacific Heights",p:2769,so:5},
+{n:"2200 Pacific",s:"2200-pacific",la:37.7944,lo:-122.4353,u:65,t:"sf",h:"Pacific Heights",p:1283,so:5},
+{n:"Barron Square",s:"palo-alto-barron-square",la:37.4205,lo:-122.1240,u:65,t:"sv",h:"South Palo Alto",p:null,so:0},
+{n:"Bellaire Tower",s:"bellaire-tower",la:37.7985,lo:-122.4178,u:64,t:"sf",h:"Nob Hill",p:1131,so:2},
+{n:"Marina Chateau",s:"marina-chateau",la:37.8016,lo:-122.4243,u:64,t:"sf",h:"Marina",p:1146,so:3},
+{n:"300 Ivy",s:"300-ivy",la:37.7775,lo:-122.4259,u:63,t:"sf",h:"Civic Center",p:1231,so:2},
+{n:"City Heights at Pellier Park",s:"san-jose-city-heights-pellier-park",la:37.3383,lo:-121.8956,u:61,t:"sv",h:"Downtown San Jose",p:516,so:2},
+{n:"Radiance",s:"radiance",la:37.7740,lo:-122.3891,u:58,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"5951 Sunstone Drive",s:"san-jose-5951-sunstone",la:37.2470,lo:-121.8300,u:55,t:"sv",h:"South San Jose",p:658,so:5},
+{n:"Unionsf",s:"unionsf",la:37.7608,lo:-122.4088,u:53,t:"sf",h:"Mission",p:null,so:0},
+{n:"1188 Valencia",s:"1188-valencia",la:37.7551,lo:-122.4212,u:49,t:"sf",h:"Mission",p:653,so:2},
+{n:"88 Townsend St",s:"88-townsend-st",la:37.7818,lo:-122.3908,u:49,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"Green Hill Tower",s:"green-hill-tower",la:37.7983,lo:-122.4166,u:48,t:"sf",h:"North Beach",p:1856,so:1},
+{n:"Madison Townhomes",s:"campbell-madison-townhomes",la:37.2835,lo:-121.9422,u:48,t:"sv",h:"Downtown Campbell",p:976,so:2},
+{n:"Margo Building",s:"santana-row-margo-building",la:37.3223,lo:-121.9474,u:48,t:"sv",h:"Santana Row",p:910,so:1},
+{n:"Miramar Terrace",s:"santa-clara-miramar-terrace",la:37.3700,lo:-121.9810,u:46,t:"sv",h:"Central Santa Clara",p:525,so:4},
+{n:"480 Mission Bay Blvd N",s:"480-mission-bay-blvd-n",la:37.7708,lo:-122.3895,u:46,t:"sf",h:"Mission Bay",p:1327,so:1},
+{n:"Travigne Villas",s:"cupertino-travigne-villas",la:37.3235,lo:-122.0145,u:46,t:"sv",h:"Cupertino",p:866,so:1},
+{n:"DeForest Building",s:"santana-row-deforest-building",la:37.3219,lo:-121.9482,u:45,t:"sv",h:"Santana Row",p:760,so:1},
+{n:"Onyx",s:"campbell-onyx",la:37.2905,lo:-121.9430,u:45,t:"sv",h:"Pruneyard",p:null,so:0},
+{n:"The Crescent",s:"the-crescent",la:37.7920,lo:-122.4106,u:44,t:"sf",h:"Chinatown",p:1578,so:1},
+{n:"Clay Jones",s:"clay-jones",la:37.7922,lo:-122.4160,u:44,t:"sf",h:"Nob Hill",p:1070,so:5},
+{n:"450 Hayes",s:"450-hayes",la:37.7769,lo:-122.4233,u:43,t:"sf",h:"Civic Center",p:1497,so:3},
+{n:"1150 Lombard",s:"1150-lombard",la:37.8018,lo:-122.4206,u:42,t:"sf",h:"Nob Hill",p:1068,so:1},
+{n:"330 Berry St",s:"330-berry-st",la:37.7747,lo:-122.3948,u:41,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"Maison Au Pont",s:"maison-au-pont",la:37.7997,lo:-122.4432,u:41,t:"sf",h:"Marina",p:1386,so:1},
+{n:"Union House",s:"union-house",la:37.7980,lo:-122.4245,u:41,t:"sf",h:"Marina",p:1576,so:3},
+{n:"88 Arkansas St",s:"88-arkansas-st",la:37.7638,lo:-122.4008,u:41,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"1515 15th",s:"1515-15th",la:37.7659,lo:-122.4186,u:40,t:"sf",h:"SoMa",p:null,so:0},
+{n:"335 Berry St",s:"335-berry-st",la:37.7745,lo:-122.3952,u:39,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"1645 Pacific",s:"1645-pacific",la:37.7952,lo:-122.4225,u:39,t:"sf",h:"Nob Hill",p:1526,so:3},
+{n:"766 Harrison St",s:"766-harrison-st",la:37.7818,lo:-122.4012,u:38,t:"sf",h:"Mission Bay",p:1203,so:1},
+{n:"175 Bluxome St",s:"175-bluxome-st",la:37.7760,lo:-122.3992,u:38,t:"sf",h:"Mission Bay",p:857,so:4},
+{n:"420 Mission Bay Blvd N",s:"420-mission-bay-blvd-n",la:37.7715,lo:-122.3900,u:36,t:"sf",h:"Mission Bay",p:1189,so:7},
+{n:"400 Grove",s:"400-grove",la:37.7775,lo:-122.4240,u:34,t:"sf",h:"Civic Center",p:null,so:0},
+{n:"Paseo Villas",s:"san-jose-paseo-villas",la:37.3353,lo:-121.8858,u:32,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"288 Pacific",s:"288-pacific",la:37.7977,lo:-122.4010,u:30,t:"sf",h:"Financial District",p:null,so:0},
+{n:"The Amero",s:"the-amero",la:37.7997,lo:-122.4216,u:30,t:"sf",h:"Marina",p:1720,so:1},
+{n:"200 Sheridan",s:"palo-alto-200-sheridan",la:37.4290,lo:-122.1400,u:30,t:"sv",h:"South Palo Alto",p:1031,so:22},
+{n:"72 Townsend St",s:"72-townsend-st",la:37.7822,lo:-122.3902,u:30,t:"sf",h:"Mission Bay",p:1023,so:3},
+{n:"Park Townsend",s:"san-jose-park-townsend",la:37.3400,lo:-121.8944,u:29,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"Laguna Hayes",s:"laguna-hayes",la:37.7761,lo:-122.4258,u:29,t:"sf",h:"Civic Center",p:1246,so:1},
+{n:"1598 Bay",s:"1598-bay",la:37.8033,lo:-122.4295,u:28,t:"sf",h:"Marina",p:1277,so:1},
+{n:"The Washingtonian",s:"the-washingtonian",la:37.7927,lo:-122.4244,u:26,t:"sf",h:"Nob Hill",p:null,so:0},
+{n:"The Luxe",s:"the-luxe",la:37.7953,lo:-122.4236,u:25,t:"sf",h:"Pacific Heights",p:null,so:0},
+{n:"177 Townsend St",s:"177-townsend-st",la:37.7793,lo:-122.3942,u:24,t:"sf",h:"Mission Bay",p:1108,so:2},
+{n:"The Valencia",s:"the-valencia",la:37.7639,lo:-122.4214,u:24,t:"sf",h:"Mission",p:null,so:0},
+{n:"350 North 2nd Street",s:"san-jose-350-north-2nd-street",la:37.3425,lo:-121.8933,u:24,t:"sv",h:"Downtown San Jose",p:490,so:1},
+{n:"The Globe",s:"san-jose-the-globe",la:37.3366,lo:-121.8882,u:23,t:"sv",h:"Downtown San Jose",p:510,so:2},
+{n:"77 Bluxome St",s:"77-bluxome-st",la:37.7768,lo:-122.3978,u:23,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"Campbell Orchard Oaks",s:"campbell-campbell-orchard-oaks",la:37.2881,lo:-121.9403,u:22,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"Murano",s:"murano",la:37.8009,lo:-122.4410,u:22,t:"sf",h:"Marina",p:1413,so:2},
+{n:"2100 Green",s:"2100-green",la:37.7963,lo:-122.4353,u:21,t:"sf",h:"Cow Hollow",p:null,so:0},
+{n:"Rose Villas II",s:"campbell-rose-villas-ii",la:37.2859,lo:-121.9513,u:20,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"601 4th St",s:"601-4th-st",la:37.7773,lo:-122.3958,u:20,t:"sf",h:"Mission Bay",p:604,so:2},
+{n:"325 China Basin St",s:"325-china-basin-st",la:37.7742,lo:-122.3902,u:20,t:"sf",h:"Mission Bay",p:1074,so:2},
+{n:"One East Julian",s:"san-jose-one-east-julian",la:37.3411,lo:-121.8937,u:20,t:"sv",h:"Downtown San Jose",p:609,so:1},
+{n:"Lofts of Alameda",s:"san-jose-lofts-of-alameda",la:37.3321,lo:-121.9083,u:19,t:"sv",h:"The Alameda",p:309,so:1},
+{n:"200 Townsend St",s:"200-townsend-st",la:37.7795,lo:-122.3938,u:19,t:"sf",h:"Mission Bay",p:792,so:1},
+{n:"1050 17th St",s:"1050-17th-st",la:37.7656,lo:-122.3945,u:19,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"The Plaza",s:"san-jose-the-plaza",la:37.3406,lo:-121.8934,u:19,t:"sv",h:"Downtown San Jose",p:588,so:1},
+{n:"95 Hobson Street",s:"san-jose-95-hobson-street",la:37.3463,lo:-121.8998,u:18,t:"sv",h:"Downtown San Jose",p:679,so:1},
+{n:"435 North 2nd Street",s:"san-jose-435-north-2nd-street",la:37.3434,lo:-121.8947,u:18,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"20 Ryland Park",s:"san-jose-20-ryland-park",la:37.3420,lo:-121.8959,u:17,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"207 King St",s:"207-king-st",la:37.7778,lo:-122.3898,u:17,t:"sf",h:"Mission Bay",p:776,so:1},
+{n:"Sandalwood",s:"campbell-sandalwood",la:37.2896,lo:-121.9490,u:17,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"Union 91",s:"campbell-union-91",la:37.2843,lo:-121.9383,u:16,t:"sv",h:"Downtown Campbell",p:710,so:1},
+{n:"310 Townsend St",s:"310-townsend-st",la:37.7770,lo:-122.3957,u:16,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"430 North 1st Street",s:"san-jose-430-north-1st-street",la:37.3435,lo:-121.8948,u:15,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"Heritage Place",s:"campbell-heritage-place",la:37.2857,lo:-121.9408,u:14,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"45 Hobson Street",s:"san-jose-45-hobson-street",la:37.3467,lo:-121.8997,u:14,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"378 Santana Row",s:"santana-row-378",la:37.3199,lo:-121.9476,u:14,t:"sv",h:"Santana Row",p:null,so:0},
+{n:"20 South 2nd Street",s:"san-jose-20-south-2nd-street",la:37.3361,lo:-121.8888,u:14,t:"sv",h:"Downtown San Jose",p:599,so:1},
+{n:"Park Town Place",s:"campbell-park-town-place",la:37.2855,lo:-121.9444,u:13,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"97 East Saint James",s:"san-jose-97-east-saint-james",la:37.3402,lo:-121.8911,u:13,t:"sv",h:"Downtown San Jose",p:454,so:1},
+{n:"Town 38",s:"campbell-town-38",la:37.2841,lo:-121.9437,u:13,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"Sonata",s:"campbell-sonata",la:37.2893,lo:-121.9416,u:13,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"1001 17th St",s:"1001-17th-st",la:37.7652,lo:-122.3992,u:12,t:"sf",h:"Mission Bay",p:993,so:2},
+{n:"400 North 1st Street",s:"san-jose-400-north-1st-street",la:37.3424,lo:-121.8945,u:12,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"1090 Chestnut",s:"1090-chestnut",la:37.8016,lo:-122.4181,u:12,t:"sf",h:"Nob Hill",p:null,so:0},
+{n:"2968 Moorpark Avenue",s:"san-jose-2968-moorpark-avenue",la:37.3150,lo:-121.9474,u:11,t:"sv",h:"West San Jose",p:null,so:0},
+{n:"1 Bluxome St",s:"1-bluxome-st",la:37.7770,lo:-122.3970,u:11,t:"sf",h:"Mission Bay",p:719,so:2},
+{n:"21 N Second Street",s:"21-n-second-st-campbell",la:37.2874,lo:-121.9467,u:11,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"415 North 2nd Street",s:"san-jose-415-north-2nd-street",la:37.3428,lo:-121.8944,u:10,t:"sv",h:"Downtown San Jose",p:605,so:1},
+{n:"630 North San Pedro",s:"san-jose-630-north-san-pedro",la:37.3460,lo:-121.9007,u:9,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"18 Lansing",s:"18-lansing-st",la:37.7864,lo:-122.3939,u:8,t:"sf",h:"SoMa",p:796,so:1},
+{n:"Villa Cornet",s:"santana-row-villa-cornet",la:37.3209,lo:-121.9475,u:8,t:"sv",h:"Santana Row",p:null,so:0},
+{n:"750 2nd St",s:"750-2nd-st",la:37.7800,lo:-122.3903,u:8,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"3355 Petunia Court",s:"san-jose-3355-petunia-court",la:37.3175,lo:-121.9534,u:7,t:"sv",h:"West San Jose",p:null,so:0},
+{n:"Cottage Place",s:"campbell-cottage-place",la:37.2823,lo:-121.9490,u:7,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"Markethouse Lofts",s:"san-jose-markethouse-lofts",la:37.3540,lo:-121.8936,u:7,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"Lenzen Condominiums",s:"san-jose-lenzen-condominiums",la:37.3356,lo:-121.9103,u:7,t:"sv",h:"The Alameda",p:null,so:0},
+{n:"Metcalfe Manor",s:"campbell-metcalfe-manor-n-central-ave-147-159",la:37.2893,lo:-121.9438,u:7,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"Towne Central",s:"campbell-towne-central-n-central-ave-177-185",la:37.2897,lo:-121.9438,u:7,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"3356 Petunia Court",s:"san-jose-3356-petunia-court",la:37.3174,lo:-121.9534,u:6,t:"sv",h:"West San Jose",p:null,so:0},
+{n:"49 Missouri St",s:"49-missouri-st",la:37.7659,lo:-122.3965,u:6,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"427 North 2nd Street",s:"san-jose-427-north-2nd-street",la:37.3430,lo:-121.8949,u:6,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"125 Hobson Street",s:"san-jose-125-hobson-street",la:37.3463,lo:-121.9003,u:6,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"3207 Mallard Court",s:"san-jose-3207-mallard-court",la:37.3184,lo:-121.9533,u:6,t:"sv",h:"West San Jose",p:null,so:0},
+{n:"655 5th St",s:"655-5th-st",la:37.7759,lo:-122.3975,u:6,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"999 16th St",s:"999-16th-st",la:37.7662,lo:-122.3966,u:6,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"695 5th St",s:"695-5th-st",la:37.7757,lo:-122.3972,u:6,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"410 North 1st Street",s:"san-jose-410-north-1st-street",la:37.3426,lo:-121.8949,u:5,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"3208 Mallard Court",s:"san-jose-3208-mallard-court",la:37.3182,lo:-121.9533,u:5,t:"sv",h:"West San Jose",p:838,so:1},
+{n:"188 West Saint James",s:"san-jose-188-west-saint-james",la:37.3374,lo:-121.8956,u:5,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"388 Townsend St",s:"388-townsend-st",la:37.7759,lo:-122.3970,u:5,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"500 Bryant St",s:"500-bryant-st",la:37.7813,lo:-122.3962,u:5,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"75 Hobson Street",s:"san-jose-75-hobson-street",la:37.3465,lo:-121.9001,u:5,t:"sv",h:"Downtown San Jose",p:null,so:0},
+{n:"49 Zoe St",s:"49-zoe-st",la:37.7801,lo:-122.3961,u:4,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"140 Pennsylvania Ave",s:"140-pennsylvania-ave",la:37.7648,lo:-122.3941,u:4,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"188 King St",s:"188-king-st",la:37.7786,lo:-122.3918,u:4,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"226 Ritch St",s:"226-ritch-st",la:37.7804,lo:-122.3961,u:3,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"Winchester II",s:"campbell-winchester-ii",la:37.2843,lo:-121.9522,u:3,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"1 Clarence Pl",s:"1-clarence-pl",la:37.7801,lo:-122.3932,u:3,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"548 Brannan St",s:"548-brannan-st",la:37.7778,lo:-122.3978,u:3,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"300 16th St",s:"300-16th-st",la:37.7674,lo:-122.3865,u:3,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"164 Townsend St",s:"164-townsend-st",la:37.7799,lo:-122.3923,u:3,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"D'Alanna Properties",s:"campbell-d-alanna-properties",la:37.2851,lo:-121.9479,u:3,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"S 3rd St Condos",s:"campbell-s-3rd-st-condos-s-3rd-st-96-98",la:37.2858,lo:-121.9468,u:2,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"650 2nd St",s:"650-2nd-st",la:37.7810,lo:-122.3916,u:2,t:"sf",h:"Mission Bay",p:1005,so:1},
+{n:"1025 17th St",s:"1025-17th-st",la:37.7650,lo:-122.3943,u:2,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"340 Ritch St",s:"340-ritch-st",la:37.7790,lo:-122.3943,u:2,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"131 Missouri St",s:"131-missouri-st",la:37.7647,lo:-122.3964,u:2,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"Curtis Subdivision",s:"campbell-map-of-curtis-subdivision-s-3rd-st-131-133",la:37.2852,lo:-121.9475,u:2,t:"sv",h:"Downtown Campbell",p:null,so:0},
+{n:"246 Ritch St",s:"246-ritch-st",la:37.7802,lo:-122.3958,u:2,t:"sf",h:"Mission Bay",p:null,so:0},
+{n:"Orchard Grove",s:"campbell-orchard-grove",la:37.2877,lo:-121.9421,u:1,t:"sv",h:"Downtown Campbell",p:null,so:0}
+];
+
+// Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const h=a.getAttribute('href');if(h.length>1){e.preventDefault();document.querySelector(h)?.scrollIntoView({behavior:'smooth',block:'start'})}})});
+
+// Value tabs
 document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.tab).classList.add('active')})});
+
+// Counter animation
 const fmt=(n,p,s)=>{let d;if(Number.isInteger(n)&&n>=1000)d=n.toLocaleString('en-US');else if(n%1!==0)d=n.toFixed(2);else d=String(n);return(p||'')+d+(s||'')};
 const anim=el=>{const tgt=parseFloat(el.dataset.counter),p=el.dataset.prefix||'',s=el.dataset.suffix||'',dur=1600,st=performance.now();const tick=t=>{const pr=Math.min((t-st)/dur,1),ea=1-Math.pow(1-pr,3),v=tgt*ea;el.textContent=fmt(v<tgt?+v.toFixed(2):tgt,p,s);if(pr<1)requestAnimationFrame(tick);else el.textContent=fmt(tgt,p,s)};requestAnimationFrame(tick)};
 const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&!e.target.dataset.animated){e.target.dataset.animated='1';anim(e.target)}}),{threshold:.4});
 document.querySelectorAll('[data-counter]').forEach(el=>obs.observe(el));
+
+// Coverage Map
+const DOMAIN={sf:'sanfranciscocondomarket.com',sv:'siliconvalleycondomarket.com'};
+const map=L.map('coverage-map',{scrollWheelZoom:false,zoomControl:true}).setView([37.55,-122.05],10);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,attribution:'© OpenStreetMap · © CARTO'}).addTo(map);
+map.once('focus',()=>map.scrollWheelZoom.enable());
+map.on('click',()=>map.scrollWheelZoom.enable());
+
+const markers={sf:[],sv:[]};
+BLDGS.forEach(b=>{
+  const units=b.u||1;
+  const r=Math.max(6,Math.min(22,5+Math.sqrt(units)*1.3));
+  const c=b.t==='sf'?'#C2410C':'#00A8B5';
+  const m=L.circleMarker([b.la,b.lo],{radius:r,fillColor:c,color:'white',weight:1.5,opacity:1,fillOpacity:.85});
+  const psfTxt=b.p?`<strong>$${b.p.toLocaleString()}/ft²</strong> median (last 12mo)`:'No recent sales yet';
+  const soldTxt=b.so?`<strong>${b.so}</strong> sold in the last 12 months`:'';
+  m.bindPopup(`<div class="popup-name">${b.n}</div><div class="popup-hood">${b.h||''}</div><div class="popup-row"><strong>${b.u?b.u.toLocaleString():'—'}</strong> units</div><div class="popup-row">${psfTxt}</div>${soldTxt?`<div class="popup-row">${soldTxt}</div>`:''}<a class="popup-link" href="https://www.${DOMAIN[b.t]}/building/${b.s}/" target="_blank" rel="noopener">View building →</a>`);
+  m.addTo(map);
+  markers[b.t].push(m);
+});
+
+document.querySelectorAll('.map-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.map-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const f=t.dataset.filter;
+    markers.sf.forEach(m=>f==='sv'?map.removeLayer(m):m.addTo(map));
+    markers.sv.forEach(m=>f==='sf'?map.removeLayer(m):m.addTo(map));
+    if(f==='sf')map.flyTo([37.77,-122.42],12,{duration:.8});
+    else if(f==='sv')map.flyTo([37.35,-121.97],11,{duration:.8});
+    else map.flyTo([37.55,-122.05],10,{duration:.8});
+  });
+});
 </script>
 
 </body>
