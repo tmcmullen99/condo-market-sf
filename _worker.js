@@ -25,13 +25,84 @@
 const SUPABASE_URL      = 'https://kfqphwerygccpzntbbif.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
+/* --------------------- multi-market chrome (per-Host) -------------------- */
+// Hostname -> market. This map drives ONLY the crawler-facing <head>
+// (title/description/canonical/OG) and the window.__CM_MARKET__ slug the client
+// uses to pick which market to fetch. All *visible* chrome is rendered by the
+// page itself from home_page_payload(); this is purely for SEO + bootstrap.
+// Unknown hosts fall back to San Francisco, matching the in-file defaults.
+const MARKET_BY_HOST = {
+  'sanfranciscocondomarket.com':      'sf',
+  'www.sanfranciscocondomarket.com':  'sf',
+  'siliconvalleycondomarket.com':     'sv',
+  'www.siliconvalleycondomarket.com': 'sv',
+};
+const MARKETS = {
+  sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com' },
+  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com' },
+};
+function resolveMarket(hostname) {
+  return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
+}
+function isHomePath(p)  { return p === '/buildings' || p === '/buildings/' || p === '/buildings/index.html'; }
+function isIntelPath(p) { return p === '/intelligence' || p === '/intelligence/' || p === '/intelligence/index.html'; }
+function attr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+function chromeFor(mk, kind) {
+  const www = 'https://www.' + mk.domain;
+  if (kind === 'intel') return {
+    title: 'Market intelligence \u00b7 ' + mk.brand,
+    desc:  'Search every ' + mk.region + ' condo \u2014 ten years of sale history, the citywide $/sf trend, live activity, owner tenure, and per-unit detail.',
+    url:   www + '/intelligence/',
+  };
+  return {
+    title: mk.brand + ' \u2014 Every unit is for sale, for the right price.',
+    desc:  'A private marketplace for every condo in ' + mk.region + '. Browse buildings, ten years of sales, owner tenure, and live offer activity \u2014 no listing required.',
+    url:   www + '/buildings/',
+  };
+}
+// Fetch the static asset, then inject the market bootstrap + per-Host SEO.
+// Non-HTML responses (the / -> /buildings/ redirect, 404s) pass straight through.
+async function renderChrome(request, env, kind) {
+  const res = await env.ASSETS.fetch(request);
+  const ct = res.headers.get('content-type') || '';
+  if (!res.ok || !ct.includes('text/html')) return res;
+
+  const mk = resolveMarket(new URL(request.url).hostname);
+  const c  = chromeFor(mk, kind);
+  let html = await res.text();
+
+  const inject =
+    '\n<script>window.__CM_MARKET__=' + JSON.stringify(mk.slug) + ';</script>' +
+    '\n<link rel="canonical" href="' + attr(c.url) + '">';
+  html = html.replace('<head>', '<head>' + inject);
+
+  html = html
+    .replace(/<title>[\s\S]*?<\/title>/i, '<title>' + attr(c.title) + '</title>')
+    .replace(/<meta\s+name="description"[^>]*>/i, '<meta name="description" content="' + attr(c.desc) + '">')
+    .replace(/<meta\s+property="og:title"[^>]*>/i, '<meta property="og:title" content="' + attr(c.title) + '">')
+    .replace(/<meta\s+property="og:description"[^>]*>/i, '<meta property="og:description" content="' + attr(c.desc) + '">')
+    .replace(/<meta\s+property="og:url"[^>]*>/i, '<meta property="og:url" content="' + attr(c.url) + '">');
+
+  const headers = new Headers(res.headers);
+  headers.delete('content-length');
+  headers.set('content-type', 'text/html;charset=utf-8');
+  return new Response(html, { status: 200, headers });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
 
-    // Not a single-segment building page -> static pipeline (redirects, etc.)
-    if (!m) return env.ASSETS.fetch(request);
+    // Home + intel: serve the static asset with per-Host chrome + market bootstrap.
+    // Everything else (and non-GET) -> static pipeline (redirects, _headers, etc.).
+    if (!m) {
+      if (request.method === 'GET') {
+        if (isHomePath(url.pathname))  return renderChrome(request, env, 'home');
+        if (isIntelPath(url.pathname)) return renderChrome(request, env, 'intel');
+      }
+      return env.ASSETS.fetch(request);
+    }
 
     const slug = decodeURIComponent(m[1]).trim().toLowerCase();
 
