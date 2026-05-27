@@ -38,8 +38,8 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com' },
-  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop' },
+  sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com', accent: '#FD5A1E', accentDeep: '#C2410C', accentRgb: '253,90,30' },
+  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
   return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
@@ -90,6 +90,16 @@ async function renderChrome(request, env, kind) {
     html = html
       .replace(/(<img class="cm-hero-img" src=")[^"]*(")/i, function (m, a, b) { return a + hero + b; })
       .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
+  }
+
+  // Per-market accent (team colors): recolor the periwinkle accent tokens in the
+  // served CSS. Markets without an accent are left untouched (default periwinkle).
+  if (mk.accent) {
+    html = html
+      .replace(/#9fb4d8/gi, mk.accent)
+      .replace(/#91a1ba/gi, mk.accent)
+      .replace(/#5a73a8/gi, mk.accentDeep || mk.accent)
+      .replace(/159,180,216/g, mk.accentRgb);
   }
 
   const headers = new Headers(res.headers);
