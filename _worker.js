@@ -38,7 +38,7 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com', accent: '#E12D39', accentDeep: '#AA0000', accentRgb: '225,45,57' },
+  sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
   sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
@@ -148,7 +148,19 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    return new Response(renderBuilding(payload), {
+    // Per-market accent on the dynamic building page: recolor the periwinkle
+    // tokens to the market's team color, exactly as renderChrome does for static pages.
+    const mkB = resolveMarket(new URL(request.url).hostname);
+    let bodyHtml = renderBuilding(payload);
+    if (mkB.accent) {
+      bodyHtml = bodyHtml
+        .replace(/#9fb4d8/gi, mkB.accent)
+        .replace(/#91a1ba/gi, mkB.accent)
+        .replace(/#5a73a8/gi, mkB.accentDeep || mkB.accent)
+        .replace(/#6a7fa3/gi, mkB.accentDeep || mkB.accent)
+        .replace(/159,180,216/g, mkB.accentRgb);
+    }
+    return new Response(bodyHtml, {
       status: 200,
       headers: {
         'content-type': 'text/html;charset=utf-8',
