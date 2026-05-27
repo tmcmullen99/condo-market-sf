@@ -235,17 +235,16 @@
 
   // ---- data ----
   async function loadData(){
-    const [{data:mk},{data:ct},{data:bld},{data:imgs}]=await Promise.all([
-      sb.from("markets").select("id,tag,slug"),
-      sb.from("cities").select("id,market_id"),
-      sb.from("buildings").select("slug,display_name,canonical_address,neighborhood,city_id,is_catalogued").eq("is_catalogued",true),
-      sb.from("building_images").select("building_slug")
-    ]);
-    const mById={}; (mk||[]).forEach(m=>mById[m.id]=m.tag);
-    const cityMarket={}; (ct||[]).forEach(c=>cityMarket[c.id]=mById[c.market_id]);
-    STATE.buildings=(bld||[]).map(b=>({...b,market:cityMarket[b.city_id]||"?"}))
-      .sort((a,b)=>(a.display_name||a.slug).localeCompare(b.display_name||b.slug));
-    STATE.counts={}; (imgs||[]).forEach(r=>{STATE.counts[r.building_slug]=(STATE.counts[r.building_slug]||0)+1;});
+    // Single SECURITY DEFINER RPC returns every catalogued building across both
+    // markets with its market tag + image count, bypassing direct-table grants.
+    const {data,error}=await sb.rpc("admin_building_image_index");
+    if(error){ console.error(error); alert("Could not load buildings: "+(error.message||error)); return; }
+    const rows=data||[];
+    STATE.buildings=rows.map(r=>({
+      slug:r.slug, display_name:r.display_name, canonical_address:r.canonical_address,
+      neighborhood:r.neighborhood, market:r.market_tag||"?", hero:r.hero_url
+    })).sort((a,b)=>(a.display_name||a.slug).localeCompare(b.display_name||b.slug));
+    STATE.counts={}; rows.forEach(r=>{STATE.counts[r.slug]=r.image_count||0;});
     updateCoverage();
   }
   function updateCoverage(){
