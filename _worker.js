@@ -39,7 +39,7 @@ const MARKET_BY_HOST = {
 };
 const MARKETS = {
   sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com' },
-  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com' },
+  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1512555441-ec2e6a8b1837?w=2400&q=85&auto=format&fit=crop' },
 };
 function resolveMarket(hostname) {
   return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
@@ -82,6 +82,15 @@ async function renderChrome(request, env, kind) {
     .replace(/<meta\s+property="og:title"[^>]*>/i, '<meta property="og:title" content="' + attr(c.title) + '">')
     .replace(/<meta\s+property="og:description"[^>]*>/i, '<meta property="og:description" content="' + attr(c.desc) + '">')
     .replace(/<meta\s+property="og:url"[^>]*>/i, '<meta property="og:url" content="' + attr(c.url) + '">');
+
+  // Per-market hero image: swap the homepage hero <img> and its LCP preload, so a
+  // non-SF market never flashes the SF skyline. Markets without heroImage are untouched.
+  if (kind === 'home' && mk.heroImage) {
+    const hero = attr(mk.heroImage);
+    html = html
+      .replace(/(<img class="cm-hero-img" src=")[^"]*(")/i, function (m, a, b) { return a + hero + b; })
+      .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
+  }
 
   const headers = new Headers(res.headers);
   headers.delete('content-length');
