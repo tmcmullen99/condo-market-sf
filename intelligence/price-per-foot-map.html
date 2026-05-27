@@ -2,1073 +2,179 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market intelligence · Condo Market SF</title>
-<meta name="description" content="Search every San Francisco condo — ten years of sale history, citywide $/sf trend, live activity, owner tenure, and per-unit detail.">
-<link rel="icon" href="/favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$/Foot Map — Condo Market Intelligence</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script type="module" src="/assets/cm-auth-nav.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --cm-navy: #ffffff; --cm-navy-deep: #f4f5f8; --cm-peri: #9fb4d8;
-    --cm-peri-dim: rgba(159,180,216,0.18);
-    --cm-ivory: #1f2430; --cm-ivory-dim: rgba(31,36,48,0.56);
-    --cm-rule: rgba(31,36,48,0.10);
-    --cm-bronze: #9c6b2e; --cm-rust: #b8472f; --cm-gain: #4f7a39;
-    --cm-card: #ffffff; --cm-header: #0f131d; --cm-header-ink: #f1ede4;
-    --cm-shadow: 0 1px 2px rgba(31,36,48,0.04), 0 8px 24px rgba(31,36,48,0.06);
-    --ff-display: 'Playfair Display', Georgia, serif;
-    --ff-body: 'DM Sans', -apple-system, sans-serif;
-    --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
-    --page-max: 1280px;
-    --gutter: clamp(20px, 4vw, 56px);
+  :root{
+    --navy:#f4f5f8; --card:#ffffff; --card-lift:#eef1f6;
+    --ivory:#1f2430; --ivory-dim:rgba(31,36,48,.62); --ivory-faint:rgba(31,36,48,.42);
+    --bronze:#9c6b2e; --peri:#5f77b4; --gain:#4f7a39; --rust:#b8472f;
+    --rule:rgba(31,36,48,.10); --rule-soft:rgba(31,36,48,.06);
+    --ff-display:'Playfair Display',Georgia,serif;
+    --ff-mono:'JetBrains Mono',ui-monospace,monospace;
+    --ff-body:'DM Sans',-apple-system,Segoe UI,sans-serif;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--cm-navy-deep); color: var(--cm-ivory); font-family: var(--ff-body); font-weight: 300; line-height: 1.55; -webkit-font-smoothing: antialiased; min-height: 100vh; }
-  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.02 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1; mix-blend-mode: multiply; opacity: 0.4; }
-  main { position: relative; z-index: 2; }
-  a { color: inherit; text-decoration: none; }
-  .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
-  .masthead { padding: 22px 0; border-bottom: 1px solid rgba(241,237,228,0.10); position: relative; z-index: 10; background: var(--cm-header); }
-  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
-  .wordmark em { color: var(--cm-peri); }
-  .masthead .wordmark { color: var(--cm-header-ink); }
-  .masthead .wordmark em { color: var(--cm-peri); }
-  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(241,237,228,0.62); display: flex; gap: 22px; align-items: center; }
-  .nav-meta a { color: rgba(241,237,228,0.62); transition: color 0.15s; }
-  .nav-meta a:hover { color: var(--cm-header-ink); }
-  .nav-meta a.active { color: var(--cm-peri); }
-  .signin-btn { color: var(--cm-header-ink) !important; border: 1px solid rgba(241,237,228,0.22); padding: 7px 14px; border-radius: 999px; }
-  .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
-  .search-hero { padding: 64px 0 48px; }
-  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 20px; text-align: center; }
-  .hero-h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.015em; text-align: center; margin-bottom: 36px; color: var(--cm-ivory); }
-  .hero-h1 em { font-style: italic; color: var(--cm-peri); }
-  .search-shell { position: relative; max-width: 760px; margin: 0 auto 28px; }
-  .search-input { width: 100%; padding: 22px 60px 22px 56px; font-size: 18px; font-family: var(--ff-body); font-weight: 400; background: var(--cm-card); color: var(--cm-ivory); border: 1px solid var(--cm-rule); border-radius: 999px; box-shadow: var(--cm-shadow); transition: border-color .15s, background .15s; }
-  .search-input::placeholder { color: var(--cm-ivory-dim); font-weight: 300; }
-  .search-input:focus { outline: none; border-color: var(--cm-peri); background: #fff; }
-  .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--cm-ivory-dim); pointer-events: none; }
-  .search-status { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .search-clear { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: var(--cm-rule); color: var(--cm-ivory); border: none; cursor: pointer; font-size: 16px; display: none; align-items: center; justify-content: center; }
-  .search-clear.show { display: flex; }
-  .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--cm-rule); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; max-width: 980px; margin: 0 auto; box-shadow: var(--cm-shadow); }
-  .kpi-tile { background: var(--cm-card); padding: 18px 20px; text-align: center; }
-  .kpi-val { font-family: var(--ff-display); font-weight: 500; font-size: 22px; color: var(--cm-ivory); line-height: 1.1; letter-spacing: -0.01em; }
-  .kpi-label { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 4px; }
-  @media (max-width: 760px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
-  .section { padding: 72px 0; border-bottom: 1px solid var(--cm-rule); }
-  .section-head { margin-bottom: 36px; display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 16px; }
-  .section-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; color: var(--cm-ivory); }
-  .section-title em { font-style: italic; color: var(--cm-peri); }
-  .section-sub { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .search-results { padding: 48px 0 72px; border-bottom: 1px solid var(--cm-rule); display: none; }
-  .search-results.active { display: block; }
-  .results-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
-  .results-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); }
-  .results-title strong { color: var(--cm-peri); font-style: normal; font-weight: 500; }
-  .results-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
-  .result-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 20px 22px; cursor: pointer; box-shadow: var(--cm-shadow); transition: border-color .15s, transform .15s; }
-  .result-card:hover { border-color: var(--cm-peri); transform: translateY(-2px); }
-  .result-addr { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 18px; color: var(--cm-ivory); margin-bottom: 4px; }
-  .result-addr-unit { color: var(--cm-peri); font-style: normal; font-weight: 400; font-size: 15px; margin-left: 6px; }
-  .result-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 14px; }
-  .result-stats { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory); }
-  .result-stat-label { color: var(--cm-ivory-dim); margin-right: 4px; }
-  .results-empty { text-align: center; padding: 40px 20px; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); font-size: 18px; }
-  .heatmap-shell { position: relative; }
-  .heatmap-toggle { display: inline-flex; margin-bottom: 18px; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; background: var(--cm-card); box-shadow: var(--cm-shadow); }
-  .heatmap-toggle button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; transition: all .15s; }
-  .heatmap-toggle button.on { background: var(--cm-peri); color: #14181f; }
-  #heatmap { height: 540px; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--cm-rule); background: #e7eaef; box-shadow: var(--cm-shadow); }
-  .leaflet-container { background: #e7eaef !important; font-family: var(--ff-body) !important; }
-  .leaflet-popup-content-wrapper { background: var(--cm-card) !important; color: var(--cm-ivory) !important; border-radius: 8px !important; border: 1px solid var(--cm-rule); box-shadow: var(--cm-shadow); }
-  .leaflet-popup-tip { background: var(--cm-card) !important; }
-  .leaflet-popup-content { font-family: var(--ff-body); font-size: 13px; margin: 12px 14px !important; }
-  .leaflet-popup-content strong { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 16px; color: var(--cm-ivory); display: block; margin-bottom: 4px; }
-  .leaflet-popup-content .pop-stat { font-family: var(--ff-mono); font-size: 11px; color: #5a73a8; margin-top: 6px; }
-  .leaflet-popup-content .pop-link { display: inline-block; margin-top: 8px; padding: 5px 12px; background: var(--cm-peri); color: #14181f; border-radius: 999px; font-size: 11px; font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: 0.08em; }
-  .leaflet-control-attribution { background: rgba(255,255,255,0.8) !important; color: var(--cm-ivory-dim) !important; }
-  .leaflet-control-attribution a { color: #5a73a8 !important; }
-  .heatmap-legend { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .legend-bar { display: inline-block; width: 180px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--cm-peri), var(--cm-bronze), var(--cm-rust)); }
-  .timeline-shell { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 32px; box-shadow: var(--cm-shadow); }
-  .timeline-toggle { margin-bottom: 22px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
-  .timeline-period { display: inline-flex; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; }
-  .timeline-period button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; }
-  .timeline-period button.on { background: var(--cm-peri); color: #14181f; }
-  .timeline-canvas-wrap { position: relative; height: 320px; }
-  .timeline-bookends { display: flex; justify-content: space-between; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
-  .bookend-date { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 4px; }
-  .bookend-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
-  .bookend-r { text-align: right; }
-  .activity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
-  .activity-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; box-shadow: var(--cm-shadow); transition: transform .15s ease, box-shadow .15s ease, border-color .15s; cursor: pointer; display: flex; flex-direction: column; }
-  .activity-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(31,36,48,0.14); border-color: var(--cm-peri); }
-  .activity-img-wrap { position: relative; width: 100%; height: 140px; background: #e7eaef; overflow: hidden; }
-  .activity-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
-  .activity-card:hover .activity-img { transform: scale(1.04); }
-  .activity-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eef0f4, #e2e6ee); color: #5a73a8; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
-  .activity-body { padding: 16px 18px 18px; }
-  .activity-addr { font-family: var(--ff-body); font-weight: 600; font-size: 16px; color: #1f2430; line-height: 1.3; margin-bottom: 4px; letter-spacing: -0.005em; }
-  .activity-addr-unit { color: #5a73a8; margin-left: 6px; font-weight: 500; }
-  .activity-bldg { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; margin-bottom: 14px; }
-  .activity-row { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--ff-mono); font-size: 12px; padding: 5px 0; border-top: 1px solid #ececf1; }
-  .activity-row:first-of-type { border-top: none; padding-top: 8px; }
-  .activity-row span:first-child { color: #6b7280; letter-spacing: 0.04em; text-transform: uppercase; font-size: 10px; }
-  .activity-row span:last-child { color: #1f2430; font-weight: 500; }
-  .activity-row.price span:last-child { color: #1f2430; font-weight: 600; font-size: 13px; }
-  .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-  .rank-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 26px; box-shadow: var(--cm-shadow); }
-  .rank-card h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 4px; }
-  .rank-card .sub { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 18px; }
-  .rank-list { list-style: none; }
-  .rank-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--cm-rule); gap: 12px; }
-  .rank-list li:last-child { border-bottom: none; }
-  .rank-n { font-family: var(--ff-mono); font-size: 11px; color: #5a73a8; }
-  .rank-name { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); }
-  .rank-name a { text-decoration: none; color: inherit; }
-  .rank-name a:hover { color: #5a73a8; }
-  .rank-val { font-family: var(--ff-mono); font-size: 13px; color: #5a73a8; }
-  .cta-strip { padding: 64px 0; background: var(--cm-card); border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); text-align: center; }
-  .cta-strip h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); margin-bottom: 14px; color: var(--cm-ivory); }
-  .cta-strip h2 em { font-style: italic; color: var(--cm-peri); }
-  .cta-strip p { color: var(--cm-ivory-dim); max-width: 52ch; margin: 0 auto 26px; }
-  .btn-p { display: inline-block; background: var(--cm-header); color: var(--cm-header-ink); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; }
-  .btn-p:hover { opacity: 0.9; }
-  .drawer-backdrop { position: fixed; inset: 0; background: rgba(31,36,48,0.35); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s; }
-  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
-  .detail-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 92vw); background: var(--cm-card); border-left: 1px solid var(--cm-rule); z-index: 101; transform: translateX(100%); transition: transform .25s ease-out; overflow-y: auto; box-shadow: -8px 0 40px rgba(31,36,48,0.12); }
-  .detail-drawer.open { transform: translateX(0); }
-  .drawer-head { padding: 24px 28px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-  .drawer-title { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); line-height: 1.2; }
-  .drawer-title-unit { color: #5a73a8; }
-  .drawer-bldg { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 6px; }
-  .drawer-close { width: 36px; height: 36px; border-radius: 50%; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); color: var(--cm-ivory); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .drawer-body { padding: 24px 28px; }
-  .drawer-mini-canvas { height: 180px; margin-bottom: 24px; }
-  .drawer-history-table { width: 100%; border-collapse: collapse; font-family: var(--ff-mono); font-size: 12.5px; }
-  .drawer-history-table th { text-align: left; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 10px 0; border-bottom: 1px solid var(--cm-rule); font-weight: 500; }
-  .drawer-history-table td { padding: 12px 0; border-bottom: 1px solid var(--cm-rule); color: var(--cm-ivory); }
-  .drawer-history-table td:last-child, .drawer-history-table th:last-child { text-align: right; color: #5a73a8; }
-  .drawer-loading { text-align: center; padding: 60px 0; color: var(--cm-ivory-dim); font-style: italic; font-family: var(--ff-display); }
-  .drawer-bldg-link { display: inline-block; margin-top: 20px; padding: 10px 20px; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 999px; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory); }
-  .drawer-bldg-link:hover { border-color: var(--cm-peri); color: #5a73a8; }
-  .tool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-  @media (max-width: 880px) { .tool-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 520px) { .tool-grid { grid-template-columns: 1fr; } }
-  .tool-card { display: flex; flex-direction: column; gap: 9px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 20px; box-shadow: var(--cm-shadow); transition: transform 0.16s, border-color 0.16s; min-height: 172px; }
-  .tool-card:hover { transform: translateY(-3px); border-color: var(--cm-peri); }
-  .tool-kicker { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-bronze); }
-  .tool-card h3 { font-family: var(--ff-display); font-weight: 500; font-size: 21px; line-height: 1.1; }
-  .tool-card h3 em { font-style: italic; color: var(--cm-peri); }
-  .tool-desc { font-size: 13.5px; color: var(--cm-ivory-dim); line-height: 1.5; flex: 1; }
-  .tool-open { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--cm-peri); margin-top: 2px; }
-  footer { padding: 48px 0 40px; background: var(--cm-header); color: rgba(241,237,228,0.6); font-size: 13px; border-top: 1px solid rgba(241,237,228,0.10); }
-  footer .wordmark { color: var(--cm-header-ink); }
-  footer a { color: rgba(241,237,228,0.6); }
-  footer a:hover { color: var(--cm-header-ink); }
-  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
-  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-  footer h5 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-header-ink); margin-bottom: 14px; font-weight: 500; }
-  footer ul { list-style: none; }
-  footer li { padding: 4px 0; }
-  .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid rgba(241,237,228,0.10); font-size: 12px; opacity: 0.7; text-align: center; }
-  .skel { display: inline-block; background: rgba(31,36,48,0.08); border-radius: 4px; height: 1em; min-width: 60px; animation: pulse 1.4s ease-in-out infinite; }
-  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
-  /* ── Building comparison + owner tenure ── */
-  .cmp-shell { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; box-shadow: var(--cm-shadow); overflow: hidden; }
-  .cmp-toolbar { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--cm-rule); }
-  .cmp-sorts { display: inline-flex; flex-wrap: wrap; gap: 4px; border: 1px solid var(--cm-rule); border-radius: 999px; padding: 4px; }
-  .cmp-sorts button { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 13px; border-radius: 999px; background: transparent; border: none; color: var(--cm-ivory-dim); cursor: pointer; transition: all .15s; }
-  .cmp-sorts button.on { background: var(--cm-peri); color: #14181f; }
-  .cmp-filter { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory); background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 999px; padding: 9px 16px; cursor: pointer; }
-  .cmp-filter:focus { outline: none; border-color: var(--cm-peri); }
-  .cmp-scroll { overflow-x: auto; }
-  .cmp-table { width: 100%; border-collapse: collapse; min-width: 720px; }
-  .cmp-table th { text-align: right; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 14px 18px; border-bottom: 1px solid var(--cm-rule); font-weight: 500; white-space: nowrap; }
-  .cmp-table th:first-child, .cmp-table th:nth-child(2) { text-align: left; }
-  .cmp-table td { padding: 13px 18px; border-bottom: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 13px; color: var(--cm-ivory); text-align: right; white-space: nowrap; }
-  .cmp-table tbody tr:last-child td { border-bottom: none; }
-  .cmp-table tbody tr { transition: background .12s; }
-  .cmp-table tbody tr:hover { background: var(--cm-peri-dim); }
-  .cmp-name { text-align: left !important; font-family: var(--ff-display) !important; font-style: italic; font-size: 16px !important; }
-  .cmp-name a:hover { color: #5a73a8; }
-  .cmp-hood { text-align: left !important; color: var(--cm-ivory-dim); font-size: 11px !important; letter-spacing: 0.06em; text-transform: uppercase; }
-  .cmp-bar-wrap { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
-  .cmp-bar { width: 46px; height: 6px; border-radius: 3px; background: var(--cm-rule); overflow: hidden; }
-  .cmp-bar > i { display: block; height: 100%; background: var(--cm-peri); }
-  .cmp-dim { color: var(--cm-ivory-dim); }
-  .cmp-count { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 16px 24px; }
-  .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: var(--cm-ivory-dim); }
-</style>
-<style>
-  .workbench-wrap { display: grid; grid-template-columns: minmax(0,1fr) 332px; gap: 24px; align-items: start; }
-  @media (max-width: 980px) { .workbench-wrap { grid-template-columns: 1fr; } }
-  .wb-tabs { display: flex; flex-wrap: nowrap; gap: 4px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .wb-tabs::-webkit-scrollbar { height: 0; }
-  .wb-tabs button { background: none; border: 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 9px 15px; border-radius: 8px; cursor: pointer; transition: 0.15s; white-space: nowrap; flex: 0 0 auto; }
-  .wb-tabs button.on { background: var(--cm-peri); color: #14181f; }
-  .wb-tabs button:not(.on):hover { color: var(--cm-ivory); }
-  .wb-panel { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; }
-  .wb-frame { display: none; width: 100%; min-height: 480px; border: 0; background: var(--cm-card); }
-  .wb-frame.on { display: block; }
-  @media (max-width: 980px) { .wb-frame { min-height: 420px; } }
-  .wb-feed { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; position: sticky; top: 18px; }
-  .wb-feed-head { padding: 15px 18px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: baseline; }
-  .wb-feed-head h3 { font-family: var(--ff-display); font-weight: 500; font-size: 19px; } .wb-feed-head h3 em { font-style: italic; color: var(--cm-peri); }
-  .wb-feed-head span { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .wb-feed-list { max-height: 736px; overflow-y: auto; }
-  .activity-grid { display: flex; flex-direction: column; }
-  .feed-row { padding: 12px 18px; border-bottom: 1px solid var(--cm-rule); cursor: pointer; transition: background 0.12s; }
-  .feed-row:last-child { border-bottom: 0; }
-  .feed-row:hover { background: #f5f6f9; }
-  .feed-row-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
-  .feed-addr { font-family: var(--ff-body); font-weight: 500; font-size: 13.5px; color: var(--cm-ivory); }
-  .feed-unit { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-peri); margin-left: 5px; }
-  .feed-price { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory); white-space: nowrap; }
-  .feed-row-bot { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; }
-  .feed-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .feed-meta { font-family: var(--ff-mono); font-size: 10.5px; color: var(--cm-ivory-faint); white-space: nowrap; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--ivory);font-family:var(--ff-body);line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1200px 600px at 80% -10%, rgba(159,180,216,.06), transparent 60%),
+                     radial-gradient(900px 500px at 0% 110%, rgba(212,165,116,.05), transparent 55%);
+    background-attachment:fixed;}
+  .wrap{max-width:1240px;margin:0 auto;padding:34px 26px 40px}
+  .eyebrow{font-family:var(--ff-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--bronze);margin-bottom:10px}
+  h1{font-family:var(--ff-display);font-weight:600;font-size:clamp(30px,4.2vw,46px);line-height:1.04;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--peri);font-weight:500}
+  .sub{color:var(--ivory-dim);font-size:15px;margin-top:10px;max-width:64ch}
+  .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--ff-mono);font-size:11px;letter-spacing:.1em;color:var(--ivory-faint);margin-top:14px;text-transform:uppercase}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--gain);box-shadow:0 0 0 0 rgba(132,217,160,.5);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(132,217,160,.45)}70%{box-shadow:0 0 0 7px rgba(132,217,160,0)}100%{box-shadow:0 0 0 0 rgba(132,217,160,0)}}
+
+  .hm-toolbar{display:inline-flex;gap:4px;margin-top:26px;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:4px}
+  .hm-toolbar button{font-family:var(--ff-body);font-size:13px;font-weight:500;color:var(--ivory-dim);background:transparent;border:none;cursor:pointer;padding:9px 16px;border-radius:9px;transition:.14s}
+  .hm-toolbar button.on{background:var(--ivory);color:#fff}
+  .hm-toolbar button:not(.on):hover{background:var(--card-lift);color:var(--ivory)}
+
+  .hm-map-wrap{margin-top:18px;border:1px solid var(--rule);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(31,36,48,.04),0 10px 30px rgba(31,36,48,.06)}
+  #heatmap{height:560px;width:100%;background:#e9edf3}
+  @media (max-width:760px){#heatmap{height:440px}}
+
+  .hm-legend{display:flex;align-items:center;gap:12px;margin-top:16px;font-family:var(--ff-mono);font-size:11px;color:var(--ivory-dim);letter-spacing:.04em}
+  .hm-grad{flex:1;max-width:280px;height:8px;border-radius:99px;background:linear-gradient(90deg,#9fb4d8 0%,#d4a574 50%,#c95742 100%)}
+
+  .leaflet-popup-content{font-family:var(--ff-body);font-size:13px;color:var(--ivory);margin:12px 14px}
+  .leaflet-popup-content strong{font-family:var(--ff-display);font-style:italic;font-size:15px}
+  .leaflet-popup-content .pop-stat{font-family:var(--ff-mono);font-size:11.5px;color:var(--ivory-dim);margin-top:4px}
+  .leaflet-popup-content .pop-link{display:inline-block;margin-top:8px;font-family:var(--ff-mono);font-size:11px;letter-spacing:.04em;color:var(--peri);text-transform:uppercase}
+  .hm-msg{display:flex;align-items:center;justify-content:center;height:100%;color:var(--ivory-faint);font-style:italic;font-family:var(--ff-display);font-size:17px}
 </style>
 </head>
 <body>
-<header class="masthead">
-  <div class="wrap">
-    <div class="masthead-row">
-      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
-      <nav class="nav-meta">
-        <a href="/buildings/">Buildings</a>
-        <a href="/intelligence/" class="active">Intelligence</a>
-        <a href="/how-it-works/">How it works</a>
-        <a href="/refer/">Refer</a>
-        <a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>
-      </nav>
-    </div>
+<div class="wrap">
+  <div class="eyebrow">Condo Market · Intelligence</div>
+  <h1>$/foot <em>map</em></h1>
+  <p class="sub">Every catalogued building, placed and shaded by the metric you choose — trailing price per foot, sales velocity, or dollar volume. Larger dots = more recent closings. Click any building for its detail.</p>
+  <div class="live"><span class="dot"></span> <span id="live-line">Live</span></div>
+
+  <div class="hm-toolbar" id="heatmap-toggle">
+    <button class="on" data-metric="psf">Price / foot</button>
+    <button data-metric="velocity">Sales velocity</button>
+    <button data-metric="volume">Dollar volume</button>
   </div>
-</header>
 
-<main>
-  <section class="search-hero">
-    <div class="wrap">
-      <div class="hero-kicker">Market Intelligence</div>
-      <h1 class="hero-h1">Search every <em>condo</em>. Every sale. Every owner tenure.</h1>
-      <div class="search-shell">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search any address, building, or neighborhood…">
-        <button id="search-clear" class="search-clear" type="button" aria-label="Clear search">×</button>
-        <span id="search-status" class="search-status"></span>
-      </div>
-      <div class="kpi-strip" id="kpi-strip">
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Median $/sf</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Units indexed</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Sales · 10y</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Volume · 10y</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Latest sale</div></div>
-      </div>
-    </div>
-  </section>
+  <div class="hm-map-wrap"><div id="heatmap"><div class="hm-msg">Loading map…</div></div></div>
 
-  <section class="search-results" id="search-results">
-    <div class="wrap">
-      <div class="results-head">
-        <div class="results-title" id="results-title">Results</div>
-        <div class="results-meta" id="results-meta"></div>
-      </div>
-      <div class="results-grid" id="results-grid"></div>
-    </div>
-  </section>
+  <div class="hm-legend"><span id="legend-low">—</span><span class="hm-grad"></span><span id="legend-high">—</span></div>
+</div>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">The <em>workbench</em></h2>
-        <span class="section-sub">Toggle the view · every tool built on closed sales</span>
-      </div>
-      <div class="workbench-wrap">
-        <div class="wb-main">
-          <div class="wb-tabs" id="wb-tabs" role="tablist">
-            <button data-f="price-per-foot-map" class="on">$/Foot map</button>
-            <button data-f="building-comparison">Compare buildings</button>
-            <button data-f="neighborhood-supply-demand">Supply &amp; demand</button>
-            <button data-f="unit-comparison">Unit comps</button>
-          </div>
-          <div class="wb-panel" id="wb-panel">
-            <iframe class="wb-frame on" data-f="price-per-foot-map" title="$/foot map" loading="lazy"></iframe>
-            <iframe class="wb-frame" data-f="building-comparison" title="Building comparison" loading="lazy"></iframe>
-            <iframe class="wb-frame" data-f="neighborhood-supply-demand" title="Supply and demand" loading="lazy"></iframe>
-            <iframe class="wb-frame" data-f="unit-comparison" title="Unit comparison" loading="lazy"></iframe>
-          </div>
-        </div>
-        <aside class="wb-feed">
-          <div class="wb-feed-head"><h3>Live <em>activity</em></h3><span>Recent sales</span></div>
-          <div class="wb-feed-list"><div class="activity-grid" id="activity-grid"></div></div>
-        </aside>
-      </div>
-    </div>
-  </section>
-
-
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">How prices have <em>moved</em></h2>
-        <span class="section-sub">Citywide median $/sf, by quarter</span>
-      </div>
-      <div class="timeline-shell">
-        <div class="timeline-toggle">
-          <div class="timeline-period" id="timeline-period">
-            <button data-range="1">1y</button>
-            <button data-range="3">3y</button>
-            <button class="on" data-range="10">10y</button>
-          </div>
-        </div>
-        <div class="timeline-canvas-wrap">
-          <canvas id="timeline-chart"></canvas>
-        </div>
-        <div class="timeline-bookends">
-          <div>
-            <div class="bookend-date" id="bookend-start-date">--</div>
-            <div class="bookend-val" id="bookend-start">--</div>
-          </div>
-          <div class="bookend-r">
-            <div class="bookend-date" id="bookend-end-date">--</div>
-            <div class="bookend-val" id="bookend-end">--</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-
-
-  <section class="cta-strip">
-    <div class="wrap">
-      <h2>Want <em>unit-level</em> history?</h2>
-      <p>Free account unlocks per-unit sale history, owner tenure, and offer notifications for any building in San Francisco.</p>
-      <a class="btn-p" href="#signup" data-cm-auth="signup">Create a free account →</a>
-    </div>
-  </section>
-</main>
-
-<aside class="drawer-backdrop" id="drawer-backdrop"></aside>
-<aside class="detail-drawer" id="detail-drawer" aria-hidden="true">
-  <div class="drawer-head">
-    <div>
-      <div class="drawer-title" id="drawer-title">Loading…</div>
-      <div class="drawer-bldg" id="drawer-bldg"></div>
-    </div>
-    <button class="drawer-close" id="drawer-close" aria-label="Close detail panel">×</button>
-  </div>
-  <div class="drawer-body" id="drawer-body">
-    <div class="drawer-loading">Loading…</div>
-  </div>
-</aside>
-
-<footer>
-  <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
-        <p style="max-width:42ch;">A private exchange for every condo in San Francisco.</p>
-      </div>
-      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/refer/">Refer</a></li></ul></div>
-      <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
-      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
-    </div>
-    <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
-  </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<script>
-(() => {
-  'use strict';
-
-  const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
-
-  async function rpc(name, body) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON,
-        'Authorization': `Bearer ${SUPABASE_ANON}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(body || {})
-    });
-    if (!r.ok) throw new Error(`rpc ${name} ${r.status}`);
-    return r.json();
-  }
-
-  const fmtMoney = n => '$' + Math.round(n).toLocaleString();
-  const fmtMoneyShort = n => {
-    if (!n && n !== 0) return '—';
-    if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
-    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + Math.round(n/1e3) + 'K';
-    return '$' + n;
-  };
-  const fmtDate = d => {
-    if (!d) return '—';
-    const dt = new Date(d + 'T00:00:00');
-    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-  const fmtDateShort = d => {
-    if (!d) return '—';
-    const dt = new Date(d + 'T00:00:00');
-    return (dt.getMonth()+1) + '/' + dt.getDate();
-  };
-  const buildingName = (slug, buildings) => {
-    const b = buildings.find(x => (x.href || '').split('/').pop() === slug);
-    return b ? b.name : slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  };
-
-  // Load buildings.json once and cache
-  let _buildings = null;
-  async function getBuildings() {
-    if (_buildings) return _buildings;
-    const r = await fetch('/assets/buildings.json');
-    _buildings = await r.json();
-    return _buildings;
-  }
-
-  // ───────── KPI strip ─────────
-  async function loadKPIs() {
-    try {
-      const [agg] = await rpc('homepage_aggregates');
-      const tiles = document.querySelectorAll('#kpi-strip .kpi-val');
-      tiles[0].textContent = '$' + agg.median_psf_36mo.toLocaleString();
-      tiles[0].classList.remove('skel');
-      tiles[1].textContent = agg.total_units.toLocaleString();
-      tiles[1].classList.remove('skel');
-      tiles[2].textContent = agg.sales_last_10y.toLocaleString();
-      tiles[2].classList.remove('skel');
-      tiles[3].textContent = fmtMoneyShort(agg.total_volume_10y);
-      tiles[3].classList.remove('skel');
-      tiles[4].textContent = fmtDate(agg.most_recent_sale_date);
-      tiles[4].classList.remove('skel');
-      try {
-        const _bs = await getBuildings();
-        const _hoods = new Set(_bs.map(b => b.hood).filter(Boolean)).size;
-        const _si = document.getElementById('search-input');
-        if (_si) _si.placeholder = 'Search ' + agg.total_units.toLocaleString() + ' units · ' + agg.buildings_with_data.toLocaleString() + ' buildings · ' + _hoods + ' neighborhoods…';
-      } catch (e2) {}
-    } catch (e) { console.warn('KPI load failed', e); }
-  }
-
-  // ───────── Search ─────────
-  let searchTimer = null;
-  let searchSeq = 0;
-  const $input = document.getElementById('search-input');
-  const $clear = document.getElementById('search-clear');
-  const $status = document.getElementById('search-status');
-  const $results = document.getElementById('search-results');
-  const $resultsGrid = document.getElementById('results-grid');
-  const $resultsTitle = document.getElementById('results-title');
-  const $resultsMeta = document.getElementById('results-meta');
-
-  $input.addEventListener('input', () => {
-    const q = $input.value.trim();
-    $clear.classList.toggle('show', q.length > 0);
-    if (searchTimer) clearTimeout(searchTimer);
-    if (q.length === 0) {
-      $results.classList.remove('active');
-      $status.textContent = '';
-      return;
-    }
-    if (q.length < 2) {
-      $status.textContent = 'keep typing';
-      return;
-    }
-    $status.textContent = 'searching…';
-    searchTimer = setTimeout(() => doSearch(q), 220);
-  });
-
-  $clear.addEventListener('click', () => {
-    $input.value = '';
-    $clear.classList.remove('show');
-    $results.classList.remove('active');
-    $status.textContent = '';
-    $input.focus();
-  });
-
-  async function doSearch(q) {
-    const seq = ++searchSeq;
-    try {
-      const [rows, buildings] = await Promise.all([
-        rpc('intelligence_search', { q, p_limit: 30 }),
-        getBuildings()
-      ]);
-      if (seq !== searchSeq) return;
-      $resultsTitle.innerHTML = `Results for <strong>"${escapeHtml(q)}"</strong>`;
-      $resultsMeta.textContent = rows.length + (rows.length === 1 ? ' match' : ' matches');
-      $status.textContent = '';
-      if (rows.length === 0) {
-        $resultsGrid.innerHTML = '<div class="results-empty">No matches. Try a partial address or building name.</div>';
-      } else {
-        $resultsGrid.innerHTML = rows.map(r => renderResult(r, buildings)).join('');
-        document.querySelectorAll('.result-card').forEach(card => {
-          card.addEventListener('click', () => {
-            openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
-          });
-        });
-      }
-      $results.classList.add('active');
-    } catch (e) {
-      $status.textContent = 'search failed';
-      console.warn('search failed', e);
-    }
-  }
-
-  function renderResult(r, buildings) {
-    const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
-    return `
-      <div class="result-card" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
-        <div class="result-addr">${escapeHtml(r.unit_address)}${r.unit_label ? ` <span class="result-addr-unit">${escapeHtml(r.unit_label)}</span>` : ''}</div>
-        <div class="result-bldg">${escapeHtml(buildingName(r.building_slug, buildings))}</div>
-        <div class="result-stats">
-          ${r.sale_price ? `<span><span class="result-stat-label">last</span>${fmtMoneyShort(r.sale_price)}</span>` : ''}
-          ${psf ? `<span><span class="result-stat-label">$/sf</span>$${psf.toLocaleString()}</span>` : ''}
-          ${r.sale_date ? `<span><span class="result-stat-label">date</span>${fmtDate(r.sale_date)}</span>` : ''}
-          ${r.sqft ? `<span><span class="result-stat-label">sqft</span>${r.sqft.toLocaleString()}</span>` : ''}
-        </div>
-      </div>`;
-  }
-
-  // ───────── Heatmap ─────────
-  let map = null;
-  let buildingMarkers = [];
-  let buildingCardMap = null;
-  let currentMetric = 'psf';
-  let cachedBuildings = null;
-
-  function colorForMetric(value, min, max) {
-    if (value == null || max <= min) return '#9fb4d8';
-    const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
-    // peri (#9fb4d8) → bronze (#d4a574) → rust (#c95742)
-    if (t < 0.5) {
-      const k = t * 2;
-      return lerpColor([0x9f, 0xb4, 0xd8], [0xd4, 0xa5, 0x74], k);
-    } else {
-      const k = (t - 0.5) * 2;
-      return lerpColor([0xd4, 0xa5, 0x74], [0xc9, 0x57, 0x42], k);
-    }
-  }
-  function lerpColor(a, b, t) {
-    const r = Math.round(a[0] + (b[0] - a[0]) * t);
-    const g = Math.round(a[1] + (b[1] - a[1]) * t);
-    const bl = Math.round(a[2] + (b[2] - a[2]) * t);
-    return `rgb(${r},${g},${bl})`;
-  }
-
-  async function initHeatmap() {
-    try {
-      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
-      cachedBuildings = buildings;
-      buildingCardMap = new Map(cards.map(c => [c.building_slug, c]));
-
-      map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true })
-            .setView([37.778, -122.404], 13);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-        subdomains: 'abcd', maxZoom: 19,
-        attribution: '© OpenStreetMap, © CartoDB'
-      }).addTo(map);
-
-      drawMarkers();
-    } catch (e) {
-      console.warn('heatmap init failed', e);
-      document.getElementById('heatmap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-style:italic;">Heatmap could not load.</div>';
-    }
-  }
-
-  function drawMarkers() {
-    if (!map || !cachedBuildings) return;
-    buildingMarkers.forEach(m => map.removeLayer(m));
-    buildingMarkers = [];
-
-    // Compute min/max for the active metric
-    const valuesByBldg = new Map();
-    cachedBuildings.forEach(b => {
-      const slug = (b.href || '').split('/').pop();
-      const card = buildingCardMap.get(slug);
-      if (!card) return;
-      let v = null;
-      if (currentMetric === 'psf') v = card.median_psf_36mo;
-      else if (currentMetric === 'volume') v = (card.most_recent_sale_price || 0) * (card.sales_36mo || 0); // rough total
-      else if (currentMetric === 'velocity') v = card.sales_36mo;
-      if (v != null) valuesByBldg.set(slug, v);
-    });
-    const vals = [...valuesByBldg.values()].filter(v => v != null);
-    const min = Math.min(...vals);
-    const max = Math.max(...vals);
-
-    // Update legend labels
-    const legendLow = document.getElementById('legend-low');
-    const legendHigh = document.getElementById('legend-high');
-    if (currentMetric === 'psf') {
-      legendLow.textContent = '$' + Math.round(min).toLocaleString() + '/sf';
-      legendHigh.textContent = '$' + Math.round(max).toLocaleString() + '/sf';
-    } else if (currentMetric === 'volume') {
-      legendLow.textContent = fmtMoneyShort(min);
-      legendHigh.textContent = fmtMoneyShort(max);
-    } else {
-      legendLow.textContent = Math.round(min) + ' sales';
-      legendHigh.textContent = Math.round(max) + ' sales';
-    }
-
-    cachedBuildings.forEach(b => {
-      const slug = (b.href || '').split('/').pop();
-      const card = buildingCardMap.get(slug);
-      if (!card || !b.lat || !b.lng) return;
-      const v = valuesByBldg.get(slug);
-      const sales = card.sales_36mo || 0;
-      const radius = 6 + Math.sqrt(sales) * 0.9;
-      const color = colorForMetric(v, min, max);
-
-      const marker = L.circleMarker([b.lat, b.lng], {
-        radius, fillColor: color, color: '#f6f2ea',
-        weight: 1, opacity: 1, fillOpacity: 0.85
-      }).addTo(map);
-
-      const psf = card.median_psf_36mo ? '$' + card.median_psf_36mo.toLocaleString() + '/sf' : '—';
-      const lastPrice = card.most_recent_sale_price ? fmtMoneyShort(card.most_recent_sale_price) : '—';
-      const lastDate = card.most_recent_sale_date ? fmtDate(card.most_recent_sale_date) : '—';
-      marker.bindPopup(`
-        <strong>${escapeHtml(b.name)}</strong>
-        <div>${escapeHtml(b.hood || '')} · ${b.units || '?'} units · built ${b.year || '—'}</div>
-        <div class="pop-stat">${psf} · ${sales} sales (3y)</div>
-        <div class="pop-stat">Last sale: ${lastPrice} on ${lastDate}</div>
-        <a class="pop-link" href="${b.href}/">View building →</a>
-      `);
-      buildingMarkers.push(marker);
-    });
-  }
-
-  document.querySelectorAll('#heatmap-toggle button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#heatmap-toggle button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      currentMetric = btn.dataset.metric;
-      drawMarkers();
-    });
-  });
-
-  // ───────── Timeline ─────────
-  let timelineChart = null;
-  let allQuarters = [];
-
-  async function initTimeline() {
-    try {
-      allQuarters = await rpc('intelligence_psf_quarterly');
-      drawTimeline(10);
-    } catch (e) {
-      console.warn('timeline failed', e);
-    }
-  }
-
-  function drawTimeline(years) {
-    const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - years);
-    const filtered = allQuarters.filter(q => new Date(q.quarter_start + 'T00:00:00') >= cutoff);
-    if (filtered.length === 0) return;
-
-    const labels = filtered.map(q => {
-      const d = new Date(q.quarter_start + 'T00:00:00');
-      const qNum = Math.floor(d.getMonth() / 3) + 1;
-      return `Q${qNum} ${d.getFullYear()}`;
-    });
-    const data = filtered.map(q => q.median_psf);
-
-    const ctx = document.getElementById('timeline-chart');
-    if (timelineChart) timelineChart.destroy();
-    timelineChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Median $/sf',
-          data,
-          borderColor: '#4863a0',
-          backgroundColor: 'rgba(72,99,160,0.10)',
-          borderWidth: 2,
-          tension: 0.32,
-          fill: true,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#9fb4d8',
-          pointHoverBorderColor: '#f6f2ea'
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { intersect: false, mode: 'index' },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1a1f2e',
-            borderColor: 'rgba(232,227,216,0.14)', borderWidth: 1,
-            titleColor: '#e8e3d8', bodyColor: '#9fb4d8',
-            titleFont: { family: 'JetBrains Mono', size: 11 },
-            bodyFont: { family: 'JetBrains Mono', size: 13 },
-            padding: 12, displayColors: false,
-            callbacks: {
-              label: ctx => '$' + ctx.parsed.y.toLocaleString() + '/sf'
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(31,36,48,0.08)' },
-            ticks: {
-              color: 'rgba(31,36,48,0.55)',
-              font: { family: 'JetBrains Mono', size: 10 },
-              maxRotation: 0, autoSkip: true, autoSkipPadding: 24
-            }
-          },
-          y: {
-            grid: { color: 'rgba(31,36,48,0.08)' },
-            ticks: {
-              color: 'rgba(31,36,48,0.55)',
-              font: { family: 'JetBrains Mono', size: 10 },
-              callback: v => '$' + v.toLocaleString()
-            }
-          }
-        }
-      }
-    });
-
-    // Bookends
-    const first = filtered[0];
-    const last = filtered[filtered.length - 1];
-    document.getElementById('bookend-start-date').textContent = labels[0];
-    document.getElementById('bookend-end-date').textContent = labels[labels.length - 1];
-    document.getElementById('bookend-start').textContent = '$' + first.median_psf.toLocaleString() + '/sf';
-    document.getElementById('bookend-end').textContent = '$' + last.median_psf.toLocaleString() + '/sf';
-  }
-
-  document.querySelectorAll('#timeline-period button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#timeline-period button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      drawTimeline(parseInt(btn.dataset.range, 10));
-    });
-  });
-
-  // ───────── Live activity ─────────
-  async function loadActivity() {
-    try {
-      const [rows, buildings] = await Promise.all([
-        rpc('intelligence_recent_sales', { p_limit: 18 }),
-        getBuildings()
-      ]);
-      // Index buildings by slug so we can resolve image + name in O(1)
-      const bldgBySlug = new Map();
-      buildings.forEach(b => {
-        const slug = (b.href || '').replace(/\/$/, '').split('/').pop();
-        if (slug) bldgBySlug.set(slug, b);
-      });
-      const grid = document.getElementById('activity-grid');
-      grid.innerHTML = rows.map(r => {
-        const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
-        const bldg = bldgBySlug.get(r.building_slug);
-        const bldgName = bldg ? bldg.name : r.building_slug;
-        return `
-          <div class="feed-row" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
-            <div class="feed-row-top">
-              <span class="feed-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="feed-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span>
-              <span class="feed-price">${fmtMoneyShort(r.sale_price)}</span>
-            </div>
-            <div class="feed-row-bot">
-              <span class="feed-bldg">${escapeHtml(bldgName)}</span>
-              <span class="feed-meta">${psf ? '$' + psf.toLocaleString() + '/sf' : ''}${r.sqft ? ' · ' + r.sqft.toLocaleString() + ' sf' : ''} · ${fmtDateShort(r.sale_date)}</span>
-            </div>
-          </div>`;
-      }).join('');
-      grid.querySelectorAll('.feed-row').forEach(card => {
-        card.addEventListener('click', () => {
-          openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
-        });
-      });
-    } catch (e) { console.warn('activity load failed', e); }
-  }
-
-  // ───────── Rankings ─────────
-  async function loadRankings() {
-    try {
-      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
-      const cardBySlug = new Map(cards.map(c => [c.building_slug, c]));
-
-      // Join card data into buildings
-      const enriched = buildings.map(b => {
-        const slug = (b.href || '').split('/').pop();
-        const c = cardBySlug.get(slug) || {};
-        return {
-          ...b, slug,
-          median_psf_36mo: c.median_psf_36mo,
-          sales_36mo: c.sales_36mo,
-          most_recent_sale_date: c.most_recent_sale_date,
-          year_built_mode: c.year_built_mode,
-          unit_count: c.unit_count
-        };
-      }).filter(b => b.slug);
-
-      const byPsf = [...enriched].filter(b => b.median_psf_36mo).sort((a,b) => b.median_psf_36mo - a.median_psf_36mo).slice(0, 5);
-      const byTraded = [...enriched].filter(b => b.sales_36mo != null).sort((a,b) => (b.sales_36mo||0) - (a.sales_36mo||0)).slice(0, 5);
-      const byUnits = [...enriched].filter(b => b.unit_count || b.units).sort((a,b) => (b.unit_count||b.units||0) - (a.unit_count||a.units||0)).slice(0, 5);
-      const newest = [...enriched].filter(b => b.year_built_mode || b.year).sort((a,b) => (b.year_built_mode||b.year||0) - (a.year_built_mode||a.year||0)).slice(0, 5);
-
-      function card(title, sub, rows, formatVal) {
-        return `
-          <div class="rank-card">
-            <h3>${title}</h3>
-            <div class="sub">${sub}</div>
-            <ul class="rank-list">
-              ${rows.map((b, i) => `
-                <li>
-                  <span class="rank-n">0${i+1}</span>
-                  <span class="rank-name"><a href="${b.href}/">${escapeHtml(b.name)}</a></span>
-                  <span class="rank-val">${formatVal(b)}</span>
-                </li>`).join('')}
-            </ul>
-          </div>`;
-      }
-      document.getElementById('rank-grid').innerHTML = [
-        card('Highest $/sf', 'Median, last 36 months', byPsf, b => '$' + b.median_psf_36mo.toLocaleString()),
-        card('Most traded', 'Sales · last 36 months', byTraded, b => (b.sales_36mo||0).toLocaleString()),
-        card('Largest towers', 'By total unit count', byUnits, b => (b.unit_count || b.units || 0).toLocaleString() + ' units'),
-        card('Newest', 'By year completed', newest, b => (b.year_built_mode || b.year || '—'))
-      ].join('');
-    } catch (e) { console.warn('rankings failed', e); }
-  }
-
-  // ───────── Detail drawer ─────────
-  let drawerChart = null;
-  const $drawer = document.getElementById('detail-drawer');
-  const $backdrop = document.getElementById('drawer-backdrop');
-  const $drawerClose = document.getElementById('drawer-close');
-  const $drawerTitle = document.getElementById('drawer-title');
-  const $drawerBldg = document.getElementById('drawer-bldg');
-  const $drawerBody = document.getElementById('drawer-body');
-
-  async function openDrawer(address, label, slug, buildings) {
-    $drawer.classList.add('open');
-    $backdrop.classList.add('open');
-    $drawer.setAttribute('aria-hidden', 'false');
-    $drawerTitle.innerHTML = escapeHtml(address) + (label ? ` <span class="drawer-title-unit">${escapeHtml(label)}</span>` : '');
-    $drawerBldg.textContent = buildingName(slug, buildings);
-    $drawerBody.innerHTML = '<div class="drawer-loading">Loading sale history…</div>';
-
-    try {
-      const rows = await rpc('intelligence_unit_history', { p_address: address, p_label: label || null });
-      if (rows.length === 0) {
-        $drawerBody.innerHTML = '<div class="drawer-loading">No recorded sales for this unit.</div>';
-        return;
-      }
-      const sorted = [...rows].sort((a,b) => new Date(a.sale_date) - new Date(b.sale_date));
-      const tableRows = [...rows].sort((a,b) => new Date(b.sale_date) - new Date(a.sale_date));
-
-      $drawerBody.innerHTML = `
-        <div class="drawer-mini-canvas"><canvas id="drawer-chart"></canvas></div>
-        <table class="drawer-history-table">
-          <thead><tr><th>Date</th><th>Price</th><th>$/sf</th></tr></thead>
-          <tbody>
-            ${tableRows.map(r => {
-              const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
-              return `<tr>
-                <td>${fmtDate(r.sale_date)}</td>
-                <td>${fmtMoneyShort(r.sale_price)}</td>
-                <td>${psf ? '$' + psf.toLocaleString() : '—'}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-        ${sorted[0].sqft ? `<div style="margin-top:18px;font-family:var(--ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${sorted[0].sqft.toLocaleString()} sqft${sorted[0].beds ? ` · ${sorted[0].beds} bed` : ''}${sorted[0].baths_total ? ` · ${sorted[0].baths_total} bath` : ''}</div>` : ''}
-        <a class="drawer-bldg-link" href="/buildings/">View ${escapeHtml(buildingName(slug, buildings))} →</a>
-      `;
-
-      if (sorted.length > 1) {
-        if (drawerChart) drawerChart.destroy();
-        const ctx = document.getElementById('drawer-chart');
-        drawerChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: sorted.map(r => fmtDate(r.sale_date)),
-            datasets: [{
-              label: 'Sale price',
-              data: sorted.map(r => r.sale_price),
-              borderColor: '#9fb4d8',
-              backgroundColor: 'rgba(72,99,160,0.12)',
-              borderWidth: 2, tension: 0.2, fill: true,
-              pointRadius: 4, pointBackgroundColor: '#9fb4d8', pointBorderColor: '#f6f2ea'
-            }]
-          },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: {
-              callbacks: { label: c => fmtMoneyShort(c.parsed.y) }
-            } },
-            scales: {
-              x: { ticks: { color: 'rgba(31,36,48,0.55)', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(31,36,48,0.08)' } },
-              y: { ticks: { color: 'rgba(31,36,48,0.55)', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtMoneyShort(v) }, grid: { color: 'rgba(31,36,48,0.08)' } }
-            }
-          }
-        });
-      }
-    } catch (e) {
-      $drawerBody.innerHTML = '<div class="drawer-loading">Could not load history.</div>';
-      console.warn('drawer load failed', e);
-    }
-  }
-
-  function closeDrawer() {
-    $drawer.classList.remove('open');
-    $backdrop.classList.remove('open');
-    $drawer.setAttribute('aria-hidden', 'true');
-    if (drawerChart) { drawerChart.destroy(); drawerChart = null; }
-  }
-  $drawerClose.addEventListener('click', closeDrawer);
-  $backdrop.addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $drawer.classList.contains('open')) closeDrawer(); });
-
-  // ───────── Helpers ─────────
-  function escapeHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
-  function escapeAttr(s) { return escapeHtml(s); }
-
-  // ───────── Building comparison + owner tenure ─────────
-  let cmpRows = [];
-  let cmpSort = 'psf';
-  let cmpHood = '';
-
-  async function loadComparison() {
-    try {
-      const [stats, tenure] = await Promise.all([
-        rpc('intelligence_building_stats', { p_window_months: 36 }),
-        rpc('intelligence_owner_tenure', {})
-      ]);
-      const tenureBySlug = new Map(tenure.map(t => [t.building_slug, t]));
-      cmpRows = stats.map(s => {
-        const t = tenureBySlug.get(s.slug) || null;
-        const turnover = (s.unit_count && s.sales != null) ? (s.sales / s.unit_count) * 100 : null;
-        const hasTenure = t && t.units_measured >= 10;
-        return {
-          slug: s.slug,
-          name: s.display_name || s.slug,
-          hood: s.neighborhood || '',
-          psf: s.median_psf != null ? Number(s.median_psf) : null,
-          sales: s.sales != null ? Number(s.sales) : 0,
-          turnover,
-          tenure: hasTenure ? Number(t.median_years_held) : null,
-          held7: hasTenure ? Number(t.pct_held_7y_plus) : null
-        };
-      });
-      const hoods = [...new Set(cmpRows.map(r => r.hood).filter(Boolean))].sort();
-      const sel = document.getElementById('cmp-filter');
-      sel.innerHTML = '<option value="">All districts</option>' +
-        hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
-      renderComparison();
-    } catch (e) {
-      document.getElementById('cmp-body').innerHTML = '<tr><td colspan="7" class="cmp-empty">Comparison data could not load.</td></tr>';
-      console.warn('comparison load failed', e);
-    }
-  }
-
-  function renderComparison() {
-    const rows = (cmpHood ? cmpRows.filter(r => r.hood === cmpHood) : [...cmpRows]);
-    const getVal = r => r[cmpSort];
-    rows.sort((a, b) => {
-      const av = getVal(a), bv = getVal(b);
-      if (av == null && bv == null) return 0;
-      if (av == null) return 1;   // nulls sort last
-      if (bv == null) return -1;
-      return bv - av;             // descending
-    });
-    const maxHeld7 = Math.max(1, ...rows.map(r => r.held7 || 0));
-    const body = document.getElementById('cmp-body');
-    if (rows.length === 0) {
-      body.innerHTML = '<tr><td colspan="7" class="cmp-empty">No buildings in this district.</td></tr>';
-    } else {
-      body.innerHTML = rows.map(r => `
-        <tr>
-          <td class="cmp-name"><a href="/buildings/${escapeAttr(r.slug)}/">${escapeHtml(r.name)}</a></td>
-          <td class="cmp-hood">${r.hood ? escapeHtml(r.hood) : '—'}</td>
-          <td>${r.psf != null ? '$' + r.psf.toLocaleString() : '<span class="cmp-dim">—</span>'}</td>
-          <td>${r.sales ? r.sales.toLocaleString() : '<span class="cmp-dim">0</span>'}</td>
-          <td>${r.turnover != null ? r.turnover.toFixed(0) + '%' : '<span class="cmp-dim">—</span>'}</td>
-          <td>${r.tenure != null ? r.tenure.toFixed(1) + ' yr' : '<span class="cmp-dim">—</span>'}</td>
-          <td>${r.held7 != null
-                ? `<span class="cmp-bar-wrap"><span class="cmp-bar"><i style="width:${Math.round((r.held7 / maxHeld7) * 100)}%"></i></span>${r.held7.toFixed(0)}%</span>`
-                : '<span class="cmp-dim">—</span>'}</td>
-        </tr>`).join('');
-    }
-    document.getElementById('cmp-count').textContent =
-      rows.length + (rows.length === 1 ? ' building' : ' buildings') + (cmpHood ? ` · ${cmpHood}` : '');
-  }
-
-  // building comparison, rankings, and heatmap now live in the workbench tools
-
-  // ───────── Boot ─────────
-  loadKPIs();
-  initTimeline();
-  loadActivity();
-})();
-</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
 (function () {
-  var base = '/intelligence/';
-  function fit(fr) {
-    if (!fr || !fr.classList.contains('on')) return;
-    try {
-      var d = fr.contentDocument;
-      if (d && d.body) {
-        var h = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight);
-        if (h > 200 && Math.abs((parseInt(fr.style.height) || 0) - h) > 2) fr.style.height = h + 'px';
-      }
-    } catch (e) {}
+  'use strict';
+  // Market comes from the ?m= param the parent intelligence page passes into the iframe.
+  var MARKET = new URLSearchParams(location.search).get('m') || 'san-francisco-condo-market';
+  var SUPABASE_URL  = 'https://kfqphwerygccpzntbbif.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+  function rpc(name, body) {
+    return fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify(body || {})
+    }).then(function (r) { if (!r.ok) throw new Error('rpc ' + name + ' ' + r.status); return r.json(); });
   }
-  function wake(fr) {
-    try { fr.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
-    setTimeout(function () { fit(fr); }, 140);
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function nf(n) { return Number(n).toLocaleString('en-US'); }
+  function moneyShort(n) { if (n == null || isNaN(n)) return '—'; n = Number(n); if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B'; if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'K'; return '$' + n; }
+  function fullDate(d) { if (!d) return '—'; var dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+
+  function lerp(a, b, t) { return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' + Math.round(a[2] + (b[2] - a[2]) * t) + ')'; }
+  function colorFor(v, min, max) {
+    if (v == null || max <= min) return '#9fb4d8';
+    var t = Math.max(0, Math.min(1, (v - min) / (max - min)));
+    return t < 0.5 ? lerp([0x9f, 0xb4, 0xd8], [0xd4, 0xa5, 0x74], t * 2) : lerp([0xd4, 0xa5, 0x74], [0xc9, 0x57, 0x42], (t - 0.5) * 2);
   }
-  function mount(f) {
-    var fr = document.querySelector('.wb-frame[data-f="' + f + '"]');
-    if (!fr) return;
-    if (!fr.getAttribute('src')) {
-      fr.addEventListener('load', function () {
-        fit(fr);
-        try { var ro = new ResizeObserver(function () { fit(fr); }); ro.observe(fr.contentDocument.body); } catch (e) {}
-        wake(fr);
-      });
-      fr.setAttribute('src', base + f + '.html');
-    } else {
-      wake(fr);
-    }
+
+  var map = null, markers = [], buildings = [], cardBySlug = {}, metric = 'psf';
+
+  function valueFor(card) {
+    if (!card) return null;
+    if (metric === 'psf') return card.median_psf_36mo;
+    if (metric === 'velocity') return card.sales_36mo;
+    return (card.most_recent_sale_price || 0) * (card.sales_36mo || 0); // rough dollar volume
   }
-  var tabs = document.getElementById('wb-tabs');
-  if (tabs) {
-    tabs.querySelectorAll('button').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var f = b.dataset.f;
-        tabs.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-        document.querySelectorAll('.wb-frame').forEach(function (fr) { fr.classList.toggle('on', fr.dataset.f === f); });
-        mount(f);
-      });
+
+  function draw() {
+    if (!map) return;
+    markers.forEach(function (m) { map.removeLayer(m); });
+    markers = [];
+    var vals = [];
+    buildings.forEach(function (b) { var v = valueFor(cardBySlug[b.slug]); if (v != null) vals.push(v); });
+    if (!vals.length) return;
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+
+    var low = document.getElementById('legend-low'), high = document.getElementById('legend-high');
+    if (metric === 'psf') { low.textContent = '$' + nf(Math.round(min)) + '/sf'; high.textContent = '$' + nf(Math.round(max)) + '/sf'; }
+    else if (metric === 'velocity') { low.textContent = Math.round(min) + ' sales'; high.textContent = Math.round(max) + ' sales'; }
+    else { low.textContent = moneyShort(min); high.textContent = moneyShort(max); }
+
+    buildings.forEach(function (b) {
+      var card = cardBySlug[b.slug];
+      if (!card || b.lat == null || b.lng == null) return;
+      var v = valueFor(card), sales = card.sales_36mo || 0;
+      var marker = L.circleMarker([b.lat, b.lng], { radius: 6 + Math.sqrt(sales) * 0.9, fillColor: colorFor(v, min, max), color: '#f6f2ea', weight: 1, opacity: 1, fillOpacity: 0.85 }).addTo(map);
+      var psf = card.median_psf_36mo ? '$' + nf(card.median_psf_36mo) + '/sf' : '—';
+      marker.bindPopup('<strong>' + esc(b.name) + '</strong>' +
+        '<div class="pop-stat">' + esc(b.hood || '') + (b.units ? ' · ' + b.units + ' units' : '') + (b.year ? ' · built ' + b.year : '') + '</div>' +
+        '<div class="pop-stat">' + psf + ' · ' + sales + ' sales (3y)</div>' +
+        '<div class="pop-stat">Last: ' + moneyShort(card.most_recent_sale_price) + ' on ' + fullDate(card.most_recent_sale_date) + '</div>' +
+        '<a class="pop-link" href="/building/' + esc(b.slug) + '/" target="_top">View building →</a>');
+      markers.push(marker);
     });
-    mount('price-per-foot-map');
-    window.addEventListener('resize', function () { var on = document.querySelector('.wb-frame.on'); if (on) fit(on); });
   }
+
+  document.querySelectorAll('#heatmap-toggle button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#heatmap-toggle button').forEach(function (b) { b.classList.remove('on'); });
+      btn.classList.add('on'); metric = btn.getAttribute('data-metric'); draw();
+    });
+  });
+
+  // The parent dispatches a resize on this iframe when its tab is shown — redraw the map then.
+  window.addEventListener('resize', function () { if (map) map.invalidateSize(); });
+
+  Promise.all([
+    rpc('home_page_payload', { p_market_slug: MARKET }),
+    rpc('homepage_building_cards', { p_market_slug: MARKET })
+  ]).then(function (res) {
+    var payload = res[0] || {}, cards = res[1] || [];
+    var idx = payload.index || [];
+    buildings = idx.filter(function (b) { return b.lat != null && b.lng != null; }).map(function (b) {
+      return { name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng, slug: b.slug, units: b.units, year: b.year_built };
+    });
+    cards.forEach(function (c) { cardBySlug[c.building_slug] = c; });
+
+    var host = document.getElementById('heatmap'); host.innerHTML = '';
+    if (!buildings.length) { host.innerHTML = '<div class="hm-msg">No mapped buildings for this market.</div>'; return; }
+
+    var lats = buildings.map(function (b) { return b.lat; }), lngs = buildings.map(function (b) { return b.lng; });
+    map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true });
+    map.fitBounds([[Math.min.apply(null, lats), Math.min.apply(null, lngs)], [Math.max.apply(null, lats), Math.max.apply(null, lngs)]], { padding: [28, 28] });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
+
+    var st = payload.stats || {}, mk = payload.market || {};
+    var ll = document.getElementById('live-line');
+    if (ll) ll.textContent = 'Live · ' + (st.buildings != null ? nf(st.buildings) : buildings.length) + ' catalogued buildings · ' + (mk.region || 'San Francisco');
+
+    draw();
+    setTimeout(function () { map.invalidateSize(); }, 120);
+  }).catch(function (err) {
+    console.warn('heatmap load failed', err);
+    var host = document.getElementById('heatmap'); if (host) host.innerHTML = '<div class="hm-msg">Map could not load.</div>';
+  });
 })();
 </script>
 </body>
