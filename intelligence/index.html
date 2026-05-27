@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>window.__CM_MARKET__=window.__CM_MARKET__||"san-francisco-condo-market";</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Market intelligence · Condo Market SF</title>
@@ -240,7 +241,7 @@
 <header class="masthead">
   <div class="wrap">
     <div class="masthead-row">
-      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <a href="/" class="wordmark">Condo <em>Market</em> · <span class="cm-wm-tag">sf</span></a>
       <nav class="nav-meta">
         <a href="/buildings/">Buildings</a>
         <a href="/intelligence/" class="active">Intelligence</a>
@@ -350,7 +351,7 @@
   <section class="cta-strip">
     <div class="wrap">
       <h2>Want <em>unit-level</em> history?</h2>
-      <p>Free account unlocks per-unit sale history, owner tenure, and offer notifications for any building in San Francisco.</p>
+      <p>Free account unlocks per-unit sale history, owner tenure, and offer notifications for any building in <span id="cta-region">San Francisco</span>.</p>
       <a class="btn-p" href="#signup" data-cm-auth="signup">Create a free account →</a>
     </div>
   </section>
@@ -374,12 +375,12 @@
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
-        <p style="max-width:42ch;">A private exchange for every condo in San Francisco.</p>
+        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · <span class="cm-wm-tag">sf</span></div>
+        <p style="max-width:42ch;">A private exchange for every condo in <span id="footer-region">San Francisco</span>.</p>
       </div>
       <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/refer/">Refer</a></li></ul></div>
       <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
-      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
+      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a id="footer-email" href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
     </div>
     <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
   </div>
@@ -393,6 +394,7 @@
 
   const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+  const MARKET = (typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) || 'san-francisco-condo-market';
 
   async function rpc(name, body) {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
@@ -432,19 +434,45 @@
     return b ? b.name : slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
 
-  // Load buildings.json once and cache
+  // Building list + chrome both come from the market-scoped home_page_payload.
+  // (Replaces the SF-only /assets/buildings.json so the page works for any market.)
+  let _payload = null;
+  async function getPayload() {
+    if (_payload) return _payload;
+    _payload = (await rpc('home_page_payload', { p_market_slug: MARKET })) || {};
+    return _payload;
+  }
   let _buildings = null;
   async function getBuildings() {
     if (_buildings) return _buildings;
-    const r = await fetch('/assets/buildings.json');
-    _buildings = await r.json();
+    const p = await getPayload();
+    _buildings = (p.index || []).map(b => ({
+      name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng,
+      href: '/building/' + b.slug, units: b.units, year: b.year_built, psf: b.psf
+    }));
     return _buildings;
+  }
+
+  // Market-key the visible chrome (wordmark tag, region phrases, contact email).
+  async function applyChrome() {
+    try {
+      const p = await getPayload();
+      const mk = p.market || {};
+      const region = mk.region || 'San Francisco', tag = mk.tag || 'sf', email = mk.email || 'tim@mcmullen.properties';
+      window.__CM_DOMAIN__ = mk.domain || 'sanfranciscocondomarket.com';
+      document.querySelectorAll('.cm-wm-tag').forEach(el => { el.textContent = tag; });
+      const cta = document.getElementById('cta-region'); if (cta) cta.textContent = region;
+      const fr = document.getElementById('footer-region'); if (fr) fr.textContent = region;
+      const fe = document.getElementById('footer-email'); if (fe) fe.setAttribute('href', 'mailto:' + email);
+      const lg = document.querySelector('.footer-fine');
+      if (lg && mk.brand) lg.textContent = '© 2026 ' + mk.brand + ' · McMullen Properties · DRE #02016832';
+    } catch (e) { /* leave SF defaults */ }
   }
 
   // ───────── KPI strip ─────────
   async function loadKPIs() {
     try {
-      const [agg] = await rpc('homepage_aggregates');
+      const [agg] = await rpc('homepage_aggregates', { p_market_slug: MARKET });
       const tiles = document.querySelectorAll('#kpi-strip .kpi-val');
       tiles[0].textContent = '$' + agg.median_psf_36mo.toLocaleString();
       tiles[0].classList.remove('skel');
@@ -505,7 +533,7 @@
     const seq = ++searchSeq;
     try {
       const [rows, buildings] = await Promise.all([
-        rpc('intelligence_search', { q, p_limit: 30 }),
+        rpc('intelligence_search', { q, p_limit: 30, p_market_slug: MARKET }),
         getBuildings()
       ]);
       if (seq !== searchSeq) return;
@@ -572,7 +600,7 @@
 
   async function initHeatmap() {
     try {
-      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
+      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards', { p_market_slug: MARKET }), getBuildings()]);
       cachedBuildings = buildings;
       buildingCardMap = new Map(cards.map(c => [c.building_slug, c]));
 
@@ -669,7 +697,7 @@
 
   async function initTimeline() {
     try {
-      allQuarters = await rpc('intelligence_psf_quarterly');
+      allQuarters = await rpc('intelligence_psf_quarterly', { p_market_slug: MARKET });
       drawTimeline(10);
     } catch (e) {
       console.warn('timeline failed', e);
@@ -768,7 +796,7 @@
   async function loadActivity() {
     try {
       const [rows, buildings] = await Promise.all([
-        rpc('intelligence_recent_sales', { p_limit: 18 }),
+        rpc('intelligence_recent_sales', { p_limit: 18, p_market_slug: MARKET }),
         getBuildings()
       ]);
       // Index buildings by slug so we can resolve image + name in O(1)
@@ -805,7 +833,7 @@
   // ───────── Rankings ─────────
   async function loadRankings() {
     try {
-      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards'), getBuildings()]);
+      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards', { p_market_slug: MARKET }), getBuildings()]);
       const cardBySlug = new Map(cards.map(c => [c.building_slug, c]));
 
       // Join card data into buildings
@@ -954,7 +982,7 @@
   async function loadComparison() {
     try {
       const [stats, tenure] = await Promise.all([
-        rpc('intelligence_building_stats', { p_window_months: 36 }),
+        rpc('intelligence_building_stats', { p_window_months: 36, p_market_slug: MARKET }),
         rpc('intelligence_owner_tenure', {})
       ]);
       const tenureBySlug = new Map(tenure.map(t => [t.building_slug, t]));
@@ -1019,6 +1047,7 @@
   // building comparison, rankings, and heatmap now live in the workbench tools
 
   // ───────── Boot ─────────
+  applyChrome();
   loadKPIs();
   initTimeline();
   loadActivity();
@@ -1050,7 +1079,7 @@
         try { var ro = new ResizeObserver(function () { fit(fr); }); ro.observe(fr.contentDocument.body); } catch (e) {}
         wake(fr);
       });
-      fr.setAttribute('src', base + f + '.html');
+      fr.setAttribute('src', base + f + '.html' + (window.__CM_MARKET__ ? '?m=' + encodeURIComponent(window.__CM_MARKET__) : ''));
     } else {
       wake(fr);
     }
