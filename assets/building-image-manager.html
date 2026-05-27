@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Condo Market · Building Image Manager</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+<!-- Existing site config (Supabase URL + anon key). Loaded best-effort; manual fallback below. -->
+<script src="cm-config.js" onerror="window.__cmCfgErr=1"></script>
+<style>
+  :root{
+    --navy:#0f1420; --navy-2:#161c2b; --panel:#1a2233; --panel-2:#202a3e;
+    --ink:#eef2fb; --muted:#9aa7c4; --line:#2a3651; --line-2:#34425f;
+    --sf:#e12d39; --sv:#00a8b5; --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
+    --accent:#91a1ba;
+    --radius:14px; --shadow:0 18px 48px -22px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:
+     radial-gradient(1200px 600px at 80% -10%, #1c2740 0%, transparent 60%),
+     radial-gradient(900px 500px at -10% 110%, #15233a 0%, transparent 55%),
+     var(--navy);
+     color:var(--ink); font-family:"DM Sans",system-ui,sans-serif; -webkit-font-smoothing:antialiased;}
+  a{color:var(--accent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 90px;}
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px;}
+  .brand h1{font-family:"Playfair Display",serif;font-weight:700;font-size:30px;letter-spacing:.2px;margin:0;line-height:1.05;}
+  .brand h1 .em{font-style:italic;color:var(--accent);}
+  .brand p{margin:6px 0 0;color:var(--muted);font-size:13.5px;max-width:560px;}
+  .cov{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);}
+  .cov b{color:var(--ink);font-weight:600}
+  .meter{width:170px;height:8px;border-radius:99px;background:#0b1018;border:1px solid var(--line);overflow:hidden}
+  .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--sv),var(--sf));width:0%}
+
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 13px}
+  .search input{flex:1;background:none;border:0;outline:0;color:var(--ink);font-size:15px;font-family:inherit}
+  .seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px}
+  .seg button{border:0;background:none;color:var(--muted);font:600 13px "DM Sans";padding:7px 14px;border-radius:9px;cursor:pointer}
+  .seg button.on{background:var(--panel-2);color:var(--ink)}
+  .seg button.on[data-m="sf"]{color:#fff;background:var(--sf)}
+  .seg button.on[data-m="sv"]{color:#04222a;background:var(--sv)}
+  .chk{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 13px;cursor:pointer;user-select:none}
+  .chk input{accent-color:var(--sv)}
+
+  .grouphead{display:flex;align-items:center;gap:10px;margin:26px 0 12px;font:600 12.5px "DM Sans";letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .grouphead .dot{width:9px;height:9px;border-radius:50%}
+  .grouphead .dot.sf{background:var(--sf)} .grouphead .dot.sv{background:var(--sv)}
+  .grouphead .ln{flex:1;height:1px;background:var(--line)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .15s}
+  .card:hover{border-color:var(--line-2)}
+  .crow{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
+  .crow .thumb0{width:48px;height:48px;border-radius:9px;flex:none;background:#0b1018 center/cover no-repeat;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--line-2);font-size:18px}
+  .crow .meta{flex:1;min-width:0}
+  .crow .nm{font-weight:600;font-size:15.5px;display:flex;align-items:center;gap:9px}
+  .pill{font:600 10.5px "DM Sans";letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px}
+  .pill.sf{background:rgba(225,45,57,.16);color:#ff9aa1}
+  .pill.sv{background:rgba(0,168,181,.16);color:#7ce6ee}
+  .crow .ad{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .cnt{font:600 12.5px "DM Sans";color:var(--muted);flex:none}
+  .cnt b{color:var(--ink)}
+  .cnt.have b{color:var(--ok)}
+  .chev{flex:none;color:var(--muted);transition:transform .18s}
+  .card.open .chev{transform:rotate(90deg)}
+
+  .body{display:none;padding:4px 16px 18px;border-top:1px solid var(--line)}
+  .card.open .body{display:block}
+  .dz{border:1.5px dashed var(--line-2);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#0d1320;cursor:pointer;transition:.15s;font-size:13.5px}
+  .dz:hover{border-color:var(--accent);color:var(--ink)}
+  .dz.drag{border-color:var(--sv);background:rgba(0,168,181,.08);color:var(--ink)}
+  .dz b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px;margin-top:14px}
+  .tile{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#0b1018 center/cover no-repeat;cursor:grab}
+  .tile.dragging{opacity:.4}
+  .tile.over{outline:2px solid var(--sv);outline-offset:-2px}
+  .tile .x{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:6px;border:0;background:rgba(8,12,20,.78);color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .tile .x:hover{background:var(--bad)}
+  .tile .badge{position:absolute;top:5px;left:5px;font:700 9.5px "DM Sans";letter-spacing:.08em;background:#fff;color:#0b1018;padding:2px 6px;border-radius:5px}
+  .tile .ord{position:absolute;bottom:5px;left:5px;font:700 10px "DM Sans";background:rgba(8,12,20,.78);color:#fff;width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .tile .new{position:absolute;bottom:5px;right:5px;font:700 9px "DM Sans";background:var(--sv);color:#04222a;padding:2px 5px;border-radius:5px}
+  .acts{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .btn{border:0;border-radius:10px;padding:10px 18px;font:600 14px "DM Sans";cursor:pointer}
+  .btn.save{background:var(--ink);color:#0b1018}
+  .btn.save:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:transparent;border:1px solid var(--line-2);color:var(--muted)}
+  .hint{color:var(--muted);font-size:12.5px}
+  .hint.ok{color:var(--ok)} .hint.bad{color:var(--bad)}
+
+  /* auth + settings */
+  .gate{max-width:430px;margin:8vh auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:var(--shadow)}
+  .gate h2{font-family:"Playfair Display",serif;margin:0 0 4px;font-size:23px}
+  .gate p{color:var(--muted);font-size:13.5px;margin:0 0 18px}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+  .fld input{width:100%;background:#0d1320;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:11px 13px;font-size:15px;font-family:inherit;outline:0}
+  .fld input:focus{border-color:var(--accent)}
+  .gear{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:16px}
+  .who{font-size:12.5px;color:var(--muted)}
+  .who b{color:var(--ink)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#0b1018;border:1px solid var(--line-2);color:var(--ink);padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:50}
+  .toast.show{opacity:1}
+  .hidden{display:none!important}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#0b1018;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Building <span class="em">Image</span> Manager</h1>
+      <p>Drag up to 10 photos onto any building across both markets. Images upload to the shared <code>building-media</code> store and publish to that building's page instantly — the first image becomes the hero.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="cov" id="cov">
+        <div class="meter"><i id="meterFill"></i></div>
+        <span id="covTxt">—</span>
+      </div>
+      <button class="gear" id="gearBtn" title="Connection settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- AUTH / CONFIG GATE -->
+  <section id="gate" class="gate hidden">
+    <h2 id="gateTitle">Sign in</h2>
+    <p id="gateMsg">Use the same login you use for the admin dashboard.</p>
+    <div id="cfgFields" class="hidden">
+      <div class="fld"><label>Supabase URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co" /></div>
+      <div class="fld"><label>Supabase anon key</label><input id="cfgKey" placeholder="eyJhbGci..." /></div>
+    </div>
+    <div id="loginFields">
+      <div class="fld"><label>Email</label><input id="email" type="email" autocomplete="username" /></div>
+      <div class="fld"><label>Password</label><input id="pw" type="password" autocomplete="current-password" /></div>
+    </div>
+    <div class="acts">
+      <button class="btn save" id="gateBtn">Continue</button>
+      <span class="hint" id="gateHint"></span>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="app" class="hidden">
+    <div class="bar">
+      <div class="search">
+        <span style="color:var(--muted)">⌕</span>
+        <input id="q" placeholder="Search building name or address…" />
+      </div>
+      <div class="seg" id="mseg">
+        <button data-m="all" class="on">All</button>
+        <button data-m="sf">San Francisco</button>
+        <button data-m="sv">Silicon Valley</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="onlyEmpty" /> Only without images</label>
+      <span class="who" id="who"></span>
+    </div>
+    <div id="list"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+  const BUCKET="building-media", MAX=10, HARD_URL="https://kfqphwerygccpzntbbif.supabase.co";
+  const $=s=>document.querySelector(s), el=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e;};
+  const toast=(m,ms=2600)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._);t._=setTimeout(()=>t.classList.remove("show"),ms);};
+
+  // ---- resolve config from cm-config.js globals, localStorage, or hardcoded URL ----
+  function resolveCfg(){
+    const g=window, c=g.CM_CONFIG||g.cmConfig||g.CONFIG||{};
+    const url = c.supabaseUrl||c.SUPABASE_URL||g.SUPABASE_URL||g.CM_SUPABASE_URL||
+                (g.SUPABASE&&g.SUPABASE.url)||HARD_URL;
+    const key = c.supabaseAnonKey||c.SUPABASE_ANON_KEY||g.SUPABASE_ANON_KEY||g.CM_SUPABASE_ANON_KEY||
+                (g.SUPABASE&&g.SUPABASE.anonKey)||null;
+    const saved=JSON.parse(localStorage.getItem("cm_img_cfg")||"null");
+    return {url: url||(saved&&saved.url)||HARD_URL, key: key||(saved&&saved.key)||null};
+  }
+  let sb=null, ME=null;
+  const STATE={buildings:[], counts:{}, markets:{}, filter:{m:"all",q:"",empty:false}};
+
+  function makeClient(url,key){ return window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}}); }
+
+  async function boot(){
+    const cfg=resolveCfg();
+    if(!cfg.key){ showGate(true); return; }       // need anon key
+    sb=makeClient(cfg.url,cfg.key);
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ showGate(false); return; }
+    ME=session.user; afterAuth();
+  }
+
+  // ---- gate (config + login) ----
+  function showGate(needCfg){
+    $("#app").classList.add("hidden"); $("#gate").classList.remove("hidden");
+    $("#cfgFields").classList.toggle("hidden",!needCfg);
+    $("#gateTitle").textContent = needCfg ? "Connect" : "Sign in";
+    $("#gateMsg").textContent = needCfg
+      ? "Paste your project's Supabase URL and anon (public) key once — they're saved on this browser."
+      : "Use the same email + password you use for the admin dashboard.";
+    if(needCfg){ const cfg=resolveCfg(); $("#cfgUrl").value=cfg.url||HARD_URL; }
+  }
+  $("#gearBtn").onclick=()=>{ localStorage.removeItem("cm_img_cfg"); showGate(true); };
+  $("#gateBtn").onclick=async()=>{
+    const hint=$("#gateHint"); hint.className="hint"; hint.textContent="";
+    try{
+      if(!$("#cfgFields").classList.contains("hidden")){
+        const url=$("#cfgUrl").value.trim(), key=$("#cfgKey").value.trim();
+        if(!url||!key){ hint.className="hint bad"; hint.textContent="URL and key required."; return; }
+        localStorage.setItem("cm_img_cfg",JSON.stringify({url,key}));
+        sb=makeClient(url,key);
+        const {data:{session}}=await sb.auth.getSession();
+        if(session){ ME=session.user; return afterAuth(); }
+        $("#cfgFields").classList.add("hidden"); $("#gateTitle").textContent="Sign in";
+        $("#gateMsg").textContent="Connected. Now sign in with your admin email + password."; return;
+      }
+      const email=$("#email").value.trim(), pw=$("#pw").value;
+      hint.innerHTML='<span class="spin"></span>Signing in…';
+      const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+      if(error){ hint.className="hint bad"; hint.textContent=error.message; return; }
+      ME=data.user; afterAuth();
+    }catch(e){ hint.className="hint bad"; hint.textContent=String(e.message||e); }
+  };
+
+  async function afterAuth(){
+    $("#gate").classList.add("hidden"); $("#app").classList.remove("hidden");
+    $("#who").innerHTML="Signed in as <b>"+(ME.email||"admin")+"</b> · <a href='#' id='out'>sign out</a>";
+    $("#out").onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.reload();};
+    await loadData(); render();
+  }
+
+  // ---- data ----
+  async function loadData(){
+    const [{data:mk},{data:ct},{data:bld},{data:imgs}]=await Promise.all([
+      sb.from("markets").select("id,tag,slug"),
+      sb.from("cities").select("id,market_id"),
+      sb.from("buildings").select("slug,display_name,canonical_address,neighborhood,city_id,is_catalogued").eq("is_catalogued",true),
+      sb.from("building_images").select("building_slug")
+    ]);
+    const mById={}; (mk||[]).forEach(m=>mById[m.id]=m.tag);
+    const cityMarket={}; (ct||[]).forEach(c=>cityMarket[c.id]=mById[c.market_id]);
+    STATE.buildings=(bld||[]).map(b=>({...b,market:cityMarket[b.city_id]||"?"}))
+      .sort((a,b)=>(a.display_name||a.slug).localeCompare(b.display_name||b.slug));
+    STATE.counts={}; (imgs||[]).forEach(r=>{STATE.counts[r.building_slug]=(STATE.counts[r.building_slug]||0)+1;});
+    updateCoverage();
+  }
+  function updateCoverage(){
+    const total=STATE.buildings.length;
+    const have=STATE.buildings.filter(b=>(STATE.counts[b.slug]||0)>0).length;
+    $("#covTxt").innerHTML="<b>"+have+"</b> / "+total+" buildings have images";
+    $("#meterFill").style.width=(total?Math.round(have/total*100):0)+"%";
+  }
+
+  // ---- render list ----
+  const MNAME={sf:"San Francisco",sv:"Silicon Valley"};
+  function visible(){
+    const {m,q,empty}=STATE.filter, qq=q.toLowerCase();
+    return STATE.buildings.filter(b=>{
+      if(m!=="all"&&b.market!==m) return false;
+      if(empty&&(STATE.counts[b.slug]||0)>0) return false;
+      if(qq&&!((b.display_name||"")+" "+(b.canonical_address||"")+" "+b.slug).toLowerCase().includes(qq)) return false;
+      return true;
+    });
+  }
+  function render(){
+    const list=$("#list"); list.innerHTML="";
+    const items=visible();
+    const groups = STATE.filter.m==="all" ? ["sf","sv"] : [STATE.filter.m];
+    groups.forEach(g=>{
+      const gItems=items.filter(b=>b.market===g);
+      if(!gItems.length) return;
+      const gh=el("div","grouphead");
+      gh.innerHTML='<span class="dot '+g+'"></span>'+MNAME[g]+' · '+gItems.length+' buildings<span class="ln"></span>';
+      list.appendChild(gh);
+      gItems.forEach(b=>list.appendChild(card(b)));
+    });
+    if(!items.length){ const e=el("div","hint"); e.style.padding="30px 4px"; e.textContent="No buildings match."; list.appendChild(e); }
+  }
+
+  function card(b){
+    const n=STATE.counts[b.slug]||0;
+    const c=el("div","card"); c.dataset.slug=b.slug;
+    const row=el("div","crow");
+    row.innerHTML=
+      '<div class="thumb0">▦</div>'+
+      '<div class="meta"><div class="nm">'+esc(b.display_name||b.slug)+
+        ' <span class="pill '+b.market+'">'+b.market.toUpperCase()+'</span></div>'+
+        '<div class="ad">'+esc(b.canonical_address||"")+(b.neighborhood?' · '+esc(b.neighborhood):'')+'</div></div>'+
+      '<div class="cnt '+(n?'have':'')+'"><b>'+n+'</b> / '+MAX+'</div>'+
+      '<div class="chev">▸</div>';
+    row.onclick=()=>toggle(c,b);
+    c.appendChild(row);
+    c.appendChild(el("div","body"));
+    return c;
+  }
+
+  async function toggle(c,b){
+    const open=c.classList.toggle("open");
+    if(!open) return;
+    const body=c.querySelector(".body");
+    if(body.dataset.ready) return;
+    body.innerHTML='<div class="hint"><span class="spin" style="border-top-color:#9aa7c4"></span>Loading…</div>';
+    const {data}=await sb.from("building_images").select("id,public_url,storage_path,role,sort_order")
+      .eq("building_slug",b.slug).order("sort_order",{ascending:true});
+    body.dataset.ready="1";
+    mountEditor(body,b,(data||[]));
+  }
+
+  // ---- per-building editor ----
+  function mountEditor(body,b,saved){
+    // model: items = [{id?, url, file?, storage_path?, isNew}]
+    const items = saved.map(r=>({id:r.id,url:r.public_url,storage_path:r.storage_path,isNew:false}));
+    body.innerHTML="";
+    const dz=el("div","dz");
+    dz.innerHTML='<b>Drag photos here</b> or click to choose — up to '+MAX+' (first = hero). JPG/PNG/WebP.';
+    const fileInput=el("input"); fileInput.type="file"; fileInput.accept="image/*"; fileInput.multiple=true; fileInput.className="hidden";
+    const grid=el("div","grid");
+    const acts=el("div","acts");
+    const saveBtn=el("button","btn save"); saveBtn.textContent="Save images";
+    const hint=el("span","hint");
+    acts.append(saveBtn,hint);
+    body.append(dz,fileInput,grid,acts);
+
+    function room(){ return MAX-items.length; }
+    function addFiles(fl){
+      const arr=[...fl].filter(f=>/^image\//.test(f.type));
+      if(!arr.length) return;
+      const take=arr.slice(0,room());
+      if(arr.length>room()) toast("Only "+room()+" slot(s) left for this building.");
+      take.forEach(f=>items.push({url:URL.createObjectURL(f),file:f,isNew:true}));
+      paint();
+    }
+    dz.onclick=()=>fileInput.click();
+    fileInput.onchange=()=>{addFiles(fileInput.files);fileInput.value="";};
+    dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag");});
+    dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
+    dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("drag");addFiles(e.dataTransfer.files);});
+
+    let dragIx=null;
+    function paint(){
+      grid.innerHTML="";
+      items.forEach((it,i)=>{
+        const t=el("div","tile"); t.style.backgroundImage="url('"+it.url+"')"; t.draggable=true;
+        t.innerHTML='<span class="ord">'+(i+1)+'</span>'+
+          (i===0?'<span class="badge">HERO</span>':'')+
+          (it.isNew?'<span class="new">NEW</span>':'')+
+          '<button class="x" title="Remove">✕</button>';
+        t.querySelector(".x").onclick=ev=>{ev.stopPropagation();items.splice(i,1);paint();};
+        t.addEventListener("dragstart",()=>{dragIx=i;t.classList.add("dragging");});
+        t.addEventListener("dragend",()=>{dragIx=null;t.classList.remove("dragging");[...grid.children].forEach(x=>x.classList.remove("over"));});
+        t.addEventListener("dragover",ev=>{ev.preventDefault();t.classList.add("over");});
+        t.addEventListener("dragleave",()=>t.classList.remove("over"));
+        t.addEventListener("drop",ev=>{ev.preventDefault();t.classList.remove("over");
+          if(dragIx===null||dragIx===i)return; const [m]=items.splice(dragIx,1); items.splice(i,0,m); paint();});
+        grid.appendChild(t);
+      });
+      dz.style.display = items.length>=MAX ? "none":"block";
+      hint.className="hint"; hint.textContent=items.length+" / "+MAX+" · drag tiles to reorder";
+    }
+    paint();
+
+    saveBtn.onclick=async()=>{
+      saveBtn.disabled=true; hint.className="hint"; hint.innerHTML='<span class="spin"></span>Saving…';
+      try{
+        // 1) upload new files, register each → collect id in final order
+        const finalIds=[];
+        for(let i=0;i<items.length;i++){
+          const it=items[i];
+          if(it.isNew){
+            const safe=(it.file.name||"photo").replace(/[^\w.\-]+/g,"_").toLowerCase();
+            const path=b.slug+"/"+Date.now()+"_"+i+"_"+safe;
+            const up=await sb.storage.from(BUCKET).upload(path,it.file,{cacheControl:"31536000",upsert:false});
+            if(up.error) throw up.error;
+            const pub=sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+            const dim=await imgDims(it.file).catch(()=>({}));
+            const reg=await sb.rpc("register_building_image",{p_slug:b.slug,p_role:"gallery",
+              p_storage_path:path,p_public_url:pub,p_caption:null,p_alt:b.display_name||b.slug,
+              p_sort:i,p_width:dim.w||null,p_height:dim.h||null});
+            if(reg.error) throw reg.error;
+            it.id=reg.data.id; it.isNew=false; it.url=pub; it.storage_path=path;
+          }
+          finalIds.push(it.id);
+        }
+        // 2) enforce order, 3) set hero to first
+        if(finalIds.length){
+          const ro=await sb.rpc("reorder_building_images",{p_slug:b.slug,p_ids:finalIds}); if(ro.error) throw ro.error;
+          const sh=await sb.rpc("set_building_hero",{p_slug:b.slug,p_image_id:finalIds[0]}); if(sh.error) throw sh.error;
+        }
+        STATE.counts[b.slug]=items.length; updateCoverage();
+        const cnt=document.querySelector('.card[data-slug="'+cssesc(b.slug)+'"] .cnt');
+        if(cnt){cnt.classList.toggle("have",items.length>0);cnt.innerHTML="<b>"+items.length+"</b> / "+MAX;}
+        hint.className="hint ok"; hint.textContent="Saved ✓ live on the building page";
+        toast("Saved "+items.length+" image(s) for "+(b.display_name||b.slug));
+        paint();
+      }catch(e){ hint.className="hint bad"; hint.textContent="Error: "+(e.message||e); }
+      finally{ saveBtn.disabled=false; }
+    };
+  }
+
+  function imgDims(file){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res({w:i.naturalWidth,h:i.naturalHeight});i.onerror=rej;i.src=URL.createObjectURL(file);});}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));}
+  function cssesc(s){return String(s).replace(/"/g,'\\"');}
+
+  // ---- controls ----
+  $("#q").addEventListener("input",e=>{STATE.filter.q=e.target.value;render();});
+  $("#onlyEmpty").addEventListener("change",e=>{STATE.filter.empty=e.target.checked;render();});
+  $("#mseg").addEventListener("click",e=>{const btn=e.target.closest("button");if(!btn)return;
+    [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));btn.classList.add("on");
+    STATE.filter.m=btn.dataset.m;render();});
+
+  window.addEventListener("DOMContentLoaded",()=>{ if(window.supabase) boot(); else { const i=setInterval(()=>{if(window.supabase){clearInterval(i);boot();}},80);} });
+})();
+</script>
+</body>
+</html>
