@@ -208,7 +208,7 @@
   .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: var(--cm-ivory-dim); }
 </style>
 <style>
-  .workbench-wrap { display: grid; grid-template-columns: minmax(0,1fr) 332px; gap: 24px; align-items: start; }
+  .workbench-wrap { display: block; }
   @media (max-width: 980px) { .workbench-wrap { grid-template-columns: 1fr; } }
   .wb-tabs { display: flex; flex-wrap: nowrap; gap: 4px; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .wb-tabs::-webkit-scrollbar { height: 0; }
@@ -223,7 +223,22 @@
   .wb-feed-head { padding: 15px 18px; border-bottom: 1px solid var(--cm-rule); display: flex; justify-content: space-between; align-items: baseline; }
   .wb-feed-head h3 { font-family: var(--ff-display); font-weight: 500; font-size: 19px; } .wb-feed-head h3 em { font-style: italic; color: var(--cm-peri); }
   .wb-feed-head span { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); }
-  .wb-feed-list { max-height: 736px; overflow-y: auto; }
+  .wb-ticker-list { max-height: 736px; overflow-y: auto; }
+  .wb-ticker { display: flex; align-items: stretch; background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; box-shadow: var(--cm-shadow); overflow: hidden; margin-bottom: 18px; }
+  .wb-ticker-label { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 16px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); border-right: 1px solid var(--cm-rule); white-space: nowrap; }
+  .wb-ticker-dot { width: 7px; height: 7px; border-radius: 50%; background: #3f9d6b; animation: wb-pulse 2.4s infinite; }
+  @keyframes wb-pulse { 0% { box-shadow: 0 0 0 0 rgba(63,157,107,.45); } 70% { box-shadow: 0 0 0 6px rgba(63,157,107,0); } 100% { box-shadow: 0 0 0 0 rgba(63,157,107,0); } }
+  .wb-ticker-viewport { flex: 1 1 auto; overflow: hidden; position: relative; }
+  .wb-ticker-track { display: flex; align-items: stretch; width: max-content; animation: wb-marquee 60s linear infinite; }
+  .wb-ticker:hover .wb-ticker-track { animation-play-state: paused; }
+  @keyframes wb-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .wb-ticker-item { display: inline-flex; align-items: baseline; gap: 9px; padding: 13px 18px; border-right: 1px solid var(--cm-rule); white-space: nowrap; cursor: pointer; text-decoration: none; transition: background .12s; }
+  .wb-ticker-item:hover { background: #f5f6f9; }
+  .wb-ti-addr { font-family: var(--ff-body); font-weight: 500; font-size: 13px; color: var(--cm-ivory); }
+  .wb-ti-unit { font-family: var(--ff-mono); font-size: 10.5px; color: var(--cm-peri); margin-left: 4px; }
+  .wb-ti-price { font-family: var(--ff-display); font-style: italic; font-size: 15px; color: var(--cm-ivory); }
+  .wb-ti-meta { font-family: var(--ff-mono); font-size: 10px; color: var(--cm-ivory-faint); letter-spacing: .03em; }
+  @media (prefers-reduced-motion: reduce) { .wb-ticker-track { animation: none; } .wb-ticker-viewport { overflow-x: auto; } }
   .activity-grid { display: flex; flex-direction: column; }
   .feed-row { padding: 12px 18px; border-bottom: 1px solid var(--cm-rule); cursor: pointer; transition: background 0.12s; }
   .feed-row:last-child { border-bottom: 0; }
@@ -290,6 +305,10 @@
         <h2 class="section-title">The <em>workbench</em></h2>
         <span class="section-sub">Toggle the view · every tool built on closed sales</span>
       </div>
+      <div class="wb-ticker" id="wb-ticker">
+        <span class="wb-ticker-label"><span class="wb-ticker-dot"></span>Live · recent sales</span>
+        <div class="wb-ticker-viewport"><div class="wb-ticker-track" id="activity-grid"></div></div>
+      </div>
       <div class="workbench-wrap">
         <div class="wb-main">
           <div class="wb-tabs" id="wb-tabs" role="tablist">
@@ -305,10 +324,6 @@
             <iframe class="wb-frame" data-f="unit-comparison" title="Unit comparison" loading="lazy"></iframe>
           </div>
         </div>
-        <aside class="wb-feed">
-          <div class="wb-feed-head"><h3>Live <em>activity</em></h3><span>Recent sales</span></div>
-          <div class="wb-feed-list"><div class="activity-grid" id="activity-grid"></div></div>
-        </aside>
       </div>
     </div>
   </section>
@@ -799,33 +814,25 @@
         rpc('intelligence_recent_sales', { p_limit: 18, p_market_slug: MARKET }),
         getBuildings()
       ]);
-      // Index buildings by slug so we can resolve image + name in O(1)
       const bldgBySlug = new Map();
       buildings.forEach(b => {
         const slug = (b.href || '').replace(/\/$/, '').split('/').pop();
         if (slug) bldgBySlug.set(slug, b);
       });
-      const grid = document.getElementById('activity-grid');
-      grid.innerHTML = rows.map(r => {
+      const ticker = document.getElementById('wb-ticker');
+      const track = document.getElementById('activity-grid');
+      if (!track || !rows.length) { if (ticker) ticker.style.display = 'none'; return; }
+      const itemsHtml = rows.map(r => {
         const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
         const bldg = bldgBySlug.get(r.building_slug);
         const bldgName = bldg ? bldg.name : r.building_slug;
-        return `
-          <div class="feed-row" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}">
-            <div class="feed-row-top">
-              <span class="feed-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="feed-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span>
-              <span class="feed-price">${fmtMoneyShort(r.sale_price)}</span>
-            </div>
-            <div class="feed-row-bot">
-              <span class="feed-bldg">${escapeHtml(bldgName)}</span>
-              <span class="feed-meta">${psf ? '$' + psf.toLocaleString() + '/sf' : ''}${r.sqft ? ' · ' + r.sqft.toLocaleString() + ' sf' : ''} · ${fmtDateShort(r.sale_date)}</span>
-            </div>
-          </div>`;
+        return `<a class="wb-ticker-item" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}"><span class="wb-ti-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="wb-ti-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span><span class="wb-ti-price">${fmtMoneyShort(r.sale_price)}</span><span class="wb-ti-meta">${escapeHtml(bldgName)}${psf ? ' \u00b7 $' + psf.toLocaleString() + '/sf' : ''} \u00b7 ${fmtDateShort(r.sale_date)}</span></a>`;
       }).join('');
-      grid.querySelectorAll('.feed-row').forEach(card => {
-        card.addEventListener('click', () => {
-          openDrawer(card.dataset.address, card.dataset.label, card.dataset.bldg, buildings);
-        });
+      track.innerHTML = itemsHtml + itemsHtml;
+      track.addEventListener('click', (e) => {
+        const item = e.target.closest('.wb-ticker-item');
+        if (!item) return;
+        openDrawer(item.dataset.address, item.dataset.label, item.dataset.bldg, buildings);
       });
     } catch (e) { console.warn('activity load failed', e); }
   }
