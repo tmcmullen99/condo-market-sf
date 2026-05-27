@@ -39,7 +39,7 @@ const MARKET_BY_HOST = {
 };
 const MARKETS = {
   sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com' },
-  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1512555441-ec2e6a8b1837?w=2400&q=85&auto=format&fit=crop' },
+  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop' },
 };
 function resolveMarket(hostname) {
   return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
