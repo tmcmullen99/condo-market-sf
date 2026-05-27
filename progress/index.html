@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Condo Market · State of the Build, May 2026</title>
+<meta name="description" content="Two condominium marketplaces, $13.3B in tracked sales, 10,000+ identified owners. The state of Condo Market.">
+<meta property="og:title" content="Condo Market · State of the Build">
+<meta property="og:description" content="Two condominium marketplaces, $13.3B in tracked sales, 10,000+ identified owners.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1a1f2e;--cream:#faf7f0;--charcoal:#353535;--bluegray:#91a1ba;--sf:#C2410C;--sv:#00A8B5;--border:#e8e3d8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:var(--charcoal);line-height:1.55;font-size:17px;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;color:var(--navy);font-weight:600;line-height:1.15}
+em{font-style:italic;color:var(--navy)}
+a{color:inherit;text-decoration:none}
+.container{max-width:1140px;margin:0 auto;padding:0 28px}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--bluegray);font-weight:600;margin-bottom:18px}
+
+nav.top{position:sticky;top:0;z-index:50;background:rgba(250,247,240,.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+nav.top .container{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;color:var(--navy);font-size:20px}
+nav.top .links{display:flex;gap:32px;font-size:14px}
+nav.top .links a{color:var(--charcoal);font-weight:500;transition:color .2s}
+nav.top .links a:hover{color:var(--navy)}
+.cta-btn{display:inline-block;background:var(--navy);color:var(--cream);padding:11px 22px;border-radius:4px;font-weight:600;font-size:14px;letter-spacing:.02em;transition:all .2s;border:1px solid var(--navy);cursor:pointer}
+.cta-btn:hover{background:#2a3242;transform:translateY(-1px)}
+.cta-btn.outline{background:transparent;color:var(--navy)}
+.cta-btn.outline:hover{background:var(--navy);color:var(--cream)}
+
+section.hero{padding:100px 0 80px;border-bottom:1px solid var(--border)}
+section.hero h1{font-size:clamp(40px,6vw,76px);letter-spacing:-.01em;margin-bottom:24px}
+section.hero .sub{font-size:clamp(17px,2vw,21px);max-width:680px;color:var(--charcoal);margin-bottom:40px}
+section.hero .actions{display:flex;gap:14px;flex-wrap:wrap}
+section.hero .stat-strip{margin-top:72px;display:grid;grid-template-columns:repeat(2,1fr);gap:48px;padding-top:40px;border-top:1px solid var(--border)}
+.stat-strip .stat .v{font-family:'Playfair Display',serif;font-size:clamp(36px,5vw,56px);color:var(--navy);font-weight:600;line-height:1}
+.stat-strip .stat .l{margin-top:10px;font-size:14px;color:var(--bluegray);letter-spacing:.04em;text-transform:uppercase;font-weight:500}
+
+section.marketplaces{padding:90px 0;border-bottom:1px solid var(--border)}
+section.marketplaces h2{font-size:clamp(32px,4vw,48px);max-width:720px;margin-bottom:8px}
+.market-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:56px}
+.market-card{background:white;border:1px solid var(--border);border-top:4px solid var(--navy);padding:36px 32px;transition:all .25s;display:block}
+.market-card.sf{border-top-color:var(--sf)}
+.market-card.sv{border-top-color:var(--sv)}
+.market-card:hover{transform:translateY(-3px);box-shadow:0 18px 48px rgba(26,31,46,.08)}
+.market-card .domain{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:4px;word-break:break-word}
+.market-card.sf .domain em{color:var(--sf)}
+.market-card.sv .domain em{color:var(--sv)}
+.market-card .city{font-size:13px;color:var(--bluegray);letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
+.market-card .blurb{font-size:15px;color:var(--charcoal);margin-bottom:24px}
+.market-card .nums{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding-top:24px;border-top:1px solid var(--border)}
+.market-card .nums .n{font-family:'Playfair Display',serif;font-size:32px;color:var(--navy);font-weight:600;line-height:1}
+.market-card .nums .ll{font-size:12px;color:var(--bluegray);letter-spacing:.04em;text-transform:uppercase;margin-top:8px}
+.market-tagline{margin-top:36px;text-align:center;font-family:'Playfair Display',serif;font-style:italic;color:var(--bluegray);font-size:18px}
+.market-tagline em{color:var(--navy)}
+
+section.numbers{padding:100px 0;background:var(--navy);color:var(--cream)}
+section.numbers h2{color:var(--cream);font-size:clamp(32px,4vw,48px);margin-bottom:16px;max-width:720px}
+section.numbers h2 em{color:rgba(250,247,240,.78)}
+section.numbers .eyebrow{color:rgba(250,247,240,.55)}
+section.numbers .sub{color:rgba(250,247,240,.75);max-width:580px;margin-bottom:64px;font-size:18px}
+.numbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:48px 32px}
+.num-cell{padding:24px 0;border-top:1px solid rgba(250,247,240,.15)}
+.num-cell .v{font-family:'Playfair Display',serif;font-size:clamp(36px,4vw,52px);font-weight:600;color:var(--cream);line-height:1;margin-bottom:12px}
+.num-cell .l{font-size:14px;color:rgba(250,247,240,.65);max-width:240px}
+
+section.value{padding:100px 0;border-bottom:1px solid var(--border)}
+section.value h2{font-size:clamp(32px,4vw,48px);margin-bottom:32px;max-width:720px}
+.tabs{display:inline-flex;background:white;border:1px solid var(--border);border-radius:6px;padding:4px;margin-bottom:48px}
+.tab{padding:10px 22px;font-weight:500;font-size:14px;cursor:pointer;border-radius:4px;transition:all .2s;color:var(--charcoal);border:none;background:transparent;font-family:inherit}
+.tab.active{background:var(--navy);color:var(--cream)}
+.panel{display:none}
+.panel.active{display:block;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.feature{background:white;border:1px solid var(--border);padding:32px 28px;transition:all .25s}
+.feature:hover{border-color:var(--navy);transform:translateY(-2px)}
+.feature .num{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--bluegray);margin-bottom:12px}
+.feature h3{font-size:22px;margin-bottom:10px;color:var(--navy)}
+.feature p{font-size:16px;line-height:1.55;color:var(--charcoal)}
+.feature .tag{display:inline-block;margin-top:16px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;background:rgba(26,31,46,.06);color:var(--navy);border-radius:3px}
+.feature .tag.live{background:rgba(0,168,181,.12);color:#006d75}
+
+section.megaphone{padding:100px 0;background:white;border-bottom:1px solid var(--border)}
+section.megaphone h2{font-size:clamp(36px,5vw,60px);max-width:880px;margin-bottom:32px;line-height:1.1}
+section.megaphone .body{max-width:720px;font-size:19px;line-height:1.6;color:var(--charcoal);margin-bottom:56px}
+.megaphone-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding-top:40px;border-top:1px solid var(--border)}
+.ms .v{font-family:'Playfair Display',serif;font-size:clamp(28px,3vw,40px);color:var(--navy);font-weight:600;line-height:1}
+.ms .l{font-size:13px;color:var(--bluegray);margin-top:10px;letter-spacing:.04em;text-transform:uppercase}
+.moat{margin-top:56px;padding:32px 36px;background:var(--cream);border-left:3px solid var(--navy);font-family:'Playfair Display',serif;font-style:italic;font-size:22px;color:var(--navy);line-height:1.45}
+.moat em{font-style:italic;font-weight:600}
+
+section.roadmap{padding:100px 0;border-bottom:1px solid var(--border)}
+section.roadmap h2{font-size:clamp(32px,4vw,48px);margin-bottom:18px}
+section.roadmap .lead{max-width:640px;color:var(--charcoal);font-size:17px;margin-bottom:0}
+.road-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin-top:48px;background:var(--border)}
+.road-item{background:var(--cream);padding:32px}
+.road-item.dark{background:var(--navy);color:var(--cream)}
+.road-item .step{font-family:'Playfair Display',serif;font-style:italic;color:var(--bluegray);font-size:14px;margin-bottom:10px}
+.road-item.dark .step{color:rgba(250,247,240,.55)}
+.road-item h4{font-size:20px;margin-bottom:8px}
+.road-item.dark h4{color:var(--cream)}
+.road-item p{font-size:15px;color:var(--charcoal)}
+.road-item.dark p{color:rgba(250,247,240,.8)}
+
+section.founder{padding:100px 0;background:white;border-bottom:1px solid var(--border)}
+.founder-row{display:grid;grid-template-columns:200px 1fr;gap:56px;align-items:start}
+.founder-avatar{width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,var(--navy),#2a3242);display:flex;align-items:center;justify-content:center;color:var(--cream);font-family:'Playfair Display',serif;font-style:italic;font-size:64px;font-weight:600}
+.founder-quote{font-family:'Playfair Display',serif;font-size:22px;line-height:1.5;color:var(--navy);font-weight:400}
+.founder-quote em{color:var(--navy);font-weight:500}
+.founder-sig{margin-top:28px;font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--navy)}
+.founder-dre{margin-top:6px;font-size:13px;color:var(--bluegray);letter-spacing:.04em}
+
+section.final{padding:120px 0;text-align:center;background:var(--navy);color:var(--cream)}
+section.final h2{font-size:clamp(36px,5vw,60px);color:var(--cream);max-width:760px;margin:0 auto 24px;line-height:1.15}
+section.final h2 em{color:rgba(250,247,240,.85)}
+section.final p{font-size:19px;color:rgba(250,247,240,.75);max-width:580px;margin:0 auto 40px}
+section.final .cta-btn{background:var(--cream);color:var(--navy);font-size:16px;padding:16px 36px;border-color:var(--cream)}
+section.final .cta-btn:hover{background:white;border-color:white}
+
+footer{padding:48px 0;background:#0f131d;color:rgba(250,247,240,.6);font-size:14px}
+footer .container{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;align-items:center}
+footer a{color:rgba(250,247,240,.85);margin-right:24px;transition:color .2s}
+footer a:hover{color:var(--cream)}
+.dre{font-size:12px;color:rgba(250,247,240,.4)}
+
+@media (max-width:880px){
+  nav.top .links{display:none}
+  .market-grid,.feature-grid,.road-grid{grid-template-columns:1fr}
+  .numbers-grid{grid-template-columns:repeat(2,1fr)}
+  .megaphone-stats{grid-template-columns:repeat(2,1fr)}
+  .founder-row{grid-template-columns:1fr;gap:24px}
+  .founder-avatar{width:120px;height:120px;font-size:44px}
+  section.hero{padding:60px 0 50px}
+  section.hero .stat-strip{grid-template-columns:1fr;gap:32px;margin-top:48px}
+  section.numbers,section.value,section.megaphone,section.roadmap,section.founder{padding:64px 0}
+}
+</style>
+</head>
+<body id="top">
+
+<nav class="top">
+  <div class="container">
+    <a href="#top" class="brand">Condo Market</a>
+    <div class="links">
+      <a href="#marketplaces">Marketplaces</a>
+      <a href="#numbers">By the numbers</a>
+      <a href="#value">What it does</a>
+      <a href="#megaphone">Our advantage</a>
+      <a href="#roadmap">What's next</a>
+    </div>
+    <a href="https://www.sanfranciscocondomarket.com/" class="cta-btn">Claim your unit</a>
+  </div>
+</nav>
+
+<main>
+
+<section class="hero">
+  <div class="container">
+    <div class="eyebrow">The state of the build · May 2026</div>
+    <h1>Two marketplaces.<br><em>One mission.</em></h1>
+    <p class="sub">We're rebuilding how condominiums get understood, bought, and sold — starting with the two densest condo markets in California. No middlemen. No opaque algorithms. No rented attention.</p>
+    <div class="actions">
+      <a href="https://www.sanfranciscocondomarket.com/" class="cta-btn">Visit Condo Market SF →</a>
+      <a href="https://www.siliconvalleycondomarket.com/" class="cta-btn outline">Visit Silicon Valley →</a>
+    </div>
+    <div class="stat-strip">
+      <div class="stat">
+        <div class="v" data-counter="13.33" data-prefix="$" data-suffix="B">$0B</div>
+        <div class="l">In tracked sale volume</div>
+      </div>
+      <div class="stat">
+        <div class="v" data-counter="14741">0</div>
+        <div class="l">Condo units catalogued</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="marketplaces" class="marketplaces">
+  <div class="container">
+    <div class="eyebrow">Two consumer marketplaces, live today</div>
+    <h2>One platform. <em>Two cities</em> with more condo density than any other metros in California.</h2>
+    <div class="market-grid">
+      <a href="https://www.sanfranciscocondomarket.com/" class="market-card sf">
+        <div class="domain">sanfrancisco<em>condomarket</em>.com</div>
+        <div class="city">San Francisco, CA</div>
+        <p class="blurb">From SoMa high-rises to Pacific Heights boutique buildings.</p>
+        <div class="nums">
+          <div><div class="n">115</div><div class="ll">Buildings live</div></div>
+          <div><div class="n">10,128</div><div class="ll">Units catalogued</div></div>
+          <div><div class="n">$11.0B</div><div class="ll">Tracked sales</div></div>
+          <div><div class="n">8,241</div><div class="ll">Historical sales</div></div>
+        </div>
+      </a>
+      <a href="https://www.siliconvalleycondomarket.com/" class="market-card sv">
+        <div class="domain">siliconvalley<em>condomarket</em>.com</div>
+        <div class="city">Silicon Valley, CA</div>
+        <p class="blurb">Palo Alto, Mountain View, Santa Clara, San Jose, Campbell.</p>
+        <div class="nums">
+          <div><div class="n">80</div><div class="ll">Buildings live</div></div>
+          <div><div class="n">4,613</div><div class="ll">Units catalogued</div></div>
+          <div><div class="n">$2.3B</div><div class="ll">Tracked sales</div></div>
+          <div><div class="n">1,901</div><div class="ll">In expansion queue</div></div>
+        </div>
+      </a>
+    </div>
+    <p class="market-tagline">Two domains. One data infrastructure. <em>Zero fees to participate.</em></p>
+  </div>
+</section>
+
+<section id="numbers" class="numbers">
+  <div class="container">
+    <div class="eyebrow">By the numbers</div>
+    <h2>The condo market, made <em>transparent</em>.</h2>
+    <p class="sub">Six months of focused building has turned California's most opaque housing category into a queryable, owner-by-owner dataset.</p>
+    <div class="numbers-grid">
+      <div class="num-cell"><div class="v">$13.33B</div><div class="l">Total tracked sale volume</div></div>
+      <div class="num-cell"><div class="v">12,858</div><div class="l">Historical sales analyzed</div></div>
+      <div class="num-cell"><div class="v">10,407</div><div class="l">Distinct condo owners identified</div></div>
+      <div class="num-cell"><div class="v">6,204</div><div class="l">Individual parcels mapped with ownership</div></div>
+      <div class="num-cell"><div class="v">573</div><div class="l">Closings in the trailing 12 months</div></div>
+      <div class="num-cell"><div class="v">195</div><div class="l">Buildings live, 1,901+ queued</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="value" class="value">
+  <div class="container">
+    <div class="eyebrow">What it does</div>
+    <h2>Built for the people who actually <em>live in</em> condos — and the ones who want to.</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="owners">For homeowners</button>
+      <button class="tab" data-tab="buyers">For buyers</button>
+    </div>
+    <div class="panel active" id="panel-owners">
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="num">01 / Pricing</div>
+          <h3>Your $/ft² in 60 seconds.</h3>
+          <p>See real sales from your <em>actual</em> building over the last 12 months — not a guess scraped from the next zip code.</p>
+          <span class="tag live">Live</span>
+        </div>
+        <div class="feature">
+          <div class="num">02 / Discovery</div>
+          <h3>Set a Make-Me-Move price.</h3>
+          <p>Tell us the number that would make you sell. When a real buyer matches it, we let you know. No agent, no listing, no commitment.</p>
+          <span class="tag live">Live · 4 active</span>
+        </div>
+        <div class="feature">
+          <div class="num">03 / Ownership</div>
+          <h3>Claim your unit.</h3>
+          <p>Get owner-only intelligence: tax trends, ownership history of every unit in the building, comparable sales delivered to your inbox.</p>
+          <span class="tag live">Live · 9 claims</span>
+        </div>
+        <div class="feature">
+          <div class="num">04 / Rewards</div>
+          <h3>Refer &amp; save.</h3>
+          <p>Each neighbor you bring earns you a 0.20% commission discount on your eventual sale. Five referrals equals a full 1% off.</p>
+          <span class="tag live">Live</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="panel-buyers">
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="num">01 / Compare</div>
+          <h3>See the building, not just the listing.</h3>
+          <p>Every building ranked by $/ft², year built, sold-in-the-last-12-months, and unit mix. Compare across an entire neighborhood.</p>
+          <span class="tag live">Live</span>
+        </div>
+        <div class="feature">
+          <div class="num">02 / Off-market</div>
+          <h3>Find homeowners willing to sell.</h3>
+          <p>Browse Make-Me-Move asks from real owners — homes that aren't on the MLS but are quietly for sale at the right number.</p>
+          <span class="tag live">Live</span>
+        </div>
+        <div class="feature">
+          <div class="num">03 / Patterns</div>
+          <h3>Tax and ownership intelligence.</h3>
+          <p>How long do owners hold in this building? What's the corporate-owned ratio? Which units come up the most? No MLS shows this.</p>
+          <span class="tag live">Live</span>
+        </div>
+        <div class="feature">
+          <div class="num">04 / Direct</div>
+          <h3>Skip the bidding war noise.</h3>
+          <p>Make a private offer directly to a homeowner. We facilitate — but the relationship stays with the people who own and want the property.</p>
+          <span class="tag">Coming</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="megaphone" class="megaphone">
+  <div class="container">
+    <div class="eyebrow">The audience advantage</div>
+    <h2>We don't <em>rent</em> attention. We <em>own</em> the audience.</h2>
+    <p class="body">Most real estate companies rent attention through Zillow, Redfin, Google ads, and Facebook. Condo Market doesn't. Every condo owner in our markets is identified — by name, by building, by unit. When we publish, we don't pay a platform. We publish directly to the people who matter most.</p>
+    <div class="megaphone-stats">
+      <div class="ms"><div class="v">10,407</div><div class="l">Owners identified by name</div></div>
+      <div class="ms"><div class="v">1,974</div><div class="l">Validated email addresses</div></div>
+      <div class="ms"><div class="v">2,796</div><div class="l">Launch invitations queued</div></div>
+      <div class="ms"><div class="v">40</div><div class="l">Communication templates ready</div></div>
+    </div>
+    <div class="moat">"When this audience gets active, we don't pay a single platform to reach them. That's not a feature. That's the <em>moat</em>."</div>
+  </div>
+</section>
+
+<section id="roadmap" class="roadmap">
+  <div class="container">
+    <div class="eyebrow">What's next</div>
+    <h2>The next <em>90 days</em>.</h2>
+    <p class="lead">Five sprints shipping into the next quarter — each adding either reach, depth, or activation.</p>
+    <div class="road-grid">
+      <div class="road-item">
+        <div class="step">Sprint one</div>
+        <h4>The first wave</h4>
+        <p>An approved launch announcement sent directly to roughly 1,250 SF condo homeowners — through our owned channel, not a paid one.</p>
+      </div>
+      <div class="road-item">
+        <div class="step">Sprint two</div>
+        <h4>The visual catalogue</h4>
+        <p>Hero photography and a curated gallery for every one of the 195 live buildings, plus auto-import tooling for the next 200.</p>
+      </div>
+      <div class="road-item">
+        <div class="step">Sprint three</div>
+        <h4>Compare buildings</h4>
+        <p>A side-by-side interactive map. Pick any two buildings and see $/ft², sales velocity, age, and unit mix — instantly.</p>
+      </div>
+      <div class="road-item">
+        <div class="step">Sprint four</div>
+        <h4>Owner intelligence daily</h4>
+        <p>A daily digest for claimed-unit owners: new Make-Me-Move asks in their building, new sales nearby, watchlist activity.</p>
+      </div>
+      <div class="road-item">
+        <div class="step">Sprint five</div>
+        <h4>Catalogue expansion</h4>
+        <p>Two hundred to four hundred additional Silicon Valley buildings activated from our existing parcel dataset — no new ingest pipeline.</p>
+      </div>
+      <div class="road-item dark">
+        <div class="step">And beyond</div>
+        <h4>Direct offers. Escrow. Closing.</h4>
+        <p>A vertically integrated path from owner intent → buyer interest → executed transaction. Inside the marketplace. Inside one experience.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="founder">
+  <div class="container">
+    <div class="eyebrow">A note from the founder</div>
+    <div class="founder-row">
+      <div class="founder-avatar">T</div>
+      <div>
+        <p class="founder-quote">"Most real estate technology is built for agents. <em>Condo Market is built for the owners.</em> The data we've assembled — ten thousand verified condo owners across two of the densest markets in California — isn't a contact list. It's the foundation of a marketplace where homeowners control the conversation about their own homes."</p>
+        <div class="founder-sig">— Tim McMullen, founder</div>
+        <div class="founder-dre">McMullen Properties LLC · DRE #02016832 · Operating under Real Broker #02228473</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="container">
+    <h2>Own a condo in <em>San Francisco</em> or <em>Silicon Valley</em>?</h2>
+    <p>It takes 90 seconds to claim your unit and see your real $/ft². Free, no commitment, owner-only intelligence delivered to your inbox.</p>
+    <a href="https://www.sanfranciscocondomarket.com/" class="cta-btn">Claim your unit →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div>
+      <a href="https://www.sanfranciscocondomarket.com/">Condo Market SF</a>
+      <a href="https://www.siliconvalleycondomarket.com/">Silicon Valley</a>
+      <a href="https://www.mcmullen.properties/">McMullen Properties</a>
+    </div>
+    <div class="dre">© 2026 McMullen Properties LLC · DRE #02016832 · Real Broker #02228473</div>
+  </div>
+</footer>
+
+</main>
+
+<script>
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const h=a.getAttribute('href');if(h.length>1){e.preventDefault();document.querySelector(h)?.scrollIntoView({behavior:'smooth',block:'start'})}})});
+document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));tab.classList.add('active');document.getElementById('panel-'+tab.dataset.tab).classList.add('active')})});
+const fmt=(n,p,s)=>{let d;if(Number.isInteger(n)&&n>=1000)d=n.toLocaleString('en-US');else if(n%1!==0)d=n.toFixed(2);else d=String(n);return(p||'')+d+(s||'')};
+const anim=el=>{const tgt=parseFloat(el.dataset.counter),p=el.dataset.prefix||'',s=el.dataset.suffix||'',dur=1600,st=performance.now();const tick=t=>{const pr=Math.min((t-st)/dur,1),ea=1-Math.pow(1-pr,3),v=tgt*ea;el.textContent=fmt(v<tgt?+v.toFixed(2):tgt,p,s);if(pr<1)requestAnimationFrame(tick);else el.textContent=fmt(tgt,p,s)};requestAnimationFrame(tick)};
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&!e.target.dataset.animated){e.target.dataset.animated='1';anim(e.target)}}),{threshold:.4});
+document.querySelectorAll('[data-counter]').forEach(el=>obs.observe(el));
+</script>
+
+</body>
+</html>
