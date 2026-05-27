@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
 <!-- Existing site config (Supabase URL + anon key). Loaded best-effort; manual fallback below. -->
-<script src="cm-config.js" onerror="window.__cmCfgErr=1"></script>
+<script src="/assets//assets/cm-config.js" onerror="window.__cmCfgErr=1"></script>
 <style>
   :root{
     --navy:#0f1420; --navy-2:#161c2b; --panel:#1a2233; --panel-2:#202a3e;
@@ -170,7 +170,7 @@
   const $=s=>document.querySelector(s), el=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e;};
   const toast=(m,ms=2600)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._);t._=setTimeout(()=>t.classList.remove("show"),ms);};
 
-  // ---- resolve config from cm-config.js globals, localStorage, or hardcoded URL ----
+  // ---- resolve config from /assets/cm-config.js globals, localStorage, or hardcoded URL ----
   function resolveCfg(){
     const g=window, c=g.CM_CONFIG||g.cmConfig||g.CONFIG||{};
     const url = c.supabaseUrl||c.SUPABASE_URL||g.SUPABASE_URL||g.CM_SUPABASE_URL||
