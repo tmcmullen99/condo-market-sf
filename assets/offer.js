@@ -130,20 +130,32 @@ function injectStyles() {
   .cmo-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;
     display:flex;align-items:center;gap:16px;max-width:calc(100vw - 24px);
     background:var(--card);border:1px solid var(--gold);border-radius:999px;
-    padding:10px 12px 10px 20px;box-shadow:0 12px 40px rgba(0,0,0,.45);}
+    padding:10px 12px 10px 20px;box-shadow:0 12px 40px rgba(0,0,0,.45);flex-wrap:nowrap;}
   .cmo-bar--building{bottom:84px;}
-  .cmo-bar-txt{font-size:13.5px;line-height:1.3;}
+  .cmo-bar-txt{font-size:13.5px;line-height:1.3;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .cmo-bar-txt b{color:var(--gold);font-weight:600;}
   .cmo-bar-clock{font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:600;
     letter-spacing:.04em;font-variant-numeric:tabular-nums;}
+  .cmo-bar-lead-m{display:none;}
   .cmo-bar-cta{flex:none;background:var(--gold);color:#1a1f2e;font-weight:600;font-size:13px;
     text-decoration:none;border-radius:999px;padding:9px 16px;white-space:nowrap;}
   .cmo-bar-cta:hover{opacity:.9;color:#1a1f2e;}
   .cmo-bar-x{flex:none;background:none;border:none;color:rgba(232,227,216,0.4);font-size:18px;
     line-height:1;cursor:pointer;padding:4px 6px;}
   .cmo-bar-x:hover{color:var(--gold);}
-  @media(max-width:620px){.cmo-bar{bottom:12px;padding:9px 10px 9px 16px;gap:10px;}
-    .cmo-bar--building{bottom:74px;} .cmo-bar-txt{font-size:12px;} .cmo-bar-lead{display:none;}}
+  @media(max-width:620px){
+    .cmo-bar{left:12px;right:12px;transform:none;max-width:none;bottom:12px;
+      padding:8px 8px 8px 14px;gap:8px;}
+    .cmo-bar--building{bottom:76px;}
+    .cmo-bar-txt{font-size:12px;}
+    .cmo-bar-lead-d,.cmo-bar-trail{display:none;}
+    .cmo-bar-lead-m{display:inline;}
+    .cmo-bar-cta{padding:7px 12px;font-size:12px;}
+  }
+  @media(max-width:380px){
+    .cmo-bar-cta-amt{display:none;}
+  }
   .cmo-modal{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;
     padding:1.5rem;animation:cmoFade .25s ease-out;}
   @keyframes cmoFade{from{opacity:0}to{opacity:1}}
@@ -189,10 +201,13 @@ function mountBar() {
   const bar = document.createElement('div');
   bar.className = 'cmo cmo-bar' + (buildingSlug() ? ' cmo-bar--building' : '');
   bar.innerHTML =
-    '<div class="cmo-bar-txt"><span class="cmo-bar-lead">Sign up within </span>' +
-    '<span class="cmo-bar-clock" data-cmo-countdown>--:--:--</span> ' +
-    'for <b>' + AMOUNT_LABEL + '</b> off your first transaction</div>' +
-    '<a class="cmo-bar-cta" href="' + signupHref() + '">Claim ' + AMOUNT_LABEL + ' \u2192</a>' +
+    '<div class="cmo-bar-txt">' +
+      '<span class="cmo-bar-lead-d">Sign up within </span>' +
+      '<span class="cmo-bar-lead-m">Ends in </span>' +
+      '<span class="cmo-bar-clock" data-cmo-countdown>--:--:--</span>' +
+      '<span class="cmo-bar-trail"> for <b>' + AMOUNT_LABEL + '</b> off your first transaction</span>' +
+    '</div>' +
+    '<a class="cmo-bar-cta" href="' + signupHref() + '">Claim <span class="cmo-bar-cta-amt">' + AMOUNT_LABEL + '</span> \u2192</a>' +
     '<button class="cmo-bar-x" aria-label="Hide">\u00d7</button>';
   document.body.appendChild(bar);
   renderCountdown(bar.querySelector('[data-cmo-countdown]'));
