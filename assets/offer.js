@@ -131,6 +131,7 @@ function injectStyles() {
     display:flex;align-items:center;gap:16px;max-width:calc(100vw - 24px);
     background:var(--card);border:1px solid var(--gold);border-radius:999px;
     padding:10px 12px 10px 20px;box-shadow:0 12px 40px rgba(0,0,0,.45);}
+  .cmo-bar--building{bottom:84px;}
   .cmo-bar-txt{font-size:13.5px;line-height:1.3;}
   .cmo-bar-txt b{color:var(--gold);font-weight:600;}
   .cmo-bar-clock{font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:600;
@@ -142,7 +143,7 @@ function injectStyles() {
     line-height:1;cursor:pointer;padding:4px 6px;}
   .cmo-bar-x:hover{color:var(--gold);}
   @media(max-width:620px){.cmo-bar{bottom:12px;padding:9px 10px 9px 16px;gap:10px;}
-    .cmo-bar-txt{font-size:12px;} .cmo-bar-lead{display:none;}}
+    .cmo-bar--building{bottom:74px;} .cmo-bar-txt{font-size:12px;} .cmo-bar-lead{display:none;}}
   .cmo-modal{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;
     padding:1.5rem;animation:cmoFade .25s ease-out;}
   @keyframes cmoFade{from{opacity:0}to{opacity:1}}
@@ -186,7 +187,7 @@ function mountBar() {
   if (document.querySelector('.cmo-bar')) return;
   if (sessionStorage.getItem(SS.barHidden)) return;
   const bar = document.createElement('div');
-  bar.className = 'cmo cmo-bar';
+  bar.className = 'cmo cmo-bar' + (buildingSlug() ? ' cmo-bar--building' : '');
   bar.innerHTML =
     '<div class="cmo-bar-txt"><span class="cmo-bar-lead">Sign up within </span>' +
     '<span class="cmo-bar-clock" data-cmo-countdown>--:--:--</span> ' +
