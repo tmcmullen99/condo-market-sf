@@ -111,6 +111,34 @@ async function renderChrome(request, env, kind) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // /building/<slug>/report -> static shell that boots cm-report.js (client-
+    // rendered market report). Matched before the single-segment building match
+    // below so it isn't swallowed by the ASSETS passthrough. The report's gold
+    // palette is market-independent by design, so no accent recolor here.
+    const reportM = url.pathname.match(/^\/building\/([^\/]+)\/report\/?$/);
+    if (reportM && request.method === 'GET') {
+      return new Response(
+        '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+        '<meta name="robots" content="noindex">' +
+        '<title>Market Report \u00b7 Condo Market</title>' +
+        '<link rel="icon" href="/favicon.svg">' +
+        '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500;1,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">' +
+        '</head><body><div id="cm-report-root"></div>' +
+        '<script type="module" src="/assets/cm-report.js"></script>' +
+        '<script type="module" src="/assets/offer.js"></script>' +
+        '</body></html>',
+        {
+          status: 200,
+          headers: {
+            'content-type': 'text/html;charset=utf-8',
+            'cache-control': 'public, max-age=60, s-maxage=120',
+          },
+        }
+      );
+    }
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
 
     // Home + intel: serve the static asset with per-Host chrome + market bootstrap.
