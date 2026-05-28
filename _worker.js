@@ -1,35 +1,26 @@
 // _worker.js  (Cloudflare Pages — Advanced Mode)
 // =============================================================================
-// Condo Market SF — dynamic building pages + static passthrough
+// Condo Market — multi-market dynamic building pages + static passthrough
 // -----------------------------------------------------------------------------
 // This single root worker intercepts ALL requests (Advanced Mode). It edge-
 // renders /building/<slug> from the Supabase RPC building_page_payload(), and
 // forwards everything else to the static asset pipeline via env.ASSETS.fetch(),
-// which still applies your _redirects and _headers rules.
+// applying a per-market text+color swap on every text response so a single
+// codebase serves SF, SV, and future markets with no per-market HTML forks.
 //
-// Why Advanced Mode (a root _worker.js) and not a /functions folder:
-//   Cloudflare drag-and-drop (Direct Upload) deployments do NOT compile a
-//   /functions folder — only Wrangler does. A root _worker.js IS supported by
-//   drag-and-drop, so it works with your full-ZIP deploy.
-//
-// Routing:
-//   /building/<slug>          -> dynamic page (this worker)   [single segment]
-//   /building/<slug>/...       -> passthrough (hoa-pitch, petition, unit-map…)
-//   everything else            -> passthrough (static + _redirects + _headers)
-//
-// A live DB building always renders dynamically. If the slug is not a live
-// catalogued building, we fall through to ASSETS so any legacy static page
-// still serves (no regression); if none exists, Pages serves /404.html (404).
+// Per-market resolution: hostname → MARKET_BY_HOST → MARKETS row.
+// Per-market swap surfaces: HTML, CSS, JS, XML, plain text — every response
+// the browser sees gets the same applyMarketSwaps() pass. Color tokens and
+// SF-default text strings get swapped to the current market's tokens. Adding
+// a new market = one row in MARKETS + one entry in MARKET_BY_HOST.
 // =============================================================================
 
 const SUPABASE_URL      = 'https://kfqphwerygccpzntbbif.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
 /* --------------------- multi-market chrome (per-Host) -------------------- */
-// Hostname -> market. This map drives ONLY the crawler-facing <head>
-// (title/description/canonical/OG) and the window.__CM_MARKET__ slug the client
-// uses to pick which market to fetch. All *visible* chrome is rendered by the
-// page itself from home_page_payload(); this is purely for SEO + bootstrap.
+// Hostname -> market tag. Drives the per-host SEO chrome (title/description/
+// canonical/OG), the window.__CM_MARKET__ bootstrap, and applyMarketSwaps().
 // Unknown hosts fall back to San Francisco, matching the in-file defaults.
 const MARKET_BY_HOST = {
   'sanfranciscocondomarket.com':      'sf',
@@ -38,14 +29,15 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
-  sv: { slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
+  sf: { tag: 'sf', slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
+  sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
   return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
 }
 function isHomePath(p)  { return p === '/buildings' || p === '/buildings/' || p === '/buildings/index.html'; }
 function isIntelPath(p) { return p === '/intelligence' || p === '/intelligence/' || p === '/intelligence/index.html'; }
+function isPetitionPath(p) { return p === '/petition' || p === '/petition.html' || p === '/petition/'; }
 function attr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
 function chromeFor(mk, kind) {
   const www = 'https://www.' + mk.domain;
@@ -60,6 +52,46 @@ function chromeFor(mk, kind) {
     url:   www + '/buildings/',
   };
 }
+
+/* ------------------- per-market response transformation ------------------ */
+// Single source of truth for "make this response market-correct." Applied to
+// every text response leaving the worker: dynamic building pages, the home/
+// intel chrome injection, and every static HTML/JS/CSS asset served via
+// env.ASSETS.fetch(). SF is the canonical source: SF-default strings live in
+// source files; non-SF markets get text and color tokens swapped at the edge.
+//
+// Add a new market = add a row to MARKETS and MARKET_BY_HOST. No file changes.
+function applyMarketSwaps(s, mk) {
+  if (!mk || !s) return s;
+  // 1) Color tokens: periwinkle accent + RGB triplet -> market accent.
+  if (mk.accent) {
+    s = s.replace(/#9fb4d8/gi, mk.accent)
+         .replace(/#91a1ba/gi, mk.accent)
+         .replace(/#5a73a8/gi, mk.accentDeep || mk.accent)
+         .replace(/#6a7fa3/gi, mk.accentDeep || mk.accent)
+         .replace(/159,180,216/g, mk.accentRgb);
+  }
+  // 2) Text tokens: only swap when the target differs from the SF default,
+  //    so SF responses stay byte-identical to the source files.
+  if (mk.region && mk.region !== 'San Francisco') {
+    s = s.replace(/San Francisco/g, mk.region);
+  }
+  if (mk.domain && mk.domain !== 'sanfranciscocondomarket.com') {
+    s = s.replace(/sanfranciscocondomarket\.com/g, mk.domain);
+  }
+  if (mk.brand && mk.brand !== 'Condo Market SF') {
+    s = s.replace(/Condo Market SF/g, mk.brand);
+  }
+  if (mk.tag && mk.tag !== 'sf') {
+    // Wordmark suffix: "Market</em> · sf" appearing in static pages' wordmarks.
+    // Anchored on the closing </em> + ' · sf' + boundary so we don't touch
+    // arbitrary 'sf' substrings elsewhere.
+    s = s.replace(/Market<\/em> \u00b7 sf\b/g, 'Market</em> \u00b7 ' + mk.tag);
+    s = s.replace(/Market \u00b7 sf\b/g, 'Market \u00b7 ' + mk.tag);
+  }
+  return s;
+}
+
 // Fetch the static asset, then inject the market bootstrap + per-Host SEO.
 // Non-HTML responses (the / -> /buildings/ redirect, 404s) pass straight through.
 async function renderChrome(request, env, kind) {
@@ -92,15 +124,8 @@ async function renderChrome(request, env, kind) {
       .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
   }
 
-  // Per-market accent (team colors): recolor the periwinkle accent tokens in the
-  // served CSS. Markets without an accent are left untouched (default periwinkle).
-  if (mk.accent) {
-    html = html
-      .replace(/#9fb4d8/gi, mk.accent)
-      .replace(/#91a1ba/gi, mk.accent)
-      .replace(/#5a73a8/gi, mk.accentDeep || mk.accent)
-      .replace(/159,180,216/g, mk.accentRgb);
-  }
+  // Per-market color + text swaps (the unified pass).
+  html = applyMarketSwaps(html, mk);
 
   const headers = new Headers(res.headers);
   headers.delete('content-length');
@@ -108,9 +133,35 @@ async function renderChrome(request, env, kind) {
   return new Response(html, { status: 200, headers });
 }
 
+// Wrap an ASSETS response with applyMarketSwaps() for text content types.
+// Used for everything that ISN'T home/intel/building (static HTML, JS, CSS,
+// etc.) so SV visitors don't see SF text or colors anywhere in the product.
+async function wrapStaticWithSwaps(request, env, mk) {
+  const resp = await env.ASSETS.fetch(request);
+  if (!resp.ok) return resp;
+  const ct = (resp.headers.get('content-type') || '').toLowerCase();
+  const isText = ct.startsWith('text/') || ct.includes('javascript') || ct.includes('xml') || ct.includes('json');
+  if (!isText) return resp;
+  let body;
+  try { body = await resp.text(); } catch (e) { return resp; }
+  body = applyMarketSwaps(body, mk);
+  const headers = new Headers(resp.headers);
+  headers.delete('content-length');
+  return new Response(body, { status: resp.status, statusText: resp.statusText, headers });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const hostMk = resolveMarket(url.hostname);
+
+    // Non-SF markets: hide SF-only campaign surfaces until each market has its own.
+    // /petition copy specifically reads "operating in San Francisco today"; on SV
+    // a naive text swap would mint a false claim, so redirect to the live page.
+    if (hostMk && hostMk.tag !== 'sf' && isPetitionPath(url.pathname)) {
+      return Response.redirect('https://www.' + hostMk.domain + '/buildings/', 302);
+    }
+
     // /building/<slug>/report -> static shell that boots cm-report.js (client-
     // rendered market report). Matched before the single-segment building match
     // below so it isn't swallowed by the ASSETS passthrough. The report's gold
@@ -142,11 +193,12 @@ export default {
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
 
     // Home + intel: serve the static asset with per-Host chrome + market bootstrap.
-    // Everything else (and non-GET) -> static pipeline (redirects, _headers, etc.).
+    // Everything else (and non-GET) -> static pipeline wrapped with applyMarketSwaps.
     if (!m) {
       if (request.method === 'GET') {
         if (isHomePath(url.pathname))  return renderChrome(request, env, 'home');
         if (isIntelPath(url.pathname)) return renderChrome(request, env, 'intel');
+        return wrapStaticWithSwaps(request, env, hostMk);
       }
       return env.ASSETS.fetch(request);
     }
@@ -171,23 +223,13 @@ export default {
     }
 
     // Not a live catalogued building: serve a legacy static page if one exists
-    // at this path, otherwise Pages' own 404.html (with a 404 status).
+    // at this path, otherwise Pages' own 404.html. Either way: market-swapped.
     if (!payload || payload.is_live !== true) {
-      return env.ASSETS.fetch(request);
+      return wrapStaticWithSwaps(request, env, hostMk);
     }
 
-    // Per-market accent on the dynamic building page: recolor the periwinkle
-    // tokens to the market's team color, exactly as renderChrome does for static pages.
-    const mkB = resolveMarket(new URL(request.url).hostname);
-    let bodyHtml = renderBuilding(payload);
-    if (mkB.accent) {
-      bodyHtml = bodyHtml
-        .replace(/#9fb4d8/gi, mkB.accent)
-        .replace(/#91a1ba/gi, mkB.accent)
-        .replace(/#5a73a8/gi, mkB.accentDeep || mkB.accent)
-        .replace(/#6a7fa3/gi, mkB.accentDeep || mkB.accent)
-        .replace(/159,180,216/g, mkB.accentRgb);
-    }
+    // Per-market text + color swaps on the dynamic building page.
+    const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
     return new Response(bodyHtml, {
       status: 200,
       headers: {
@@ -448,7 +490,7 @@ function renderBuilding(p) {
 
   /* ---- SEO head ---- */
   const seo = p.seo || {};
-  const title = esc(seo.title || (p.name + ' · ' + mkBrand));
+  const title = esc(seo.title || (p.name + ' \u00b7 ' + mkBrand));
   const descPlain = seo.description ||
     (p.name + ' \u2014 ' + (p.unit_count != null ? intc(p.unit_count) + ' units' : 'condominiums') +
       (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
@@ -469,7 +511,7 @@ function renderBuilding(p) {
     '<meta name="description" content="' + desc + '">\n' +
     '<link rel="canonical" href="' + canonical + '">\n' +
     '<meta property="og:type" content="website">\n' +
-    '<meta property="og:title" content="' + esc((p.name || '') + ' · ' + mkBrand) + '">\n' +
+    '<meta property="og:title" content="' + esc((p.name || '') + ' \u00b7 ' + mkBrand) + '">\n' +
     '<meta property="og:description" content="' + desc + '">\n' +
     '<meta property="og:url" content="' + canonical + '">\n' +
     ogImg + '\n' +
@@ -483,7 +525,7 @@ function renderBuilding(p) {
     '<style>' + EXTRA_CSS + '</style>\n' +
     '</head>\n<body>\n\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
-    '<a href="/" class="wordmark">Condo <em>Market</em> · ' + mkTag + '</a>' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + mkTag + '</a>' +
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/history/">History</a><a href="/how-it-works/">How it works</a>' +
@@ -517,7 +559,7 @@ function renderBuilding(p) {
     offerSection +
     '</main>\n\n' +
     '<footer><div class="wrap"><div class="footer-grid">' +
-    '<div><div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · ' + mkTag + '</div>' +
+    '<div><div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> \u00b7 ' + mkTag + '</div>' +
     '<p style="max-width:42ch;">A private exchange for every condo in ' + mkRegion + '. Live offer signals, editorial dossiers.</p></div>' +
     '<div><h5>Explore</h5><ul>' +
     '<li><a href="/buildings/">All buildings</a></li><li><a href="/intelligence/">Intelligence</a></li>' +
@@ -771,7 +813,6 @@ const MORT_SYNC = `
           priceInput.addEventListener('input', syncAmt);
           var slider = document.getElementById('m-price-slider');
           if (slider) slider.addEventListener('input', syncAmt);
-          // Sync the suggested price as the slider moves so the modal opens with the right amount
           function syncSuggested() {
             var raw = (priceInput.value || '').replace(/[^0-9]/g, '');
             if (raw) ctaLink.dataset.suggestedPrice = raw;
@@ -817,7 +858,6 @@ const MORT_CALC = `
       const pi = monthlyRate > 0
         ? loan * (monthlyRate * Math.pow(1 + monthlyRate, n)) / (Math.pow(1 + monthlyRate, n) - 1)
         : loan / n;
-      // SF effective property tax rate ~1.18%
       const tax = price * 0.0118 / 12;
       const total = pi + tax + hoa;
 
