@@ -24,6 +24,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--ff-body);font-size
 .back:hover{color:var(--text);}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 24px;animation:fadein 280ms ease;}
 @keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.fatal{padding:18px;color:var(--red);font-family:var(--ff-mono);font-size:12px;line-height:1.5;word-break:break-word;white-space:pre-wrap;}
 .eyebrow{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
 h1{font-family:var(--ff-display);font-weight:500;font-size:28px;line-height:1.15;margin-bottom:14px;letter-spacing:-0.01em;}
 h1.sm{font-size:24px;}
@@ -100,8 +101,25 @@ p.body strong{color:var(--text);font-weight:500;}
 </div>
 
 <script type="module">
+/* ------------ visible error reporting (the silent-failure killer) ------- */
+function showFatal(msg) {
+  const c = document.getElementById('card');
+  if (!c) return;
+  c.innerHTML = '<div class="fatal">save-10k error:\n\n' + String(msg).replace(/[<>]/g,'') + '\n\nOpen browser dev tools → Console for the full stack.</div>';
+}
+window.addEventListener('error', e => {
+  console.error('[save-10k] error:', e);
+  showFatal((e.message || 'unknown') + (e.filename ? '\n@ ' + e.filename + ':' + e.lineno : ''));
+});
+window.addEventListener('unhandledrejection', e => {
+  console.error('[save-10k] unhandled rejection:', e.reason);
+  showFatal('Unhandled promise rejection: ' + (e.reason?.message || e.reason));
+});
+
+/* ------------ imports ------------ */
 import { sb } from '/assets/cm-supabase.js';
 
+/* ------------ constants & helpers ------------ */
 const TOTAL = 6;
 const AMOUNT = '$10,000';
 
@@ -117,20 +135,23 @@ function getVisitorToken() {
   return t;
 }
 
-function logEvent(type, metadata={}) {
-  sb.rpc('log_funnel_event', {
-    p_event_type: type,
-    p_email: state.email || null,
-    p_metadata: { ...metadata, market: marketSlug(), utm_campaign: state.utm.campaign, utm_content: state.utm.content },
-    p_source: 'save-10k'
-  }).catch(e => console.warn('[funnel]', type, e?.message));
+/* ------------ backend wrappers (all internally swallow errors) --------- */
+function logEvent(type, metadata) {
+  try {
+    sb.rpc('log_funnel_event', {
+      p_event_type: type,
+      p_email: state.email || null,
+      p_metadata: Object.assign({ market: marketSlug(), utm_campaign: state.utm.campaign, utm_content: state.utm.content }, metadata || {}),
+      p_source: 'save-10k'
+    }).catch(e => console.warn('[funnel]', type, e?.message));
+  } catch (e) { console.warn('[funnel] sync', e); }
 }
 async function captureLead(intent) {
   if (!state.email) return;
   try {
     await sb.rpc('capture_lead', {
       p_email: state.email,
-      p_building_slug: state.building?.slug || null,
+      p_building_slug: state.building && state.building.slug || null,
       p_intent: intent,
       p_source: 'save-10k',
       p_message: null
@@ -139,260 +160,229 @@ async function captureLead(intent) {
 }
 async function searchBuildings(q) {
   try {
-    const { data } = await sb.rpc('search_buildings_for_signup', {
+    const { data, error } = await sb.rpc('search_buildings_for_signup', {
       p_market_slug: marketSlug(), p_query: q || null, p_limit: 8
     });
+    if (error) { console.warn('[search]', error.message); return []; }
     return data || [];
   } catch (e) { console.warn('[search]', e?.message); return []; }
 }
 async function fetchReport(slug) {
   try {
-    const { data } = await sb.rpc('building_market_report', { p_building_slug: slug, p_radius_mi: 0.5 });
+    const { data, error } = await sb.rpc('building_market_report', { p_building_slug: slug, p_radius_mi: 0.5 });
+    if (error) { console.warn('[report]', error.message); return null; }
     return data;
   } catch (e) { console.warn('[report]', e?.message); return null; }
 }
 
+/* ------------ state ------------ */
 const params = new URLSearchParams(location.search);
 const state = {
   screen: 1, building: null, email: null, report: null, reportLoaded: false, emailSent: false,
   utm: { campaign: params.get('utm_campaign'), content: params.get('utm_content') }
 };
 
-(async function init() {
-  getVisitorToken();
-  const e = params.get('e');
-  if (e) { try { state.email = decodeURIComponent(e); } catch { state.email = e; } }
-  const b = params.get('b');
-  if (b) {
-    const res = await searchBuildings(b);
-    const exact = res.find(r => r.slug === b);
-    state.building = exact || { slug: b, display_name: b.replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase()), neighborhood: '', city_name: '' };
-  }
-  logEvent('form_started', { building_slug: state.building?.slug || null });
-  render();
-})();
-
+/* ------------ routing + render ------------ */
 function goTo(n) { if (n<1||n>TOTAL) return; state.screen = n; render(); window.scrollTo({top:0}); }
-document.getElementById('back').addEventListener('click', () => { if (state.screen > 1 && !state.emailSent) goTo(state.screen - 1); });
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement?.tagName !== 'TEXTAREA') {
-    const cta = document.querySelector('.card .btn:not([disabled])'); if (cta) cta.click();
-  }
-});
 
 function render() {
-  document.getElementById('progress').innerHTML = Array.from({length:TOTAL}, (_,i) => `<div class="dot${i < state.screen ? ' on' : ''}"></div>`).join('');
-  document.getElementById('back').classList.toggle('on', state.screen > 1 && !state.emailSent);
-  const card = document.getElementById('card');
-  card.innerHTML = '';
-  (SCREENS[state.screen] || (()=>{}))(card);
+  try {
+    document.getElementById('progress').innerHTML = Array.from({length:TOTAL}, function(_, i){ return '<div class="dot' + (i < state.screen ? ' on' : '') + '"></div>'; }).join('');
+    document.getElementById('back').classList.toggle('on', state.screen > 1 && !state.emailSent);
+    const card = document.getElementById('card');
+    card.innerHTML = '';
+    const fn = SCREENS[state.screen];
+    if (fn) fn(card);
+  } catch (e) {
+    console.error('[render] failed', e);
+    showFatal('Render error on screen ' + state.screen + ': ' + (e.message || e));
+  }
 }
 
 const SCREENS = {
-  1(card) {
+  1: function(card) {
     const hook = state.building
-      ? `What's your unit at <em>${esc(state.building.display_name)}</em> really worth right now?`
-      : `What's your <em>San Francisco</em> condo really worth right now?`;
-    card.innerHTML = `
-      <div class="eyebrow">San Francisco Condo Market</div>
-      <h1>${hook}</h1>
-      <p class="body">Sales last month. Premium versus surrounding blocks. And a <strong>${AMOUNT} credit</strong> you can lock in — saved to your account, applied whenever you sell or buy.</p>
-      <button class="btn" id="s1-next">See my building →</button>
-      <div class="tagline">Takes about 60 seconds.<br><span class="sep">·</span> We will never call you. <span class="sep">·</span></div>
-    `;
-    document.getElementById('s1-next').onclick = () => goTo(2);
+      ? "What's your unit at <em>" + esc(state.building.display_name) + "</em> really worth right now?"
+      : "What's your <em>San Francisco</em> condo really worth right now?";
+    card.innerHTML =
+      '<div class="eyebrow">San Francisco Condo Market</div>' +
+      '<h1>' + hook + '</h1>' +
+      '<p class="body">Sales last month. Premium versus surrounding blocks. And a <strong>' + AMOUNT + ' credit</strong> you can lock in — saved to your account, applied whenever you sell or buy.</p>' +
+      '<button class="btn" id="s1-next">See my building →</button>' +
+      '<div class="tagline">Takes about 60 seconds.<br><span class="sep">·</span> We will never call you. <span class="sep">·</span></div>';
+    document.getElementById('s1-next').onclick = function(){ goTo(2); };
   },
 
-  2(card) {
+  2: function(card) {
     const b = state.building;
     const meta = b ? [b.neighborhood, b.city_name].filter(Boolean).join(' · ') : '';
-    card.innerHTML = `
-      <div class="eyebrow">Step 1 of 5</div>
-      <h1 class="sm">Confirm your <em>building</em></h1>
-      <p class="body">We'll use this to pull your live market data.</p>
-      ${b ? `
-        <div class="bldg-card">
-          <div class="bldg-check">✓</div>
-          <div>
-            <div class="bldg-name">${esc(b.display_name)}</div>
-            ${meta ? `<div class="bldg-meta">${esc(meta)}</div>` : ''}
-          </div>
-        </div>
-        <button class="wrong-link" id="s2-wrong" type="button">Wrong building? Search instead</button>
-      ` : ''}
-      <div class="picker ${b ? '' : 'on'}" id="picker">
-        <input class="picker-input" id="picker-input" type="text" placeholder="${b ? 'Search by name or street…' : 'Which building do you own in?'}" autocomplete="off">
-        <div class="picker-results" id="picker-results"></div>
-      </div>
-      <button class="btn" id="s2-next" ${b ? '' : 'disabled'}>Yes, this is me →</button>
-    `;
+    card.innerHTML =
+      '<div class="eyebrow">Step 1 of 5</div>' +
+      '<h1 class="sm">Confirm your <em>building</em></h1>' +
+      '<p class="body">We\'ll use this to pull your live market data.</p>' +
+      (b ? (
+        '<div class="bldg-card">' +
+          '<div class="bldg-check">✓</div>' +
+          '<div>' +
+            '<div class="bldg-name">' + esc(b.display_name) + '</div>' +
+            (meta ? '<div class="bldg-meta">' + esc(meta) + '</div>' : '') +
+          '</div>' +
+        '</div>' +
+        '<button class="wrong-link" id="s2-wrong" type="button">Wrong building? Search instead</button>'
+      ) : '') +
+      '<div class="picker ' + (b ? '' : 'on') + '" id="picker">' +
+        '<input class="picker-input" id="picker-input" type="text" placeholder="' + (b ? 'Search by name or street…' : 'Which building do you own in?') + '" autocomplete="off">' +
+        '<div class="picker-results" id="picker-results"></div>' +
+      '</div>' +
+      '<button class="btn" id="s2-next" ' + (b ? '' : 'disabled') + '>Yes, this is me →</button>';
     const picker = document.getElementById('picker');
     const input = document.getElementById('picker-input');
     const results = document.getElementById('picker-results');
     const next = document.getElementById('s2-next');
     const wrong = document.getElementById('s2-wrong');
-    if (wrong) wrong.onclick = () => { picker.classList.add('on'); input.focus(); };
+    if (wrong) wrong.onclick = function(){ picker.classList.add('on'); input.focus(); };
     let timer;
-    const fetchAndRender = async () => {
+    const fetchAndRender = async function() {
       const q = input.value.trim();
       const list = await searchBuildings(q);
-      if (!list.length) {
-        results.innerHTML = q ? '<div class="picker-empty">No matches. Try a different search.</div>' : '';
-        return;
-      }
-      results.innerHTML = list.map(r => {
+      if (!list.length) { results.innerHTML = q ? '<div class="picker-empty">No matches. Try a different search.</div>' : ''; return; }
+      results.innerHTML = list.map(function(r){
         const m = [r.neighborhood, r.city_name].filter(Boolean).join(' · ');
-        return `<button class="picker-row" data-slug="${esc(r.slug)}" type="button">
-          <div class="pr-name">${esc(r.display_name)}</div>
-          ${m ? `<div class="pr-meta">${esc(m)}</div>` : ''}
-        </button>`;
+        return '<button class="picker-row" data-slug="' + esc(r.slug) + '" type="button">' +
+          '<div class="pr-name">' + esc(r.display_name) + '</div>' +
+          (m ? '<div class="pr-meta">' + esc(m) + '</div>' : '') +
+        '</button>';
       }).join('');
-      results.querySelectorAll('.picker-row').forEach(btn => {
-        btn.onclick = () => {
-          state.building = list.find(r => r.slug === btn.dataset.slug);
+      results.querySelectorAll('.picker-row').forEach(function(btn){
+        btn.onclick = function(){
+          state.building = list.find(function(r){ return r.slug === btn.dataset.slug; });
           render();
         };
       });
     };
-    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(fetchAndRender, 220); });
+    input.addEventListener('input', function(){ clearTimeout(timer); timer = setTimeout(fetchAndRender, 220); });
     if (picker.classList.contains('on') && !b) fetchAndRender();
-    next.onclick = () => {
+    next.onclick = function(){
       if (!state.building) return;
       logEvent('building_selected', { building_slug: state.building.slug });
       goTo(3);
     };
   },
 
-  3(card) {
-    card.innerHTML = `
-      <div class="eyebrow">Your building, right now</div>
-      <h1 class="sm">Here's where <em>${esc(state.building.display_name)}</em> stands</h1>
-      <div class="reveal-loading" id="reveal-loading">Pulling your live market data…</div>
-      <div id="reveal-content" style="display:none;"></div>
-      <button class="btn" id="s3-next" disabled>Keep this updated →</button>
-    `;
+  3: function(card) {
+    card.innerHTML =
+      '<div class="eyebrow">Your building, right now</div>' +
+      '<h1 class="sm">Here\'s where <em>' + esc(state.building.display_name) + '</em> stands</h1>' +
+      '<div class="reveal-loading" id="reveal-loading">Pulling your live market data…</div>' +
+      '<div id="reveal-content" style="display:none;"></div>' +
+      '<button class="btn" id="s3-next" disabled>Keep this updated →</button>';
     const next = document.getElementById('s3-next');
-    (async () => {
+    (async function(){
       if (!state.reportLoaded) { state.report = await fetchReport(state.building.slug); state.reportLoaded = true; }
       document.getElementById('reveal-loading').style.display = 'none';
       const content = document.getElementById('reveal-content');
       content.style.display = 'block';
       next.disabled = false;
       const d = state.report;
-      if (!d || !d.tiers?.building) {
-        content.innerHTML = `<p class="body" style="text-align:center;">We don't have enough recorded sales to publish a building median yet — but your <strong>${AMOUNT} credit</strong> is still reserved.</p>`;
+      if (!d || !d.tiers || !d.tiers.building) {
+        content.innerHTML = '<p class="body" style="text-align:center;">We don\'t have enough recorded sales to publish a building median yet — but your <strong>' + AMOUNT + ' credit</strong> is still reserved.</p>';
         return;
       }
       const t = d.tiers, prem = d.premiums || {};
       const yoyOk = (t.building.n_12mo || 0) >= 4 && t.building.trend_ppsf_pct != null;
       const yoy = t.building.trend_ppsf_pct;
       const buildingName = d.building.name || state.building.display_name;
-      const verdict = (() => {
-        const p = prem.vs_surrounding_pct;
-        if (p == null) return `${esc(buildingName)} is one of <b>${marketName()}</b>'s tracked buildings.`;
+      let verdict;
+      const p = prem.vs_surrounding_pct;
+      if (p == null) verdict = esc(buildingName) + ' is one of <b>' + marketName() + '</b>\'s tracked buildings.';
+      else {
         const a = Math.abs(p).toFixed(1).replace(/\.0$/,'');
-        if (p >= 0.5) return `${esc(buildingName)} is running a <b>+${a}% premium</b> to the surrounding blocks.`;
-        if (p <= -0.5) return `${esc(buildingName)} is trading at a <b>${a}% discount</b> to the surrounding blocks.`;
-        return `${esc(buildingName)} is priced <b>in line</b> with the surrounding blocks.`;
-      })();
+        if (p >= 0.5) verdict = esc(buildingName) + ' is running a <b>+' + a + '% premium</b> to the surrounding blocks.';
+        else if (p <= -0.5) verdict = esc(buildingName) + ' is trading at a <b>' + a + '% discount</b> to the surrounding blocks.';
+        else verdict = esc(buildingName) + ' is priced <b>in line</b> with the surrounding blocks.';
+      }
       const rows = [
-        { label: 'Your building',                          v: t.building.median_ppsf_12mo,     self: true },
-        { label: 'Surrounding blocks',                     v: t.surrounding?.median_ppsf_12mo, self: false },
-        { label: d.building.neighborhood || 'Neighborhood', v: t.neighborhood?.median_ppsf_12mo, self: false },
-        { label: 'All San Francisco',                       v: t.sf?.median_ppsf_12mo,         self: false }
+        { label: 'Your building', v: t.building.median_ppsf_12mo, self: true },
+        { label: 'Surrounding blocks', v: t.surrounding && t.surrounding.median_ppsf_12mo, self: false },
+        { label: d.building.neighborhood || 'Neighborhood', v: t.neighborhood && t.neighborhood.median_ppsf_12mo, self: false },
+        { label: 'All San Francisco', v: t.sf && t.sf.median_ppsf_12mo, self: false }
       ];
-      content.innerHTML = `
-        <div class="reveal-big">
-          <div class="reveal-ppsf">${ppsf(t.building.median_ppsf_12mo)}<span class="unit"> / sqft</span></div>
-          <div class="reveal-sub">Median · trailing 12 months</div>
-          ${yoyOk ? `<div class="reveal-yoy ${yoy < 0 ? 'down' : ''}">${pctStr(yoy)} YoY</div>` : ''}
-        </div>
-        <div class="reveal-table">
-          ${rows.filter(r => r.v != null).map(r => `
-            <div class="reveal-row ${r.self ? 'self' : ''}">
-              <span class="label">${esc(r.label)}</span>
-              <span class="value">${ppsf(r.v)} / sqft</span>
-            </div>`).join('')}
-        </div>
-        <div class="reveal-verdict">${verdict}</div>
-        <div class="reveal-source">Pulled from public records.</div>
-      `;
+      content.innerHTML =
+        '<div class="reveal-big">' +
+          '<div class="reveal-ppsf">' + ppsf(t.building.median_ppsf_12mo) + '<span class="unit"> / sqft</span></div>' +
+          '<div class="reveal-sub">Median · trailing 12 months</div>' +
+          (yoyOk ? '<div class="reveal-yoy ' + (yoy < 0 ? 'down' : '') + '">' + pctStr(yoy) + ' YoY</div>' : '') +
+        '</div>' +
+        '<div class="reveal-table">' +
+          rows.filter(function(r){ return r.v != null; }).map(function(r){
+            return '<div class="reveal-row ' + (r.self ? 'self' : '') + '">' +
+              '<span class="label">' + esc(r.label) + '</span>' +
+              '<span class="value">' + ppsf(r.v) + ' / sqft</span>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+        '<div class="reveal-verdict">' + verdict + '</div>' +
+        '<div class="reveal-source">Pulled from public records.</div>';
       logEvent('value_revealed', { building_slug: state.building.slug, ppsf: t.building.median_ppsf_12mo, premium_vs_surrounding: prem.vs_surrounding_pct });
       if (state.email) captureLead('value_revealed');
     })();
-    next.onclick = () => goTo(4);
+    next.onclick = function(){ goTo(4); };
   },
 
-  4(card) {
-    const bname = state.building?.display_name || 'your building';
-    card.innerHTML = `
-      <div class="eyebrow">What you get</div>
-      <h1 class="sm">Here's <em>exactly</em> what you're signing up for</h1>
-      <div style="margin:14px 0 8px;">
-        <div class="bullet-row">
-          <div class="bullet-icon">📊</div>
-          <div class="bullet-text">Your building's <b>live market data</b> — comps, $/sqft, trend, kept current automatically.</div>
-        </div>
-        <div class="bullet-row">
-          <div class="bullet-icon">💰</div>
-          <div class="bullet-text">A <b>${AMOUNT} credit</b> saved to your account — for whenever you sell or buy.</div>
-        </div>
-        <div class="bullet-row">
-          <div class="bullet-icon">✉️</div>
-          <div class="bullet-text"><b>Optional updates</b> — when something noteworthy happens at ${esc(bname)}. Switch off anytime.</div>
-        </div>
-      </div>
-      <div class="s4-sub">That's the entire product. No upsells, no upgrades.</div>
-      <button class="btn" id="s4-next" style="margin-top:18px;">Sounds good — what's next? →</button>
-    `;
-    document.getElementById('s4-next').onclick = () => { logEvent('product_explained'); goTo(5); };
+  4: function(card) {
+    const bname = (state.building && state.building.display_name) || 'your building';
+    card.innerHTML =
+      '<div class="eyebrow">What you get</div>' +
+      '<h1 class="sm">Here\'s <em>exactly</em> what you\'re signing up for</h1>' +
+      '<div style="margin:14px 0 8px;">' +
+        '<div class="bullet-row"><div class="bullet-icon">📊</div><div class="bullet-text">Your building\'s <b>live market data</b> — comps, $/sqft, trend, kept current automatically.</div></div>' +
+        '<div class="bullet-row"><div class="bullet-icon">💰</div><div class="bullet-text">A <b>' + AMOUNT + ' credit</b> saved to your account — for whenever you sell or buy.</div></div>' +
+        '<div class="bullet-row"><div class="bullet-icon">✉️</div><div class="bullet-text"><b>Optional updates</b> — when something noteworthy happens at ' + esc(bname) + '. Switch off anytime.</div></div>' +
+      '</div>' +
+      '<div class="s4-sub">That\'s the entire product. No upsells, no upgrades.</div>' +
+      '<button class="btn" id="s4-next" style="margin-top:18px;">Sounds good — what\'s next? →</button>';
+    document.getElementById('s4-next').onclick = function(){ logEvent('product_explained'); goTo(5); };
   },
 
-  5(card) {
-    const bname = state.building?.display_name || 'your building';
-    card.innerHTML = `
-      <div class="eyebrow">Before we go further</div>
-      <h1 class="sm">A <em>promise</em> we put in writing</h1>
-      <div class="trust-statement">We will <strong>never</strong> call you. Never text you. Never pass your info to an agent. No phone-call campaigns. No spam.</div>
-      <p class="body">We just keep your account's market data current. If something noteworthy happens at <strong>${esc(bname)}</strong>, you'll get an email. You can switch those off anytime, no questions asked.</p>
-      <p class="body">Your assigned agent only comes into the picture if and when <strong>you decide to transact</strong> — never before.</p>
-      <div class="trust-icons">
-        <span>🔒 No phone required</span>
-        <span>🔒 No verification</span>
-        <span>🔒 Just an email</span>
-      </div>
-      <button class="btn" id="s5-next">Got it — save my ${AMOUNT} →</button>
-    `;
-    document.getElementById('s5-next').onclick = () => { logEvent('reassurance_viewed'); goTo(6); };
+  5: function(card) {
+    const bname = (state.building && state.building.display_name) || 'your building';
+    card.innerHTML =
+      '<div class="eyebrow">Before we go further</div>' +
+      '<h1 class="sm">A <em>promise</em> we put in writing</h1>' +
+      '<div class="trust-statement">We will <strong>never</strong> call you. Never text you. Never pass your info to an agent. No phone-call campaigns. No spam.</div>' +
+      '<p class="body">We just keep your account\'s market data current. If something noteworthy happens at <strong>' + esc(bname) + '</strong>, you\'ll get an email. You can switch those off anytime, no questions asked.</p>' +
+      '<p class="body">Your assigned agent only comes into the picture if and when <strong>you decide to transact</strong> — never before.</p>' +
+      '<div class="trust-icons"><span>🔒 No phone required</span><span>🔒 No verification</span><span>🔒 Just an email</span></div>' +
+      '<button class="btn" id="s5-next">Got it — save my ' + AMOUNT + ' →</button>';
+    document.getElementById('s5-next').onclick = function(){ logEvent('reassurance_viewed'); goTo(6); };
   },
 
-  6(card) {
-    if (state.emailSent) return renderSent(card);
-    card.innerHTML = `
-      <div class="eyebrow">One last step</div>
-      <h1 class="sm">Your <em>${AMOUNT}</em> is one tap away.</h1>
-      <p class="body">Enter your email and we'll send a one-tap login — no password to create.</p>
-      <label class="email-label" for="email-input">Email</label>
-      <input id="email-input" class="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="${esc(state.email || '')}">
-      <div class="email-error" id="email-error">Please enter a valid email address.</div>
-      <button class="btn" id="s6-next">Save my ${AMOUNT} →</button>
-      <div class="email-fine">Creates your free <strong style="color:var(--text-dim);">${marketName()}</strong> account. We never share your email.</div>
-    `;
+  6: function(card) {
+    if (state.emailSent) { renderSent(card); return; }
+    card.innerHTML =
+      '<div class="eyebrow">One last step</div>' +
+      '<h1 class="sm">Your <em>' + AMOUNT + '</em> is one tap away.</h1>' +
+      '<p class="body">Enter your email and we\'ll send a one-tap login — no password to create.</p>' +
+      '<label class="email-label" for="email-input">Email</label>' +
+      '<input id="email-input" class="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + esc(state.email || '') + '">' +
+      '<div class="email-error" id="email-error">Please enter a valid email address.</div>' +
+      '<button class="btn" id="s6-next">Save my ' + AMOUNT + ' →</button>' +
+      '<div class="email-fine">Creates your free <strong style="color:var(--text-dim);">' + marketName() + '</strong> account. We never share your email.</div>';
     const input = document.getElementById('email-input');
     const err = document.getElementById('email-error');
     const next = document.getElementById('s6-next');
     if (!state.email) input.focus();
-    next.onclick = async () => {
+    next.onclick = async function(){
       const email = input.value.trim();
       if (!isEmail(email)) { err.classList.add('on'); return; }
       err.classList.remove('on');
       state.email = email;
       next.disabled = true; next.textContent = 'Sending your link…';
       await captureLead('email_provided');
-      logEvent('email_provided', { building_slug: state.building?.slug || null });
+      logEvent('email_provided', { building_slug: state.building && state.building.slug });
       try {
         const redirectTo = location.origin + '/save-10k/confirm/' + (state.building ? '?b=' + encodeURIComponent(state.building.slug) : '');
-        await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+        await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectTo } });
       } catch (e) { console.warn('[otp]', e?.message); }
       state.emailSent = true;
       renderSent(document.getElementById('card'));
@@ -401,25 +391,59 @@ const SCREENS = {
 };
 
 function renderSent(card) {
-  card.innerHTML = `
-    <div class="sent-icon">✓</div>
-    <h1 class="sm" style="text-align:center;">Check your inbox</h1>
-    <p class="body" style="text-align:center;">We just sent your sign-in link to <strong>${esc(state.email)}</strong>. Tap it from your phone or laptop to lock in your <strong style="color:var(--gold);">${AMOUNT}</strong>.</p>
-    <button class="resend" id="resend" type="button">Didn't see it? Resend the link</button>
-    <div class="email-fine" style="margin-top:24px;">The link expires in 1 hour. Check your spam folder if it doesn't arrive in a minute.</div>
-  `;
-  setTimeout(() => document.getElementById('resend')?.classList.add('on'), 30000);
-  document.getElementById('resend').onclick = async () => {
+  card.innerHTML =
+    '<div class="sent-icon">✓</div>' +
+    '<h1 class="sm" style="text-align:center;">Check your inbox</h1>' +
+    '<p class="body" style="text-align:center;">We just sent your sign-in link to <strong>' + esc(state.email) + '</strong>. Tap it from your phone or laptop to lock in your <strong style="color:var(--gold);">' + AMOUNT + '</strong>.</p>' +
+    '<button class="resend" id="resend" type="button">Didn\'t see it? Resend the link</button>' +
+    '<div class="email-fine" style="margin-top:24px;">The link expires in 1 hour. Check your spam folder if it doesn\'t arrive in a minute.</div>';
+  setTimeout(function(){ const r = document.getElementById('resend'); if (r) r.classList.add('on'); }, 30000);
+  document.getElementById('resend').onclick = async function(){
     const btn = document.getElementById('resend');
     btn.textContent = 'Sending…'; btn.disabled = true;
     try {
       const redirectTo = location.origin + '/save-10k/confirm/' + (state.building ? '?b=' + encodeURIComponent(state.building.slug) : '');
       await sb.auth.signInWithOtp({ email: state.email, options: { emailRedirectTo: redirectTo } });
-    } catch {}
+    } catch (e) {}
     btn.textContent = 'Sent again — check your inbox';
   };
   document.getElementById('back').classList.remove('on');
 }
+
+/* ------------ global listeners ------------ */
+document.getElementById('back').addEventListener('click', function(){ if (state.screen > 1 && !state.emailSent) goTo(state.screen - 1); });
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Enter' && document.activeElement && document.activeElement.tagName !== 'TEXTAREA') {
+    const cta = document.querySelector('.card .btn:not([disabled])'); if (cta) cta.click();
+  }
+});
+
+/* ------------ init (SYNC first, async pre-fill after) -------------------- */
+(function init(){
+  try {
+    getVisitorToken();
+    const e = params.get('e');
+    if (e) { try { state.email = decodeURIComponent(e); } catch { state.email = e; } }
+
+    // 1) Render Screen 1 immediately so the page is never blank
+    render();
+
+    // 2) Fire-and-forget: load the building pre-fill, then re-render Screen 1 if still there
+    const b = params.get('b');
+    if (b) {
+      searchBuildings(b).then(function(res){
+        const exact = res.find(function(r){ return r.slug === b; });
+        state.building = exact || { slug: b, display_name: b.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }), neighborhood: '', city_name: '' };
+        if (state.screen === 1) render();
+      });
+    }
+
+    logEvent('form_started', { building_slug: b || null });
+  } catch (err) {
+    console.error('[init] failed', err);
+    showFatal('Init error: ' + (err && err.message || err));
+  }
+})();
 </script>
 </body>
 </html>
