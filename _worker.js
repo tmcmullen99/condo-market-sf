@@ -537,7 +537,6 @@ function renderBuilding(p) {
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
     '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
     '<script type="module" src="/assets/cm-dossier.js"></script>\n' +
-    '<script type="module" src="/assets/cm-dossier.js"></script>\n' +
 '<script type="module" src="/assets/offer.js"></script>\n' +
     '</body>\n</html>';
 }
