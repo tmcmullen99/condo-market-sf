@@ -291,13 +291,13 @@ function injectStyles() {
 // ---------------------------------------------------------------------------
 
 function renderSection(slug, displayName, mmms) {
-  const anchor = findInsertionAnchor();
-  if (!anchor) {
-    console.warn('cm-mmm: no insertion anchor found, appending to body');
-    document.body.appendChild(buildSectionEl(slug, displayName, mmms));
-    return;
-  }
-  anchor.parentNode.insertBefore(buildSectionEl(slug, displayName, mmms), anchor);
+  // DEDUPED 2026-05: the standalone "Make Me Move" section is now redundant with
+  // the top #featured-mmm card (cm-featured.js) and the interactive dossier
+  // (cm-dossier.js), which both surface this same MMM unit higher on the page.
+  // Section render disabled; the ?ref=mmm-email modal + auth plumbing below stay
+  // active so any in-flight email campaign still works. To restore the section,
+  // delete this early return.
+  return;
 }
 
 function buildSectionEl(slug, displayName, mmms) {
