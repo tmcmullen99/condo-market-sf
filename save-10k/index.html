@@ -36,7 +36,7 @@ p.body strong{color:var(--text);font-weight:500;}
 .btn:disabled{opacity:.45;cursor:not-allowed;}
 .tagline{margin-top:22px;font-size:13px;color:var(--text-faint);line-height:1.6;text-align:center;}
 .tagline .sep{color:rgba(232,227,216,0.2);margin:0 8px;}
-.bldg-card{background:rgba(212,165,116,0.06);border:1px solid rgba(212,165,116,0.30);border-radius:12px;padding:18px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}
+.bldg-card{background:rgba(212,165,116,0.06);border:1px solid rgba(212,165,116,0.30);border-radius:12px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
 .bldg-check{flex:none;width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;}
 .bldg-name{font-family:var(--ff-display);font-style:italic;font-weight:500;font-size:18px;line-height:1.2;margin-bottom:2px;}
 .bldg-meta{font-family:var(--ff-mono);font-size:11px;letter-spacing:0.05em;color:var(--text-dim);text-transform:uppercase;}
@@ -51,6 +51,12 @@ p.body strong{color:var(--text);font-weight:500;}
 .pr-name{font-family:var(--ff-display);font-style:italic;font-size:16px;}
 .pr-meta{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-dim);margin-top:2px;}
 .picker-empty{color:var(--text-faint);font-size:13px;padding:10px 0;text-align:center;}
+.unit-block{margin:18px 0 8px;padding:14px 0 6px;border-top:1px solid var(--rule);}
+.unit-label{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;display:flex;align-items:baseline;gap:8px;}
+.unit-label .opt{text-transform:none;letter-spacing:0;font-weight:normal;font-size:11px;color:var(--text-faint);font-family:var(--ff-body);}
+.unit-input{width:100%;height:48px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0 16px;color:var(--text);font-family:inherit;font-size:15px;letter-spacing:0.04em;}
+.unit-input:focus{outline:none;border-color:var(--gold);}
+.unit-help{margin-top:8px;font-size:12px;color:var(--text-faint);line-height:1.45;}
 .reveal-loading{text-align:center;padding:32px 0;color:var(--text-dim);font-size:14px;}
 .reveal-big{text-align:center;margin:18px 0 12px;}
 .reveal-ppsf{font-family:var(--ff-display);font-style:italic;font-weight:500;font-size:42px;color:var(--gold);line-height:1;}
@@ -101,27 +107,21 @@ p.body strong{color:var(--text);font-weight:500;}
 </div>
 
 <script type="module">
-/* ------------ visible error reporting (the silent-failure killer) ------- */
+/* ------------ visible error reporting ------------ */
 function showFatal(msg) {
   const c = document.getElementById('card');
   if (!c) return;
   c.innerHTML = '<div class="fatal">save-10k error:\n\n' + String(msg).replace(/[<>]/g,'') + '\n\nOpen browser dev tools → Console for the full stack.</div>';
 }
-window.addEventListener('error', e => {
-  console.error('[save-10k] error:', e);
-  showFatal((e.message || 'unknown') + (e.filename ? '\n@ ' + e.filename + ':' + e.lineno : ''));
-});
-window.addEventListener('unhandledrejection', e => {
-  console.error('[save-10k] unhandled rejection:', e.reason);
-  showFatal('Unhandled promise rejection: ' + (e.reason?.message || e.reason));
-});
+window.addEventListener('error', e => { console.error('[save-10k]', e); showFatal((e.message || 'unknown') + (e.filename ? '\n@ ' + e.filename + ':' + e.lineno : '')); });
+window.addEventListener('unhandledrejection', e => { console.error('[save-10k] rejection', e.reason); showFatal('Unhandled promise rejection: ' + (e.reason?.message || e.reason)); });
 
-/* ------------ imports ------------ */
 import { sb } from '/assets/cm-supabase.js';
 
 /* ------------ constants & helpers ------------ */
 const TOTAL = 6;
 const AMOUNT = '$10,000';
+const UNIT_LS_KEY = 'cm_user_unit_v1';
 
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const marketSlug = () => location.hostname.includes('siliconvalley') ? 'silicon-valley-condo-market' : 'san-francisco-condo-market';
@@ -129,56 +129,69 @@ const marketName = () => marketSlug().startsWith('silicon') ? 'Silicon Valley Co
 const ppsf = n => n==null||isNaN(n) ? '—' : '$'+Math.round(Number(n)).toLocaleString('en-US');
 const pctStr = n => { if (n==null||isNaN(n)) return ''; const a = Math.abs(n).toFixed(1).replace(/\.0$/,''); return (n>=0?'+':'−')+a+'%'; };
 const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s||'').trim());
+const normUnit = s => String(s||'').trim().toUpperCase().replace(/\s+/g,'').slice(0,16);
 function getVisitorToken() {
   let t = localStorage.getItem('cm_visitor_token');
   if (!t) { t = (crypto.randomUUID ? crypto.randomUUID() : 'v_'+Date.now()+'_'+Math.random().toString(36).slice(2)); localStorage.setItem('cm_visitor_token', t); }
   return t;
 }
+function persistUnitToLocalStorage() {
+  try {
+    if (!state.unit) return;
+    localStorage.setItem(UNIT_LS_KEY, JSON.stringify({
+      unit: state.unit,
+      building_slug: state.building && state.building.slug || null,
+      source: 'save-10k',
+      captured_at: new Date().toISOString()
+    }));
+  } catch (e) { console.warn('[unit-persist]', e?.message); }
+}
 
-/* ------------ backend wrappers (all internally swallow errors) --------- */
+/* ------------ backend wrappers (inspect .then for PostgREST errors) -------- */
 function logEvent(type, metadata) {
   try {
     sb.rpc('log_funnel_event', {
       p_event_type: type,
       p_email: state.email || null,
-      p_metadata: Object.assign({ market: marketSlug(), utm_campaign: state.utm.campaign, utm_content: state.utm.content }, metadata || {}),
+      p_metadata: Object.assign({ market: marketSlug(), utm_campaign: state.utm.campaign, utm_content: state.utm.content, unit: state.unit || null }, metadata || {}),
       p_source: 'save-10k'
-    }).catch(e => console.warn('[funnel]', type, e?.message));
-  } catch (e) { console.warn('[funnel] sync', e); }
+    }).then(r => { if (r && r.error) console.warn('[funnel '+type+']', r.error.message); })
+      .catch(e => console.warn('[funnel '+type+' net]', e?.message));
+  } catch (e) { console.warn('[funnel sync]', e); }
 }
 async function captureLead(intent) {
   if (!state.email) return;
   try {
-    await sb.rpc('capture_lead', {
+    const r = await sb.rpc('capture_lead', {
       p_email: state.email,
       p_building_slug: state.building && state.building.slug || null,
       p_intent: intent,
       p_source: 'save-10k',
-      p_message: null
+      p_message: state.unit ? ('unit:' + state.unit) : null
     });
-  } catch (e) { console.warn('[capture_lead]', e?.message); }
+    if (r && r.error) console.warn('[capture_lead '+intent+']', r.error.message);
+  } catch (e) { console.warn('[capture_lead net]', e?.message); }
 }
 async function searchBuildings(q) {
   try {
-    const { data, error } = await sb.rpc('search_buildings_for_signup', {
-      p_market_slug: marketSlug(), p_query: q || null, p_limit: 8
-    });
+    const { data, error } = await sb.rpc('search_buildings_for_signup', { p_market_slug: marketSlug(), p_query: q || null, p_limit: 8 });
     if (error) { console.warn('[search]', error.message); return []; }
     return data || [];
-  } catch (e) { console.warn('[search]', e?.message); return []; }
+  } catch (e) { console.warn('[search net]', e?.message); return []; }
 }
 async function fetchReport(slug) {
   try {
     const { data, error } = await sb.rpc('building_market_report', { p_building_slug: slug, p_radius_mi: 0.5 });
     if (error) { console.warn('[report]', error.message); return null; }
     return data;
-  } catch (e) { console.warn('[report]', e?.message); return null; }
+  } catch (e) { console.warn('[report net]', e?.message); return null; }
 }
 
 /* ------------ state ------------ */
 const params = new URLSearchParams(location.search);
 const state = {
-  screen: 1, building: null, email: null, report: null, reportLoaded: false, emailSent: false,
+  screen: 1, building: null, email: null, unit: null,
+  report: null, reportLoaded: false, emailSent: false,
   utm: { campaign: params.get('utm_campaign'), content: params.get('utm_content') }
 };
 
@@ -194,7 +207,7 @@ function render() {
     const fn = SCREENS[state.screen];
     if (fn) fn(card);
   } catch (e) {
-    console.error('[render] failed', e);
+    console.error('[render]', e);
     showFatal('Render error on screen ' + state.screen + ': ' + (e.message || e));
   }
 }
@@ -234,13 +247,24 @@ const SCREENS = {
         '<input class="picker-input" id="picker-input" type="text" placeholder="' + (b ? 'Search by name or street…' : 'Which building do you own in?') + '" autocomplete="off">' +
         '<div class="picker-results" id="picker-results"></div>' +
       '</div>' +
+      (b ? (
+        '<div class="unit-block">' +
+          '<label class="unit-label" for="unit-input">Your unit <span class="opt">(optional — add later from your account)</span></label>' +
+          '<input class="unit-input" id="unit-input" type="text" autocomplete="off" inputmode="text" placeholder="e.g. 304 or 13E" value="' + esc(state.unit || '') + '" maxlength="16">' +
+          '<div class="unit-help">Skip this if you\'re not sure — you can claim your specific unit from your dashboard after signup.</div>' +
+        '</div>'
+      ) : '') +
       '<button class="btn" id="s2-next" ' + (b ? '' : 'disabled') + '>Yes, this is me →</button>';
+
     const picker = document.getElementById('picker');
     const input = document.getElementById('picker-input');
     const results = document.getElementById('picker-results');
     const next = document.getElementById('s2-next');
     const wrong = document.getElementById('s2-wrong');
+    const unitInput = document.getElementById('unit-input');
+
     if (wrong) wrong.onclick = function(){ picker.classList.add('on'); input.focus(); };
+
     let timer;
     const fetchAndRender = async function() {
       const q = input.value.trim();
@@ -262,9 +286,12 @@ const SCREENS = {
     };
     input.addEventListener('input', function(){ clearTimeout(timer); timer = setTimeout(fetchAndRender, 220); });
     if (picker.classList.contains('on') && !b) fetchAndRender();
+
     next.onclick = function(){
       if (!state.building) return;
-      logEvent('building_selected', { building_slug: state.building.slug });
+      state.unit = unitInput ? normUnit(unitInput.value) || null : null;
+      persistUnitToLocalStorage();
+      logEvent('building_selected', { building_slug: state.building.slug, unit: state.unit });
       goTo(3);
     };
   },
@@ -350,8 +377,8 @@ const SCREENS = {
       '<div class="eyebrow">Before we go further</div>' +
       '<h1 class="sm">A <em>promise</em> we put in writing</h1>' +
       '<div class="trust-statement">We will <strong>never</strong> call you. Never text you. Never pass your info to an agent. No phone-call campaigns. No spam.</div>' +
-      '<p class="body">We just keep your account\'s market data current. If something noteworthy happens at <strong>' + esc(bname) + '</strong>, you\'ll get an email. You can switch those off anytime, no questions asked.</p>' +
-      '<p class="body">Your assigned agent only comes into the picture if and when <strong>you decide to transact</strong> — never before.</p>' +
+      '<p class="body">We just keep your account\'s market data current. If something noteworthy happens at <strong>' + esc(bname) + '</strong>, you\'ll get an email — switch them off anytime.</p>' +
+      '<p class="body">Condo Market assigns you an agent <strong>only</strong> when you take an action from your account that requires one — like setting a <strong>Make-Me-Move</strong> price or using <strong>Coming Soon</strong> — never before.</p>' +
       '<div class="trust-icons"><span>🔒 No phone required</span><span>🔒 No verification</span><span>🔒 Just an email</span></div>' +
       '<button class="btn" id="s5-next">Got it — save my ' + AMOUNT + ' →</button>';
     document.getElementById('s5-next').onclick = function(){ logEvent('reassurance_viewed'); goTo(6); };
@@ -379,7 +406,7 @@ const SCREENS = {
       state.email = email;
       next.disabled = true; next.textContent = 'Sending your link…';
       await captureLead('email_provided');
-      logEvent('email_provided', { building_slug: state.building && state.building.slug });
+      logEvent('email_provided', { building_slug: state.building && state.building.slug, unit: state.unit });
       try {
         const redirectTo = location.origin + '/save-10k/confirm/' + (state.building ? '?b=' + encodeURIComponent(state.building.slug) : '');
         await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectTo } });
@@ -418,29 +445,24 @@ document.addEventListener('keydown', function(e){
   }
 });
 
-/* ------------ init (SYNC first, async pre-fill after) -------------------- */
+/* ------------ init (SYNC first, async pre-fill after) ------------ */
 (function init(){
   try {
     getVisitorToken();
     const e = params.get('e');
     if (e) { try { state.email = decodeURIComponent(e); } catch { state.email = e; } }
-
-    // 1) Render Screen 1 immediately so the page is never blank
     render();
-
-    // 2) Fire-and-forget: load the building pre-fill, then re-render Screen 1 if still there
     const b = params.get('b');
     if (b) {
       searchBuildings(b).then(function(res){
         const exact = res.find(function(r){ return r.slug === b; });
         state.building = exact || { slug: b, display_name: b.replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }), neighborhood: '', city_name: '' };
-        if (state.screen === 1) render();
+        if (state.screen === 1 || state.screen === 2) render();
       });
     }
-
     logEvent('form_started', { building_slug: b || null });
   } catch (err) {
-    console.error('[init] failed', err);
+    console.error('[init]', err);
     showFatal('Init error: ' + (err && err.message || err));
   }
 })();
