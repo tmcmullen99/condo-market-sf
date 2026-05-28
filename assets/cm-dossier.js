@@ -1,9 +1,9 @@
 /* =============================================================================
  * cm-dossier.js  —  Condo Market interactive building dossier (stacking plan)
- * Loads on /building/<slug> only. Reads slug from URL, fetches building_dossier,
- * relocates #dossier up after #featured-mmm, injects an interactive tower
- * (floors x stacks, heat-colored by $/ft2) + sortable table + unit panel + CTAs.
- * Uses page CSS vars so per-market accent is inherited; heat ramp is independent.
+ * Loads on /building/<slug> only. Desktop: full heat-colored tower + side panel.
+ * Mobile: single-screen building (floors as bars) -> tap floor -> unit list ->
+ * tap unit -> detail. Table view available on both. Uses page CSS vars so the
+ * per-market accent is inherited; heat ramp is market-independent.
  * ========================================================================== */
 (function () {
   'use strict';
@@ -110,6 +110,36 @@
     return html;
   }
 
+  /* mobile single-screen building: floors as bars, tap floor -> unit list */
+  function buildMini(d, lo, hi) {
+    if (d.floor_max == null) return '';
+    var stacks = d.stacks || [];
+    var byFloor = {};
+    d.units.forEach(function (u) { if (u.floor != null) (byFloor[u.floor] = byFloor[u.floor] || []).push(u); });
+    var html = '<div class="cmd-mini" style="--cmd-cols:' + (stacks.length || 1) + '">';
+    for (var f = d.floor_max; f >= d.floor_min; f--) {
+      var units = byFloor[f] || [];
+      var segs = '';
+      if (stacks.length) {
+        for (var i = 0; i < stacks.length; i++) {
+          var u = null;
+          for (var j = 0; j < units.length; j++) { if (units[j].stack === stacks[i]) { u = units[j]; break; } }
+          var col = u ? (psfColor(u.psf, lo, hi) || 'rgba(255,255,255,0.06)') : 'rgba(255,255,255,0.035)';
+          segs += '<span class="cmd-mini-seg' + (u && u.mmm != null ? ' cmd-mmm' : '') + '" style="background:' + col + '"></span>';
+        }
+      } else {
+        segs = '<span class="cmd-mini-seg" style="background:rgba(255,255,255,0.06)"></span>';
+      }
+      var hasMMM = false; for (var k = 0; k < units.length; k++) { if (units[k].mmm != null) { hasMMM = true; break; } }
+      html += '<button class="cmd-mini-floor' + (hasMMM ? ' cmd-has-mmm' : '') + '" data-floor="' + f + '">' +
+        '<span class="cmd-mini-fl">' + f + '</span>' +
+        '<span class="cmd-mini-bar">' + segs + '</span>' +
+        '<span class="cmd-mini-ct">' + (units.length || '') + '</span></button>';
+    }
+    html += '</div>';
+    return html;
+  }
+
   function buildTable(d) {
     var rows = d.units.slice().sort(function (a, b) {
       var fa = a.floor == null ? -1 : a.floor, fb = b.floor == null ? -1 : b.floor;
@@ -138,6 +168,24 @@
     return '<div class="cmd-panel-empty">Select any unit on the tower to see its full history \u2014 size, last sale, price per foot. Hover a cell for a quick read.</div>';
   }
 
+  function floorSheet(floorNum, units) {
+    var sorted = units.slice().sort(function (a, b) { return String(a.stack || a.label).localeCompare(String(b.stack || b.label)); });
+    var items = sorted.map(function (u) {
+      var mmm = u.mmm != null;
+      var meta = [];
+      if (u.beds != null) meta.push(u.beds + 'bd');
+      if (u.sqft) meta.push(nf(u.sqft) + ' sf');
+      if (u.psf != null) meta.push('$' + u.psf + '/ft\u00b2');
+      return '<button class="cmd-fl-item" data-u="' + esc(u.u) + '">' +
+        '<span class="cmd-fl-unit">#' + esc(u.label) + (mmm ? ' <span class="cmd-tag">MMM</span>' : '') + '</span>' +
+        '<span class="cmd-fl-meta">' + esc(meta.join(' \u00b7 ')) + '</span>' +
+        '<span class="cmd-fl-price">' + money(mmm ? u.mmm : u.price) + '</span></button>';
+    }).join('');
+    return '<button class="cmd-p-close" data-cmd-close aria-label="Close">\u00d7</button>' +
+      '<div class="cmd-fl-head">Floor ' + floorNum + ' \u00b7 ' + units.length + ' unit' + (units.length === 1 ? '' : 's') + '</div>' +
+      '<div class="cmd-fl-list">' + items + '</div>';
+  }
+
   function ownerLink(addr, label) {
     if (!addr) return '#offer';
     var u = '/owner-signup/?address=' + encodeURIComponent(addr);
@@ -145,7 +193,7 @@
     return u;
   }
 
-  function panelFor(u, addr) {
+  function panelFor(u, addr, backFloor) {
     var mmm = u.mmm != null;
     var chips = [];
     if (u.floor != null) chips.push('Floor ' + u.floor);
@@ -174,7 +222,9 @@
       : '<a class="cmd-cta-primary" href="' + esc(ownerLink(addr, u.label)) + '">Own #' + esc(u.label) + '? Name your price \u2192</a>' +
         '<a class="cmd-cta-ghost" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '">Make an offer \u2192</a>';
 
-    return '<button class="cmd-p-close" data-cmd-close aria-label="Close">\u00d7</button>' +
+    var back = (backFloor != null) ? '<button class="cmd-p-back" data-cmd-backfloor>\u2039 Floor ' + backFloor + '</button>' : '';
+
+    return '<button class="cmd-p-close" data-cmd-close aria-label="Close">\u00d7</button>' + back +
       '<div class="cmd-p-unit">#' + esc(u.label) + '</div>' +
       '<div class="cmd-p-chips">' + chipHtml + '</div>' +
       priceBlock + rows + mmmBanner + cta;
@@ -184,11 +234,16 @@
   function mount(d) {
     if (!d.units || !d.units.length) return;
     var lo = d.psf_p05, hi = d.psf_p95;
-    var byU = {}; d.units.forEach(function (u) { byU[u.u] = u; });
+    var byU = {}, byFloor = {};
+    d.units.forEach(function (u) {
+      byU[u.u] = u;
+      if (u.floor != null) (byFloor[u.floor] = byFloor[u.floor] || []).push(u);
+    });
     var addrEl = document.querySelector('.hero-addr');
     var addr = addrEl ? addrEl.textContent.trim() : '';
 
     var hasTower = !!(d.stacks && d.stacks.length && d.floor_max != null);
+    var hasFloors = d.floor_max != null;
     var cov = nf(d.units_with_data);
     var tot = d.unit_count != null ? nf(d.unit_count) : null;
     var floors = (d.floor_min != null && d.floor_max != null) ? ('floors ' + d.floor_min + '\u2013' + d.floor_max) : '';
@@ -197,19 +252,22 @@
     var summ = '<b>' + cov + '</b> ' + (tot ? 'of ' + tot + ' ' : '') + 'units with recorded sales' +
       (floors ? ' \u00b7 ' + floors : '') + (psfr ? ' \u00b7 ' + psfr : '') + (med ? ' \u00b7 ' + med : '');
 
+    var towerHtml = (hasTower ? buildTower(d, lo, hi) : '') + (hasFloors ? buildMini(d, lo, hi) : '');
+    var showTowerView = hasTower || hasFloors;
+
     var inner =
       '<div class="cmd-summary">' + summ + '</div>' +
       '<div class="cmd-toolbar">' +
         '<div class="cmd-toggle">' +
-          (hasTower ? '<button data-cmd-view="tower" class="on">Tower</button>' : '') +
-          '<button data-cmd-view="table"' + (hasTower ? '' : ' class="on"') + '>Table</button>' +
+          (showTowerView ? '<button data-cmd-view="tower" class="on">Tower</button>' : '') +
+          '<button data-cmd-view="table"' + (showTowerView ? '' : ' class="on"') + '>Table</button>' +
         '</div>' +
         '<div class="cmd-legend"><span>Lower $/ft\u00b2</span><span class="cmd-legend-bar"></span><span>Higher</span></div>' +
       '</div>' +
       '<div class="cmd-body">' +
         '<div class="cmd-views">' +
-          (hasTower ? '<div class="cmd-view cmd-view-tower">' + buildTower(d, lo, hi) + '</div>' : '') +
-          '<div class="cmd-view cmd-view-table"' + (hasTower ? ' hidden' : '') + '>' + buildTable(d) + '</div>' +
+          (showTowerView ? '<div class="cmd-view cmd-view-tower">' + towerHtml + '</div>' : '') +
+          '<div class="cmd-view cmd-view-table"' + (showTowerView ? ' hidden' : '') + '>' + buildTable(d) + '</div>' +
         '</div>' +
         '<aside class="cmd-panel" id="cmd-panel">' + panelEmpty() + '</aside>' +
       '</div>';
@@ -245,10 +303,16 @@
 
     var panel = host.querySelector('#cmd-panel');
     var sortState = {};
+    var openFloor = null;
 
+    function showFloor(f) {
+      openFloor = f;
+      panel.innerHTML = floorSheet(f, byFloor[f] || []);
+      panel.classList.add('cmd-open');
+    }
     function selectUnit(u) {
       if (!u) return;
-      panel.innerHTML = panelFor(u, addr);
+      panel.innerHTML = panelFor(u, addr, openFloor);
       host.querySelectorAll('.is-sel').forEach(function (el) { el.classList.remove('is-sel'); });
       host.querySelectorAll('[data-u="' + u.u + '"]').forEach(function (el) { el.classList.add('is-sel'); });
       if (window.innerWidth < 900) panel.classList.add('cmd-open');
@@ -279,16 +343,20 @@
 
     host.addEventListener('click', function (e) {
       var close = e.target.closest('[data-cmd-close]');
-      if (close) { panel.classList.remove('cmd-open'); return; }
+      if (close) { panel.classList.remove('cmd-open'); openFloor = null; return; }
+      var back = e.target.closest('[data-cmd-backfloor]');
+      if (back) { if (openFloor != null) showFloor(openFloor); return; }
       var vt = e.target.closest('[data-cmd-view]');
       if (vt) { setView(vt.getAttribute('data-cmd-view')); return; }
       var th = e.target.closest('th[data-sort]');
       if (th) { sortTable(th.getAttribute('data-sort')); return; }
+      var fl = e.target.closest('[data-floor]');
+      if (fl) { showFloor(+fl.getAttribute('data-floor')); return; }
       var hit = e.target.closest('[data-u]');
       if (hit) { selectUnit(byU[hit.getAttribute('data-u')]); }
     });
 
-    setView(window.innerWidth >= 900 && hasTower ? 'tower' : 'table');
+    setView(showTowerView ? 'tower' : 'table');
   }
 
   /* ------------------------------- styles --------------------------------- */
@@ -305,26 +373,28 @@
     '.cmd-legend{display:flex;align-items:center;gap:10px;font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--cm-ivory-dim);}' +
     '.cmd-legend-bar{width:120px;height:8px;border-radius:999px;background:linear-gradient(90deg,#4a6996,#d9a441,#d94545);}' +
     '.cmd-body{display:grid;grid-template-columns:1fr;gap:24px;}' +
-    '@media(min-width:900px){.cmd-body{grid-template-columns:minmax(0,1fr) 320px;align-items:start;}}' +
+    '@media(min-width:900px){.cmd-body{grid-template-columns:minmax(0,1fr) 300px;align-items:start;}}' +
     '.cmd-views{min-width:0;}' +
     '.cmd-view-tower{overflow-x:auto;padding-bottom:6px;}' +
     '.cmd-tower{display:inline-block;min-width:100%;}' +
-    '.cmd-trow{display:grid;grid-template-columns:42px repeat(var(--cmd-cols),minmax(24px,1fr));gap:4px;margin-bottom:4px;}' +
-    '.cmd-thead{margin-bottom:8px;}' +
-    '.cmd-axis{font-family:var(--ff-mono);font-size:10px;color:var(--cm-ivory-dim);display:flex;align-items:center;justify-content:flex-end;padding-right:6px;}' +
-    '.cmd-stacklab{font-family:var(--ff-mono);font-size:10px;color:var(--cm-ivory-dim);text-align:center;}' +
-    '.cmd-cell{position:relative;aspect-ratio:1;border:none;border-radius:3px;cursor:pointer;padding:0;min-height:24px;transition:transform .1s,box-shadow .1s;}' +
-    '.cmd-cell:hover{transform:scale(1.14);box-shadow:0 0 0 2px var(--cm-ivory);z-index:2;}' +
+    '.cmd-trow{display:grid;grid-template-columns:30px repeat(var(--cmd-cols),minmax(17px,1fr));gap:3px;margin-bottom:3px;}' +
+    '.cmd-thead{margin-bottom:6px;}' +
+    '.cmd-axis{font-family:var(--ff-mono);font-size:9px;color:var(--cm-ivory-dim);display:flex;align-items:center;justify-content:flex-end;padding-right:5px;}' +
+    '.cmd-stacklab{font-family:var(--ff-mono);font-size:9px;color:var(--cm-ivory-dim);text-align:center;}' +
+    '.cmd-cell{position:relative;aspect-ratio:1;border:none;border-radius:2px;cursor:pointer;padding:0;min-height:17px;transition:transform .1s,box-shadow .1s;}' +
+    '.cmd-cell:hover{transform:scale(1.16);box-shadow:0 0 0 2px var(--cm-ivory);z-index:2;}' +
     '.cmd-cell.is-sel{box-shadow:0 0 0 2px var(--cm-ivory),0 0 0 4px var(--cm-peri);z-index:3;}' +
     '.cmd-empty{background:rgba(255,255,255,0.04);cursor:default;}' +
     '.cmd-empty:hover{transform:none;box-shadow:none;}' +
     '.cmd-mmm{box-shadow:inset 0 0 0 2px var(--cm-peri);}' +
-    '.cmd-dot{position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--cm-peri);}' +
+    '.cmd-dot{position:absolute;top:1px;right:1px;width:4px;height:4px;border-radius:50%;background:var(--cm-peri);}' +
     '.cmd-unplaced{margin-top:20px;}' +
     '.cmd-unplaced-lab{font-family:var(--ff-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cm-ivory-dim);margin-bottom:8px;}' +
     '.cmd-unplaced-row{display:flex;flex-wrap:wrap;gap:8px;}' +
     '.cmd-chip{font-family:var(--ff-mono);font-size:11px;color:var(--cm-ivory);background:var(--cm-navy-deep);border:1px solid var(--cm-rule);border-left-width:3px;border-radius:6px;padding:6px 10px;cursor:pointer;}' +
     '.cmd-chip.is-sel{border-color:var(--cm-peri);}' +
+    /* mobile single-screen building */
+    '.cmd-mini{display:none;}' +
     '.cmd-view-table{overflow-x:auto;}' +
     '.cmd-table{width:100%;border-collapse:collapse;font-size:13px;}' +
     '.cmd-table th{font-family:var(--ff-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cm-ivory-dim);text-align:left;padding:10px 12px;border-bottom:1px solid var(--cm-rule);cursor:pointer;white-space:nowrap;}' +
@@ -339,6 +409,8 @@
     '.cmd-panel{background:var(--cm-navy-deep);border:1px solid var(--cm-rule);border-radius:12px;padding:24px;position:sticky;top:80px;}' +
     '.cmd-panel-empty{color:var(--cm-ivory-dim);font-size:14px;line-height:1.65;}' +
     '.cmd-p-unit{font-family:var(--ff-display);font-style:italic;font-weight:500;font-size:34px;color:var(--cm-ivory);line-height:1;}' +
+    '.cmd-p-back{display:block;background:none;border:none;color:var(--cm-ivory-dim);font-family:var(--ff-mono);font-size:11px;letter-spacing:.06em;cursor:pointer;margin-bottom:12px;padding:0;}' +
+    '.cmd-p-back:hover{color:var(--cm-peri);}' +
     '.cmd-p-chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 18px;}' +
     '.cmd-p-chip{font-family:var(--ff-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--cm-ivory-dim);border:1px solid var(--cm-rule);border-radius:999px;padding:4px 10px;}' +
     '.cmd-p-price{font-family:var(--ff-display);font-weight:500;font-size:30px;color:var(--cm-peri);line-height:1;}' +
@@ -352,8 +424,26 @@
     '.cmd-cta-primary:hover{opacity:.9;}' +
     '.cmd-cta-ghost{display:block;text-align:center;border:1px solid var(--cm-rule);color:var(--cm-ivory);border-radius:999px;padding:11px 18px;font-size:13px;margin-top:10px;text-decoration:none;transition:all .15s;}' +
     '.cmd-cta-ghost:hover{border-color:var(--cm-peri);color:var(--cm-peri);}' +
+    '.cmd-fl-head{font-family:var(--ff-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cm-peri);margin-bottom:14px;}' +
+    '.cmd-fl-list{display:flex;flex-direction:column;}' +
+    '.cmd-fl-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;padding:12px 0;border:none;border-bottom:1px solid var(--cm-rule);background:none;cursor:pointer;text-align:left;width:100%;}' +
+    '.cmd-fl-unit{font-family:var(--ff-display);font-style:italic;font-size:16px;color:var(--cm-ivory);}' +
+    '.cmd-fl-meta{font-family:var(--ff-mono);font-size:10px;color:var(--cm-ivory-dim);}' +
+    '.cmd-fl-price{font-family:var(--ff-mono);font-size:13px;color:var(--cm-peri);}' +
     '.cmd-p-close{display:none;}' +
     '@media(max-width:899px){' +
+      '.cmd-legend{display:none;}' +
+      '.cmd-host{margin-top:22px;}' +
+      '.cmd-view-tower .cmd-tower,.cmd-view-tower .cmd-unplaced{display:none;}' +
+      '.cmd-mini{display:flex;flex-direction:column;gap:2px;height:58vh;}' +
+      '.cmd-mini-floor{flex:1 1 0;min-height:0;display:flex;align-items:center;gap:8px;background:transparent;border:none;padding:0 2px;cursor:pointer;width:100%;}' +
+      '.cmd-mini-fl{font-family:var(--ff-mono);font-size:9px;color:var(--cm-ivory-dim);width:22px;text-align:right;flex:none;}' +
+      '.cmd-has-mmm .cmd-mini-fl{color:var(--cm-peri);}' +
+      '.cmd-mini-bar{display:grid;grid-template-columns:repeat(var(--cmd-cols),1fr);gap:2px;flex:1 1 auto;height:100%;border-radius:2px;overflow:hidden;}' +
+      '.cmd-mini-seg{display:block;height:100%;width:100%;}' +
+      '.cmd-mini-seg.cmd-mmm{box-shadow:inset 0 0 0 1px var(--cm-peri);}' +
+      '.cmd-mini-ct{font-family:var(--ff-mono);font-size:9px;color:var(--cm-ivory-faint);width:16px;text-align:left;flex:none;}' +
+      '.cmd-mini-floor:active .cmd-mini-bar{box-shadow:0 0 0 1px var(--cm-ivory);}' +
       '.cmd-panel{position:fixed;left:0;right:0;bottom:0;top:auto;border-radius:16px 16px 0 0;transform:translateY(110%);transition:transform .25s;z-index:120;max-height:82vh;overflow:auto;box-shadow:0 -10px 40px rgba(0,0,0,.5);}' +
       '.cmd-panel.cmd-open{transform:translateY(0);}' +
       '.cmd-p-close{display:block;position:absolute;top:16px;right:18px;font-size:24px;line-height:1;color:var(--cm-ivory-dim);background:none;border:none;cursor:pointer;}' +
