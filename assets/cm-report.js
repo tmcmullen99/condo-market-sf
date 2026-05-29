@@ -4,6 +4,10 @@
  * Mounts into #cm-report-root (full-page shell served by the worker at
  * /building/<slug>/report), reading the slug from the URL. Self-contained;
  * uses the offer gold-token palette to match the email aesthetic.
+ *
+ * Sections (in order): topbar, hero (with photo gallery when available),
+ * key stats tiles, sales-over-time chart, recent sales cards, market tier
+ * comparison, the block (neighbor map + cards), signup credit CTA, footer.
  * ========================================================================== */
 (function () {
   'use strict';
@@ -29,6 +33,10 @@
       .then(function (d) {
         if (!d || !d.building) throw new Error('empty');
         render(host, d);
+        // Defer map init until after layout settles
+        if (d.surrounding_buildings && d.surrounding_buildings.length) {
+          setTimeout(function () { initMap(d.building, d.surrounding_buildings); }, 60);
+        }
         if (location.hash) {
           var el = document.getElementById(location.hash.slice(1));
           if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('cmr-flash'); }, 120);
@@ -138,6 +146,195 @@
       '</div>';
   }
 
+  /* ---- NEW: SVG sales-over-time chart ------------------------------------ */
+  // Dots for each sale + faint connecting line, dashed median, year axis,
+  // $/ft² y-axis with grid lines. Hover any dot for unit/date/price tooltip.
+  function buildSalesChart(ts) {
+    if (!Array.isArray(ts) || ts.length < 2) return '';
+    var pts = ts.filter(function (p) { return p && p.ppsf != null && p.sale_date; });
+    if (pts.length < 2) return '';
+
+    var W = 760, H = 300, PAD_L = 64, PAD_R = 24, PAD_T = 24, PAD_B = 36;
+    var plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+
+    var firstT = +new Date(pts[0].sale_date);
+    var lastT  = +new Date(pts[pts.length - 1].sale_date);
+    if (lastT === firstT) { firstT -= 86400000; lastT += 86400000; }
+
+    var minP = Infinity, maxP = -Infinity;
+    pts.forEach(function (p) {
+      if (p.ppsf < minP) minP = p.ppsf;
+      if (p.ppsf > maxP) maxP = p.ppsf;
+    });
+    var rng = Math.max(50, maxP - minP);
+    var pad = rng * 0.12;
+    var yMin = Math.max(0, Math.floor((minP - pad) / 100) * 100);
+    var yMax = Math.ceil((maxP + pad) / 100) * 100;
+    if (yMax === yMin) yMax = yMin + 100;
+
+    function xPos(d) { return PAD_L + ((+new Date(d)) - firstT) / (lastT - firstT) * plotW; }
+    function yPos(p) { return PAD_T + (1 - (p - yMin) / (yMax - yMin)) * plotH; }
+
+    // Y grid + labels
+    var ySteps = 4, yMarkup = '';
+    for (var i = 0; i <= ySteps; i++) {
+      var v = yMin + (yMax - yMin) * (i / ySteps);
+      var y = yPos(v);
+      yMarkup += '<line x1="' + PAD_L + '" y1="' + y.toFixed(1) + '" x2="' + (W - PAD_R) + '" y2="' + y.toFixed(1) + '" stroke="rgba(232,227,216,0.07)" stroke-width="1"/>';
+      yMarkup += '<text x="' + (PAD_L - 8) + '" y="' + (y + 3.5).toFixed(1) + '" fill="rgba(232,227,216,0.5)" font-size="10" font-family="JetBrains Mono, ui-monospace, monospace" text-anchor="end">$' + Math.round(v).toLocaleString() + '</text>';
+    }
+
+    // X year markers
+    var firstYear = new Date(firstT).getFullYear();
+    var lastYear  = new Date(lastT).getFullYear();
+    var span = lastYear - firstYear;
+    var step = span > 16 ? 4 : span > 8 ? 2 : 1;
+    var xMarkup = '';
+    for (var yr = Math.ceil(firstYear / step) * step; yr <= lastYear; yr += step) {
+      var yt = +new Date(yr + '-01-01');
+      if (yt < firstT || yt > lastT) continue;
+      var xx = xPos(yt);
+      xMarkup += '<line x1="' + xx.toFixed(1) + '" y1="' + (H - PAD_B) + '" x2="' + xx.toFixed(1) + '" y2="' + (H - PAD_B + 4) + '" stroke="rgba(232,227,216,0.3)"/>';
+      xMarkup += '<text x="' + xx.toFixed(1) + '" y="' + (H - PAD_B + 18) + '" fill="rgba(232,227,216,0.55)" font-size="10" font-family="JetBrains Mono, ui-monospace, monospace" text-anchor="middle">' + yr + '</text>';
+    }
+
+    // Median dashed line
+    var sortedP = pts.map(function (p) { return p.ppsf; }).sort(function (a, b) { return a - b; });
+    var median = sortedP[Math.floor(sortedP.length / 2)];
+    var mY = yPos(median);
+    var medianMarkup =
+      '<line x1="' + PAD_L + '" y1="' + mY.toFixed(1) + '" x2="' + (W - PAD_R) + '" y2="' + mY.toFixed(1) + '" stroke="rgba(212,165,116,0.45)" stroke-width="1" stroke-dasharray="4,4"/>' +
+      '<text x="' + (W - PAD_R - 4) + '" y="' + (mY - 5).toFixed(1) + '" fill="rgba(212,165,116,0.85)" font-size="10" font-family="JetBrains Mono, ui-monospace, monospace" text-anchor="end">median $' + Math.round(median).toLocaleString() + '/ft\u00b2</text>';
+
+    // Connecting line through sorted-by-date points
+    var linePath = 'M ' + pts.map(function (p) { return xPos(p.sale_date).toFixed(1) + ' ' + yPos(p.ppsf).toFixed(1); }).join(' L ');
+    var connectMarkup = '<path d="' + linePath + '" stroke="rgba(212,165,116,0.22)" stroke-width="1" fill="none"/>';
+
+    // Dots with tooltip titles
+    var dotsMarkup = pts.map(function (p) {
+      var x = xPos(p.sale_date), y = yPos(p.ppsf);
+      var unitTxt = p.unit_label ? ulabel(p.unit_label) + ' \u00b7 ' : '';
+      var title = unitTxt + fmtDate(p.sale_date) + ' \u00b7 ' + ppsf(p.ppsf) + '/ft\u00b2 \u00b7 ' + money(p.sale_price);
+      return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.5" fill="#d4a574" stroke="rgba(15,19,29,0.9)" stroke-width="1.2"><title>' + esc(title) + '</title></circle>';
+    }).join('');
+
+    return '<div class="cmr-chart-wrap"><svg class="cmr-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Price per square foot, by sale date">' +
+      yMarkup + xMarkup + medianMarkup + connectMarkup + dotsMarkup +
+      '<text x="' + (PAD_L - 8) + '" y="' + (PAD_T - 8) + '" fill="rgba(232,227,216,0.55)" font-size="10" font-family="JetBrains Mono, ui-monospace, monospace" text-anchor="end">$/ft\u00b2</text>' +
+      '</svg></div>';
+  }
+
+  /* ---- NEW: dedicated photos strip (uses photos_detail when available) --- */
+  function buildPhotosSection(photosDetail) {
+    if (!Array.isArray(photosDetail) || photosDetail.length < 2) return '';
+    var items = photosDetail.slice(0, 8).map(function (p) {
+      var alt = esc(p.alt || p.caption || 'Building photo');
+      var cap = p.caption ? '<div class="cmr-photo-cap">' + esc(p.caption) + '</div>' : '';
+      return '<figure class="cmr-photo"><div class="cmr-photo-img" style="background-image:url(' + JSON.stringify(esc(p.url)) + ')" role="img" aria-label="' + alt + '"></div>' + cap + '</figure>';
+    }).join('');
+    return '<section class="cmr-sec"><h2 class="cmr-h2">Photography</h2>' +
+      '<div class="cmr-photo-grid">' + items + '</div></section>';
+  }
+
+  /* ---- NEW: surroundings (map placeholder + cards grid) ------------------ */
+  function buildSurroundingsSection(b, surroundings) {
+    if (!b || !b.has_geo || !Array.isArray(surroundings) || !surroundings.length) return '';
+    var cards = surroundings.map(function (s) {
+      var img = s.hero_image_url
+        ? '<div class="cmr-nbr-img" style="background-image:url(' + JSON.stringify(esc(s.hero_image_url)) + ')" role="img" aria-label="' + esc(s.display_name) + '"></div>'
+        : '<div class="cmr-nbr-img cmr-nbr-noimg" aria-hidden="true"></div>';
+      var meta = [];
+      if (s.unit_count) meta.push(num(s.unit_count) + ' units');
+      if (s.year_built) meta.push(s.year_built);
+      var ppsfBlock = s.ppsf_12mo_median
+        ? '<div class="cmr-nbr-ppsf">' + ppsf(s.ppsf_12mo_median) + '<span>/ft\u00b2 \u00b7 ' + num(s.sales_12mo || 0) + ' sales</span></div>'
+        : '<div class="cmr-nbr-ppsf cmr-nbr-noppsf">\u2014<span>no recorded sales (12 mo)</span></div>';
+      var distMi = (Number(s.distance_mi) || 0).toFixed(2).replace(/\.00$/, '.0');
+      return '<a class="cmr-nbr-card" href="' + esc(s.report_url) + '">' +
+        img +
+        '<div class="cmr-nbr-body">' +
+          '<div class="cmr-nbr-name">' + esc(s.display_name) + '</div>' +
+          '<div class="cmr-nbr-meta">' + esc(meta.join(' \u00b7 ')) + '</div>' +
+          ppsfBlock +
+          '<div class="cmr-nbr-dist">' + distMi + ' mi</div>' +
+        '</div></a>';
+    }).join('');
+    return '<section class="cmr-sec" id="surroundings">' +
+      '<h2 class="cmr-h2">The block</h2>' +
+      '<p class="cmr-note">' + num(surroundings.length) + ' nearby ' + (surroundings.length === 1 ? 'building' : 'buildings') + ' within \u00bd mile. Tap any pin or card for its report.</p>' +
+      '<div class="cmr-map" id="cmr-map"></div>' +
+      '<div class="cmr-nbr-grid">' + cards + '</div>' +
+      '</section>';
+  }
+
+  /* ---- NEW: Leaflet init (dynamic CDN load, gracefully no-ops on failure) */
+  function initMap(b, surroundings) {
+    var el = document.getElementById('cmr-map');
+    if (!el || !b || b.lat == null || b.lng == null) return;
+    if (el.dataset.cmrMapInit === '1') return;
+    el.dataset.cmrMapInit = '1';
+
+    function once(tag, attrs) {
+      return new Promise(function (resolve, reject) {
+        var existing = document.querySelector(tag + '[data-cmr-leaflet]');
+        if (existing) { existing.addEventListener('load', resolve, { once: true }); if (existing.sheet || existing.readyState === 'complete' || tag === 'link') resolve(); return; }
+        var node = document.createElement(tag);
+        node.setAttribute('data-cmr-leaflet', '');
+        Object.keys(attrs).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+        node.onload = resolve; node.onerror = reject;
+        document.head.appendChild(node);
+      });
+    }
+
+    Promise.all([
+      once('link',   { rel: 'stylesheet', href: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' }),
+      once('script', { src: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js' })
+    ]).then(function () {
+      var L = window.L;
+      if (!L) return;
+      var map = L.map(el, { zoomControl: true, scrollWheelZoom: false, attributionControl: false })
+                .setView([b.lat, b.lng], 15);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 19
+      }).addTo(map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd', maxZoom: 19
+      }).addTo(map);
+
+      var subjIcon = L.divIcon({
+        className: 'cmr-pin-subject',
+        html: '<span class="cmr-pin cmr-pin-gold"></span>',
+        iconSize: [22, 22], iconAnchor: [11, 11]
+      });
+      L.marker([b.lat, b.lng], { icon: subjIcon, zIndexOffset: 1000 })
+        .addTo(map)
+        .bindTooltip('<b>' + esc(b.name || '') + '</b><br>This building', { direction: 'top', offset: [0, -8] });
+
+      var bounds = L.latLngBounds([[b.lat, b.lng]]);
+      surroundings.forEach(function (s) {
+        if (s.lat == null || s.lng == null) return;
+        var icon = L.divIcon({
+          className: 'cmr-pin-other',
+          html: '<span class="cmr-pin cmr-pin-ivory"></span>',
+          iconSize: [14, 14], iconAnchor: [7, 7]
+        });
+        var ttBody = '<b>' + esc(s.display_name) + '</b>';
+        var meta = [];
+        if (s.unit_count) meta.push(s.unit_count + ' units');
+        if (s.year_built) meta.push(s.year_built);
+        if (meta.length) ttBody += '<br>' + meta.join(' \u00b7 ');
+        if (s.ppsf_12mo_median) ttBody += '<br>' + ppsf(s.ppsf_12mo_median) + '/ft\u00b2 median';
+        var marker = L.marker([s.lat, s.lng], { icon: icon })
+          .addTo(map)
+          .bindTooltip(ttBody, { direction: 'top', offset: [0, -6] });
+        marker.on('click', function () { window.location.href = s.report_url; });
+        bounds.extend([s.lat, s.lng]);
+      });
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }).catch(function () { /* leave the empty map div; cards still work */ });
+  }
+
+  /* ------------------------------- render --------------------------------- */
   function render(host, d) {
     var b = d.building || {};
     var tb = (d.tiers && d.tiers.building) || {};
@@ -145,10 +342,14 @@
     var name = esc(b.name || SLUG);
     var hood = b.neighborhood ? esc(b.neighborhood) : '';
 
-    /* hero: gallery if photos present, else neutral header */
+    /* hero gallery uses photos_detail when present, else falls back to photos */
+    var photosDetail = Array.isArray(d.photos_detail) ? d.photos_detail : null;
+    var photoUrls = photosDetail
+      ? photosDetail.map(function (p) { return p.url; }).filter(Boolean)
+      : (Array.isArray(d.photos) ? d.photos : []);
     var heroMedia;
-    if (Array.isArray(d.photos) && d.photos.length) {
-      heroMedia = '<div class="cmr-gallery">' + d.photos.slice(0, 5).map(function (u) {
+    if (photoUrls.length) {
+      heroMedia = '<div class="cmr-gallery">' + photoUrls.slice(0, 5).map(function (u) {
         return '<div class="cmr-gphoto" style="background-image:url(' + JSON.stringify(esc(u)) + ')"></div>';
       }).join('') + '</div>';
     } else {
@@ -161,6 +362,17 @@
       statTile('12-mo volume', moneyShort(tb.volume_12mo), num(tb.n_12mo) + ' recorded sales') +
       statTile('Sales this year', num(tb.n_12mo), 'vs ' + num(tb.n_prior_12mo) + ' prior 12 mo');
 
+    var chartSection = '';
+    if (Array.isArray(d.sales_timeseries) && d.sales_timeseries.length >= 2) {
+      var chart = buildSalesChart(d.sales_timeseries);
+      if (chart) chartSection =
+        '<section class="cmr-sec"><h2 class="cmr-h2">$/ft\u00b2 over time</h2>' +
+        '<p class="cmr-note">Every recorded sale at ' + name + ', plotted by sale date. Hover a point for the unit, date, and price.</p>' +
+        chart + '</section>';
+    }
+
+    var photosSection = buildPhotosSection(photosDetail);
+
     var recent = (d.recent_sales || []).map(saleCard).join('');
 
     var compares =
@@ -168,7 +380,9 @@
       compareRow((hood || 'Neighborhood'), d.tiers && d.tiers.neighborhood, tb.median_ppsf_12mo, prem.vs_neighborhood_pct) +
       compareRow('All San Francisco', d.tiers && d.tiers.sf, tb.median_ppsf_12mo, prem.vs_sf_pct);
 
-    var offerHref = '/?auth=signup&return=' + encodeURIComponent(location.pathname) + '&offer=impossible&utm_content=report';
+    var surroundingsSection = buildSurroundingsSection(b, d.surrounding_buildings);
+
+    var offerHref = '/?auth=signup&return=' + encodeURIComponent(location.pathname) + '&offer=save-10k&utm_content=report';
 
     host.innerHTML =
       '<div class="cmr-page">' +
@@ -186,15 +400,21 @@
         '<section class="cmr-sec"><h2 class="cmr-h2">The building</h2>' +
           '<div class="cmr-tiles">' + buildingTiles + '</div></section>' +
 
+        chartSection +
+
         (recent ? '<section class="cmr-sec"><h2 class="cmr-h2">Recent sales</h2>' +
           '<div class="cmr-cards">' + recent + '</div></section>' : '') +
+
+        photosSection +
 
         (compares.trim() ? '<section class="cmr-sec"><h2 class="cmr-h2">How it compares</h2>' +
           '<p class="cmr-note">Building median $/ft\u00b2 measured against each wider market, trailing 12 months.</p>' +
           '<div class="cmr-cmp">' + compares + '</div></section>' : '') +
 
+        surroundingsSection +
+
         '<section class="cmr-offer">' +
-          '<div class="cmr-offer-eyebrow">Limited \u00b7 Impossible Offer</div>' +
+          '<div class="cmr-offer-eyebrow">Limited \u00b7 Save $10K</div>' +
           '<div class="cmr-offer-headline">$10,000 toward your first transaction.</div>' +
           '<p class="cmr-offer-sub">Create a free account within 24 hours of your first visit and we credit $10,000 to your first deal through Condo Market \u2014 it never expires.</p>' +
           '<a class="cmr-offer-cta" href="' + offerHref + '">Claim $10,000 \u2192</a>' +
@@ -237,6 +457,12 @@
     '.cmr-tile-sub{font-family:var(--cmr-m);font-size:10px;letter-spacing:.04em;color:var(--cmr-dim);margin-top:10px;}' +
     '.cmr-trend{font-family:var(--cmr-m);font-size:10px;letter-spacing:.04em;}' +
     '.cmr-trend-up{color:var(--cmr-up);}.cmr-trend-down{color:var(--cmr-down);}' +
+    /* chart */
+    '.cmr-chart-wrap{background:var(--cmr-card);border:1px solid var(--cmr-rule);border-radius:12px;padding:16px;overflow-x:auto;}' +
+    '.cmr-chart{width:100%;height:auto;display:block;min-width:0;}' +
+    '.cmr-chart circle{transition:r .12s ease,stroke-width .12s ease;cursor:default;}' +
+    '.cmr-chart circle:hover{r:6;stroke-width:2;}' +
+    /* recent sales cards */
     '.cmr-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}' +
     '.cmr-sc{background:var(--cmr-card);border:1px solid var(--cmr-rule);border-radius:12px;padding:18px 20px;scroll-margin-top:24px;transition:border-color .3s,box-shadow .3s;}' +
     '.cmr-sc.cmr-flash{border-color:var(--cmr-gold);box-shadow:0 0 0 1px var(--cmr-gold),0 0 22px rgba(212,165,116,.25);}' +
@@ -248,6 +474,12 @@
     '.cmr-sc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cmr-rule);font-size:12.5px;color:var(--cmr-dim);}' +
     '.cmr-sc-row:last-child{border-bottom:none;}' +
     '.cmr-sc-row .v{color:var(--cmr-text);font-family:var(--cmr-m);font-size:12px;}' +
+    /* dedicated photos */
+    '.cmr-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}' +
+    '.cmr-photo{margin:0;border-radius:10px;overflow:hidden;background:var(--cmr-card);border:1px solid var(--cmr-rule);}' +
+    '.cmr-photo-img{aspect-ratio:4/3;background-size:cover;background-position:center;}' +
+    '.cmr-photo-cap{font-family:var(--cmr-m);font-size:10px;letter-spacing:.04em;color:var(--cmr-dim);padding:8px 10px;border-top:1px solid var(--cmr-rule);}' +
+    /* compare */
     '.cmr-cmp{background:var(--cmr-card);border:1px solid var(--cmr-rule);border-radius:12px;overflow:hidden;}' +
     '.cmr-cmp-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;align-items:center;padding:18px 22px;border-bottom:1px solid var(--cmr-rule);}' +
     '.cmr-cmp-row:last-child{border-bottom:none;}' +
@@ -261,6 +493,27 @@
     '.cmr-prem-up{color:var(--cmr-up);}.cmr-prem-down{color:var(--cmr-down);}' +
     '.cmr-cmp-premlab{font-family:var(--cmr-m);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--cmr-faint);}' +
     '.cmr-cmp-na{color:var(--cmr-faint);font-family:var(--cmr-d);font-style:italic;font-size:20px;}' +
+    /* surroundings */
+    '.cmr-map{width:100%;height:380px;border-radius:12px;border:1px solid var(--cmr-rule);background:var(--cmr-card);margin-bottom:18px;position:relative;z-index:0;}' +
+    '@media(max-width:600px){.cmr-map{height:280px;}}' +
+    '.cmr-pin{display:block;border-radius:50%;box-shadow:0 0 0 2px rgba(15,19,29,0.92);}' +
+    '.cmr-pin-gold{width:22px;height:22px;background:#d4a574;box-shadow:0 0 0 3px rgba(15,19,29,0.92),0 0 14px rgba(212,165,116,0.55);}' +
+    '.cmr-pin-ivory{width:14px;height:14px;background:#e8e3d8;}' +
+    '.leaflet-tooltip{background:#1a1f2e;border:1px solid rgba(232,227,216,.16);color:#e8e3d8;font-family:"DM Sans",system-ui,sans-serif;font-size:12px;padding:8px 10px;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.45);}' +
+    '.leaflet-tooltip-top:before{border-top-color:#1a1f2e;}' +
+    '.cmr-nbr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}' +
+    '.cmr-nbr-card{background:var(--cmr-card);border:1px solid var(--cmr-rule);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;position:relative;}' +
+    '.cmr-nbr-card:hover{border-color:var(--cmr-gold);transform:translateY(-2px);}' +
+    '.cmr-nbr-img{aspect-ratio:4/3;background-size:cover;background-position:center;background-color:#0f131d;}' +
+    '.cmr-nbr-noimg{background:radial-gradient(circle at 30% 30%,rgba(212,165,116,.10),transparent 60%),radial-gradient(circle at 80% 80%,rgba(159,180,216,.08),transparent 60%),#1a1f2e;}' +
+    '.cmr-nbr-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1;}' +
+    '.cmr-nbr-name{font-family:var(--cmr-d);font-style:italic;font-weight:500;font-size:18px;color:var(--cmr-text);line-height:1.15;}' +
+    '.cmr-nbr-meta{font-family:var(--cmr-m);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--cmr-faint);}' +
+    '.cmr-nbr-ppsf{font-family:var(--cmr-d);font-style:italic;font-weight:500;font-size:22px;color:var(--cmr-gold);margin-top:auto;}' +
+    '.cmr-nbr-ppsf span{font-family:var(--cmr-m);font-style:normal;font-size:9px;letter-spacing:.04em;color:var(--cmr-faint);display:block;margin-top:2px;text-transform:uppercase;}' +
+    '.cmr-nbr-noppsf{color:var(--cmr-faint);}' +
+    '.cmr-nbr-dist{position:absolute;top:10px;right:10px;background:rgba(15,19,29,0.78);backdrop-filter:blur(6px);font-family:var(--cmr-m);font-size:10px;letter-spacing:.04em;color:var(--cmr-text);padding:4px 8px;border-radius:999px;}' +
+    /* offer */
     '.cmr-offer{margin-top:56px;background:linear-gradient(135deg,rgba(212,165,116,.16),rgba(212,165,116,.04));border:1px solid var(--cmr-gold);border-radius:16px;padding:36px clamp(22px,4vw,44px);text-align:center;}' +
     '.cmr-offer-eyebrow{font-family:var(--cmr-m);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cmr-gold);margin-bottom:12px;}' +
     '.cmr-offer-headline{font-family:var(--cmr-d);font-style:italic;font-weight:500;font-size:clamp(24px,3.4vw,34px);margin-bottom:12px;}' +
