@@ -1,18 +1,16 @@
 // =============================================================================
-// send-eoi-notifications  (Condo Market SF / SV)
+// send-eoi-notifications  (Condo Market SF / SV)  — v2 (no supabase-js)
 // -----------------------------------------------------------------------------
+// Pure fetch + Supabase REST API (PostgREST) to avoid npm:@supabase/supabase-js
+// cold-start hang in the Edge Runtime.
+//
 // Fired by trigger offers_notify_eoi_on_insert via notify_eoi_received() in
 // Postgres on every INSERT into public.offers. Sends two emails via Resend:
-//
 //   1. Buyer  — accurate "EOI received, agent will reach out within 24 hours"
 //   2. Tim    — admin alert with building median, $/ft² range, buyer message
 //
-// Multi-market (resolves SF vs SV via buildings.city_id → cities.market_id).
-// Tolerant: any failure is logged but never returns 500 — pg_net just records
-// the response; the offer INSERT always succeeds regardless.
+// Health check: GET or POST any URL with ?ping=1 returns 200 instantly.
 // =============================================================================
-
-import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL       = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -21,7 +19,6 @@ const EOI_WEBHOOK_SECRET = Deno.env.get("EOI_WEBHOOK_SECRET")
   ?? "84b34b1830a621c93e902b54b0ad0446b6d1545e51ac93d055d47878735d8b9b";
 const ADMIN_EMAIL = "tim@mcmullen.properties";
 
-// market_id (UUID from public.markets) → branding/sender config
 const MARKETS: Record<string, { tag: string; domain: string; brand: string }> = {
   "3cfba663-79af-4a6c-90ce-3d929c8351dd": {
     tag: "sf", domain: "sanfranciscocondomarket.com", brand: "Condo Market · SF",
@@ -32,9 +29,34 @@ const MARKETS: Record<string, { tag: string; domain: string; brand: string }> = 
 };
 const DEFAULT_MARKET = MARKETS["3cfba663-79af-4a6c-90ce-3d929c8351dd"];
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
+// ---------- Postgres REST helpers (no supabase-js needed) -------------------
+const PG_HEADERS = {
+  apikey: SERVICE_ROLE_KEY,
+  Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+  "Content-Type": "application/json",
+};
+
+async function pgSelect(path: string): Promise<any[]> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: "GET", headers: PG_HEADERS,
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`pgSelect ${path} → ${res.status}: ${t}`);
+  }
+  return await res.json();
+}
+
+async function pgRpc(rpcName: string, args: Record<string, any>): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${rpcName}`, {
+    method: "POST", headers: PG_HEADERS, body: JSON.stringify(args),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`pgRpc ${rpcName} → ${res.status}: ${t}`);
+  }
+  return await res.json();
+}
 
 // ---------- formatting helpers ----------------------------------------------
 function fmtUSD(n: number | null | undefined): string {
@@ -73,19 +95,13 @@ function escapeHtml(s: string | null | undefined): string {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
-
-// ---------- template merge (single-brace {var} syntax) ----------------------
 function merge(template: string, vars: Record<string, string>): string {
   return (template || "").replace(/\{([a-z_]+)\}/g, (_m, k) => vars[k] ?? "");
 }
 
 // ---------- email send via Resend -------------------------------------------
 async function sendEmail(opts: {
-  from: string;
-  to: string;
-  replyTo: string;
-  subject: string;
-  html: string;
+  from: string; to: string; replyTo: string; subject: string; html: string;
   tags?: { name: string; value: string }[];
 }): Promise<{ ok: boolean; status: number; body: string }> {
   const res = await fetch("https://api.resend.com/emails", {
@@ -109,7 +125,16 @@ async function sendEmail(opts: {
 
 // ---------- main handler ----------------------------------------------------
 Deno.serve(async (req: Request) => {
-  // 1. Auth
+  const url = new URL(req.url);
+
+  // 0. True health-check: ?ping=1 returns instantly with no auth/body checks
+  if (url.searchParams.get("ping") === "1") {
+    return new Response(JSON.stringify({ ok: true, pong: Date.now() }), {
+      status: 200, headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // 1. Webhook secret check
   if (req.headers.get("x-webhook-secret") !== EOI_WEBHOOK_SECRET) {
     return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
       status: 401, headers: { "Content-Type": "application/json" },
@@ -140,33 +165,29 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // 4. Resolve market via buildings.city_id → cities.market_id
-    const { data: bRow } = await supabase
-      .from("buildings")
-      .select("slug, display_name, city_id, cities(market_id)")
-      .eq("slug", offer.building_slug)
-      .maybeSingle();
-
-    const marketId: string | null = (bRow as any)?.cities?.market_id ?? null;
+    // 4. Resolve market via buildings.city_id → cities.market_id (PostgREST embed)
+    const slugFilter = encodeURIComponent(offer.building_slug);
+    const bRows = await pgSelect(
+      `buildings?select=slug,display_name,city_id,cities(market_id)&slug=eq.${slugFilter}&limit=1`
+    );
+    const bRow = bRows[0] ?? null;
+    const marketId: string | null = bRow?.cities?.market_id ?? null;
     const market = (marketId && MARKETS[marketId]) || DEFAULT_MARKET;
 
-    // 5. Fetch building market brief
-    const { data: briefRaw } = await supabase.rpc("building_market_brief", {
+    // 5. Fetch market brief
+    const brief = (await pgRpc("building_market_brief", {
       p_building_slug: offer.building_slug,
-    });
-    const brief = (briefRaw as any) ?? {};
+    })) ?? {};
     const buildingName: string =
-      brief.building_name || (bRow as any)?.display_name || offer.building_slug;
+      brief.building_name || bRow?.display_name || offer.building_slug;
 
     // 6. Fetch both email templates
-    const { data: templates } = await supabase
-      .from("email_templates")
-      .select("slug, subject, body_html, preview_text")
-      .in("slug", ["eoi_received_buyer_v1", "admin_new_eoi_v1"])
-      .eq("is_active", true);
-
-    const buyerTpl = (templates ?? []).find((t: any) => t.slug === "eoi_received_buyer_v1");
-    const adminTpl = (templates ?? []).find((t: any) => t.slug === "admin_new_eoi_v1");
+    const templates = await pgSelect(
+      `email_templates?select=slug,subject,body_html,preview_text` +
+      `&slug=in.(eoi_received_buyer_v1,admin_new_eoi_v1)&is_active=eq.true`
+    );
+    const buyerTpl = templates.find((t: any) => t.slug === "eoi_received_buyer_v1");
+    const adminTpl = templates.find((t: any) => t.slug === "admin_new_eoi_v1");
 
     if (!buyerTpl || !adminTpl) {
       console.warn("EOI templates missing", { hasBuyer: !!buyerTpl, hasAdmin: !!adminTpl });
@@ -245,8 +266,8 @@ Deno.serve(async (req: Request) => {
       ok: true,
       market: market.tag,
       offer_id: offer.id,
-      buyer: { ok: buyerResult.ok, status: buyerResult.status },
-      admin: { ok: adminResult.ok, status: adminResult.status },
+      buyer: { ok: buyerResult.ok, status: buyerResult.status, body: buyerResult.body.slice(0, 200) },
+      admin: { ok: adminResult.ok, status: adminResult.status, body: adminResult.body.slice(0, 200) },
     }), { status: 200, headers: { "Content-Type": "application/json" } });
 
   } catch (e: any) {
