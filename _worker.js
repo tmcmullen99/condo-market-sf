@@ -1,24 +1,14 @@
 // _worker.js  (Cloudflare Pages — Advanced Mode)
 // =============================================================================
-// Condo Market — multi-market dynamic building pages + static passthrough
-// -----------------------------------------------------------------------------
-// This single root worker intercepts ALL requests (Advanced Mode). It edge-
-// renders /building/<slug> from the Supabase RPC building_page_payload(), and
-// forwards everything else to the static asset pipeline via env.ASSETS.fetch(),
-// applying a per-market text+color swap on every text response so a single
-// codebase serves SF, SV, and future markets with no per-market HTML forks.
+// Condo Market — multi-market dynamic building pages + static passthrough.
 //
-// Per-market resolution: hostname → MARKET_BY_HOST → MARKETS row.
-// Per-market swap surfaces: HTML, CSS, JS, XML, plain text — every response
-// the browser sees gets the same applyMarketSwaps() pass. Color tokens and
-// SF-default text strings get swapped to the current market's tokens. Adding
-// a new market = one row in MARKETS + one entry in MARKET_BY_HOST.
-//
-// Per-building layout: payload.layout_kind ('tower'|'garden'|'townhomes')
-// drives the static dossier card labels and section headings so townhome
-// communities render with "Home count" / "home by home" / "Townhome community"
-// instead of unit-tower defaults. cm-dossier.js takes the same signal from
-// the dossier RPC for its interactive view.
+// Key responsibilities:
+//   - Host-aware market chrome (SF / SV) for static pages via renderChrome().
+//   - Dynamic edge-render of /building/<slug>/ from building_page_payload RPC.
+//   - /building/<slug>/report 301 → /building/<slug>/#market (consolidated).
+//   - Per-market text + color swap on every text response (applyMarketSwaps).
+//   - Layout-aware building dossier labels (tower / garden / townhomes).
+//   - #market section placeholder rendered server-side; cm-market.js hydrates.
 // =============================================================================
 
 const SUPABASE_URL      = 'https://kfqphwerygccpzntbbif.supabase.co';
@@ -140,30 +130,15 @@ export default {
       return Response.redirect('https://www.' + hostMk.domain + '/buildings/', 302);
     }
 
+    // /building/<slug>/report → 301 to building page #market section.
+    // The dedicated report page is consolidated into the building page's
+    // market analysis section; this preserves email-link integrity.
     const reportM = url.pathname.match(/^\/building\/([^\/]+)\/report\/?$/);
     if (reportM && request.method === 'GET') {
-      return new Response(
-        '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
-        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-        '<meta name="robots" content="noindex">' +
-        '<title>Market Report \u00b7 Condo Market</title>' +
-        '<link rel="icon" href="/favicon.svg">' +
-        '<link rel="preconnect" href="https://fonts.googleapis.com">' +
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500;1,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">' +
-        '</head><body><div id="cm-report-root"></div>' +
-        '<script type="module" src="/assets/cm-report.js"></script>' +
-        '<script type="module" src="/assets/offer.js"></script>' +
-        '</body></html>',
-        {
-          status: 200,
-          headers: {
-            'content-type': 'text/html;charset=utf-8',
-            'cache-control': 'public, max-age=60, s-maxage=120',
-          },
-        }
-      );
+      const target = 'https://' + url.host + '/building/' + reportM[1] + '/#market';
+      return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
     }
+
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
 
     if (!m) {
@@ -218,9 +193,6 @@ function esc(s) {
 function money(n)  { return (n == null || isNaN(n)) ? null : '$' + Number(n).toLocaleString('en-US'); }
 function intc(n)   { return (n == null || isNaN(n)) ? null : Number(n).toLocaleString('en-US'); }
 function decade(y) { return y ? (Math.floor(y / 10) * 10) + "'s" : null; }
-// tierLabel takes layout_kind so townhome communities get the right sub-label
-// on the static dossier "X count" card — otherwise the tier ladder is unit-count
-// based and meaningless for a horizontal townhome subdivision.
 function tierLabel(u, layout) {
   if (layout === 'townhomes') return 'Townhome community';
   if (u == null) return '';
@@ -257,8 +229,6 @@ function renderBuilding(p) {
   const psf  = (st.median_psf_12mo != null) ? Number(st.median_psf_12mo) : null;
   const medPrice = (st.median_price_12mo != null) ? Number(st.median_price_12mo) : null;
 
-  // Layout-aware word choices for townhome communities. Default to unit-tower
-  // wording when layout_kind is missing or 'tower' / 'garden'.
   const layout     = p.layout_kind || 'tower';
   const isTownhomes = layout === 'townhomes';
   const countWord  = isTownhomes ? 'home' : 'unit';
@@ -270,7 +240,7 @@ function renderBuilding(p) {
     : 'Unit-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.';
   const propertyKind = isTownhomes ? 'townhome community' : 'condominium building';
 
-  /* ---- HERO ---- */
+  /* HERO */
   const hstats = [];
   if (p.unit_count != null) hstats.push('<div><div class="hstat-label">' + countWordPl + '</div><div class="hstat-val">' + intc(p.unit_count) + '</div></div>');
   if (p.year_built != null) hstats.push('<div><div class="hstat-label">Built</div><div class="hstat-val">' + p.year_built + '</div></div>');
@@ -282,7 +252,7 @@ function renderBuilding(p) {
     ? '<img class="hero-img" src="' + esc(p.hero_url) + '" alt="' + name + '" loading="eager">'
     : '<div class="hero-img hero-img--ph" role="img" aria-label="' + name + '"></div>';
 
-  /* ---- GALLERY (hide when no images) ---- */
+  /* GALLERY */
   const imgs = Array.isArray(p.images) ? p.images.filter(function (i) { return i && i.url && i.role !== 'og'; }) : [];
   let gallerySection = '';
   if (imgs.length === 1) {
@@ -305,7 +275,7 @@ function renderBuilding(p) {
       '<div class="gallery">' + items + '</div></div></section>';
   }
 
-  /* ---- ABOUT (always; synthesize when no description) ---- */
+  /* ABOUT */
   let aboutBody;
   if (p.description && String(p.description).trim()) {
     aboutBody = '<div class="prose">' + paragraphs(p.description) + '</div>';
@@ -333,7 +303,7 @@ function renderBuilding(p) {
     '<h2 class="section-title">About <em>' + name + '</em></h2></div>' +
     aboutBody + factGrid + '</div></section>';
 
-  /* ---- AMENITIES (hide when no features) ---- */
+  /* AMENITIES */
   const feats = Array.isArray(p.features) ? p.features.filter(Boolean) : [];
   let amenitiesSection = '';
   if (feats.length) {
@@ -345,7 +315,7 @@ function renderBuilding(p) {
       '<div class="amenity-chips">' + chips + '</div></div></section>';
   }
 
-  /* ---- DOSSIER (only cards with real data) ---- */
+  /* DOSSIER */
   function card(label, val, sub, peri) {
     return '<div class="dossier-card">' +
       '<div class="dossier-metric-label">' + label + '</div>' +
@@ -388,7 +358,16 @@ function renderBuilding(p) {
       '</div></section>';
   }
 
-  /* ---- COMPARE (neighborhood peers by $/sf; hide when none) ---- */
+  /* MARKET (new — placeholder hydrated by cm-market.js) */
+  const marketSection =
+    '<section class="section" id="market"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">Market analysis</div>' +
+    '<h2 class="section-title">How <em>' + name + '</em> compares</h2>' +
+    '<p class="section-sub">Trailing-12-month performance against the half-mile surroundings and the broader market, plus quarter-by-quarter $/ft\u00b2 history.</p></div>' +
+    '<div id="cm-market-root"></div>' +
+    '</div></section>';
+
+  /* COMPARE (peer ranking, unchanged) */
   const peers = Array.isArray(p.peers) ? p.peers.filter(function (x) { return x && x.median_psf != null; }) : [];
   let compareSection = '';
   if (peers.length) {
@@ -414,7 +393,7 @@ function renderBuilding(p) {
       '<div class="nb-grid">' + crowHtml + '</div></div></section>';
   }
 
-  /* ---- MORTGAGE (always; defaults from this building) ---- */
+  /* MORTGAGE */
   const defPrice = (medPrice != null) ? medPrice : 950000;
   const defPriceFmt = Number(defPrice).toLocaleString('en-US');
   const sliderVal = Math.min(Math.max(defPrice, 500000), 10000000);
@@ -446,7 +425,7 @@ function renderBuilding(p) {
     '<script>' + MORT_SYNC + '</script>' +
     '</div></section>';
 
-  /* ---- BUY OR SELL (always) ---- */
+  /* OFFER */
   const offerSection =
     '<section class="section" id="offer"><div class="wrap">' +
     '<div class="section-head"><div class="section-kicker">Every unit is for sale</div>' +
@@ -462,19 +441,20 @@ function renderBuilding(p) {
     '<p style="margin-top:24px;font-size:13px;color:var(--cm-ivory-dim);">All offers require a free account. <a href="#signin" data-cm-auth="login" style="color:var(--cm-peri);">Already have one? Sign in.</a></p>' +
     '</div></section>';
 
-  /* ---- STICKY NAV (only links to sections that render) ---- */
+  /* STICKY NAV — Market added between Dossier and Compare */
   const nav = [];
   if (imgs.length)  nav.push('<a href="#gallery">Gallery</a>');
   nav.push('<a href="#about">About</a>');
   if (feats.length) nav.push('<a href="#amenities">Amenities</a>');
   if (dcards.length) nav.push('<a href="#dossier">Dossier</a>');
+  nav.push('<a href="#market">Market</a>');
   if (peers.length) nav.push('<a href="#compare">Compare</a>');
   nav.push('<a href="#mortgage">Mortgage</a>');
   nav.push('<a href="#offer">Buy or sell</a>');
   const stickyNav =
     '<div class="sticky-nav"><div class="wrap"><div class="sticky-nav-row">' + nav.join('') + '</div></div></div>';
 
-  /* ---- SEO head ---- */
+  /* SEO */
   const seo = p.seo || {};
   const title = esc(seo.title || (p.name + ' \u00b7 ' + mkBrand));
   const descPlain = seo.description ||
@@ -489,7 +469,7 @@ function renderBuilding(p) {
     ? '<script type="application/ld+json">' + JSON.stringify(p.json_ld).replace(/</g, '\\u003c') + '</script>'
     : '';
 
-  /* ---- assemble ---- */
+  /* assemble */
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
     '<meta charset="UTF-8">\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
@@ -540,6 +520,7 @@ function renderBuilding(p) {
     aboutSection +
     amenitiesSection +
     dossierSection +
+    marketSection +
     compareSection +
     mortgageSection +
     offerSection +
@@ -565,12 +546,12 @@ function renderBuilding(p) {
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
     '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
     '<script type="module" src="/assets/cm-dossier.js"></script>\n' +
-'<script type="module" src="/assets/offer.js"></script>\n' +
+    '<script type="module" src="/assets/cm-market.js"></script>\n' +
+    '<script type="module" src="/assets/offer.js"></script>\n' +
     '</body>\n</html>';
 }
 
-/* Small additive styles: hero placeholder for buildings with no hero image,
-   and a graceful single-image gallery. Everything else is the proven CSS. */
+/* additive styles */
 const EXTRA_CSS =
   '.nb-meta{font-size:13px;color:var(--cm-ivory-dim);font-family:var(--ff-mono);}' +
   '.nb-row--self{background:rgba(159,180,216,0.07);padding-left:12px;padding-right:12px;}' +
@@ -583,7 +564,6 @@ const EXTRA_CSS =
   'width:74%;height:64%;opacity:.5;background-repeat:no-repeat;background-position:center bottom;background-size:contain;' +
   'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 300 200\'%3E%3Cg fill=\'%239fb4d8\'%3E%3Crect x=\'66\' y=\'70\' width=\'40\' height=\'130\'/%3E%3Crect x=\'116\' y=\'40\' width=\'52\' height=\'160\'/%3E%3Crect x=\'178\' y=\'86\' width=\'34\' height=\'114\'/%3E%3C/g%3E%3Cg fill=\'%230f131d\'%3E%3Crect x=\'74\' y=\'82\' width=\'8\' height=\'10\'/%3E%3Crect x=\'90\' y=\'82\' width=\'8\' height=\'10\'/%3E%3Crect x=\'74\' y=\'102\' width=\'8\' height=\'10\'/%3E%3Crect x=\'90\' y=\'102\' width=\'8\' height=\'10\'/%3E%3Crect x=\'126\' y=\'54\' width=\'9\' height=\'11\'/%3E%3Crect x=\'144\' y=\'54\' width=\'9\' height=\'11\'/%3E%3Crect x=\'126\' y=\'76\' width=\'9\' height=\'11\'/%3E%3Crect x=\'144\' y=\'76\' width=\'9\' height=\'11\'/%3E%3Crect x=\'126\' y=\'98\' width=\'9\' height=\'11\'/%3E%3Crect x=\'144\' y=\'98\' width=\'9\' height=\'11\'/%3E%3Crect x=\'186\' y=\'98\' width=\'7\' height=\'9\'/%3E%3Crect x=\'199\' y=\'98\' width=\'7\' height=\'9\'/%3E%3C/g%3E%3C/svg%3E");}';
 
-/* ---------- verbatim blocks from the proven page (do not edit) ---------- */
 const CSS = `
   :root {
     --cm-navy: #1a1f2e;
@@ -620,8 +600,6 @@ const CSS = `
   main { position: relative; z-index: 2; }
   a { color: inherit; text-decoration: none; }
   .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
-
-  /* Masthead */
   .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
   .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
@@ -631,14 +609,10 @@ const CSS = `
   .nav-meta a:hover { color: var(--cm-ivory); }
   .signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
   .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
-
-  /* Breadcrumb */
   .crumb { padding: 18px 0 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
   .crumb a { color: var(--cm-ivory-dim); }
   .crumb a:hover { color: var(--cm-peri); }
   .crumb span.sep { margin: 0 10px; }
-
-  /* HERO */
   .hero { padding: 32px 0 56px; }
   .hero-head { display: grid; grid-template-columns: 1fr; gap: 36px; }
   @media (min-width: 900px) { .hero-head { grid-template-columns: 1.2fr 1fr; align-items: end; } }
@@ -646,25 +620,18 @@ const CSS = `
   .hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(44px, 6vw, 78px); line-height: 1.02; letter-spacing: -0.02em; color: var(--cm-ivory); margin-bottom: 12px; }
   .hero h1 em { font-style: italic; color: var(--cm-peri); }
   .hero-addr { font-family: var(--ff-body); font-size: 17px; color: var(--cm-ivory-dim); margin-bottom: 32px; }
-
-  /* Hero stat row */
   .hero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 20px; border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); padding: 24px 0; }
   .hstat-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 6px; }
   .hstat-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 28px; color: var(--cm-ivory); line-height: 1; }
   .hstat-val .peri { color: var(--cm-peri); }
-
   .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: var(--cm-navy); min-height: 340px; aspect-ratio: 4/5; }
   .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .hero-badge { position: absolute; top: 16px; left: 16px; background: rgba(26,31,46,0.85); color: var(--cm-peri); padding: 6px 12px; border-radius: 4px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; backdrop-filter: blur(8px); }
-
-  /* Sticky inner nav */
   .sticky-nav { position: sticky; top: 0; z-index: 50; background: var(--cm-navy-deep); border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); }
   .sticky-nav-row { display: flex; gap: 28px; overflow-x: auto; padding: 14px 0; scrollbar-width: none; }
   .sticky-nav-row::-webkit-scrollbar { display: none; }
   .sticky-nav-row a { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); white-space: nowrap; padding-bottom: 4px; border-bottom: 1px solid transparent; transition: all 0.15s; }
   .sticky-nav-row a:hover { color: var(--cm-peri); border-bottom-color: var(--cm-peri); }
-
-  /* Sections */
   .section { padding: 64px 0; border-bottom: 1px solid var(--cm-rule); }
   .section:last-child { border-bottom: none; }
   .section-head { margin-bottom: 32px; }
@@ -672,33 +639,23 @@ const CSS = `
   .section-title { font-family: var(--ff-display); font-weight: 500; font-size: clamp(32px, 4vw, 48px); line-height: 1.1; letter-spacing: -0.015em; margin-bottom: 12px; color: var(--cm-ivory); }
   .section-title em { font-style: italic; color: var(--cm-peri); }
   .section-sub { font-size: 17px; color: var(--cm-ivory-dim); max-width: 56ch; }
-
-  /* Gallery */
   .gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-top: 36px; }
   .gallery-item { border-radius: 10px; overflow: hidden; background: var(--cm-navy); aspect-ratio: 1; }
   .gallery-item.main { grid-row: span 2; aspect-ratio: 1/1.05; }
   .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
   .gallery-item:hover img { transform: scale(1.03); }
   @media (max-width: 720px) { .gallery { grid-template-columns: 1fr 1fr; } .gallery-item.main { grid-column: span 2; grid-row: span 1; aspect-ratio: 16/10; } }
-
-  /* Description */
   .prose { max-width: 68ch; color: var(--cm-ivory); font-size: 17px; line-height: 1.75; }
   .prose p { margin-bottom: 20px; }
   .prose ul { padding-left: 20px; margin-bottom: 20px; }
   .prose li { margin-bottom: 10px; color: var(--cm-ivory); }
   .prose strong { color: var(--cm-ivory); font-weight: 500; }
-
-  /* Fact grid */
   .fact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px; margin-top: 12px; }
   .fact { border-left: 2px solid var(--cm-peri); padding: 4px 0 4px 18px; }
   .fact-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
   .fact-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); }
-
-  /* Amenity chips */
   .amenity-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
   .amenity-chip { background: rgba(159,180,216,0.08); border: 1px solid var(--cm-rule); color: var(--cm-ivory); padding: 8px 16px; border-radius: 999px; font-size: 13px; }
-
-  /* DOSSIER (second-fold feature) */
   .dossier-section { background: var(--cm-navy); padding: 72px 0; border-bottom: 1px solid var(--cm-rule); }
   .dossier-head { text-align: center; margin-bottom: 48px; }
   .dossier-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 20px; }
@@ -717,13 +674,9 @@ const CSS = `
   .dossier-enhanced-cta { text-align: center; padding: 32px; background: rgba(159,180,216,0.05); border: 1px dashed var(--cm-peri); border-radius: 12px; margin-top: 40px; }
   .dossier-enhanced-cta h4 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); margin-bottom: 10px; }
   .dossier-enhanced-cta p { color: var(--cm-ivory-dim); margin-bottom: 20px; max-width: 48ch; margin-left: auto; margin-right: auto; }
-
-  /* Unit map CTA */
   .unit-map-cta { margin: 48px 0 0; padding: 28px 32px; background: rgba(159,180,216,0.06); border: 1px solid var(--cm-peri); border-radius: 12px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: space-between; }
   .unit-map-cta h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 6px; }
   .unit-map-cta p { color: var(--cm-ivory-dim); font-size: 14px; max-width: 44ch; margin: 0; }
-
-  /* Neighbor comparison */
   .nb-grid { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 28px; border-top: 1px solid var(--cm-rule); }
   .nb-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr auto; gap: 20px; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--cm-rule); transition: background 0.15s; }
   .nb-row:hover { background: rgba(159,180,216,0.03); padding-left: 12px; padding-right: 12px; }
@@ -733,8 +686,6 @@ const CSS = `
   .nb-psf { font-family: var(--ff-display); font-weight: 500; font-size: 20px; color: var(--cm-peri); }
   .nb-psf .nb-unit { color: var(--cm-ivory-dim); font-size: 13px; margin-left: 2px; }
   .nb-units { font-family: var(--ff-mono); font-size: 12px; color: var(--cm-ivory-dim); letter-spacing: 0.04em; }
-
-  /* Mortgage calculator */
   .mortgage-grid { display: grid; grid-template-columns: 1fr; gap: 32px; margin-top: 36px; }
   @media (min-width: 820px) { .mortgage-grid { grid-template-columns: 1.2fr 1fr; gap: 48px; } }
   .mortgage-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -756,24 +707,16 @@ const CSS = `
   .mort-breakdown { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--cm-rule); text-align: left; }
   .mort-breakdown-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: var(--cm-ivory-dim); }
   .mort-breakdown-row .v { color: var(--cm-ivory); font-family: var(--ff-mono); }
-
-  /* Offer card */
   .offer-panel { background: var(--cm-navy); border: 1px solid var(--cm-peri); border-radius: 12px; padding: 36px; display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 36px; }
   @media (min-width: 780px) { .offer-panel { grid-template-columns: 1fr 1fr; } }
   .offer-option h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); margin-bottom: 12px; }
   .offer-option p { color: var(--cm-ivory-dim); margin-bottom: 20px; font-size: 15px; }
-
-  /* Video */
   .video-wrap { aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; background: var(--cm-navy); }
   .video-wrap iframe { width: 100%; height: 100%; border: none; }
-
-  /* CTAs */
   .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--cm-peri); color: var(--cm-navy); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; cursor: pointer; border: none; font-family: inherit; transition: opacity 0.15s; text-decoration: none; }
   .btn-primary:hover { opacity: 0.88; }
   .btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--cm-ivory); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; cursor: pointer; border: 1px solid var(--cm-rule); font-family: inherit; transition: all 0.15s; text-decoration: none; }
   .btn-ghost:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
-
-  /* Footer */
   footer { padding: 48px 0 40px; background: var(--cm-navy); color: var(--cm-ivory-dim); font-size: 13px; border-top: 1px solid var(--cm-rule); }
   .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
   @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
@@ -810,11 +753,9 @@ const MORT_SYNC = `
         })();
       `;
 const MORT_CALC = `
-  // Mortgage calculator
   (function() {
     const fmt = (n) => '$' + Math.round(n).toLocaleString();
     const parse = (s) => parseFloat(String(s).replace(/[^0-9.-]/g, '')) || 0;
-
     const els = {
       price: document.getElementById('m-price'),
       priceSlider: document.getElementById('m-price-slider'),
@@ -829,14 +770,12 @@ const MORT_CALC = `
       downOut: document.getElementById('m-down-out'),
       loan: document.getElementById('m-loan'),
     };
-
     function compute() {
       const price = parse(els.price.value);
       const downPct = parse(els.down.value);
       const rate = parse(els.rate.value) / 100;
       const term = parse(els.term.value);
       const hoa = parse(els.hoa.value);
-
       const downAmt = price * (downPct / 100);
       const loan = price - downAmt;
       const monthlyRate = rate / 12;
@@ -846,7 +785,6 @@ const MORT_CALC = `
         : loan / n;
       const tax = price * 0.0118 / 12;
       const total = pi + tax + hoa;
-
       els.total.textContent = fmt(total) + '/mo';
       els.pi.textContent = fmt(pi);
       els.tax.textContent = fmt(tax);
@@ -854,12 +792,10 @@ const MORT_CALC = `
       els.downOut.textContent = fmt(downAmt);
       els.loan.textContent = fmt(loan);
     }
-
     function formatInput(el) {
       const val = parse(el.value);
       el.value = val.toLocaleString();
     }
-
     [els.price, els.down, els.rate, els.term, els.hoa].forEach(el => {
       el.addEventListener('input', compute);
       if (el === els.price || el === els.hoa) {
@@ -874,7 +810,6 @@ const MORT_CALC = `
       const v = parse(els.price.value);
       if (v >= 500000 && v <= 10000000) els.priceSlider.value = v;
     });
-
     compute();
   })();
 `;
