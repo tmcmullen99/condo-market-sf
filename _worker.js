@@ -13,15 +13,18 @@
 // the browser sees gets the same applyMarketSwaps() pass. Color tokens and
 // SF-default text strings get swapped to the current market's tokens. Adding
 // a new market = one row in MARKETS + one entry in MARKET_BY_HOST.
+//
+// Per-building layout: payload.layout_kind ('tower'|'garden'|'townhomes')
+// drives the static dossier card labels and section headings so townhome
+// communities render with "Home count" / "home by home" / "Townhome community"
+// instead of unit-tower defaults. cm-dossier.js takes the same signal from
+// the dossier RPC for its interactive view.
 // =============================================================================
 
 const SUPABASE_URL      = 'https://kfqphwerygccpzntbbif.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
 /* --------------------- multi-market chrome (per-Host) -------------------- */
-// Hostname -> market tag. Drives the per-host SEO chrome (title/description/
-// canonical/OG), the window.__CM_MARKET__ bootstrap, and applyMarketSwaps().
-// Unknown hosts fall back to San Francisco, matching the in-file defaults.
 const MARKET_BY_HOST = {
   'sanfranciscocondomarket.com':      'sf',
   'www.sanfranciscocondomarket.com':  'sf',
@@ -53,17 +56,8 @@ function chromeFor(mk, kind) {
   };
 }
 
-/* ------------------- per-market response transformation ------------------ */
-// Single source of truth for "make this response market-correct." Applied to
-// every text response leaving the worker: dynamic building pages, the home/
-// intel chrome injection, and every static HTML/JS/CSS asset served via
-// env.ASSETS.fetch(). SF is the canonical source: SF-default strings live in
-// source files; non-SF markets get text and color tokens swapped at the edge.
-//
-// Add a new market = add a row to MARKETS and MARKET_BY_HOST. No file changes.
 function applyMarketSwaps(s, mk) {
   if (!mk || !s) return s;
-  // 1) Color tokens: periwinkle accent + RGB triplet -> market accent.
   if (mk.accent) {
     s = s.replace(/#9fb4d8/gi, mk.accent)
          .replace(/#91a1ba/gi, mk.accent)
@@ -71,8 +65,6 @@ function applyMarketSwaps(s, mk) {
          .replace(/#6a7fa3/gi, mk.accentDeep || mk.accent)
          .replace(/159,180,216/g, mk.accentRgb);
   }
-  // 2) Text tokens: only swap when the target differs from the SF default,
-  //    so SF responses stay byte-identical to the source files.
   if (mk.region && mk.region !== 'San Francisco') {
     s = s.replace(/San Francisco/g, mk.region);
   }
@@ -83,17 +75,12 @@ function applyMarketSwaps(s, mk) {
     s = s.replace(/Condo Market SF/g, mk.brand);
   }
   if (mk.tag && mk.tag !== 'sf') {
-    // Wordmark suffix: "Market</em> · sf" appearing in static pages' wordmarks.
-    // Anchored on the closing </em> + ' · sf' + boundary so we don't touch
-    // arbitrary 'sf' substrings elsewhere.
     s = s.replace(/Market<\/em> \u00b7 sf\b/g, 'Market</em> \u00b7 ' + mk.tag);
     s = s.replace(/Market \u00b7 sf\b/g, 'Market \u00b7 ' + mk.tag);
   }
   return s;
 }
 
-// Fetch the static asset, then inject the market bootstrap + per-Host SEO.
-// Non-HTML responses (the / -> /buildings/ redirect, 404s) pass straight through.
 async function renderChrome(request, env, kind) {
   const res = await env.ASSETS.fetch(request);
   const ct = res.headers.get('content-type') || '';
@@ -115,8 +102,6 @@ async function renderChrome(request, env, kind) {
     .replace(/<meta\s+property="og:description"[^>]*>/i, '<meta property="og:description" content="' + attr(c.desc) + '">')
     .replace(/<meta\s+property="og:url"[^>]*>/i, '<meta property="og:url" content="' + attr(c.url) + '">');
 
-  // Per-market hero image: swap the homepage hero <img> and its LCP preload, so a
-  // non-SF market never flashes the SF skyline. Markets without heroImage are untouched.
   if (kind === 'home' && mk.heroImage) {
     const hero = attr(mk.heroImage);
     html = html
@@ -124,7 +109,6 @@ async function renderChrome(request, env, kind) {
       .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
   }
 
-  // Per-market color + text swaps (the unified pass).
   html = applyMarketSwaps(html, mk);
 
   const headers = new Headers(res.headers);
@@ -133,9 +117,6 @@ async function renderChrome(request, env, kind) {
   return new Response(html, { status: 200, headers });
 }
 
-// Wrap an ASSETS response with applyMarketSwaps() for text content types.
-// Used for everything that ISN'T home/intel/building (static HTML, JS, CSS,
-// etc.) so SV visitors don't see SF text or colors anywhere in the product.
 async function wrapStaticWithSwaps(request, env, mk) {
   const resp = await env.ASSETS.fetch(request);
   if (!resp.ok) return resp;
@@ -155,17 +136,10 @@ export default {
     const url = new URL(request.url);
     const hostMk = resolveMarket(url.hostname);
 
-    // Non-SF markets: hide SF-only campaign surfaces until each market has its own.
-    // /petition copy specifically reads "operating in San Francisco today"; on SV
-    // a naive text swap would mint a false claim, so redirect to the live page.
     if (hostMk && hostMk.tag !== 'sf' && isPetitionPath(url.pathname)) {
       return Response.redirect('https://www.' + hostMk.domain + '/buildings/', 302);
     }
 
-    // /building/<slug>/report -> static shell that boots cm-report.js (client-
-    // rendered market report). Matched before the single-segment building match
-    // below so it isn't swallowed by the ASSETS passthrough. The report's gold
-    // palette is market-independent by design, so no accent recolor here.
     const reportM = url.pathname.match(/^\/building\/([^\/]+)\/report\/?$/);
     if (reportM && request.method === 'GET') {
       return new Response(
@@ -192,8 +166,6 @@ export default {
     }
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
 
-    // Home + intel: serve the static asset with per-Host chrome + market bootstrap.
-    // Everything else (and non-GET) -> static pipeline wrapped with applyMarketSwaps.
     if (!m) {
       if (request.method === 'GET') {
         if (isHomePath(url.pathname))  return renderChrome(request, env, 'home');
@@ -222,13 +194,10 @@ export default {
       payload = null;
     }
 
-    // Not a live catalogued building: serve a legacy static page if one exists
-    // at this path, otherwise Pages' own 404.html. Either way: market-swapped.
     if (!payload || payload.is_live !== true) {
       return wrapStaticWithSwaps(request, env, hostMk);
     }
 
-    // Per-market text + color swaps on the dynamic building page.
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
     return new Response(bodyHtml, {
       status: 200,
@@ -249,7 +218,11 @@ function esc(s) {
 function money(n)  { return (n == null || isNaN(n)) ? null : '$' + Number(n).toLocaleString('en-US'); }
 function intc(n)   { return (n == null || isNaN(n)) ? null : Number(n).toLocaleString('en-US'); }
 function decade(y) { return y ? (Math.floor(y / 10) * 10) + "'s" : null; }
-function tierLabel(u) {
+// tierLabel takes layout_kind so townhome communities get the right sub-label
+// on the static dossier "X count" card — otherwise the tier ladder is unit-count
+// based and meaningless for a horizontal townhome subdivision.
+function tierLabel(u, layout) {
+  if (layout === 'townhomes') return 'Townhome community';
   if (u == null) return '';
   if (u >= 200) return 'Large residential tower';
   if (u >= 30)  return 'Mid-size building';
@@ -284,9 +257,22 @@ function renderBuilding(p) {
   const psf  = (st.median_psf_12mo != null) ? Number(st.median_psf_12mo) : null;
   const medPrice = (st.median_price_12mo != null) ? Number(st.median_price_12mo) : null;
 
+  // Layout-aware word choices for townhome communities. Default to unit-tower
+  // wording when layout_kind is missing or 'tower' / 'garden'.
+  const layout     = p.layout_kind || 'tower';
+  const isTownhomes = layout === 'townhomes';
+  const countWord  = isTownhomes ? 'home' : 'unit';
+  const countWordPl = isTownhomes ? 'Homes' : 'Units';
+  const countCardLabel = isTownhomes ? 'Home count' : 'Unit count';
+  const dossierTitleSuffix = isTownhomes ? 'home by <em>home</em>' : 'by the <em>numbers</em>';
+  const enhancedCtaCopy = isTownhomes
+    ? 'Home-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.'
+    : 'Unit-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.';
+  const propertyKind = isTownhomes ? 'townhome community' : 'condominium building';
+
   /* ---- HERO ---- */
   const hstats = [];
-  if (p.unit_count != null) hstats.push('<div><div class="hstat-label">Units</div><div class="hstat-val">' + intc(p.unit_count) + '</div></div>');
+  if (p.unit_count != null) hstats.push('<div><div class="hstat-label">' + countWordPl + '</div><div class="hstat-val">' + intc(p.unit_count) + '</div></div>');
   if (p.year_built != null) hstats.push('<div><div class="hstat-label">Built</div><div class="hstat-val">' + p.year_built + '</div></div>');
   if (p.floors != null)     hstats.push('<div><div class="hstat-label">Floors</div><div class="hstat-val">' + p.floors + '</div></div>');
   if (psf != null)          hstats.push('<div><div class="hstat-label">Median $/sf</div><div class="hstat-val"><span class="peri">' + money(psf) + '</span></div></div>');
@@ -326,18 +312,18 @@ function renderBuilding(p) {
   } else {
     const bits = [];
     bits.push(p.name +
-      ' is a ' + (p.unit_count != null ? intc(p.unit_count) + '-unit ' : '') +
-      'condominium building' +
+      ' is a ' + (p.unit_count != null ? intc(p.unit_count) + '-' + countWord + ' ' : '') +
+      propertyKind +
       (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built in ' + p.year_built : '') + '.');
-    if (psf != null) bits.push('Over the last 12 months, units here have traded at a median of ' + money(psf) + ' per square foot.');
+    if (psf != null) bits.push('Over the last 12 months, ' + countWord + 's here have traded at a median of ' + money(psf) + ' per square foot.');
     aboutBody = '<div class="prose"><p>' + esc(bits.join(' ')) + '</p></div>';
   }
   const facts = [];
   if (hood)                 facts.push(['Neighborhood', hood]);
-  facts.push(['Property type', 'Condo']);
+  facts.push(['Property type', isTownhomes ? 'Townhome' : 'Condo']);
   if (p.year_built != null) facts.push(['Built', String(p.year_built)]);
-  if (p.unit_count != null) facts.push(['Units', intc(p.unit_count)]);
+  if (p.unit_count != null) facts.push([countWordPl, intc(p.unit_count)]);
   const factGrid = '<div class="fact-grid" style="margin-top:40px;">' +
     facts.map(function (f) { return '<div class="fact"><div class="fact-label">' + f[0] + '</div><div class="fact-val">' + f[1] + '</div></div>'; }).join('') +
     '</div>';
@@ -372,7 +358,7 @@ function renderBuilding(p) {
   if (st.sold_12mo != null) dcards.push(card('Sold (12\u202fmo)', intc(st.sold_12mo), 'Closed sales in the last 12 months'));
   const ls = st.last_sale;
   if (ls && ls.price != null) dcards.push(card('Last sale', money(ls.price), (ls.unit ? 'Unit ' + esc(ls.unit) + ' \u00b7 ' : '') + fmtDate(ls.date)));
-  if (p.unit_count != null) dcards.push(card('Unit count', intc(p.unit_count), tierLabel(p.unit_count)));
+  if (p.unit_count != null) dcards.push(card(countCardLabel, intc(p.unit_count), tierLabel(p.unit_count, layout)));
   if (p.year_built != null) dcards.push(card('Built', String(p.year_built), (p.floors ? p.floors + ' floors \u00b7 ' : '') + (decade(p.year_built) || '')));
   const cmpRows = [];
   if (hood && st.psf_vs_hood_pct != null && st.median_psf_hood != null) {
@@ -390,12 +376,12 @@ function renderBuilding(p) {
     dossierSection =
       '<section class="dossier-section" id="dossier"><div class="wrap">' +
       '<div class="dossier-head"><div class="dossier-kicker">The Dossier</div>' +
-      '<h2 class="dossier-title">' + name + ', by the <em>numbers</em></h2></div>' +
+      '<h2 class="dossier-title">' + name + ', ' + dossierTitleSuffix + '</h2></div>' +
       '<div class="dossier-grid">' + dcards.join('') + '</div>' +
       psfCompare +
       '<div class="dossier-enhanced-cta">' +
       '<h4>Sign in to see the <em style="color:var(--cm-peri);">full dossier</em></h4>' +
-      '<p>Unit-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.</p>' +
+      '<p>' + enhancedCtaCopy + '</p>' +
       '<a class="btn-primary" href="#signup" data-cm-auth="signup">Unlock enhanced data \u2192</a></div>' +
       '<div class="cm-inline-cta" style="margin-top:32px;text-align:center;">' +
       '<a href="#offer" data-cm-offer-trigger data-building-slug="' + slug + '" class="cm-inline-cta-link" style="display:inline-flex;align-items:center;gap:8px;color:var(--cm-bronze, #d4a574);font-family:var(--cm-ff-mono, \'JetBrains Mono\', monospace);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;padding:10px 20px;border:1px solid rgba(212, 165, 116, 0.4);border-radius:999px;transition:all 150ms ease;">See a number worth acting on? Make an offer \u2192</a></div>' +
@@ -492,7 +478,7 @@ function renderBuilding(p) {
   const seo = p.seo || {};
   const title = esc(seo.title || (p.name + ' \u00b7 ' + mkBrand));
   const descPlain = seo.description ||
-    (p.name + ' \u2014 ' + (p.unit_count != null ? intc(p.unit_count) + ' units' : 'condominiums') +
+    (p.name + ' \u2014 ' + (p.unit_count != null ? intc(p.unit_count) + ' ' + countWord + 's' : (isTownhomes ? 'townhomes' : 'condominiums')) +
       (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built ' + p.year_built : '') +
       '. Sales, $/ft, owner tenure, and live offer activity.');
