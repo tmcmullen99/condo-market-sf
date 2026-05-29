@@ -7,13 +7,12 @@
 //   1. Buyer  — accurate "EOI received, agent will reach out within 24 hours"
 //   2. Tim    — admin alert with building median, $/ft² range, buyer message
 //
-// Multi-market aware (resolves SF vs SV via buildings.city_id → cities.market_id).
+// Multi-market (resolves SF vs SV via buildings.city_id → cities.market_id).
 // Tolerant: any failure is logged but never returns 500 — pg_net just records
 // the response; the offer INSERT always succeeds regardless.
 // =============================================================================
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL       = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -31,7 +30,7 @@ const MARKETS: Record<string, { tag: string; domain: string; brand: string }> = 
     tag: "sv", domain: "siliconvalleycondomarket.com", brand: "Condo Market · Silicon Valley",
   },
 };
-const DEFAULT_MARKET = MARKETS["3cfba663-79af-4a6c-90ce-3d929c8351dd"]; // SF fallback
+const DEFAULT_MARKET = MARKETS["3cfba663-79af-4a6c-90ce-3d929c8351dd"];
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -109,7 +108,7 @@ async function sendEmail(opts: {
 }
 
 // ---------- main handler ----------------------------------------------------
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // 1. Auth
   if (req.headers.get("x-webhook-secret") !== EOI_WEBHOOK_SECRET) {
     return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
@@ -126,7 +125,7 @@ serve(async (req) => {
     });
   }
 
-  // 3. Filter to offer_created only (UPDATE events use the legacy path)
+  // 3. Filter to offer_created only
   if (payload?.event_type !== "offer_created") {
     return new Response(JSON.stringify({
       ok: true, skipped: "wrong_event_type", got: payload?.event_type,
@@ -141,7 +140,7 @@ serve(async (req) => {
   }
 
   try {
-    // 4. Resolve market (SF/SV) via buildings.city_id → cities.market_id
+    // 4. Resolve market via buildings.city_id → cities.market_id
     const { data: bRow } = await supabase
       .from("buildings")
       .select("slug, display_name, city_id, cities(market_id)")
@@ -151,7 +150,7 @@ serve(async (req) => {
     const marketId: string | null = (bRow as any)?.cities?.market_id ?? null;
     const market = (marketId && MARKETS[marketId]) || DEFAULT_MARKET;
 
-    // 5. Fetch building market brief (median, ppsf, name)
+    // 5. Fetch building market brief
     const { data: briefRaw } = await supabase.rpc("building_market_brief", {
       p_building_slug: offer.building_slug,
     });
@@ -188,7 +187,7 @@ serve(async (req) => {
       ? `<div style="margin:16px 0;padding:14px 16px;background:#f6f4ee;border-left:3px solid #91a1ba;color:#353535;font-style:italic;font-size:14px;line-height:1.5;">${escapeHtml(offer.message)}</div>`
       : "";
 
-    // 8a. Buyer email vars (eoi_received_buyer_v1)
+    // 8a. Buyer email vars
     const buyerVars: Record<string, string> = {
       first_name_block: fn ? `Hi ${escapeHtml(fn)},` : "Hi there,",
       building_name:    escapeHtml(buildingName),
@@ -199,7 +198,7 @@ serve(async (req) => {
       market_tag:       market.tag,
     };
 
-    // 8b. Admin email vars (admin_new_eoi_v1)
+    // 8b. Admin email vars
     const adminVars: Record<string, string> = {
       buyer_display_name:    escapeHtml(buyerDisplayName),
       buyer_email:           escapeHtml(offer.buyer_email || ""),
@@ -214,7 +213,7 @@ serve(async (req) => {
       submitted_at_local:    submittedAtLocal,
     };
 
-    // 9. Send buyer email (only if we have one)
+    // 9. Send buyer email
     const buyerResult = offer.buyer_email
       ? await sendEmail({
           from:    `${market.brand} <tim@${market.domain}>`,
@@ -229,7 +228,7 @@ serve(async (req) => {
         })
       : { ok: false, status: 0, body: "no buyer_email" };
 
-    // 10. Send admin email (always)
+    // 10. Send admin email
     const adminResult = await sendEmail({
       from:    `Condo Market Alerts <alerts@${market.domain}>`,
       to:      ADMIN_EMAIL,
