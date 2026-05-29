@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EOI Queue · Admin · Condo Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: #fafaf7; color: #353535;
+    font-size: 15px; line-height: 1.5;
+  }
+  a { color: #1a1f2e; }
+  h1, h2 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; color: #1a1f2e; margin: 0; }
+
+  .topbar {
+    background: #1a1f2e; color: #fff; padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .topbar a { color: #91a1ba; text-decoration: none; font-size: 13px; }
+  .topbar a:hover { color: #fff; }
+  .topbar-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; flex: 1; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+  .counts-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px; margin-bottom: 24px;
+  }
+  .count-card {
+    background: #fff; border: 1px solid #e5e2d8; border-radius: 6px;
+    padding: 10px 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .count-card:hover { border-color: #91a1ba; }
+  .count-card.active { background: #1a1f2e; color: #fff; border-color: #1a1f2e; }
+  .count-card .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: #91a1ba; margin-bottom: 4px;
+  }
+  .count-card.active .label { color: #c0cbdc; }
+  .count-card .n { font-size: 22px; font-weight: 700; }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .toolbar-meta { font-size: 13px; color: #6b6b6b; }
+  .btn {
+    background: #1a1f2e; color: #fff; border: none; padding: 8px 16px;
+    border-radius: 4px; font-family: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: #2a2f3e; }
+  .btn:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: #1a1f2e; border: 1px solid #d4d0c4; }
+  .btn-ghost:hover { background: #f6f4ee; }
+
+  .offers-table {
+    background: #fff; border: 1px solid #e5e2d8; border-radius: 6px;
+    overflow: hidden;
+  }
+  .offer-row { border-bottom: 1px solid #f0ede5; transition: background 0.1s; }
+  .offer-row:last-child { border-bottom: 0; }
+  .offer-row:hover { background: #fafaf7; }
+  .offer-row.expanded { background: #f6f4ee; }
+
+  .offer-summary {
+    display: grid;
+    grid-template-columns: 140px 1.5fr 1fr 90px 100px 24px;
+    gap: 14px; align-items: center; padding: 14px 18px; cursor: pointer;
+  }
+  .offer-summary > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .col-building { font-weight: 600; }
+  .col-buyer { font-size: 13px; color: #6b6b6b; }
+  .col-amount { font-weight: 600; text-align: right; }
+  .col-when { font-size: 12px; color: #888; text-align: right; }
+  .col-chevron { text-align: right; color: #91a1ba; transition: transform 0.15s; }
+  .offer-row.expanded .col-chevron { transform: rotate(180deg); }
+
+  .status-pill {
+    display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 10px;
+    font-weight: 500; letter-spacing: 0.2px; white-space: nowrap;
+  }
+  .status-pending, .status-received           { background: #e9eef5; color: #1a1f2e; }
+  .status-agent_contacted                     { background: #d4dde9; color: #1a1f2e; }
+  .status-loi_drafting                        { background: #bcc8d8; color: #1a1f2e; }
+  .status-loi_sent_to_buyer                   { background: #a1b1c8; color: #fff;    }
+  .status-loi_signed                          { background: #5d7593; color: #fff;    }
+  .status-delivered_to_owner                  { background: #1a1f2e; color: #fff;    }
+  .status-countered, .status-accepted         { background: #2d4053; color: #fff;    }
+  .status-declined, .status-expired,
+  .status-withdrawn                           { background: #c5c2b8; color: #6b6b6b; }
+
+  .offer-detail { display: none; padding: 0 18px 22px 18px; border-top: 1px dashed #d4d0c4; }
+  .offer-row.expanded .offer-detail { display: block; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 14px; }
+  .detail-section h3 {
+    font-family: 'DM Sans', sans-serif; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: #91a1ba; margin: 0 0 10px 0; font-weight: 600;
+  }
+  .detail-section .body { font-size: 14px; line-height: 1.55; }
+  .detail-section dl { margin: 0; display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; }
+  .detail-section dt { color: #6b6b6b; font-size: 13px; }
+  .detail-section dd { margin: 0; font-size: 13px; color: #353535; }
+
+  .buyer-message {
+    background: #fff; border-left: 3px solid #91a1ba;
+    padding: 12px 14px; margin: 8px 0 0 0; font-style: italic;
+    color: #353535; font-size: 13px; border-radius: 0 4px 4px 0;
+  }
+
+  .timeline { list-style: none; padding: 0; margin: 0; }
+  .timeline li {
+    display: flex; align-items: baseline; gap: 10px; padding: 6px 0;
+    font-size: 13px; color: #aaa;
+  }
+  .timeline li.done { color: #353535; }
+  .timeline li .check { font-size: 11px; width: 14px; }
+  .timeline li.done .check { color: #1a1f2e; }
+  .timeline li time { font-size: 11px; color: #888; margin-left: auto; }
+
+  .actions { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .actions label { font-size: 12px; color: #6b6b6b; }
+  .actions input[type="url"], .actions textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #d4d0c4;
+    border-radius: 4px; font-family: inherit; font-size: 13px;
+  }
+  .actions textarea { resize: vertical; min-height: 60px; }
+  .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .empty, .loading, .error {
+    background: #fff; border: 1px solid #e5e2d8; border-radius: 6px;
+    padding: 48px 24px; text-align: center; color: #6b6b6b;
+  }
+  .error { color: #8b3a3a; border-color: #f0d4d4; background: #fff5f5; }
+
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; max-width: 380px;
+    background: #1a1f2e; color: #fff; padding: 14px 18px; border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18); font-size: 13px;
+    transform: translateY(100px); opacity: 0;
+    transition: transform 0.25s, opacity 0.25s; pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  #toast.error { background: #8b3a3a; }
+
+  @media (max-width: 800px) {
+    .container { padding: 14px; }
+    .offer-summary {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: "status when" "building amount" "buyer buyer";
+      gap: 6px 12px;
+    }
+    .offer-summary .col-chevron { display: none; }
+    .col-status { grid-area: status; }
+    .col-building { grid-area: building; }
+    .col-buyer { grid-area: buyer; }
+    .col-amount { grid-area: amount; text-align: left; }
+    .col-when { grid-area: when; text-align: right; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/admin/">← Admin home</a>
+  <div class="topbar-title">EOI Queue</div>
+  <a href="#" id="signout-link">Sign out</a>
+</div>
+
+<div class="container">
+  <div id="gate" class="loading">Checking access…</div>
+  <div id="main" style="display:none">
+    <div class="counts-strip" id="counts"></div>
+    <div class="toolbar">
+      <div class="toolbar-meta" id="meta">—</div>
+      <button class="btn btn-ghost" id="refresh-btn">Refresh</button>
+    </div>
+    <div id="list"><div class="loading">Loading offers…</div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.sb = sb;
+
+const STATUS_ORDER = [
+  'pending','received','agent_contacted','loi_drafting','loi_sent_to_buyer',
+  'loi_signed','delivered_to_owner','countered','accepted','declined','expired','withdrawn'
+];
+const STATUS_LABELS = {
+  pending: 'Pending', received: 'Received',
+  agent_contacted: 'Agent contacted', loi_drafting: 'Drafting LOI',
+  loi_sent_to_buyer: 'LOI w/ buyer', loi_signed: 'LOI signed',
+  delivered_to_owner: 'Delivered', countered: 'Countered',
+  accepted: 'Accepted', declined: 'Declined',
+  expired: 'Expired', withdrawn: 'Withdrawn'
+};
+
+let CURRENT_QUEUE = null;
+let CURRENT_FILTER = 'all';
+
+async function authGate() {
+  const gateEl = document.getElementById('gate');
+  const mainEl = document.getElementById('main');
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    gateEl.innerHTML = `Not signed in. <a href="/auth/?return=/admin/offers/">Sign in</a> with the admin account to continue.`;
+    return false;
+  }
+  const { data: isAdmin, error } = await sb.rpc('is_admin');
+  if (error || !isAdmin) {
+    gateEl.innerHTML = `Signed in as ${session.user.email}, but not an admin. <a href="/">Go home</a>`;
+    return false;
+  }
+  gateEl.style.display = 'none';
+  mainEl.style.display = 'block';
+  return true;
+}
+
+async function fetchQueue() {
+  const { data, error } = await sb.rpc('admin_eoi_queue');
+  if (error) { showError(`Failed to load queue: ${error.message}`); return null; }
+  if (data?.error) { showError(`Forbidden: ${data.error}`); return null; }
+  CURRENT_QUEUE = data;
+  return data;
+}
+async function fetchBuildingBrief(slug) {
+  const { data, error } = await sb.rpc('building_market_brief', { p_building_slug: slug });
+  if (error) return null;
+  return data;
+}
+
+function fmtUSD(n) {
+  if (n == null) return '—';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+}
+function fmtPPSF(p) { return p == null ? '—' : `$${Math.round(p).toLocaleString()}/ft²`; }
+function fmtRange(lo, hi) {
+  if (lo == null || hi == null) return '—';
+  return `$${Math.round(lo).toLocaleString()} – $${Math.round(hi).toLocaleString()}/ft²`;
+}
+function fmtWhen(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const diffH = (Date.now() - d.getTime()) / 1000 / 3600;
+  if (diffH < 24)   return `${Math.max(1, Math.round(diffH))}h ago`;
+  if (diffH < 168)  return `${Math.round(diffH/24)}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+}
+function fmtTimestamp(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderCounts(counts) {
+  const stripEl = document.getElementById('counts');
+  stripEl.innerHTML = '';
+  const total = STATUS_ORDER.reduce((s, k) => s + (counts[k] || 0), 0);
+  stripEl.appendChild(makeCountCard('all', 'All', total));
+  STATUS_ORDER.forEach(k => {
+    const n = counts[k] || 0;
+    if (n === 0 && k !== 'pending' && k !== 'received') return;
+    stripEl.appendChild(makeCountCard(k, STATUS_LABELS[k], n));
+  });
+}
+function makeCountCard(key, label, n) {
+  const el = document.createElement('div');
+  el.className = 'count-card' + (CURRENT_FILTER === key ? ' active' : '');
+  el.innerHTML = `<div class="label">${label}</div><div class="n">${n}</div>`;
+  el.onclick = () => { CURRENT_FILTER = key; renderAll(); };
+  return el;
+}
+function renderMeta(q) {
+  const el = document.getElementById('meta');
+  const shown = filteredOffers(q).length;
+  const total = q.offers.length;
+  const asOf = new Date(q.as_of).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  el.textContent = `Showing ${shown} of ${total} · refreshed ${asOf}`;
+}
+function filteredOffers(q) {
+  if (CURRENT_FILTER === 'all') return q.offers;
+  return q.offers.filter(o => o.status === CURRENT_FILTER);
+}
+function renderList(q) {
+  const listEl = document.getElementById('list');
+  const offers = filteredOffers(q);
+  if (offers.length === 0) {
+    listEl.innerHTML = `<div class="empty">No offers in this filter.</div>`;
+    return;
+  }
+  const table = document.createElement('div');
+  table.className = 'offers-table';
+  offers.forEach(o => table.appendChild(renderOfferRow(o)));
+  listEl.innerHTML = '';
+  listEl.appendChild(table);
+}
+function renderOfferRow(o) {
+  const row = document.createElement('div');
+  row.className = 'offer-row';
+  row.dataset.id = o.id;
+  const unitTxt = o.unit_label ? ` · #${escapeHtml(o.unit_label)}` : '';
+  const buyer = escapeHtml(o.buyer_name || o.buyer_email || 'Anonymous');
+  row.innerHTML = `
+    <div class="offer-summary">
+      <div class="col-status"><span class="status-pill status-${o.status}">${STATUS_LABELS[o.status] || o.status}</span></div>
+      <div class="col-building">${escapeHtml(o.building_name)}${unitTxt}</div>
+      <div class="col-buyer">${buyer}</div>
+      <div class="col-amount">${fmtUSD(o.offer_amount)}</div>
+      <div class="col-when">${fmtWhen(o.created_at)}</div>
+      <div class="col-chevron">▾</div>
+    </div>
+    <div class="offer-detail"></div>
+  `;
+  row.querySelector('.offer-summary').onclick = () => toggleExpand(row, o);
+  return row;
+}
+async function toggleExpand(row, o) {
+  if (row.classList.contains('expanded')) { row.classList.remove('expanded'); return; }
+  document.querySelectorAll('.offer-row.expanded').forEach(r => r.classList.remove('expanded'));
+  row.classList.add('expanded');
+  const detailEl = row.querySelector('.offer-detail');
+  detailEl.innerHTML = `<div class="loading" style="padding:20px">Loading building context…</div>`;
+  const brief = await fetchBuildingBrief(o.building_slug);
+  detailEl.innerHTML = renderDetail(o, brief);
+  wireDetailActions(row, o);
+}
+
+function renderDetail(o, brief) {
+  const calibration = `
+    <dl>
+      <dt>12-mo median</dt><dd>${fmtUSD(brief?.median_12mo)}</dd>
+      <dt>Median $/ft²</dt><dd>${fmtPPSF(brief?.median_ppsf_12mo)}</dd>
+      <dt>$/ft² range</dt><dd>${fmtRange(brief?.ppsf_low_12mo, brief?.ppsf_high_12mo)}</dd>
+      <dt>Recent sales</dt><dd>${brief?.sales_365d ?? '—'} in last 12mo</dd>
+    </dl>
+  `;
+  const msg = o.message
+    ? `<div class="buyer-message">${escapeHtml(o.message)}</div>`
+    : `<div style="color:#aaa;font-size:13px;font-style:italic">No buyer message</div>`;
+  const buyer = `
+    <dl>
+      <dt>Name</dt><dd>${escapeHtml(o.buyer_name || '—')}</dd>
+      <dt>Email</dt><dd><a href="mailto:${escapeHtml(o.buyer_email || '')}">${escapeHtml(o.buyer_email || '—')}</a></dd>
+      <dt>Offer</dt><dd><strong>${fmtUSD(o.offer_amount)}</strong></dd>
+      <dt>Submitted</dt><dd>${fmtTimestamp(o.created_at)}</dd>
+    </dl>
+    ${msg}
+  `;
+  return `
+    <div class="detail-grid">
+      <div class="detail-section"><h3>Buyer</h3><div class="body">${buyer}</div></div>
+      <div class="detail-section"><h3>Building calibration · ${escapeHtml(o.building_name)}</h3><div class="body">${calibration}</div></div>
+      <div class="detail-section"><h3>Timeline</h3><div class="body">${renderTimeline(o)}</div></div>
+      <div class="detail-section"><h3>Actions</h3>${renderActions(o)}</div>
+    </div>
+  `;
+}
+function renderTimeline(o) {
+  const steps = [
+    { key: 'created_at',            label: 'EOI submitted' },
+    { key: 'agent_contacted_at',    label: 'Agent contacted buyer' },
+    { key: 'loi_drafted_at',        label: 'LOI drafting started' },
+    { key: 'loi_sent_to_buyer_at',  label: 'LOI sent to buyer' },
+    { key: 'loi_signed_at',         label: 'LOI signed by buyer' },
+    { key: 'delivered_to_owner_at', label: 'Delivered to unit owner' },
+    { key: 'owner_responded_at',    label: 'Owner responded' },
+  ];
+  return `<ul class="timeline">${steps.map(s => {
+    const ts = o[s.key];
+    return `<li class="${ts ? 'done' : ''}">
+      <span class="check">${ts ? '●' : '○'}</span>
+      <span>${s.label}</span>
+      <time>${ts ? fmtTimestamp(ts) : ''}</time>
+    </li>`;
+  }).join('')}</ul>`;
+}
+function renderActions(o) {
+  const map = {
+    pending:           [{ rpc: 'mark_eoi_agent_contacted',    label: 'Mark agent contacted',  needsUrl: false }],
+    received:          [{ rpc: 'mark_eoi_agent_contacted',    label: 'Mark agent contacted',  needsUrl: false }],
+    agent_contacted:   [{ rpc: 'mark_eoi_loi_drafting',       label: 'Start drafting LOI',    needsUrl: false }],
+    loi_drafting:      [{ rpc: 'mark_eoi_loi_sent_to_buyer',  label: 'Send LOI to buyer',     needsUrl: true  }],
+    loi_sent_to_buyer: [{ rpc: 'mark_eoi_loi_signed',         label: 'Mark LOI signed',       needsUrl: false }],
+    loi_signed:        [{ rpc: 'mark_eoi_delivered_to_owner', label: 'Deliver to owner',      needsUrl: false }],
+  };
+  const actions = map[o.status] || [];
+  if (actions.length === 0) {
+    return `<div style="font-size:13px;color:#aaa;font-style:italic">No further waterfall actions available for status "${o.status}".</div>`;
+  }
+  const needsUrl = actions.some(a => a.needsUrl);
+  return `
+    <div class="actions" data-offer-id="${o.id}">
+      ${needsUrl ? `
+        <div>
+          <label for="loi-url-${o.id}">LOI document URL (required)</label>
+          <input type="url" id="loi-url-${o.id}" placeholder="https://docs.google.com/document/..." value="${escapeHtml(o.loi_document_url || '')}" />
+        </div>` : ''}
+      <div>
+        <label for="notes-${o.id}">Admin notes (optional)</label>
+        <textarea id="notes-${o.id}" placeholder="Internal notes about this transition…">${escapeHtml(o.admin_notes || '')}</textarea>
+      </div>
+      <div class="action-buttons">
+        ${actions.map(a => `<button class="btn" data-rpc="${a.rpc}" data-needs-url="${a.needsUrl}">${a.label}</button>`).join('')}
+      </div>
+    </div>
+  `;
+}
+function wireDetailActions(row, o) {
+  const wrap = row.querySelector('.actions');
+  if (!wrap) return;
+  wrap.querySelectorAll('button[data-rpc]').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const rpc = btn.dataset.rpc;
+      const needsUrl = btn.dataset.needsUrl === 'true';
+      const urlEl = wrap.querySelector(`#loi-url-${o.id}`);
+      const notesEl = wrap.querySelector(`#notes-${o.id}`);
+      const args = { p_offer_id: o.id };
+      if (needsUrl) {
+        const url = (urlEl?.value || '').trim();
+        if (!url) { showToast('LOI document URL is required.', 'error'); return; }
+        args.p_loi_url = url;
+      }
+      const notes = (notesEl?.value || '').trim();
+      if (notes) args.p_notes = notes;
+      btn.disabled = true;
+      btn.textContent = 'Working…';
+      const { error } = await sb.rpc(rpc, args);
+      if (error) { showToast(`Failed: ${error.message}`, 'error'); btn.disabled = false; return; }
+      showToast('Offer updated.');
+      await refreshAndRerender();
+    };
+  });
+}
+
+let toastTimer;
+function showToast(msg, kind = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${kind}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+function showError(msg) { showToast(msg, 'error'); }
+
+function renderAll() {
+  if (!CURRENT_QUEUE) return;
+  renderCounts(CURRENT_QUEUE.counts);
+  renderMeta(CURRENT_QUEUE);
+  renderList(CURRENT_QUEUE);
+}
+async function refreshAndRerender() {
+  const q = await fetchQueue();
+  if (q) renderAll();
+}
+
+document.getElementById('refresh-btn').onclick = refreshAndRerender;
+document.getElementById('signout-link').onclick = async (e) => {
+  e.preventDefault();
+  await sb.auth.signOut();
+  location.href = '/';
+};
+
+(async () => {
+  const ok = await authGate();
+  if (!ok) return;
+  const q = await fetchQueue();
+  if (!q) return;
+  renderAll();
+  // Auto-expand if ?id= present (the admin emails link here)
+  const targetId = new URLSearchParams(location.search).get('id');
+  if (targetId) {
+    const targetRow = document.querySelector(`.offer-row[data-id="${targetId}"]`);
+    const offer = q.offers.find(o => o.id === targetId);
+    if (targetRow && offer) {
+      toggleExpand(targetRow, offer);
+      targetRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+})();
+</script>
+</body>
+</html>
