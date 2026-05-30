@@ -444,10 +444,10 @@ table.cs-table{width:100%;border-collapse:collapse;margin-bottom:32px;}
 
   // ─── Buildings dropdown ───
   function loadBuildings() {
-    return api('/buildings?select=slug,name,neighborhood&order=name.asc').then(function (rows) {
+    return api('/buildings?select=slug,display_name,neighborhood&order=display_name.asc').then(function (rows) {
       var dl = $('#buildings-list');
       dl.innerHTML = rows.map(function (b) {
-        var label = b.name + (b.neighborhood ? ' · ' + b.neighborhood : '') + ' [' + b.slug + ']';
+        var label = (b.display_name || b.slug) + (b.neighborhood ? ' · ' + b.neighborhood : '') + ' [' + b.slug + ']';
         return '<option value="' + escapeHtml(b.slug) + '" label="' + escapeHtml(label) + '"></option>';
       }).join('');
     });
