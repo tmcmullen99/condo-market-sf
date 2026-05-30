@@ -33,7 +33,7 @@
   --cream: #f6f4ee;
   --cream-deep: #ebe7da;
   --line: #e1ddd0;
-  --accent: #C2410C;        /* overridden by inline script per host */
+  --accent: #C2410C;
   --accent-deep: #9A3412;
   --accent-tint: rgba(194,65,12,0.08);
   --shadow-card: 0 6px 24px rgba(26,31,46,0.06);
@@ -220,14 +220,6 @@ body.persona-seller [data-persona="seller"] { display: block; }
 body.persona-buyer  section.persona-section[data-persona="seller"] { display: none; }
 body.persona-seller section.persona-section[data-persona="buyer"] { display: none; }
 
-/* Parallax decorative shapes inside sections */
-.section-decoration {
-  position: absolute; pointer-events: none; opacity: 0.04;
-  will-change: transform; z-index: 0;
-}
-.section-decoration.right { right: -50px; top: 80px; }
-.section-decoration.left { left: -50px; top: 200px; }
-
 /* PAIN POINTS */
 .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .pain-card {
@@ -383,7 +375,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
 .tier-3 {
   margin-left: 16%; background: var(--navy); color: var(--white); border-color: var(--navy);
 }
-.tier-3 h3 { color: var(--white); }
 
 /* Recommended badge on Tier 1 */
 .tier-1 .badge {
@@ -403,6 +394,9 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   font-family: 'Playfair Display', serif; font-size: 28px;
   color: var(--navy); margin: 0;
 }
+/* === FIX: bumped specificity so tier-3 h3 (Active Listing) shows white on navy === */
+.tier.tier-3 h3 { color: var(--white); }
+
 .tier-tagline { font-size: 15px; color: var(--charcoal); margin-bottom: 16px; }
 .tier-3 .tier-tagline { color: var(--cream); opacity: 0.9; }
 
@@ -455,18 +449,173 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   font-size: 13px; margin-top: 32px; font-style: italic;
 }
 
+/* ========== BUILDING PICKER (SELLER MMM SECTION) ========== */
+.picker-shell {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 16px; padding: 32px; margin-top: 36px;
+  box-shadow: var(--shadow-card);
+}
+.picker-title {
+  font-family: 'Playfair Display', serif; font-size: 22px;
+  color: var(--navy); margin-bottom: 6px;
+}
+.picker-subtitle {
+  font-size: 14px; color: var(--charcoal); margin-bottom: 24px;
+  opacity: 0.85;
+}
+.picker-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+}
+@media (max-width: 700px) {
+  .picker-grid { grid-template-columns: 1fr; }
+  .picker-shell { padding: 24px; }
+}
+.picker-group { position: relative; }
+.picker-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.picker-label .step {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent); color: var(--white);
+  font-size: 11px; font-weight: 700; display: inline-flex;
+  align-items: center; justify-content: center;
+  letter-spacing: 0;
+}
+.picker-select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-color: var(--cream); border: 2px solid var(--line);
+  border-radius: 10px; padding: 14px 44px 14px 16px;
+  font-family: inherit; font-size: 15px; font-weight: 500;
+  color: var(--navy); width: 100%; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23C2410C' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 16px center;
+  transition: all 0.15s;
+}
+.picker-select:focus { outline: none; border-color: var(--accent); }
+.picker-select:disabled {
+  opacity: 0.55; cursor: not-allowed;
+  background-color: var(--line);
+}
+.picker-status {
+  font-size: 13px; color: var(--blue-gray);
+  margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.picker-status strong { color: var(--navy); font-weight: 600; }
+.picker-suggest-btn {
+  background: none; border: 1px dashed var(--blue-gray);
+  color: var(--charcoal); font-size: 13px; font-weight: 500;
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  transition: all 0.15s;
+}
+.picker-suggest-btn:hover {
+  background: var(--accent-tint); border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+/* SUGGEST FORM */
+.suggest-form {
+  background: var(--cream); border: 1px solid var(--line);
+  border-radius: 12px; padding: 24px;
+  margin-top: 16px;
+  display: none;
+}
+.suggest-form.open { display: block; }
+.suggest-form h4 {
+  font-family: 'Playfair Display', serif; font-size: 18px;
+  color: var(--navy); margin: 0 0 4px;
+}
+.suggest-form .help {
+  font-size: 13px; color: var(--charcoal); opacity: 0.8;
+  margin-bottom: 16px;
+}
+.suggest-fields {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.suggest-fields .full { grid-column: 1 / -1; }
+.suggest-input, .suggest-textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--white); font-family: inherit;
+  font-size: 14px; color: var(--charcoal);
+  transition: border-color 0.15s;
+}
+.suggest-input:focus, .suggest-textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.suggest-textarea { resize: vertical; min-height: 70px; font-family: inherit; }
+.suggest-actions {
+  margin-top: 16px; display: flex; gap: 10px; align-items: center;
+  flex-wrap: wrap;
+}
+.suggest-submit {
+  background: var(--accent); color: var(--white);
+  padding: 11px 24px; border: none; border-radius: 8px;
+  font-weight: 600; font-size: 14px; cursor: pointer;
+  transition: background 0.15s;
+}
+.suggest-submit:hover { background: var(--accent-deep); }
+.suggest-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.suggest-cancel {
+  background: none; border: none; color: var(--charcoal);
+  font-size: 13px; cursor: pointer; padding: 11px 14px;
+}
+.suggest-cancel:hover { color: var(--navy); text-decoration: underline; }
+.suggest-msg {
+  font-size: 13px; padding: 10px 14px; border-radius: 6px;
+  margin-top: 12px; display: none;
+}
+.suggest-msg.show { display: block; }
+.suggest-msg.success { background: rgba(0,168,181,0.1); color: #00585f; }
+.suggest-msg.error { background: rgba(194,65,12,0.1); color: var(--accent-deep); }
+.suggest-msg.pending { background: var(--cream-deep); color: var(--charcoal); }
+@media (max-width: 600px) {
+  .suggest-fields { grid-template-columns: 1fr; }
+}
+
+/* MMM EMPTY STATE */
+.mmm-empty {
+  margin-top: 28px;
+  background: linear-gradient(135deg, var(--navy) 0%, #2a3045 100%);
+  color: var(--white); border-radius: 18px;
+  padding: 56px 48px; text-align: center;
+  position: relative;
+}
+.mmm-empty .arrow-up {
+  font-size: 36px; color: var(--accent);
+  margin-bottom: 14px; animation: bobUp 1.6s ease-in-out infinite;
+}
+@keyframes bobUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.mmm-empty h4 {
+  font-family: 'Playfair Display', serif; font-size: 26px;
+  color: var(--white); margin: 0 0 8px; font-weight: 700;
+}
+.mmm-empty p { color: var(--cream); opacity: 0.85; margin: 0; font-size: 15px; }
+
 /* ========== INTERACTIVE MMM SLIDER (SELLER) ========== */
 .mmm-tool {
   background: linear-gradient(135deg, var(--navy) 0%, #2a3045 100%);
   color: var(--white); border-radius: 18px;
-  padding: 56px 48px; margin-top: 36px; overflow: hidden; position: relative;
+  padding: 56px 48px; margin-top: 28px; overflow: hidden; position: relative;
 }
 .mmm-tool .section-eyebrow { color: var(--accent); }
 .mmm-tool h3 {
   color: var(--white); font-size: clamp(26px, 3vw, 38px);
   margin-bottom: 14px; line-height: 1.1;
 }
-.mmm-tool .sub { font-size: 16px; color: var(--cream); opacity: 0.9; margin-bottom: 32px; }
+.mmm-tool .sub { font-size: 16px; color: var(--cream); opacity: 0.9; margin-bottom: 18px; }
+.mmm-tool .building-line {
+  font-size: 13px; color: var(--cream); opacity: 0.75;
+  margin-bottom: 28px;
+}
+.mmm-tool .building-line strong { color: var(--accent); font-weight: 600; }
 
 .mmm-display {
   display: flex; align-items: center; gap: 40px; flex-wrap: wrap;
@@ -522,7 +671,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   border-radius: 12px; padding: 22px;
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
 }
-.mmm-calibration .calib { }
 .mmm-calibration .calib .label {
   font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
   color: rgba(255,255,255,0.6); font-weight: 600; margin-bottom: 4px;
@@ -536,7 +684,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px;
 }
 @media (max-width: 700px) {
-  .mmm-tool { padding: 36px 28px; }
+  .mmm-tool, .mmm-empty { padding: 36px 28px; }
   .mmm-calibration { grid-template-columns: 1fr; }
 }
 
@@ -747,7 +895,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   <div class="anchors">
     <a href="#problem">The problem</a>
     <a href="#data">The data</a>
-    <a href="#centerpiece">How it works</a>
+    <a href="#centerpiece-buyer">How it works</a>
     <a href="#tools">Try the tools</a>
     <a href="#credit">$10K credit</a>
     <a href="#faq">FAQ</a>
@@ -830,7 +978,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
       </div>
     </div>
 
-    <!-- Animated stat bar (visible to both) -->
     <div class="stat-bar reveal-stagger">
       <div class="stat"><div class="num" data-count-to="200">0</div><div class="label">Condo buildings catalogued</div></div>
       <div class="stat"><div class="num" data-count-to="10643">0</div><div class="label">Units in the database</div></div>
@@ -854,7 +1001,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
       <p class="section-lead">Pull up your own building. See every recorded sale by floor and stack, the $/ft² your tier is actually trading at right now, and where any number you'd consider lands on the heat-map — before you ever quote it.</p>
     </div>
 
-    <!-- INTERACTIVE COMP TABLE (both personas see, copy varies) -->
     <div class="comp-widget reveal">
       <div class="comp-header">
         <h3>Recent sales · 650 2nd St</h3>
@@ -871,18 +1017,14 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
             <th data-sort="psf">$/ft² <span class="sort-indicator"></span></th>
           </tr>
         </thead>
-        <tbody id="comp-tbody">
-          <!-- populated by JS -->
-        </tbody>
+        <tbody id="comp-tbody"></tbody>
       </table>
       <div class="comp-hint">Click any column to sort · Use the filter to narrow by unit, beds, or floor</div>
     </div>
   </div>
 </section>
 
-<!-- ========== SECTION 3: THE CENTERPIECE — different per persona ========== -->
-
-<!-- BUYER CENTERPIECE: Every unit is open -->
+<!-- ========== BUYER CENTERPIECE ========== -->
 <section class="story persona-section" data-persona="buyer" id="centerpiece-buyer">
   <div class="section-inner">
     <div class="section-eyebrow">The marketplace</div>
@@ -890,7 +1032,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
     <p class="section-lead">Condo Market is the only place where every unit in every catalogued building — listed or not — accepts an Expression of Interest. You don't need the unit to be on the MLS. You don't need a listing agent to be involved. You just need a real number.</p>
 
     <div class="inventory-hero">
-      <div class="big-number" id="inv-big">10,643</div>
+      <div class="big-number">10,643</div>
       <div class="big-label">Units · all open to an EOI today</div>
     </div>
 
@@ -935,7 +1077,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   </div>
 </section>
 
-<!-- SELLER CENTERPIECE: The ladder -->
+<!-- ========== SELLER CENTERPIECE: LADDER ========== -->
 <section class="story persona-section" data-persona="seller" id="centerpiece-seller">
   <div class="section-inner">
     <div class="section-eyebrow">The three tiers</div>
@@ -945,7 +1087,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
     <div class="ladder-wrap">
       <div class="ladder">
 
-        <!-- TIER 1: Make Me Move -->
         <div class="tier tier-1" data-tier="1">
           <div class="badge">Recommended start</div>
           <div class="tier-header"><span class="tier-num">Tier 1 · Zero friction</span></div>
@@ -972,7 +1113,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
           </div>
         </div>
 
-        <!-- TIER 2: Coming Soon -->
         <div class="tier tier-2" data-tier="2">
           <div class="tier-header"><span class="tier-num">Tier 2 · Medium reach</span></div>
           <h3>Coming Soon</h3>
@@ -1005,7 +1145,6 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
           </div>
         </div>
 
-        <!-- TIER 3: Active -->
         <div class="tier tier-3" data-tier="3">
           <div class="tier-header"><span class="tier-num">Tier 3 · Maximum reach</span></div>
           <h3>Active Listing</h3>
@@ -1044,7 +1183,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   </div>
 </section>
 
-<!-- ========== SECTION 4: TRY THE TOOLS ========== -->
+<!-- ========== SECTION: TRY THE TOOLS ========== -->
 <section class="story" id="tools">
   <div class="section-inner">
     <div class="section-eyebrow">Try the tools</div>
@@ -1071,45 +1210,98 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
     </div>
 
     <div data-persona="seller">
-      <h2 class="section-title">Drag the slider. <em>See your number, calibrated.</em></h2>
-      <p class="section-lead">This is exactly what your homeowner dashboard does — but for a real building in real time. Move the slider, watch the price update, see where it lands against the building's $/ft² range, and see roughly what you'd net after commission and fees.</p>
+      <h2 class="section-title">Pick your building. <em>Drag the slider.</em></h2>
+      <p class="section-lead">Choose a neighborhood, then your building, then drag the slider. This is exactly what your homeowner dashboard does — live, against real recorded sales in that exact building. See your $/ft² calibrated against the building's median, where your number ranks, and what you'd net.</p>
 
-      <div class="mmm-tool">
-        <div class="section-eyebrow">Live preview · 650 2nd St</div>
+      <!-- BUILDING PICKER -->
+      <div class="picker-shell">
+        <div class="picker-title">Your building</div>
+        <div class="picker-subtitle">Two clicks — neighborhood, then building. The slider populates with that building's actual recorded sales data.</div>
+
+        <div class="picker-grid">
+          <div class="picker-group">
+            <div class="picker-label"><span class="step">1</span> Neighborhood</div>
+            <select class="picker-select" id="picker-neighborhood">
+              <option value="">Loading neighborhoods…</option>
+            </select>
+          </div>
+          <div class="picker-group">
+            <div class="picker-label"><span class="step">2</span> Building</div>
+            <select class="picker-select" id="picker-building" disabled>
+              <option value="">— Pick a neighborhood first —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="picker-status">
+          <span id="picker-status-text">Loading buildings…</span>
+          <button class="picker-suggest-btn" id="suggest-toggle">+ Don't see your building? Suggest one</button>
+        </div>
+
+        <!-- SUGGEST FORM (hidden until toggled) -->
+        <div class="suggest-form" id="suggest-form">
+          <h4>Suggest a building</h4>
+          <div class="help">If your building isn't in the catalogue yet, drop the address and we'll add it. Optional details speed up review.</div>
+          <div class="suggest-fields">
+            <input type="text" class="suggest-input full" placeholder="Building address (required) — e.g. 100 1st Street, San Francisco" id="suggest-address">
+            <input type="text" class="suggest-input" placeholder="Building name (optional)" id="suggest-name">
+            <input type="text" class="suggest-input" placeholder="Neighborhood (optional)" id="suggest-neighborhood">
+            <input type="email" class="suggest-input full" placeholder="Your email (optional — we'll let you know when it's live)" id="suggest-email">
+            <textarea class="suggest-textarea full" placeholder="Anything else? (unit count, year built, your relationship to the building, etc.)" id="suggest-notes"></textarea>
+          </div>
+          <div class="suggest-actions">
+            <button class="suggest-submit" id="suggest-submit">Submit suggestion</button>
+            <button class="suggest-cancel" id="suggest-cancel">Cancel</button>
+          </div>
+          <div class="suggest-msg" id="suggest-msg"></div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE (shown until building picked) -->
+      <div class="mmm-empty" id="mmm-empty">
+        <div class="arrow-up">↑</div>
+        <h4>Pick a neighborhood and building above</h4>
+        <p>The slider populates with that building's real recorded sales data — median, $/ft², and the price range it actually trades in.</p>
+      </div>
+
+      <!-- MMM SLIDER (hidden until building picked) -->
+      <div class="mmm-tool" id="mmm-tool" hidden>
+        <div class="section-eyebrow">Live preview · <span id="mmm-building-name">—</span></div>
         <h3>What would you sell for?</h3>
         <div class="sub">Drag to set your Make Me Move number. Calibration updates live.</div>
+        <div class="building-line">Building median <strong id="mmm-building-median">—</strong> · Median $/ft² <strong id="mmm-building-ppsf">—</strong> · <span id="mmm-building-sales">—</span> recorded sales</div>
 
         <div class="mmm-display">
           <div class="mmm-price-block">
             <div class="mmm-price-label">Your number</div>
-            <div class="mmm-price-value">$<span id="mmm-price">1,395,000</span></div>
-            <div class="mmm-psf-tag" id="mmm-psf-tag">$778 / ft²</div>
+            <div class="mmm-price-value">$<span id="mmm-price">—</span></div>
+            <div class="mmm-psf-tag" id="mmm-psf-tag">— / ft²</div>
           </div>
         </div>
 
         <div class="mmm-slider-wrap">
-          <input type="range" class="mmm-slider" id="mmm-slider" min="800000" max="3000000" step="25000" value="1395000">
+          <input type="range" class="mmm-slider" id="mmm-slider" min="800000" max="3000000" step="25000" value="1500000">
           <div class="mmm-range-labels">
-            <span>$800K</span>
-            <span>$1.9M (median)</span>
-            <span>$3M</span>
+            <span id="mmm-min-label">$800K</span>
+            <span id="mmm-med-label">$1.5M (median)</span>
+            <span id="mmm-max-label">$3M</span>
           </div>
         </div>
 
         <div class="mmm-calibration">
           <div class="calib">
             <div class="label">vs building median</div>
-            <div class="val accent" id="mmm-vs-median">-22%</div>
-            <div class="sub">Building 12-mo median: $1.8M</div>
+            <div class="val accent" id="mmm-vs-median">—</div>
+            <div class="sub">Building median: <span id="mmm-median-display">—</span></div>
           </div>
           <div class="calib">
             <div class="label">Your $/ft² rank</div>
-            <div class="val" id="mmm-percentile">38th percentile</div>
-            <div class="sub">Of 75 recorded sales here</div>
+            <div class="val" id="mmm-percentile">—</div>
+            <div class="sub">Median $/ft²: <span id="mmm-ppsf-median-display">—</span></div>
           </div>
           <div class="calib">
             <div class="label">Estimated net</div>
-            <div class="val" id="mmm-net">$1.29M</div>
+            <div class="val" id="mmm-net">—</div>
             <div class="sub">After ~7.5% commission + fees</div>
           </div>
         </div>
@@ -1118,7 +1310,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   </div>
 </section>
 
-<!-- ========== SECTION 5: MMM NO-BRAINER PITCH (seller, but both can see) ========== -->
+<!-- ========== SECTION: MMM NO-BRAINER ========== -->
 <section class="story persona-section" data-persona="seller" id="mmm-pitch">
   <div class="section-inner">
     <div class="section-eyebrow">The no-brainer</div>
@@ -1127,7 +1319,7 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   </div>
 </section>
 
-<!-- ========== SECTION 6: EOI PROTOCOL ========== -->
+<!-- ========== SECTION: EOI PROTOCOL ========== -->
 <section class="story" id="eoi-protocol">
   <div class="section-inner">
     <div class="section-eyebrow">The protocol</div>
@@ -1258,6 +1450,31 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
 
 <script>
 (function() {
+  // ============== SUPABASE CONFIG ==============
+  const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+
+  async function rpc(name, args) {
+    args = args || {};
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON
+      },
+      body: JSON.stringify(args)
+    });
+    if (!r.ok) throw new Error('RPC ' + name + ' failed: ' + r.status);
+    return r.json();
+  }
+
+  function fmtPriceShort(n) {
+    if (!n || isNaN(n)) return '$—';
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(n >= 10000000 ? 1 : 2).replace(/\.?0+$/, '') + 'M';
+    return '$' + Math.round(n / 1000) + 'K';
+  }
+
   // ============== PERSONA TOGGLE ==============
   const STORAGE_KEY = 'cm_how_persona_v2';
   const body = document.body;
@@ -1267,32 +1484,31 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
 
   function setPersona(p) {
     body.classList.remove('persona-buyer', 'persona-seller');
-    document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.persona-card').forEach(function(c) { c.classList.remove('active'); });
     if (p === 'buyer' || p === 'seller') {
       body.classList.add('persona-' + p);
-      const picked = document.querySelector(`.persona-card[data-pick="${p}"]`);
+      const picked = document.querySelector('.persona-card[data-pick="' + p + '"]');
       if (picked) picked.classList.add('active');
       bar.classList.add('visible');
       personaName.textContent = p === 'buyer' ? 'Buyer view' : 'Seller view';
       try { localStorage.setItem(STORAGE_KEY, p); } catch(e) {}
-      // Auto-expand MMM tier for sellers
-      document.querySelectorAll('.tier').forEach(t => t.classList.remove('expanded'));
+      document.querySelectorAll('.tier').forEach(function(t) { t.classList.remove('expanded'); });
       if (p === 'seller') {
         const t1 = document.querySelector('.tier-1');
         if (t1) t1.classList.add('expanded');
       }
     }
   }
-  document.querySelectorAll('.persona-card').forEach(card => {
-    card.addEventListener('click', () => {
+  document.querySelectorAll('.persona-card').forEach(function(card) {
+    card.addEventListener('click', function() {
       setPersona(card.dataset.pick);
-      setTimeout(() => {
+      setTimeout(function() {
         const target = document.getElementById('problem');
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 120);
     });
   });
-  switchLink.addEventListener('click', (e) => {
+  switchLink.addEventListener('click', function(e) {
     e.preventDefault();
     const current = body.classList.contains('persona-buyer') ? 'buyer' : 'seller';
     setPersona(current === 'buyer' ? 'seller' : 'buyer');
@@ -1300,21 +1516,20 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   });
 
   // ============== LADDER ACCORDION ==============
-  document.querySelectorAll('.tier').forEach(tier => {
-    tier.addEventListener('click', () => {
+  document.querySelectorAll('.tier').forEach(function(tier) {
+    tier.addEventListener('click', function() {
       const wasExpanded = tier.classList.contains('expanded');
-      document.querySelectorAll('.tier').forEach(t => t.classList.remove('expanded'));
+      document.querySelectorAll('.tier').forEach(function(t) { t.classList.remove('expanded'); });
       if (!wasExpanded) tier.classList.add('expanded');
     });
   });
 
-  // ============== MMM DISTRIBUTION RANDOM NUMBER ==============
-  // Per Tim's brief — random 1000-2000 per pageview for liveness feel
+  // ============== MMM REACH RANDOMIZER ==============
   const mmmCount = 1000 + Math.floor(Math.random() * 1001);
   const reachStat = document.getElementById('mmm-reach-stat');
   if (reachStat) reachStat.textContent = '~' + (Math.round(mmmCount / 100) * 100).toLocaleString();
 
-  // ============== INTERACTIVE COMP TABLE ==============
+  // ============== COMP TABLE (BUYER) ==============
   const COMPS = [
     { date: '2026-05-22', unit: '504', beds: 2, sqft: 1791, price: 1800000, psf: 1005 },
     { date: '2024-05-20', unit: '603', beds: 1, sqft: 1274, price: 1026200, psf: 805 },
@@ -1323,98 +1538,269 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
     { date: '2022-03-23', unit: '304', beds: 1, sqft: 1798, price: 1550000, psf: 862 },
     { date: '2021-12-03', unit: '403', beds: 1, sqft: 1305, price: 1155000, psf: 885 },
     { date: '2021-06-07', unit: '302', beds: 1, sqft: 1378, price: 1200000, psf: 871 },
-    { date: '2021-05-03', unit: '401', beds: 2, sqft: 1576, price: 1550000, psf: 984 },
+    { date: '2021-05-03', unit: '401', beds: 2, sqft: 1576, price: 1550000, psf: 984 }
   ];
   const tbody = document.getElementById('comp-tbody');
   const filter = document.getElementById('comp-filter');
-  let sortKey = 'date', sortDir = -1; // newest first
-
-  function psfClass(psf) {
-    if (psf >= 950) return 'psf-high';
-    if (psf >= 850) return 'psf-mid';
-    return 'psf-low';
-  }
+  let sortKey = 'date', sortDir = -1;
+  function psfClass(psf) { return psf >= 950 ? 'psf-high' : psf >= 850 ? 'psf-mid' : 'psf-low'; }
   function fmtUSD(n) { return '$' + n.toLocaleString(); }
   function renderComps() {
-    const term = (filter?.value || '').toLowerCase().trim();
+    const term = (filter && filter.value ? filter.value : '').toLowerCase().trim();
     const rows = COMPS
-      .filter(r => !term || ('' + r.unit + ' ' + r.beds + 'bd ' + r.sqft).toLowerCase().includes(term))
-      .sort((a, b) => {
+      .filter(function(r) { return !term || ('' + r.unit + ' ' + r.beds + 'bd ' + r.sqft).toLowerCase().includes(term); })
+      .sort(function(a, b) {
         const av = a[sortKey], bv = b[sortKey];
         return av < bv ? -1 * sortDir : av > bv ? 1 * sortDir : 0;
       });
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.date}</td>
-        <td><strong>#${r.unit}</strong></td>
-        <td>${r.beds} bd</td>
-        <td>${r.sqft.toLocaleString()}</td>
-        <td class="price">${fmtUSD(r.price)}</td>
-        <td><span class="psf-cell ${psfClass(r.psf)}">$${r.psf.toLocaleString()}</span></td>
-      </tr>
-    `).join('');
-    document.querySelectorAll('#comp-table thead th').forEach(th => {
+    tbody.innerHTML = rows.map(function(r) {
+      return '<tr>' +
+        '<td>' + r.date + '</td>' +
+        '<td><strong>#' + r.unit + '</strong></td>' +
+        '<td>' + r.beds + ' bd</td>' +
+        '<td>' + r.sqft.toLocaleString() + '</td>' +
+        '<td class="price">' + fmtUSD(r.price) + '</td>' +
+        '<td><span class="psf-cell ' + psfClass(r.psf) + '">$' + r.psf.toLocaleString() + '</span></td>' +
+        '</tr>';
+    }).join('');
+    document.querySelectorAll('#comp-table thead th').forEach(function(th) {
       th.classList.toggle('sort-active', th.dataset.sort === sortKey);
       const ind = th.querySelector('.sort-indicator');
       if (ind) ind.textContent = th.dataset.sort === sortKey ? (sortDir === -1 ? '↓' : '↑') : '';
     });
   }
-  document.querySelectorAll('#comp-table thead th').forEach(th => {
-    th.addEventListener('click', () => {
+  document.querySelectorAll('#comp-table thead th').forEach(function(th) {
+    th.addEventListener('click', function() {
       const key = th.dataset.sort;
       if (sortKey === key) sortDir = -sortDir;
       else { sortKey = key; sortDir = key === 'date' ? -1 : 1; }
       renderComps();
     });
   });
-  filter?.addEventListener('input', renderComps);
+  if (filter) filter.addEventListener('input', renderComps);
   renderComps();
 
-  // ============== MMM SLIDER ==============
-  const slider = document.getElementById('mmm-slider');
-  const priceEl = document.getElementById('mmm-price');
-  const psfTagEl = document.getElementById('mmm-psf-tag');
-  const vsMedEl = document.getElementById('mmm-vs-median');
-  const pctEl = document.getElementById('mmm-percentile');
-  const netEl = document.getElementById('mmm-net');
-  const BUILDING_MEDIAN = 1800000;
-  const ASSUMED_SQFT = 1791;
-  const COMMISSION_PCT = 0.075;
+  // ============== BUILDING PICKER + DYNAMIC MMM ==============
+  const PICKER = { data: null, currentBuilding: null };
+  const STATE = { medianPrice: 0, medianPpsf: 0, avgSqft: 0 };
+
+  const elNbhd = document.getElementById('picker-neighborhood');
+  const elBldg = document.getElementById('picker-building');
+  const elPickerStatus = document.getElementById('picker-status-text');
+  const elEmpty = document.getElementById('mmm-empty');
+  const elTool = document.getElementById('mmm-tool');
+  const elBuildingName = document.getElementById('mmm-building-name');
+  const elBuildingMedian = document.getElementById('mmm-building-median');
+  const elBuildingPpsf = document.getElementById('mmm-building-ppsf');
+  const elBuildingSales = document.getElementById('mmm-building-sales');
+  const elSlider = document.getElementById('mmm-slider');
+  const elPrice = document.getElementById('mmm-price');
+  const elPsfTag = document.getElementById('mmm-psf-tag');
+  const elVsMed = document.getElementById('mmm-vs-median');
+  const elMedDisp = document.getElementById('mmm-median-display');
+  const elPpsfMedDisp = document.getElementById('mmm-ppsf-median-display');
+  const elPercentile = document.getElementById('mmm-percentile');
+  const elNet = document.getElementById('mmm-net');
+  const elMinLabel = document.getElementById('mmm-min-label');
+  const elMaxLabel = document.getElementById('mmm-max-label');
+  const elMedLabel = document.getElementById('mmm-med-label');
+
+  function populateNeighborhoods() {
+    const opts = ['<option value="">— Pick a neighborhood —</option>'];
+    (PICKER.data.neighborhoods || []).forEach(function(n) {
+      opts.push('<option value="' + n.name + '">' + n.name + ' (' + n.count + ')</option>');
+    });
+    elNbhd.innerHTML = opts.join('');
+    elNbhd.disabled = false;
+  }
+
+  async function loadPicker() {
+    try {
+      PICKER.data = await rpc('how_it_works_building_picker');
+      populateNeighborhoods();
+      const totalBuildings = (PICKER.data.buildings || []).length;
+      const totalNbhds = (PICKER.data.neighborhoods || []).length;
+      elPickerStatus.innerHTML = '<strong>' + totalBuildings + '</strong> buildings across <strong>' + totalNbhds + '</strong> neighborhoods';
+    } catch (e) {
+      elPickerStatus.textContent = "Couldn't load buildings. You can still suggest one below.";
+      elNbhd.innerHTML = '<option value="">— Building data unavailable —</option>';
+      elNbhd.disabled = true;
+    }
+  }
+
+  function hideSlider() {
+    elTool.hidden = true;
+    elEmpty.hidden = false;
+  }
+
+  function showSlider(b) {
+    elEmpty.hidden = true;
+    elTool.hidden = false;
+    elBuildingName.textContent = b.name;
+    elBuildingMedian.textContent = fmtPriceShort(b.median_price);
+    elBuildingPpsf.textContent = '$' + b.median_ppsf.toLocaleString();
+    elBuildingSales.textContent = b.sales.toLocaleString();
+    elMedDisp.textContent = fmtPriceShort(b.median_price);
+    elPpsfMedDisp.textContent = '$' + b.median_ppsf.toLocaleString();
+
+    STATE.medianPrice = b.median_price;
+    STATE.medianPpsf = b.median_ppsf;
+    STATE.avgSqft = b.avg_sqft;
+
+    const min = Math.max(100000, Math.floor(b.min_price / 25000) * 25000);
+    const max = Math.min(20000000, Math.ceil(b.max_price / 25000) * 25000);
+    const median = Math.max(min, Math.min(max, Math.round(b.median_price / 25000) * 25000));
+
+    elSlider.min = min;
+    elSlider.max = max;
+    elSlider.step = 25000;
+    elSlider.value = median;
+
+    elMinLabel.textContent = fmtPriceShort(min);
+    elMaxLabel.textContent = fmtPriceShort(max);
+    elMedLabel.textContent = fmtPriceShort(b.median_price) + ' (median)';
+
+    updateMmm(median);
+  }
+
   function updateMmm(p) {
-    priceEl.textContent = p.toLocaleString();
-    const psf = Math.round(p / ASSUMED_SQFT);
-    psfTagEl.textContent = '$' + psf.toLocaleString() + ' / ft²';
-    const pct = Math.round((p / BUILDING_MEDIAN - 1) * 100);
-    vsMedEl.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-    vsMedEl.className = 'val ' + (Math.abs(pct) < 5 ? '' : (pct > 0 ? 'accent' : 'accent'));
-    // percentile approximation (psf scale here is roughly $440-$1005)
+    elPrice.textContent = p.toLocaleString();
+    const psf = STATE.avgSqft > 0 ? Math.round(p / STATE.avgSqft) : 0;
+    elPsfTag.textContent = '$' + psf.toLocaleString() + ' / ft²';
+
+    const pct = STATE.medianPrice > 0 ? Math.round((p / STATE.medianPrice - 1) * 100) : 0;
+    elVsMed.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+
     let percentile;
-    if (psf < 500) percentile = 10;
-    else if (psf < 700) percentile = 30;
-    else if (psf < 850) percentile = 50;
-    else if (psf < 950) percentile = 70;
-    else percentile = 88;
-    pctEl.textContent = percentile + 'th percentile';
-    const net = Math.round(p * (1 - COMMISSION_PCT));
-    netEl.textContent = '$' + (net >= 1000000
-      ? (net / 1000000).toFixed(2) + 'M'
+    const ratio = STATE.medianPpsf > 0 ? psf / STATE.medianPpsf : 1;
+    if (ratio < 0.7) percentile = 10;
+    else if (ratio < 0.85) percentile = 25;
+    else if (ratio < 1.0) percentile = 45;
+    else if (ratio < 1.15) percentile = 65;
+    else if (ratio < 1.3) percentile = 82;
+    else percentile = 92;
+    elPercentile.textContent = percentile + 'th percentile';
+
+    const net = Math.round(p * 0.925);
+    elNet.textContent = '$' + (net >= 1000000
+      ? (net / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M'
       : Math.round(net / 1000).toLocaleString() + 'K');
   }
-  if (slider) {
-    slider.addEventListener('input', () => updateMmm(parseInt(slider.value, 10)));
-    updateMmm(parseInt(slider.value, 10));
+
+  elNbhd.addEventListener('change', function() {
+    const nbhd = elNbhd.value;
+    PICKER.currentBuilding = null;
+    hideSlider();
+    if (!nbhd) {
+      elBldg.innerHTML = '<option value="">— Pick a neighborhood first —</option>';
+      elBldg.disabled = true;
+      return;
+    }
+    const buildings = (PICKER.data.buildings || []).filter(function(b) { return b.neighborhood === nbhd; });
+    if (buildings.length === 0) {
+      elBldg.innerHTML = '<option value="">No buildings yet · Suggest one below</option>';
+      elBldg.disabled = true;
+      openSuggestForm(nbhd);
+      return;
+    }
+    elBldg.disabled = false;
+    const opts = ['<option value="">— Pick a building —</option>'];
+    buildings.forEach(function(b) {
+      opts.push('<option value="' + b.slug + '">' + b.name + ' · ' + b.units + ' units</option>');
+    });
+    elBldg.innerHTML = opts.join('');
+  });
+
+  elBldg.addEventListener('change', function() {
+    const slug = elBldg.value;
+    if (!slug) { hideSlider(); return; }
+    const building = (PICKER.data.buildings || []).find(function(b) { return b.slug === slug; });
+    if (!building) return;
+    PICKER.currentBuilding = building;
+    showSlider(building);
+  });
+
+  elSlider.addEventListener('input', function() {
+    updateMmm(parseInt(elSlider.value, 10));
+  });
+
+  // ============== SUGGEST FORM ==============
+  const elSuggestToggle = document.getElementById('suggest-toggle');
+  const elSuggestForm = document.getElementById('suggest-form');
+  const elSuggestCancel = document.getElementById('suggest-cancel');
+  const elSuggestSubmit = document.getElementById('suggest-submit');
+  const elSuggestMsg = document.getElementById('suggest-msg');
+  const elSAddress = document.getElementById('suggest-address');
+  const elSName = document.getElementById('suggest-name');
+  const elSNbhd = document.getElementById('suggest-neighborhood');
+  const elSEmail = document.getElementById('suggest-email');
+  const elSNotes = document.getElementById('suggest-notes');
+
+  function openSuggestForm(prefillNbhd) {
+    elSuggestForm.classList.add('open');
+    if (prefillNbhd && !elSNbhd.value) elSNbhd.value = prefillNbhd;
+    setTimeout(function() { elSAddress.focus(); }, 50);
   }
+  function closeSuggestForm() {
+    elSuggestForm.classList.remove('open');
+    elSuggestMsg.classList.remove('show', 'success', 'error', 'pending');
+    elSuggestMsg.textContent = '';
+  }
+
+  elSuggestToggle.addEventListener('click', function() {
+    if (elSuggestForm.classList.contains('open')) closeSuggestForm();
+    else openSuggestForm(elNbhd.value);
+  });
+  elSuggestCancel.addEventListener('click', closeSuggestForm);
+
+  elSuggestSubmit.addEventListener('click', async function() {
+    const address = elSAddress.value.trim();
+    if (!address || address.length < 5) {
+      elSuggestMsg.className = 'suggest-msg show error';
+      elSuggestMsg.textContent = 'Please enter a building address (at least 5 characters).';
+      return;
+    }
+    elSuggestSubmit.disabled = true;
+    elSuggestMsg.className = 'suggest-msg show pending';
+    elSuggestMsg.textContent = 'Submitting…';
+    try {
+      const result = await rpc('suggest_building', {
+        p_address: address,
+        p_neighborhood: elSNbhd.value.trim() || null,
+        p_name: elSName.value.trim() || null,
+        p_email: elSEmail.value.trim() || null,
+        p_notes: elSNotes.value.trim() || null
+      });
+      if (result && result.ok) {
+        elSuggestMsg.className = 'suggest-msg show success';
+        elSuggestMsg.textContent = "✓ Thanks! We'll review and add it to the catalogue. If you provided an email, we'll let you know when it's live.";
+        elSAddress.value = '';
+        elSName.value = '';
+        elSEmail.value = '';
+        elSNotes.value = '';
+      } else {
+        elSuggestMsg.className = 'suggest-msg show error';
+        elSuggestMsg.textContent = '✗ ' + ((result && result.error) || 'Submission failed.');
+      }
+    } catch (e) {
+      elSuggestMsg.className = 'suggest-msg show error';
+      elSuggestMsg.textContent = '✗ Network error. Please try again.';
+    } finally {
+      elSuggestSubmit.disabled = false;
+    }
+  });
 
   // ============== MINI TOWERS (BUYER STRIP) ==============
   const SHADES = ['#3e4660','#6c7a8e','#8a7d6c','#a39788','var(--accent-deep)','var(--accent)'];
-  document.querySelectorAll('.mini-tower').forEach(el => {
-    const [floors, stacks] = el.dataset.tower.split(',').map(Number);
+  document.querySelectorAll('.mini-tower').forEach(function(el) {
+    const parts = el.dataset.tower.split(',').map(Number);
+    const floors = parts[0], stacks = parts[1];
     let html = '';
     for (let f = 0; f < floors; f++) {
       html += '<div class="mini-row">';
       for (let s = 0; s < stacks; s++) {
         const shade = SHADES[Math.floor(Math.random() * SHADES.length)];
-        html += `<div class="mini-cell" style="background:${shade}"></div>`;
+        html += '<div class="mini-cell" style="background:' + shade + '"></div>';
       }
       html += '</div>';
     }
@@ -1422,14 +1808,13 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
   });
 
   // ============== FAQ ACCORDION ==============
-  document.querySelectorAll('.faq-q').forEach(q => {
-    q.addEventListener('click', () => {
-      const item = q.closest('.faq-item');
-      item.classList.toggle('open');
+  document.querySelectorAll('.faq-q').forEach(function(q) {
+    q.addEventListener('click', function() {
+      q.closest('.faq-item').classList.toggle('open');
     });
   });
 
-  // ============== ANIMATED STAT COUNTERS ==============
+  // ============== ANIMATED COUNTERS ==============
   function animateCount(el) {
     const target = parseInt(el.dataset.countTo, 10);
     if (!target || el.dataset.counted) return;
@@ -1439,51 +1824,48 @@ body.persona-seller section.persona-section[data-persona="buyer"] { display: non
     function tick(now) {
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      const val = Math.round(target * eased);
-      el.textContent = val.toLocaleString();
+      el.textContent = Math.round(target * eased).toLocaleString();
       if (t < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
   }
 
-  // ============== SCROLL REVEAL + COUNTER TRIGGER ==============
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
+  // ============== SCROLL REVEAL ==============
+  const obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
       if (e.isIntersecting) {
         e.target.classList.add('visible');
         e.target.querySelectorAll('[data-count-to]').forEach(animateCount);
       }
     });
   }, { threshold: 0.12 });
-  document.querySelectorAll('section.story, .credit-band, .final, .reveal, .reveal-stagger, .stat-bar').forEach(el => {
+  document.querySelectorAll('section.story, .credit-band, .final, .reveal, .reveal-stagger, .stat-bar').forEach(function(el) {
     if (!el.classList.contains('reveal') && !el.classList.contains('reveal-stagger')) el.classList.add('reveal');
     obs.observe(el);
   });
 
-  // ============== PARALLAX (throttled scroll) ==============
+  // ============== PARALLAX ==============
   let ticking = false;
-  function onScroll() {
+  window.addEventListener('scroll', function() {
     if (ticking) return;
     ticking = true;
-    requestAnimationFrame(() => {
+    requestAnimationFrame(function() {
       const y = window.scrollY;
-      document.querySelectorAll('[data-parallax]').forEach(el => {
+      document.querySelectorAll('[data-parallax]').forEach(function(el) {
         const speed = parseFloat(el.dataset.parallax) || 0.2;
-        el.style.transform = `translate3d(0, ${y * speed}px, 0)`;
+        el.style.transform = 'translate3d(0, ' + (y * speed) + 'px, 0)';
       });
       ticking = false;
     });
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
+  }, { passive: true });
 
-  // ============== RESTORE PERSONA ==============
+  // ============== INIT ==============
   let saved = null;
   try { saved = localStorage.getItem(STORAGE_KEY); } catch(e) {}
-  if (saved === 'buyer' || saved === 'seller') {
-    setPersona(saved);
-  } else {
-    body.classList.add('persona-buyer');
-  }
+  if (saved === 'buyer' || saved === 'seller') setPersona(saved);
+  else body.classList.add('persona-buyer');
+
+  loadPicker();
 })();
 </script>
 
