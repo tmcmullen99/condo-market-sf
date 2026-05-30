@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Case studies · Admin · Condo Market</title>
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1a1f2e; --navy-deep:#0f131d; --peri:#9fb4d8; --peri-dim:#6a7fa3;
+  --ivory:#e8e3d8; --ivory-dim:rgba(232,227,216,0.64);
+  --rule:rgba(232,227,216,0.14);
+  --gain:#8fb97a; --loss:#c97865; --accent:#d4a574;
+  --ff-display:'Playfair Display',Georgia,serif;
+  --ff-body:'DM Sans',-apple-system,sans-serif;
+  --ff-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--navy-deep);color:var(--ivory);font-family:var(--ff-body);font-weight:300;font-size:15px;line-height:1.55;min-height:100vh;}
+a{color:var(--peri);text-decoration:none;}
+a:hover{color:var(--ivory);}
+button{cursor:pointer;font-family:inherit;border:0;background:none;color:inherit;}
+.wrap{max-width:1200px;margin:0 auto;padding:0 clamp(20px,4vw,40px);}
+.topnav{padding:18px 0;border-bottom:1px solid var(--rule);background:var(--navy);}
+.topnav-row{display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.topnav-brand{font-family:var(--ff-display);font-style:italic;font-weight:500;font-size:20px;color:var(--ivory);}
+.topnav-brand em{color:var(--peri);}
+.topnav-meta{display:flex;gap:22px;font-family:var(--ff-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ivory-dim);}
+.topnav-meta a{color:var(--ivory-dim);}
+.topnav-meta a:hover{color:var(--peri);}
+
+main{padding:48px 0 80px;}
+.page-head{display:flex;align-items:end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:32px;border-bottom:1px solid var(--rule);padding-bottom:24px;}
+.page-head h1{font-family:var(--ff-display);font-weight:500;font-size:clamp(32px,4vw,44px);line-height:1.1;letter-spacing:-0.015em;color:var(--ivory);}
+.page-head h1 em{font-style:italic;color:var(--peri);font-weight:500;}
+.page-head-sub{font-family:var(--ff-mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--peri);margin-bottom:8px;}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:999px;font-size:13px;font-weight:500;font-family:inherit;border:1px solid var(--rule);background:transparent;color:var(--ivory);transition:all 0.15s;}
+.btn:hover{border-color:var(--peri);color:var(--peri);}
+.btn-primary{background:var(--peri);color:var(--navy);border-color:var(--peri);}
+.btn-primary:hover{background:var(--ivory);border-color:var(--ivory);color:var(--navy);}
+.btn-danger{color:var(--loss);border-color:rgba(201,120,101,0.4);}
+.btn-danger:hover{background:rgba(201,120,101,0.1);border-color:var(--loss);color:var(--loss);}
+.btn-sm{padding:6px 14px;font-size:12px;}
+
+/* List */
+.list-empty{text-align:center;padding:64px 24px;color:var(--ivory-dim);font-style:italic;font-family:var(--ff-display);font-size:18px;border:1px dashed var(--rule);border-radius:10px;}
+table.cs-table{width:100%;border-collapse:collapse;margin-bottom:32px;}
+.cs-table th{text-align:left;font-family:var(--ff-mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ivory-dim);padding:14px 12px;border-bottom:1px solid var(--rule);font-weight:500;}
+.cs-table td{padding:18px 12px;border-bottom:1px solid var(--rule);font-size:13px;color:var(--ivory);vertical-align:middle;}
+.cs-table tr:hover td{background:rgba(159,180,216,0.04);}
+.cs-name{font-family:var(--ff-display);font-style:italic;font-weight:500;font-size:17px;color:var(--ivory);}
+.cs-slug{font-family:var(--ff-mono);font-size:11px;color:var(--ivory-dim);letter-spacing:0.02em;}
+.cs-status{display:inline-block;font-family:var(--ff-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;font-weight:500;}
+.cs-status.is-draft{background:rgba(212,165,116,0.14);color:var(--accent);}
+.cs-status.is-published{background:rgba(143,185,122,0.14);color:var(--gain);}
+.cs-placements{display:flex;gap:4px;}
+.cs-pl-badge{display:inline-block;width:22px;height:22px;border-radius:4px;border:1px solid var(--rule);font-family:var(--ff-mono);font-size:10px;text-align:center;line-height:20px;color:var(--ivory-dim);font-weight:500;}
+.cs-pl-badge.is-on{background:var(--peri);color:var(--navy);border-color:var(--peri);}
+.cs-actions{display:flex;gap:8px;justify-content:flex-end;}
+
+/* Form */
+.form-panel{display:none;background:var(--navy);border:1px solid var(--rule);border-radius:12px;padding:36px;margin-top:32px;}
+.form-panel.is-open{display:block;}
+.form-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--rule);}
+.form-panel-head h2{font-family:var(--ff-display);font-style:italic;font-weight:500;font-size:24px;color:var(--ivory);}
+.form-panel-head h2 em{color:var(--peri);}
+.fieldset{border:0;padding:0;margin:0 0 28px;}
+.fieldset-title{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--peri);margin-bottom:12px;padding-bottom:8px;border-bottom:1px dashed var(--rule);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:640px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.field{display:flex;flex-direction:column;gap:5px;}
+.field.field-full{grid-column:1/-1;}
+.field label{font-family:var(--ff-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ivory-dim);font-weight:500;}
+.field input,.field select,.field textarea{
+  background:var(--navy-deep);border:1px solid var(--rule);border-radius:6px;
+  color:var(--ivory);padding:10px 12px;font-size:14px;font-family:inherit;outline:none;
+  transition:border-color 0.15s;width:100%;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--peri);}
+.field textarea{min-height:78px;resize:vertical;line-height:1.5;font-family:var(--ff-body);}
+.field input[type="checkbox"]{width:auto;}
+.field-help{font-size:11px;color:var(--ivory-dim);margin-top:2px;font-style:italic;}
+
+.check-row{display:flex;align-items:center;gap:10px;background:var(--navy-deep);border:1px solid var(--rule);border-radius:6px;padding:11px 14px;cursor:pointer;transition:border-color 0.15s;}
+.check-row:hover{border-color:var(--peri-dim);}
+.check-row input{margin:0;cursor:pointer;}
+.check-row label{font-family:var(--ff-body);font-size:13px;color:var(--ivory);text-transform:none;letter-spacing:0;cursor:pointer;flex:1;font-weight:400;}
+
+.form-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:24px;border-top:1px solid var(--rule);flex-wrap:wrap;}
+.form-footer-left{display:flex;gap:10px;}
+.form-footer-right{display:flex;gap:10px;}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);border:1px solid var(--peri);border-radius:8px;padding:14px 22px;font-size:13px;z-index:1000;display:none;color:var(--ivory);box-shadow:0 4px 24px rgba(0,0,0,0.3);}
+.toast.is-error{border-color:var(--loss);color:var(--loss);}
+.toast.is-show{display:block;animation:toastIn 0.2s ease-out;}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+.gate{padding:120px 24px;text-align:center;color:var(--ivory-dim);}
+.gate h2{font-family:var(--ff-display);font-style:italic;font-size:28px;color:var(--ivory);margin-bottom:14px;}
+
+.publish-warn{background:rgba(212,165,116,0.08);border:1px dashed var(--accent);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--accent);margin-bottom:20px;line-height:1.5;}
+.publish-warn strong{color:var(--ivory);font-weight:500;}
+</style>
+</head>
+<body>
+
+<header class="topnav"><div class="wrap"><div class="topnav-row">
+  <a href="/admin/" class="topnav-brand">Condo <em>Market</em> · admin</a>
+  <nav class="topnav-meta">
+    <a href="/admin/">← All admin</a>
+    <a href="/" target="_blank" rel="noopener">View site ↗</a>
+  </nav>
+</div></div></header>
+
+<main class="wrap">
+  <div id="gate-msg" class="gate" style="display:none;">
+    <h2>Admin access required</h2>
+    <p>Sign in with an admin account to manage case studies.</p>
+    <p style="margin-top:20px;"><a class="btn btn-primary" href="/">Back to site</a></p>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="page-head">
+      <div>
+        <div class="page-head-sub">Editorial · Real owner journeys</div>
+        <h1>Case <em>studies</em></h1>
+      </div>
+      <button class="btn btn-primary" id="new-btn">+ New case study</button>
+    </div>
+
+    <div id="list-wrap">
+      <table class="cs-table" id="cs-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Story</th>
+            <th>Building</th>
+            <th>Placements</th>
+            <th>Sort</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="cs-rows"></tbody>
+      </table>
+      <div class="list-empty" id="cs-empty" style="display:none;">No case studies yet — click "+ New case study" to add one.</div>
+    </div>
+
+    <div class="form-panel" id="form-panel">
+      <div class="form-panel-head">
+        <h2 id="form-title">New <em>case study</em></h2>
+        <button class="btn btn-sm" id="close-form-btn">× Close</button>
+      </div>
+
+      <div class="publish-warn" id="publish-warn" style="display:none;">
+        <strong>Required to publish:</strong> seller first name, slug, market, and at least one phase price.
+      </div>
+
+      <form id="edit-form" autocomplete="off">
+        <input type="hidden" id="f-id">
+
+        <div class="fieldset">
+          <div class="fieldset-title">Basics</div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label for="f-slug">Slug <span style="color:var(--loss);">*</span></label>
+              <input type="text" id="f-slug" required pattern="[a-z0-9-]+" placeholder="dave-650-2nd-st-2026">
+              <span class="field-help">Lowercase, dashes, no spaces.</span>
+            </div>
+            <div class="field">
+              <label for="f-market">Market</label>
+              <select id="f-market">
+                <option value="san-francisco-condo-market">San Francisco</option>
+                <option value="silicon-valley-condo-market">Silicon Valley</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-building">Building (slug)</label>
+              <input type="text" id="f-building" list="buildings-list" placeholder="lumina">
+              <span class="field-help">Pick from list or type slug. Powers the headline.</span>
+            </div>
+            <div class="field">
+              <label for="f-unit">Unit label (optional)</label>
+              <input type="text" id="f-unit" placeholder="12A">
+            </div>
+            <div class="field">
+              <label for="f-fname">Seller first name <span style="color:var(--loss);">*</span></label>
+              <input type="text" id="f-fname" required placeholder="Dave">
+            </div>
+            <div class="field">
+              <label for="f-linit">Last initial (optional)</label>
+              <input type="text" id="f-linit" maxlength="2" placeholder="M">
+              <span class="field-help">Single letter, no period. Shows as "Dave M."</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <div class="fieldset-title">Tier 1 · Make-Me-Move phase</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label for="f-mmm-price">MMM price ($)</label>
+              <input type="number" id="f-mmm-price" min="0" step="1" placeholder="3500000">
+            </div>
+            <div class="field">
+              <label for="f-mmm-start">Started at</label>
+              <input type="date" id="f-mmm-start">
+            </div>
+            <div class="field">
+              <label for="f-mmm-days">Duration (days)</label>
+              <input type="number" id="f-mmm-days" min="0" step="1" placeholder="7">
+            </div>
+            <div class="field">
+              <label for="f-mmm-tours">Tour requests</label>
+              <input type="number" id="f-mmm-tours" min="0" step="1" placeholder="0">
+            </div>
+            <div class="field field-full" style="grid-column:span 2;">
+              <label for="f-mmm-outcome">Outcome (one line)</label>
+              <textarea id="f-mmm-outcome" placeholder="Above market — zero tour requests in 7 days. Clear price signal received."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <div class="fieldset-title">Tier 2 · Coming Soon phase</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label for="f-cs-price">Coming Soon price ($)</label>
+              <input type="number" id="f-cs-price" min="0" step="1" placeholder="2998888">
+            </div>
+            <div class="field">
+              <label for="f-cs-start">Started at</label>
+              <input type="date" id="f-cs-start">
+            </div>
+            <div class="field">
+              <label for="f-cs-days">Duration (days)</label>
+              <input type="number" id="f-cs-days" min="0" step="1">
+            </div>
+            <div class="field">
+              <label for="f-cs-tours">Tour requests</label>
+              <input type="number" id="f-cs-tours" min="0" step="1" placeholder="2">
+            </div>
+            <div class="field">
+              <label for="f-cs-offers">Offers received</label>
+              <input type="number" id="f-cs-offers" min="0" step="1" placeholder="1">
+            </div>
+            <div class="field">
+              <label for="f-cs-counters">Counter rounds</label>
+              <input type="number" id="f-cs-counters" min="0" step="1" placeholder="1">
+            </div>
+            <div class="field field-full" style="grid-column:1/-1;">
+              <label for="f-cs-outcome">Outcome (one line)</label>
+              <textarea id="f-cs-outcome" placeholder="Recalibrated and surfaced as Coming Soon. Two tour requests, one offer + counteroffer round."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <div class="fieldset-title">Tier 3 · Close</div>
+          <div class="grid grid-4">
+            <div class="field">
+              <label for="f-final-price">Final sale price ($)</label>
+              <input type="number" id="f-final-price" min="0" step="1" placeholder="3050000">
+            </div>
+            <div class="field">
+              <label for="f-escrow">Escrow (days)</label>
+              <input type="number" id="f-escrow" min="0" step="1" placeholder="21">
+            </div>
+            <div class="field">
+              <label for="f-payment">Payment terms</label>
+              <select id="f-payment">
+                <option value="">—</option>
+                <option value="all_cash">All cash</option>
+                <option value="financed">Financed</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-closed">Closed at</label>
+              <input type="date" id="f-closed">
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <div class="fieldset-title">Display overrides (optional)</div>
+          <div class="grid">
+            <div class="field field-full">
+              <label for="f-headline">Headline override</label>
+              <input type="text" id="f-headline" placeholder="Auto: 'Dave at <Building> — $3M+ all-cash close'">
+              <span class="field-help">Leave blank to auto-generate from name + building + final price.</span>
+            </div>
+            <div class="field field-full">
+              <label for="f-quote">Pull quote (optional)</label>
+              <textarea id="f-quote" placeholder="One line from the seller or buyer that captures the moment."></textarea>
+            </div>
+            <div class="field field-full">
+              <label for="f-hero">Hero image URL (optional)</label>
+              <input type="url" id="f-hero" placeholder="https://...">
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <div class="fieldset-title">Visibility</div>
+          <div class="grid grid-4">
+            <div class="check-row">
+              <input type="checkbox" id="f-pub">
+              <label for="f-pub">Published</label>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="f-on-home">
+              <label for="f-on-home">Show on homepage</label>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="f-on-hiw">
+              <label for="f-on-hiw">Show on /how-it-works/</label>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="f-on-dash">
+              <label for="f-on-dash">Show on dashboard</label>
+            </div>
+          </div>
+          <div class="grid grid-3" style="margin-top:12px;">
+            <div class="field">
+              <label for="f-sort">Sort order</label>
+              <input type="number" id="f-sort" step="1" value="100">
+              <span class="field-help">Higher = shown first. Default 100.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <div class="form-footer-left">
+            <button type="button" class="btn btn-danger" id="delete-btn" style="display:none;">Delete</button>
+          </div>
+          <div class="form-footer-right">
+            <button type="button" class="btn" id="cancel-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="save-btn">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<datalist id="buildings-list"></datalist>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  var SUPABASE_URL  = 'https://kfqphwerygccpzntbbif.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  function getAccessToken() {
+    try {
+      var raw = localStorage.getItem('sb-kfqphwerygccpzntbbif-auth-token');
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      return data.access_token || (data.currentSession && data.currentSession.access_token) || null;
+    } catch (e) { return null; }
+  }
+
+  function getUserId() {
+    try {
+      var raw = localStorage.getItem('sb-kfqphwerygccpzntbbif-auth-token');
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      return (data.user && data.user.id) || (data.currentSession && data.currentSession.user && data.currentSession.user.id) || null;
+    } catch (e) { return null; }
+  }
+
+  function api(path, options) {
+    options = options || {};
+    var token = getAccessToken();
+    if (!token) return Promise.reject(new Error('no_session'));
+    var headers = Object.assign({
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Prefer': 'return=representation'
+    }, options.headers || {});
+    return fetch(SUPABASE_URL + '/rest/v1' + path, { method: options.method || 'GET', headers: headers, body: options.body })
+      .then(function (res) {
+        if (!res.ok) return res.text().then(function (t) { throw new Error('API ' + res.status + ': ' + t); });
+        if (res.status === 204) return null;
+        return res.json();
+      });
+  }
+
+  function rpc(name, body) {
+    return api('/rpc/' + name, { method: 'POST', body: JSON.stringify(body || {}) });
+  }
+
+  function toast(msg, isError) {
+    var el = $('#toast');
+    el.textContent = msg;
+    el.className = 'toast is-show' + (isError ? ' is-error' : '');
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(function () { el.className = 'toast'; }, 3200);
+  }
+
+  function moneyFmt(n) {
+    if (n == null || isNaN(n)) return '—';
+    return '$' + Number(n).toLocaleString('en-US');
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ─── Auth gate ───
+  function gateAndBoot() {
+    var token = getAccessToken();
+    var uid = getUserId();
+    if (!token || !uid) {
+      $('#gate-msg').style.display = 'block';
+      return;
+    }
+    api('/profiles?id=eq.' + uid + '&select=role').then(function (rows) {
+      if (!rows || !rows.length || rows[0].role !== 'admin') {
+        $('#gate-msg').style.display = 'block';
+        return;
+      }
+      $('#app').style.display = 'block';
+      Promise.all([loadStudies(), loadBuildings()]).catch(function (err) {
+        console.error(err); toast('Failed to load', true);
+      });
+    }).catch(function () { $('#gate-msg').style.display = 'block'; });
+  }
+
+  // ─── Buildings dropdown ───
+  function loadBuildings() {
+    return api('/buildings?select=slug,name,neighborhood&order=name.asc').then(function (rows) {
+      var dl = $('#buildings-list');
+      dl.innerHTML = rows.map(function (b) {
+        var label = b.name + (b.neighborhood ? ' · ' + b.neighborhood : '') + ' [' + b.slug + ']';
+        return '<option value="' + escapeHtml(b.slug) + '" label="' + escapeHtml(label) + '"></option>';
+      }).join('');
+    });
+  }
+
+  // ─── List ───
+  var STUDIES = [];
+
+  function loadStudies() {
+    return api('/case_studies?select=*&order=sort_order.desc,created_at.desc').then(function (rows) {
+      STUDIES = rows || [];
+      renderList();
+    });
+  }
+
+  function renderList() {
+    var tbody = $('#cs-rows');
+    var table = $('#cs-table');
+    var empty = $('#cs-empty');
+    if (!STUDIES.length) {
+      table.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    table.style.display = '';
+    empty.style.display = 'none';
+    tbody.innerHTML = STUDIES.map(function (s) {
+      var status = s.is_published
+        ? '<span class="cs-status is-published">Live</span>'
+        : '<span class="cs-status is-draft">Draft</span>';
+      var nameDisplay = (s.seller_first_name || 'Owner') + (s.seller_last_initial ? ' ' + s.seller_last_initial.replace(/\.$/, '') + '.' : '');
+      var bldg = s.building_slug ? s.building_slug : '<span style="color:var(--ivory-dim);">—</span>';
+      var places = [
+        ['H', s.show_on_homepage],
+        ['W', s.show_on_how_it_works],
+        ['D', s.show_on_dashboard]
+      ].map(function (p) {
+        return '<span class="cs-pl-badge' + (p[1] ? ' is-on' : '') + '" title="' + (p[0] === 'H' ? 'Homepage' : p[0] === 'W' ? '/how-it-works/' : 'Dashboard') + '">' + p[0] + '</span>';
+      }).join('');
+      return '<tr>'
+        + '<td>' + status + '</td>'
+        + '<td><div class="cs-name">' + escapeHtml(nameDisplay) + '</div><div class="cs-slug">' + escapeHtml(s.slug) + '</div></td>'
+        + '<td>' + escapeHtml(bldg) + '</td>'
+        + '<td><div class="cs-placements">' + places + '</div></td>'
+        + '<td>' + (s.sort_order != null ? s.sort_order : 0) + '</td>'
+        + '<td><div class="cs-actions"><button class="btn btn-sm" data-edit="' + escapeHtml(s.id) + '">Edit</button></div></td>'
+        + '</tr>';
+    }).join('');
+
+    $$('[data-edit]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-edit');
+        var study = STUDIES.find(function (s) { return s.id === id; });
+        if (study) openForm(study);
+      });
+    });
+  }
+
+  // ─── Form ───
+  function clearForm() {
+    $('#f-id').value = '';
+    $('#edit-form').reset();
+    $('#f-sort').value = '100';
+    $('#f-market').value = 'san-francisco-condo-market';
+    $('#delete-btn').style.display = 'none';
+    $('#form-title').innerHTML = 'New <em>case study</em>';
+    $('#publish-warn').style.display = 'none';
+  }
+
+  function openForm(study) {
+    clearForm();
+    if (study) {
+      $('#f-id').value = study.id || '';
+      $('#f-slug').value = study.slug || '';
+      $('#f-market').value = study.market_slug || 'san-francisco-condo-market';
+      $('#f-building').value = study.building_slug || '';
+      $('#f-unit').value = study.unit_label || '';
+      $('#f-fname').value = study.seller_first_name || '';
+      $('#f-linit').value = study.seller_last_initial ? study.seller_last_initial.replace(/\.$/, '') : '';
+      $('#f-mmm-price').value = study.mmm_price != null ? study.mmm_price : '';
+      $('#f-mmm-start').value = study.mmm_started_at || '';
+      $('#f-mmm-days').value = study.mmm_duration_days != null ? study.mmm_duration_days : '';
+      $('#f-mmm-tours').value = study.mmm_tours_requested != null ? study.mmm_tours_requested : '';
+      $('#f-mmm-outcome').value = study.mmm_outcome || '';
+      $('#f-cs-price').value = study.coming_soon_price != null ? study.coming_soon_price : '';
+      $('#f-cs-start').value = study.coming_soon_started_at || '';
+      $('#f-cs-days').value = study.coming_soon_duration_days != null ? study.coming_soon_duration_days : '';
+      $('#f-cs-tours').value = study.coming_soon_tours_requested != null ? study.coming_soon_tours_requested : '';
+      $('#f-cs-offers').value = study.coming_soon_offers_received != null ? study.coming_soon_offers_received : '';
+      $('#f-cs-counters').value = study.coming_soon_counter_rounds != null ? study.coming_soon_counter_rounds : '';
+      $('#f-cs-outcome').value = study.coming_soon_outcome || '';
+      $('#f-final-price').value = study.final_sale_price != null ? study.final_sale_price : '';
+      $('#f-escrow').value = study.escrow_days != null ? study.escrow_days : '';
+      $('#f-payment').value = study.payment_terms || '';
+      $('#f-closed').value = study.closed_at || '';
+      $('#f-headline').value = study.headline || '';
+      $('#f-quote').value = study.pull_quote || '';
+      $('#f-hero').value = study.hero_image_url || '';
+      $('#f-pub').checked = !!study.is_published;
+      $('#f-on-home').checked = !!study.show_on_homepage;
+      $('#f-on-hiw').checked = !!study.show_on_how_it_works;
+      $('#f-on-dash').checked = !!study.show_on_dashboard;
+      $('#f-sort').value = study.sort_order != null ? study.sort_order : 100;
+      $('#delete-btn').style.display = 'inline-flex';
+      $('#form-title').innerHTML = 'Edit <em>' + escapeHtml(study.slug) + '</em>';
+    }
+    $('#form-panel').classList.add('is-open');
+    setTimeout(function () { $('#form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  }
+
+  function closeForm() {
+    $('#form-panel').classList.remove('is-open');
+    clearForm();
+  }
+
+  function collectForm() {
+    function num(v) { return v === '' || v == null ? null : Number(v); }
+    function txt(v) { return v == null ? null : (String(v).trim() || null); }
+    function date(v) { return v ? v : null; }
+    return {
+      slug: txt($('#f-slug').value),
+      market_slug: txt($('#f-market').value),
+      building_slug: txt($('#f-building').value),
+      unit_label: txt($('#f-unit').value),
+      seller_first_name: txt($('#f-fname').value),
+      seller_last_initial: txt($('#f-linit').value),
+      mmm_price: num($('#f-mmm-price').value),
+      mmm_started_at: date($('#f-mmm-start').value),
+      mmm_duration_days: num($('#f-mmm-days').value),
+      mmm_tours_requested: num($('#f-mmm-tours').value) || 0,
+      mmm_outcome: txt($('#f-mmm-outcome').value),
+      coming_soon_price: num($('#f-cs-price').value),
+      coming_soon_started_at: date($('#f-cs-start').value),
+      coming_soon_duration_days: num($('#f-cs-days').value),
+      coming_soon_tours_requested: num($('#f-cs-tours').value) || 0,
+      coming_soon_offers_received: num($('#f-cs-offers').value) || 0,
+      coming_soon_counter_rounds: num($('#f-cs-counters').value) || 0,
+      coming_soon_outcome: txt($('#f-cs-outcome').value),
+      final_sale_price: num($('#f-final-price').value),
+      escrow_days: num($('#f-escrow').value),
+      payment_terms: txt($('#f-payment').value),
+      closed_at: date($('#f-closed').value),
+      headline: txt($('#f-headline').value),
+      pull_quote: txt($('#f-quote').value),
+      hero_image_url: txt($('#f-hero').value),
+      is_published: $('#f-pub').checked,
+      show_on_homepage: $('#f-on-home').checked,
+      show_on_how_it_works: $('#f-on-hiw').checked,
+      show_on_dashboard: $('#f-on-dash').checked,
+      sort_order: num($('#f-sort').value) || 0
+    };
+  }
+
+  function validateForPublish(data) {
+    if (!data.is_published) return null;
+    var missing = [];
+    if (!data.seller_first_name) missing.push('seller first name');
+    if (!data.slug) missing.push('slug');
+    if (!data.market_slug) missing.push('market');
+    if (data.mmm_price == null && data.coming_soon_price == null && data.final_sale_price == null) {
+      missing.push('at least one phase price');
+    }
+    return missing.length ? missing : null;
+  }
+
+  function saveForm(e) {
+    e.preventDefault();
+    var id = $('#f-id').value;
+    var data = collectForm();
+    var missing = validateForPublish(data);
+    if (missing) {
+      $('#publish-warn').style.display = 'block';
+      $('#publish-warn').innerHTML = '<strong>Cannot publish:</strong> ' + missing.join(', ') + '.';
+      $('#publish-warn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    $('#publish-warn').style.display = 'none';
+    var req = id
+      ? api('/case_studies?id=eq.' + encodeURIComponent(id), { method: 'PATCH', body: JSON.stringify(data) })
+      : api('/case_studies', { method: 'POST', body: JSON.stringify(data) });
+    req.then(function () {
+      toast(id ? 'Saved' : 'Created');
+      closeForm();
+      loadStudies();
+    }).catch(function (err) {
+      console.error(err);
+      toast('Save failed: ' + (err.message || 'unknown'), true);
+    });
+  }
+
+  function deleteRow() {
+    var id = $('#f-id').value;
+    if (!id) return;
+    var slug = $('#f-slug').value;
+    if (!confirm('Permanently delete case study "' + slug + '"? This cannot be undone.')) return;
+    api('/case_studies?id=eq.' + encodeURIComponent(id), { method: 'DELETE' }).then(function () {
+      toast('Deleted');
+      closeForm();
+      loadStudies();
+    }).catch(function (err) {
+      console.error(err);
+      toast('Delete failed: ' + (err.message || 'unknown'), true);
+    });
+  }
+
+  // ─── Wire ───
+  $('#new-btn').addEventListener('click', function () { openForm(null); });
+  $('#close-form-btn').addEventListener('click', closeForm);
+  $('#cancel-btn').addEventListener('click', closeForm);
+  $('#delete-btn').addEventListener('click', deleteRow);
+  $('#edit-form').addEventListener('submit', saveForm);
+
+  // Boot
+  gateAndBoot();
+})();
+</script>
+</body>
+</html>
