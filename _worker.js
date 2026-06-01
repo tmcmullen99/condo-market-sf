@@ -126,6 +126,18 @@ export default {
     const url = new URL(request.url);
     const hostMk = resolveMarket(url.hostname);
 
+    // robots.txt — per-host, points at this host's sitemap.
+    if (url.pathname === '/robots.txt') {
+      const body = 'User-agent: *\nAllow: /\nSitemap: https://www.' + hostMk.domain + '/sitemap.xml\n';
+      return new Response(body, { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=3600' } });
+    }
+
+    // sitemap.xml — lists THIS market's live building pages + key static pages,
+    // all on this host's domain, so each domain's Search Console owns its own URLs.
+    if (url.pathname === '/sitemap.xml') {
+      return renderSitemap(hostMk);
+    }
+
     if (hostMk && hostMk.tag !== 'sf' && isPetitionPath(url.pathname)) {
       return Response.redirect('https://www.' + hostMk.domain + '/buildings/', 302);
     }
@@ -173,6 +185,18 @@ export default {
       return wrapStaticWithSwaps(request, env, hostMk);
     }
 
+    // Cross-domain canonical enforcement: if this building belongs to a different
+    // market than the host being requested, 301 to the correct domain. This is
+    // what moves SV buildings out of the SF domain's index (and vice versa).
+    // Only redirect when the current host is a KNOWN market host, so Cloudflare
+    // preview URLs (*.pages.dev) and unknown hosts render in place without looping.
+    const bMktDomain = payload.market && payload.market.domain;
+    const hostIsKnownMarket = Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase());
+    if (hostIsKnownMarket && bMktDomain && bMktDomain !== hostMk.domain) {
+      const target = 'https://www.' + bMktDomain + '/building/' + payload.slug + url.search;
+      return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
+    }
+
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
     return new Response(bodyHtml, {
       status: 200,
@@ -185,6 +209,40 @@ export default {
 };
 
 /* ----------------------------- helpers ----------------------------------- */
+async function renderSitemap(mk) {
+  const base = 'https://www.' + mk.domain;
+  let rows = [];
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/sitemap_buildings', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ p_market_tag: mk.tag }),
+    });
+    if (res.ok) rows = await res.json();
+  } catch (e) { rows = []; }
+
+  const staticUrls = ['/buildings/', '/intelligence/', '/how-it-works/'];
+  const today = new Date().toISOString().slice(0, 10);
+  const urlsXml = [];
+  for (const u of staticUrls) {
+    urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
+  }
+  for (const r of (rows || [])) {
+    const lm = r.updated_at ? String(r.updated_at).slice(0, 10) : today;
+    urlsXml.push('<url><loc>' + base + '/building/' + r.slug + '/</loc><lastmod>' + lm + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+  }
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urlsXml.join('\n') + '\n</urlset>\n';
+  return new Response(xml, { status: 200, headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
+}
+
+
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
