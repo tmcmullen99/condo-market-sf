@@ -240,8 +240,9 @@ const tempEmoji={hot:'🔥',warm:'🌡',cool:'❄',cold:'·'};
 
 async function bootstrap() {
  const user = await resolveUser();
-  if (!user) {
-    document.getElementById('gate-content').innerHTML = `<p style="font-size:13px;color:rgba(232,227,216,0.7)">You're not signed in. Sign in to your admin account first.</p>document.getElementById('signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.href='/account/signin/?redirect=/admin/'; });`;
+if (!user) {
+    document.getElementById('gate-content').innerHTML = `<p style="font-size:13px;color:rgba(232,227,216,0.7);margin-bottom:16px">You're not signed in. Sign in with your admin account, then return to this page.</p><button id="gate-signin-btn">Sign in →</button>`;
+    document.getElementById('gate-signin-btn').addEventListener('click', () => { location.href = '/buildings/#signin'; });
     return;
   }
   const { data: profile, error } = await sb.from('profiles').select('id,full_name,role,email').eq('id', user.id).maybeSingle();
