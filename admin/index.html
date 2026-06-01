@@ -205,12 +205,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPA_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
 const PROJECT_REF = 'kfqphwerygccpzntbbif';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
-const sb = createClient(SUPA_URL, SUPA_ANON, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true } });
+const sb = createClient(SUPA_URL, SUPA_ANON, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true, storageKey: 'cm-auth-session' } });
 
 async function resolveUser() {
   try { const { data: { session } } = await sb.auth.getSession(); if (session?.user) return session.user; } catch (e) {}
   try {
-    const raw = localStorage.getItem(`sb-${PROJECT_REF}-auth-token`);
+    const raw = localStorage.getItem('cm-auth-session');
     if (raw) {
       const tokens = JSON.parse(raw);
       const access_token = tokens.access_token || tokens.currentSession?.access_token;
@@ -248,7 +248,7 @@ if (!user) {
   const { data: profile, error } = await sb.from('profiles').select('id,full_name,role,email').eq('id', user.id).maybeSingle();
   if (error || !profile || profile.role !== 'admin') {
     document.getElementById('gate-content').innerHTML = `<p style="color:var(--coral);font-size:13px">Your account doesn't have admin role.</p><button id="signout-btn">Sign out</button>`;
-    document.getElementById('signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.href='/account/signin/?redirect=/admin/'; });
+    document.getElementById('signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.href='/buildings/#signin'; });
     return;
   }
   currentUser = profile;
