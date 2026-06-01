@@ -106,6 +106,38 @@
   .hidden{display:none!important}
   .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#0b1018;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
   @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ---- Homeowner Contacts panel (toggled at top) ---- */
+  .cpanel{margin:0 0 22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+  .cpanel-head{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;user-select:none}
+  .cpanel-head .ic{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(145,161,186,.14);color:var(--accent);font-size:16px}
+  .cpanel-head .t{flex:1;min-width:0}
+  .cpanel-head .t .h{font-family:"Playfair Display",serif;font-weight:700;font-size:18px;line-height:1.1}
+  .cpanel-head .t .s{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .cpanel-head .cov2{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);flex:none}
+  .cpanel-head .cov2 b{color:var(--ink)}
+  .cpanel-head .meter{width:130px}
+  .cpanel-head .chev{flex:none;color:var(--muted);transition:transform .18s;font-size:14px}
+  .cpanel.open .cpanel-head .chev{transform:rotate(90deg)}
+  .cpanel-body{display:none;border-top:1px solid var(--line);padding:16px}
+  .cpanel.open .cpanel-body{display:block}
+  .cbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .ccard{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;margin-bottom:9px;overflow:hidden}
+  .ccard .crow2{display:flex;align-items:center;gap:13px;padding:12px 14px}
+  .ccard .nm{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:9px;min-width:0}
+  .ccard .ad{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .ccard .meta{flex:1;min-width:0}
+  .ccount{font:600 12.5px "DM Sans";color:var(--muted);flex:none;text-align:right}
+  .ccount b{color:var(--ink)} .ccount.have b{color:var(--ok)}
+  .ccount .sub{display:block;color:var(--muted);font-weight:400;font-size:11px;margin-top:1px}
+  .cdz{flex:none;width:220px;border:1.5px dashed var(--line-2);border-radius:10px;padding:9px 12px;text-align:center;color:var(--muted);background:#0d1320;cursor:pointer;transition:.15s;font-size:12px;line-height:1.35}
+  .cdz:hover{border-color:var(--accent);color:var(--ink)}
+  .cdz.drag{border-color:var(--sv);background:rgba(0,168,181,.08);color:var(--ink)}
+  .cdz b{color:var(--ink)}
+  .cdz.busy{border-color:var(--warn);color:var(--ink)}
+  .cstatus{font-size:11.5px;margin-top:6px;color:var(--muted)}
+  .cstatus.ok{color:var(--ok)} .cstatus.bad{color:var(--bad)}
+
 </style>
 </head>
 <body>
@@ -144,6 +176,36 @@
 
   <!-- APP -->
   <section id="app" class="hidden">
+    <!-- Homeowner contacts coverage + per-building CSV import (collapsible) -->
+    <div class="cpanel" id="cpanel">
+      <div class="cpanel-head" id="cpanelHead">
+        <div class="ic">📇</div>
+        <div class="t">
+          <div class="h">Homeowner contacts</div>
+          <div class="s">Drop a CSV onto any building to import owner contacts. First row = headers (email, first_name, last_name, phone, unit_number).</div>
+        </div>
+        <div class="cov2">
+          <div class="meter"><i id="cMeterFill"></i></div>
+          <span id="cCovTxt">—</span>
+        </div>
+        <div class="chev">▸</div>
+      </div>
+      <div class="cpanel-body" id="cpanelBody">
+        <div class="cbar">
+          <div class="search" style="flex:1;min-width:200px">
+            <span style="color:var(--muted)">⌕</span>
+            <input id="cq" placeholder="Search building name or address…" />
+          </div>
+          <div class="seg" id="cmseg">
+            <button data-m="all" class="on">All</button>
+            <button data-m="sf">San Francisco</button>
+            <button data-m="sv">Silicon Valley</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="cOnlyEmpty" /> Only missing contacts</label>
+        </div>
+        <div id="clist"><div class="hint"><span class="spin" style="border-top-color:#9aa7c4"></span>Loading…</div></div>
+      </div>
+    </div>
     <div class="bar">
       <div class="search">
         <span style="color:var(--muted)">⌕</span>
@@ -231,6 +293,7 @@
     $("#who").innerHTML="Signed in as <b>"+(ME.email||"admin")+"</b> · <a href='#' id='out'>sign out</a>";
     $("#out").onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.reload();};
     await loadData(); render();
+    initContactsPanel();
   }
 
   // ---- data ----
@@ -410,6 +473,203 @@
   $("#mseg").addEventListener("click",e=>{const btn=e.target.closest("button");if(!btn)return;
     [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));btn.classList.add("on");
     STATE.filter.m=btn.dataset.m;render();});
+
+  // =====================================================================
+  // Homeowner Contacts panel — coverage view + per-building CSV import.
+  // Reuses the page's `sb` client, el(), toast(), esc(), cssesc().
+  // Data: admin_building_contact_index() (counts only). Import via
+  // import_building_contacts(p_slug, p_rows jsonb, p_filename, p_source_label).
+  // =====================================================================
+  const CSTATE = { rows: [], filter: { m:"all", q:"", empty:false }, loaded:false };
+
+  // Header aliases -> exact RPC row keys.
+  const CKEYS = {
+    email:["email","e-mail","email_address","emailaddress","owner_email","contact_email","primary_email"],
+    first_name:["first_name","first","firstname","fname","owner_first_name","first name"],
+    last_name:["last_name","last","lastname","lname","owner_last_name","last name","surname"],
+    phone:["phone","phone_number","phonenumber","mobile","cell","tel","telephone","owner_phone","contact_phone"],
+    property_address:["property_address","address","property address","site_address","mailing_address","street_address"],
+    unit_number:["unit_number","unit","unit_no","unit #","apt","apartment","unit number","suite"],
+    notes:["notes","note","comment","comments"]
+  };
+  function buildHeaderMap(headers){
+    const norm = h => String(h||"").trim().toLowerCase().replace(/^\ufeff/,"");
+    const map = {}; // index -> canonical key
+    headers.forEach((h,i)=>{
+      const n = norm(h);
+      for(const key in CKEYS){ if(CKEYS[key].includes(n)){ map[i]=key; break; } }
+    });
+    return map;
+  }
+  // Minimal RFC-4180-ish CSV parser (handles quotes, commas, CRLF).
+  function parseCSV(text){
+    const rows=[]; let row=[], field="", q=false, started=false;
+    for(let i=0;i<text.length;i++){
+      const ch=text[i];
+      if(q){
+        if(ch==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; }
+        else field+=ch;
+      } else {
+        if(ch==='"'){ q=true; started=true; }
+        else if(ch===','){ row.push(field); field=""; started=true; }
+        else if(ch==='\n'){ row.push(field); rows.push(row); row=[]; field=""; started=false; }
+        else if(ch==='\r'){ /* skip */ }
+        else { field+=ch; started=true; }
+      }
+    }
+    if(started||field!==""||row.length){ row.push(field); rows.push(row); }
+    return rows.filter(r=>r.length && r.some(c=>String(c).trim()!==""));
+  }
+  function csvToRecords(text){
+    const grid=parseCSV(text);
+    if(grid.length<2) return { records:[], headers:(grid[0]||[]), mappedKeys:[] };
+    const headers=grid[0];
+    const map=buildHeaderMap(headers);
+    const mappedKeys=[...new Set(Object.values(map))];
+    const records=[];
+    for(let r=1;r<grid.length;r++){
+      const obj={};
+      grid[r].forEach((val,i)=>{ const k=map[i]; if(k){ const v=String(val).trim(); if(v!=="") obj[k]=v; } });
+      if(obj.email) records.push(obj); // RPC requires email; pre-filter to give honest counts
+    }
+    return { records, headers, mappedKeys };
+  }
+
+  function cInit_meter(){
+    const total=CSTATE.rows.length;
+    const have=CSTATE.rows.filter(b=>(b.contact_count||0)>0).length;
+    $("#cCovTxt").innerHTML="<b>"+have+"</b> / "+total+" have contacts";
+    $("#cMeterFill").style.width=(total?Math.round(have/total*100):0)+"%";
+  }
+  function cVisible(){
+    const {m,q,empty}=CSTATE.filter, qq=q.toLowerCase();
+    return CSTATE.rows.filter(b=>{
+      if(m!=="all"&&b.market!==m) return false;
+      if(empty&&(b.contact_count||0)>0) return false;
+      if(qq&&!((b.display_name||"")+" "+(b.canonical_address||"")+" "+b.slug).toLowerCase().includes(qq)) return false;
+      return true;
+    });
+  }
+  function cRender(){
+    const list=$("#clist"); list.innerHTML="";
+    const items=cVisible();
+    if(!items.length){ const e=el("div","hint"); e.style.padding="24px 4px"; e.textContent="No buildings match."; list.appendChild(e); return; }
+    const groups = CSTATE.filter.m==="all" ? ["sf","sv"] : [CSTATE.filter.m];
+    groups.forEach(g=>{
+      const gItems=items.filter(b=>b.market===g);
+      if(!gItems.length) return;
+      const gh=el("div","grouphead");
+      gh.innerHTML='<span class="dot '+g+'"></span>'+(MNAME[g]||g)+' \u00b7 '+gItems.length+' buildings<span class="ln"></span>';
+      list.appendChild(gh);
+      gItems.forEach(b=>list.appendChild(cCard(b)));
+    });
+  }
+  function cCard(b){
+    const n=b.contact_count||0;
+    const c=el("div","ccard"); c.dataset.slug=b.slug;
+    const row=el("div","crow2");
+    const meta=el("div","meta");
+    meta.innerHTML='<div class="nm">'+esc(b.display_name||b.slug)+
+      ' <span class="pill '+b.market+'">'+String(b.market||"?").toUpperCase()+'</span></div>'+
+      '<div class="ad">'+esc(b.canonical_address||"")+(b.neighborhood?' \u00b7 '+esc(b.neighborhood):'')+'</div>';
+    const count=el("div","ccount"+(n?" have":""));
+    count.innerHTML="<b>"+n+"</b> contact"+(n===1?"":"s")+'<span class="sub">'+(b.email_count||0)+" w/ email</span>";
+
+    const dz=el("div","cdz");
+    dz.innerHTML='<b>Drop CSV</b> to import<br><span style="font-size:10.5px">or click to choose</span>';
+    const fi=el("input"); fi.type="file"; fi.accept=".csv,text/csv"; fi.className="hidden";
+    const status=el("div","cstatus");
+
+    const right=el("div"); right.style.cssText="display:flex;flex-direction:column;align-items:flex-end;gap:0";
+    right.append(count);
+    row.append(meta, dz, fi, right);
+    c.append(row); c.append(status); status.style.padding="0 14px 10px";
+
+    function setStatus(kind,msg){ status.className="cstatus"+(kind?" "+kind:""); status.textContent=msg||""; }
+
+    async function handleFile(file){
+      if(!file){ return; }
+      if(!/\.csv$/i.test(file.name) && file.type!=="text/csv"){ setStatus("bad","Please drop a .csv file."); return; }
+      dz.classList.add("busy"); dz.classList.remove("drag");
+      setStatus("", "Parsing "+file.name+"\u2026");
+      try{
+        const text=await file.text();
+        const { records, mappedKeys } = csvToRecords(text);
+        if(!mappedKeys.includes("email")){
+          dz.classList.remove("busy");
+          setStatus("bad","No email column found. Header must include one of: email, e-mail, email_address.");
+          return;
+        }
+        if(!records.length){
+          dz.classList.remove("busy");
+          setStatus("bad","No rows with a valid email to import.");
+          return;
+        }
+        setStatus("", "Importing "+records.length+" row(s)\u2026");
+        const { data, error } = await sb.rpc("import_building_contacts", {
+          p_slug: b.slug,
+          p_rows: records,
+          p_filename: file.name,
+          p_source_label: "image-manager drag-drop"
+        });
+        dz.classList.remove("busy");
+        if(error){ setStatus("bad","Error: "+(error.message||error)); return; }
+        const r=data||{};
+        setStatus("ok","\u2713 +"+(r.inserted||0)+" new \u00b7 "+(r.updated||0)+" updated"+
+          ((r.skipped||r.invalid)?(" \u00b7 "+((r.skipped||0)+(r.invalid||0))+" skipped"):""));
+        toast("Imported "+(r.inserted||0)+" new / "+(r.updated||0)+" updated for "+(b.display_name||b.slug));
+        // Refresh this building's counts from source of truth.
+        await cRefreshOne(b, c, count);
+        cInit_meter();
+      }catch(e){ dz.classList.remove("busy"); setStatus("bad","Error: "+(e.message||e)); }
+    }
+
+    dz.onclick=()=>fi.click();
+    fi.onchange=()=>{ const f=fi.files&&fi.files[0]; fi.value=""; handleFile(f); };
+    dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag");});
+    dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
+    dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("drag");
+      const f=e.dataTransfer.files&&e.dataTransfer.files[0]; handleFile(f);});
+    return c;
+  }
+
+  async function cRefreshOne(b, card, countEl){
+    try{
+      const { data } = await sb.rpc("building_contact_stats", { p_building_slug: b.slug });
+      const st=(data&&data[0])||{};
+      const cc=Number(st.person_count||0), ec=Number(st.email_count||0);
+      b.contact_count=cc; b.email_count=ec;
+      countEl.className="ccount"+(cc?" have":"");
+      countEl.innerHTML="<b>"+cc+"</b> contact"+(cc===1?"":"s")+'<span class="sub">'+ec+" w/ email</span>";
+    }catch(e){ /* non-fatal: counts refresh on next full load */ }
+  }
+
+  async function loadContacts(){
+    const { data, error } = await sb.rpc("admin_building_contact_index");
+    if(error){ $("#clist").innerHTML='<div class="hint bad" style="padding:20px 4px">Could not load contacts: '+esc(error.message||String(error))+'</div>'; return; }
+    CSTATE.rows=(data||[]).map(r=>({
+      slug:r.slug, display_name:r.display_name, canonical_address:r.canonical_address,
+      neighborhood:r.neighborhood, market:r.market_tag||"?",
+      contact_count:r.contact_count||0, email_count:r.email_count||0
+    }));
+    CSTATE.loaded=true;
+    cInit_meter(); cRender();
+  }
+
+  function initContactsPanel(){
+    const head=$("#cpanelHead"), panel=$("#cpanel");
+    head.onclick=()=>{
+      const open=panel.classList.toggle("open");
+      if(open && !CSTATE.loaded){ loadContacts(); }
+    };
+    $("#cq").addEventListener("input",e=>{CSTATE.filter.q=e.target.value;cRender();});
+    $("#cOnlyEmpty").addEventListener("change",e=>{CSTATE.filter.empty=e.target.checked;cRender();});
+    $("#cmseg").addEventListener("click",e=>{const btn=e.target.closest("button");if(!btn)return;
+      [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));btn.classList.add("on");
+      CSTATE.filter.m=btn.dataset.m;cRender();});
+    // Load coverage meter immediately (cheap) even while collapsed.
+    loadContacts();
+  }
 
   window.addEventListener("DOMContentLoaded",()=>{ if(window.supabase) boot(); else { const i=setInterval(()=>{if(window.supabase){clearInterval(i);boot();}},80);} });
 })();
