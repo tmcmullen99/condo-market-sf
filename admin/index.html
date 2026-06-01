@@ -203,8 +203,26 @@ a{color:inherit;text-decoration:none}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPA_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-const SUPA_ANON = window.CMSF_ANON_KEY || localStorage.getItem('cms_admin_anon_key_v1') || '';
-const sb = createClient(SUPA_URL, SUPA_ANON);
+const PROJECT_REF = 'kfqphwerygccpzntbbif';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+const sb = createClient(SUPA_URL, SUPA_ANON, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true } });
+
+async function resolveUser() {
+  try { const { data: { session } } = await sb.auth.getSession(); if (session?.user) return session.user; } catch (e) {}
+  try {
+    const raw = localStorage.getItem(`sb-${PROJECT_REF}-auth-token`);
+    if (raw) {
+      const tokens = JSON.parse(raw);
+      const access_token = tokens.access_token || tokens.currentSession?.access_token;
+      const refresh_token = tokens.refresh_token || tokens.currentSession?.refresh_token;
+      if (access_token && refresh_token) {
+        const { data, error } = await sb.auth.setSession({ access_token, refresh_token });
+        if (!error && data?.user) return data.user;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
 window.sb = sb;
 
 let currentUser = null;
@@ -221,14 +239,9 @@ function setUpdated(){document.getElementById('updated').textContent='Updated '+
 const tempEmoji={hot:'🔥',warm:'🌡',cool:'❄',cold:'·'};
 
 async function bootstrap() {
-  if (!SUPA_ANON) {
-    document.getElementById('gate-content').innerHTML = `<p style="color:var(--coral);font-size:13px">No anon key found.</p><input type="password" id="key-input" placeholder="anon key"><button id="key-save">Save key</button>`;
-    document.getElementById('key-save').addEventListener('click', () => { const k=document.getElementById('key-input').value.trim(); if(k){localStorage.setItem('cms_admin_anon_key_v1',k);location.reload()}});
-    return;
-  }
-  const { data: { user } } = await sb.auth.getUser();
+ const user = await resolveUser();
   if (!user) {
-    document.getElementById('gate-content').innerHTML = `<p style="font-size:13px;color:rgba(232,227,216,0.7)">You're not signed in. Sign in to your admin account first.</p><button onclick="location.href='/account/signin/?redirect=/admin/'">Sign in →</button>`;
+    document.getElementById('gate-content').innerHTML = `<p style="font-size:13px;color:rgba(232,227,216,0.7)">You're not signed in. Sign in to your admin account first.</p>document.getElementById('signout-btn').addEventListener('click', async () => { await sb.auth.signOut(); location.href='/account/signin/?redirect=/admin/'; });`;
     return;
   }
   const { data: profile, error } = await sb.from('profiles').select('id,full_name,role,email').eq('id', user.id).maybeSingle();
