@@ -128,6 +128,7 @@ a{color:inherit;text-decoration:none}
       <div class="brand-sub">Admin · v2</div>
     </div>
     <div class="nav-section" data-section="dashboard"><div class="nav-item" data-route="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div></div>
+    <div class="nav-section" data-section="approvals"><div class="nav-item" data-route="approvals"><span class="nav-icon">✅</span><span>Approvals</span></div></div>
     <div class="nav-section" data-section="platform">
       <div class="nav-item" data-route="platform"><span class="nav-icon">📈</span><span>Platform</span></div>
       <div class="nav-sub">
@@ -269,12 +270,12 @@ function handleHashChange() {
   const topEl = document.querySelector(`.nav-section[data-section="${topSection}"]`);
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
- const sectionName = { dashboard:'Dashboard', platform:'Platform', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
+ const sectionName = { dashboard:'Dashboard', approvals:'Approvals', platform:'Platform', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
   const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'platform/overview':'Overview', 'platform/leads':'Hot leads', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
+  const renderers = { 'dashboard':renderDashboard, 'approvals':renderApprovals, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -644,6 +645,30 @@ function renderOwnersList(allOwners, filter) {
     await loadOwners();
   }));
 }
+// ---------- APPROVALS ----------
+async function renderApprovals() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Approvals</div>
+      <h1>Approve claims &amp; Make Me Move</h1>
+      <div class="desc">Pending unit claims awaiting your approval. Approving a claim activates the owner's Make Me Move price and unlocks petition signing. Reject sends the unit back to unclaimed.</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="pending">⏳ Pending</button>
+      <button class="filter-btn" data-filter="approved">✓ Approved</button>
+      <button class="filter-btn" data-filter="rejected">✕ Rejected</button>
+      <button class="filter-btn" data-filter="all">All</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="own-count">—</div>
+    </div>
+    <div id="own-list"><div class="empty">Loading…</div></div>`;
+  document.querySelectorAll('#content .filter-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#content .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderOwnersList(window._allOwners || [], b.dataset.filter);
+  }));
+  await loadOwners();
+}
+
 // ---------- LISTINGS · CLIENTS ----------
 async function renderClients() {
   document.getElementById('content').innerHTML = `
