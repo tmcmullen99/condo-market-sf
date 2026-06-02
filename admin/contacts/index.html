@@ -479,26 +479,21 @@
     const from = state.page * state.pageSize;
     const to   = from + state.pageSize - 1;
 
-    let q = sb.from('admin_building_contacts_v')
-      .select('*', { count: 'exact' })
-      .eq('building_slug', state.selectedBuilding)
-      .order('created_at', { ascending: false })
-      .range(from, to);
-
-    if (state.filterStatus) q = q.eq('email_status', state.filterStatus);
-    if (state.searchTerm) {
-      const s = state.searchTerm.replace(/[%_]/g, '');
-      // Search across email, names, phone, property_address
-      q = q.or(`email.ilike.%${s}%,first_name.ilike.%${s}%,last_name.ilike.%${s}%,phone.ilike.%${s}%,property_address.ilike.%${s}%`);
-    }
-
-    const { data, error, count } = await q;
+    // Admin-gated RPC (replaces direct view read). Returns rows + total_count window.
+    const s = state.searchTerm ? state.searchTerm.replace(/[%_]/g, '') : null;
+    const { data, error } = await sb.rpc('admin_building_contacts', {
+      p_building_slug: state.selectedBuilding,
+      p_status: state.filterStatus || null,
+      p_search: s || null,
+      p_limit: state.pageSize,
+      p_offset: from
+    });
     if (error) {
       $('tableBody').innerHTML = `<div class="empty"><h3>Query failed</h3><p>${error.message}</p></div>`;
       return;
     }
     state.contacts = data || [];
-    state.totalCount = count || 0;
+    state.totalCount = (data && data.length) ? Number(data[0].total_count) : 0;
     renderContacts();
     loadStats();
   }
@@ -1015,16 +1010,22 @@
       toast('Pick a building', 'Select a building first.');
       return;
     }
-    // Fetch all rows (no pagination) — admin endpoint, RLS-enforced
-    const { data, error } = await sb.from('admin_building_contacts_v')
-      .select('email,first_name,last_name,phone,property_address,unit_number,email_status,is_bounced,is_unsubscribed,is_account_holder,source_label,last_wave_sent,last_delivery_status,created_at')
-      .eq('building_slug', state.selectedBuilding)
-      .order('created_at', { ascending: false });
+    // Fetch all rows for export via admin-gated RPC (high limit, no paging)
+    const { data, error } = await sb.rpc('admin_building_contacts', {
+      p_building_slug: state.selectedBuilding,
+      p_status: null,
+      p_search: null,
+      p_limit: 100000,
+      p_offset: 0
+    });
     if (error) {
       toast('Export failed', error.message, 'error');
       return;
     }
-    const csv = Papa.unparse(data || []);
+    // Keep only the original export columns (the RPC returns extras like total_count).
+    const cols = ['email','first_name','last_name','phone','property_address','unit_number','email_status','is_bounced','is_unsubscribed','is_account_holder','source_label','last_wave_sent','last_delivery_status','created_at'];
+    const rows = (data || []).map(r => { const o = {}; cols.forEach(c => o[c] = r[c]); return o; });
+    const csv = Papa.unparse(rows);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
