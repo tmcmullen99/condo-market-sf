@@ -142,6 +142,16 @@ export default {
       return Response.redirect('https://www.' + hostMk.domain + '/buildings/', 302);
     }
 
+    // Evergreen data hub: condo rankings (root-level slug, Miami-flat pattern).
+    // Server-rendered from report RPCs at the edge, cached; stays current as
+    // sales data grows with no regeneration. Indexable, JSON-LD, internal-links
+    // into every building page it names.
+    if (request.method === 'GET' &&
+        (url.pathname === '/san-francisco-condo-rankings' ||
+         url.pathname === '/san-francisco-condo-rankings/')) {
+      return renderRankingsHub(hostMk);
+    }
+
     // /building/<slug>/report → 301 to building page #market section.
     // The dedicated report page is consolidated into the building page's
     // market analysis section; this preserves email-link integrity.
@@ -227,6 +237,7 @@ async function renderSitemap(mk) {
   } catch (e) { rows = []; }
 
   const staticUrls = ['/buildings/', '/intelligence/', '/how-it-works/'];
+  if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
   const today = new Date().toISOString().slice(0, 10);
   const urlsXml = [];
   for (const u of staticUrls) {
@@ -240,6 +251,172 @@ async function renderSitemap(mk) {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urlsXml.join('\n') + '\n</urlset>\n';
   return new Response(xml, { status: 200, headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
+}
+
+/* ----------------------- data hub: condo rankings ------------------------ */
+async function callReportRpc(name, body) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return await res.json();
+  } catch (e) { /* fall through */ }
+  return [];
+}
+
+async function renderRankingsHub(mk) {
+  // SF is the data engine; this hub is SF-scoped. On SV host, 301 to SF domain.
+  const DOMAIN = 'sanfranciscocondomarket.com';
+  if (mk.tag !== 'sf') {
+    return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + DOMAIN + '/san-francisco-condo-rankings', 'Cache-Control': 'public, max-age=3600' } });
+  }
+  const base = 'https://www.' + DOMAIN;
+  const canonical = base + '/san-francisco-condo-rankings';
+
+  const [psf, volume, turnover] = await Promise.all([
+    callReportRpc('report_neighborhood_psf',   { p_market_domain: DOMAIN, p_months: 12 }),
+    callReportRpc('report_volume_leaders',      { p_market_domain: DOMAIN, p_months: 12, p_limit: 15 }),
+    callReportRpc('report_turnover_leaders',    { p_market_domain: DOMAIN, p_min_units: 10, p_limit: 12 }),
+  ]);
+
+  const bLink = (slug, name) => '<a href="' + base + '/building/' + esc(slug) + '/">' + esc(name) + '</a>';
+  const topHood = (psf && psf[0]) ? psf[0] : null;
+  const topVol  = (volume && volume[0]) ? volume[0] : null;
+  const updated = new Date().toISOString().slice(0, 10);
+
+  // ── neighborhood $/sqft table
+  const psfRows = (psf || []).map(function (r, i) {
+    return '<tr><td class="rank">' + (i + 1) + '</td><td>' + esc(r.neighborhood) +
+      '</td><td class="num">' + (money(r.median_psf) || '—') +
+      '</td><td class="num">' + (money(r.median_price) || '—') +
+      '</td><td class="num dim">' + intc(r.n) + '</td></tr>';
+  }).join('');
+
+  // ── volume leaders table (every row links into a building page)
+  const volRows = (volume || []).map(function (r, i) {
+    return '<tr><td class="rank">' + (i + 1) + '</td><td>' + bLink(r.slug, r.display_name) +
+      '<span class="hood">' + esc(r.neighborhood || '') + '</span></td><td class="num">' + intc(r.sales_count) +
+      '</td><td class="num">' + (money(r.median_price) || '—') +
+      '</td><td class="num">' + (money(r.median_psf) || '—') + '</td></tr>';
+  }).join('');
+
+  // ── turnover leaders table (honest framing: recorded turnover, not asserted tenure)
+  const turnRows = (turnover || []).map(function (r, i) {
+    return '<tr><td class="rank">' + (i + 1) + '</td><td>' + bLink(r.slug, r.display_name) +
+      '<span class="hood">' + esc(r.neighborhood || '') + '</span></td><td class="num">' +
+      esc(r.median_years_since_sale) + ' yrs</td><td class="num dim">' + intc(r.units_tracked) + '</td></tr>';
+  }).join('');
+
+  // ── JSON-LD: Dataset + ItemList of the ranked buildings
+  const itemListEls = (volume || []).map(function (r, i) {
+    return { '@type': 'ListItem', position: i + 1, url: base + '/building/' + r.slug + '/', name: r.display_name };
+  });
+  const jsonld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'Dataset', name: 'San Francisco Condo Market Rankings',
+        description: 'Median price per square foot by neighborhood, most-active buildings, and lowest-turnover buildings across cataloged San Francisco condo buildings, based on recorded sales over the trailing twelve months.',
+        url: canonical, dateModified: updated, creator: { '@type': 'RealEstateAgent', name: 'McMullen Properties LLC' } },
+      { '@type': 'ItemList', name: 'Most Active San Francisco Condo Buildings', itemListElement: itemListEls }
+    ]
+  };
+
+  const title = 'San Francisco Condo Rankings — Price per Sq Ft, Most Active & Longest-Held Buildings';
+  const desc  = 'San Francisco condos ranked by neighborhood price per square foot, sales volume, and owner turnover' +
+    (topHood ? '. ' + esc(topHood.neighborhood) + ' leads at ' + money(topHood.median_psf) + '/sqft' : '') +
+    '. Updated from recorded sales.';
+
+  const html =
+'<!doctype html><html lang="en"><head>' +
+'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+'<title>' + esc(title) + '</title>' +
+'<meta name="description" content="' + attr(desc) + '">' +
+'<link rel="canonical" href="' + canonical + '">' +
+'<meta property="og:title" content="' + attr(title) + '">' +
+'<meta property="og:description" content="' + attr(desc) + '">' +
+'<meta property="og:url" content="' + canonical + '"><meta property="og:type" content="website">' +
+'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+'<script type="application/ld+json">' + JSON.stringify(jsonld) + '</script>' +
+'<style>' +
+':root{--dark:#0a0d12;--soft:#0d111a;--navy:#1a1f2e;--orange:#C2410C;--orange-bright:#e85d2a;--ivory:#e8e3d8;--dim:#8893a6;--line:rgba(194,65,12,.16)}' +
+'*{box-sizing:border-box}body{margin:0;background:var(--dark);color:var(--ivory);font-family:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6}' +
+'.wrap{max-width:1040px;margin:0 auto;padding:0 24px}' +
+'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}' +
+'header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
+'.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.hero{padding:60px 0 30px;border-bottom:1px solid var(--line)}' +
+'.kick{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
+'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.1;margin:0 0 16px}' +
+'.lede{font-size:17px;color:#c3ccd9;max-width:680px;margin:0}' +
+'.upd{font-size:12px;color:var(--dim);margin-top:18px;letter-spacing:.03em}' +
+'section{padding:46px 0;border-bottom:1px solid var(--line)}' +
+'h2{font-family:"Playfair Display",serif;font-size:27px;font-weight:700;margin:0 0 6px}' +
+'.sub{color:var(--dim);font-size:14px;margin:0 0 22px;max-width:680px}' +
+'table{width:100%;border-collapse:collapse;font-size:15px}' +
+'th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:0 14px 10px;border-bottom:1px solid var(--line)}' +
+'th.num,td.num{text-align:right}td{padding:13px 14px;border-bottom:1px solid rgba(136,147,166,.12);vertical-align:top}' +
+'td.rank{color:var(--orange);font-weight:700;width:38px}td.num{font-variant-numeric:tabular-nums;font-weight:600}td.dim{color:var(--dim);font-weight:500}' +
+'td a{color:var(--ivory);text-decoration:none;font-weight:600;border-bottom:1px solid var(--line)}td a:hover{color:var(--orange-bright)}' +
+'.hood{display:block;color:var(--dim);font-size:12px;font-weight:500;margin-top:2px}' +
+'.method{padding:40px 0 70px}.method p{color:var(--dim);font-size:13.5px;max-width:760px}' +
+'.cta{background:var(--orange);color:#fff;text-decoration:none;font-weight:700;padding:13px 26px;border-radius:8px;display:inline-block;margin-top:8px;font-size:14px}' +
+'a.bld{color:var(--orange-bright)}' +
+'</style></head><body>' +
+'<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
+'<nav class="nav"><a href="' + base + '/buildings/">Buildings</a><a href="' + base + '/intelligence/">Intelligence</a><a href="' + canonical + '">Rankings</a></nav></div></header>' +
+'<div class="hero"><div class="wrap">' +
+'<p class="kick">San Francisco · Data Rankings</p>' +
+'<h1>San Francisco Condo Rankings</h1>' +
+'<p class="lede">How San Francisco\u2019s condo buildings rank on the three numbers that actually move a decision: price per square foot by neighborhood, which buildings trade most, and which buildings owners hold longest. Built from recorded sales across our cataloged buildings\u2014not listing hype.</p>' +
+'<p class="upd">Updated ' + updated + ' · trailing 12 months of recorded sales</p>' +
+'</div></div>' +
+
+'<section><div class="wrap">' +
+'<h2>Price per Square Foot, by Neighborhood</h2>' +
+'<p class="sub">Median closed-sale price per square foot over the trailing twelve months. Neighborhoods with fewer than five recorded sales are omitted so every number rests on a real sample.</p>' +
+'<table><thead><tr><th>#</th><th>Neighborhood</th><th class="num">Median $/sqft</th><th class="num">Median price</th><th class="num">Sales</th></tr></thead><tbody>' +
+(psfRows || '<tr><td colspan="5">Data refreshing.</td></tr>') + '</tbody></table>' +
+'</div></section>' +
+
+'<section><div class="wrap">' +
+'<h2>Most Active Buildings</h2>' +
+'<p class="sub">The buildings with the most recorded sales over the trailing twelve months\u2014where liquidity is highest and comparable pricing is clearest. Each links to its full building profile.</p>' +
+'<table><thead><tr><th>#</th><th>Building</th><th class="num">Sales</th><th class="num">Median price</th><th class="num">Median $/sqft</th></tr></thead><tbody>' +
+(volRows || '<tr><td colspan="5">Data refreshing.</td></tr>') + '</tbody></table>' +
+'</div></section>' +
+
+'<section><div class="wrap">' +
+'<h2>Lowest Turnover \u2014 Buildings Owners Hold Longest</h2>' +
+'<p class="sub">Ranked by the median time since each unit\u2019s most recent recorded sale. A high figure signals owners who stay\u2014though it can also reflect buildings with longer recorded history. Read it as relative turnover, not exact ownership length.</p>' +
+'<table><thead><tr><th>#</th><th>Building</th><th class="num">Median since last sale</th><th class="num">Units tracked</th></tr></thead><tbody>' +
+(turnRows || '<tr><td colspan="4">Data refreshing.</td></tr>') + '</tbody></table>' +
+'</div></section>' +
+
+'<div class="method"><div class="wrap">' +
+'<h2 style="font-size:20px">How this is built</h2>' +
+'<p>Figures are computed from recorded sale transactions in cataloged San Francisco condo buildings. Price-per-square-foot and price figures are medians (not averages) to resist distortion from outlier sales. The minimum sample-size guard (five sales per neighborhood, three per building, ten units per building for turnover) means a thin slice is left out rather than shown with a misleading number. ' +
+(topVol ? esc(topVol.display_name) + ' led recorded activity with ' + intc(topVol.sales_count) + ' sales. ' : '') +
+'McMullen Properties LLC · CA DRE #02016832.</p>' +
+'<a class="cta" href="' + base + '/buildings/">Browse all buildings \u2192</a>' +
+'</div></div>' +
+'</body></html>';
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'content-type': 'text/html;charset=utf-8',
+      'cache-control': 'public, max-age=300, s-maxage=3600',
+    },
+  });
 }
 
 
