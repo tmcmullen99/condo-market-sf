@@ -152,6 +152,13 @@ export default {
       return renderRankingsHub(hostMk);
     }
 
+    // Evergreen data hub: citywide market stats (trailing-12mo pulse + YoY).
+    if (request.method === 'GET' &&
+        (url.pathname === '/san-francisco-condo-market-stats' ||
+         url.pathname === '/san-francisco-condo-market-stats/')) {
+      return renderStatsHub(hostMk);
+    }
+
     // /building/<slug>/report → 301 to building page #market section.
     // The dedicated report page is consolidated into the building page's
     // market analysis section; this preserves email-link integrity.
@@ -238,6 +245,7 @@ async function renderSitemap(mk) {
 
   const staticUrls = ['/buildings/', '/intelligence/', '/how-it-works/'];
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
+  if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-market-stats');
   const today = new Date().toISOString().slice(0, 10);
   const urlsXml = [];
   for (const u of staticUrls) {
@@ -253,7 +261,130 @@ async function renderSitemap(mk) {
   return new Response(xml, { status: 200, headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
 }
 
-/* ----------------------- data hub: condo rankings ------------------------ */
+/* ----------------------- data hub: market stats ------------------------- */
+function pctDelta(cur, prior) {
+  if (cur == null || prior == null || Number(prior) === 0) return null;
+  return Math.round(((Number(cur) - Number(prior)) / Number(prior)) * 1000) / 10; // 1 dp
+}
+function deltaSpan(d, invertGood) {
+  if (d == null) return '<span class="d flat">—</span>';
+  const up = d > 0;
+  const good = invertGood ? !up : up;
+  const arrow = up ? '\u25B2' : (d < 0 ? '\u25BC' : '\u2013');
+  const cls = d === 0 ? 'flat' : (good ? 'up' : 'down');
+  return '<span class="d ' + cls + '">' + arrow + ' ' + Math.abs(d) + '%</span>';
+}
+
+async function renderStatsHub(mk) {
+  const DOMAIN = 'sanfranciscocondomarket.com';
+  if (mk.tag !== 'sf') {
+    return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + DOMAIN + '/san-francisco-condo-market-stats', 'Cache-Control': 'public, max-age=3600' } });
+  }
+  const base = 'https://www.' + DOMAIN;
+  const canonical = base + '/san-francisco-condo-market-stats';
+  const updated = new Date().toISOString().slice(0, 10);
+
+  const rows = await callReportRpc('report_market_pulse', { p_market_domain: DOMAIN });
+  const p = (rows && rows[0]) ? rows[0] : {};
+
+  const dVol  = pctDelta(p.cur_sales, p.prior_sales);
+  const dPrice = pctDelta(p.cur_median_price, p.prior_median_price);
+  const dPsf  = pctDelta(p.cur_median_psf, p.prior_median_psf);
+
+  const card = function (label, val, d, invertGood, sub) {
+    return '<div class="stat"><div class="stat-label">' + label + '</div>' +
+      '<div class="stat-val">' + (val || '\u2014') + '</div>' +
+      '<div class="stat-sub">' + (d != null ? deltaSpan(d, invertGood) + ' vs prior 12 mo' : (sub || '')) + '</div></div>';
+  };
+
+  // honest divergence narrative, computed not invented
+  let narrative = 'Drawn from recorded condo sales in cataloged San Francisco buildings over the trailing twelve months, compared with the prior twelve.';
+  if (dVol != null && dPrice != null && dPsf != null) {
+    narrative = 'Over the trailing twelve months, recorded condo sales ' +
+      (dVol >= 0 ? 'rose ' : 'fell ') + Math.abs(dVol) + '% versus the prior year, while the median sale price ' +
+      (dPrice >= 0 ? 'rose ' : 'eased ') + Math.abs(dPrice) + '% and the median price per square foot ' +
+      (dPsf >= 0 ? 'climbed ' : 'declined ') + Math.abs(dPsf) + '%. ' +
+      ((dPrice < 0 && dPsf > 0) ? 'Lower headline prices alongside higher per-foot values points to a shift in what is trading\u2014smaller or more efficient units changing hands\u2014rather than a falling market.' : 'Read price and price-per-foot together: they can move in different directions as the mix of what sells changes.');
+  }
+
+  const jsonld = {
+    '@context': 'https://schema.org', '@type': 'Dataset',
+    name: 'San Francisco Condo Market Statistics',
+    description: 'Trailing-twelve-month sales volume, median price, and median price per square foot for cataloged San Francisco condos, with year-over-year comparison.',
+    url: canonical, dateModified: updated,
+    creator: { '@type': 'RealEstateAgent', name: 'McMullen Properties LLC' }
+  };
+
+  const title = 'San Francisco Condo Market Stats — Sales Volume, Median Price & $/Sq Ft';
+  const desc  = 'San Francisco condo market statistics: ' + (intc(p.cur_sales) || '') + ' recorded sales, median ' +
+    (money(p.cur_median_price) || '') + ', ' + (money(p.cur_median_psf) || '') + '/sqft over the trailing 12 months, with year-over-year change.';
+
+  const html =
+'<!doctype html><html lang="en"><head>' +
+'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+'<title>' + esc(title) + '</title>' +
+'<meta name="description" content="' + attr(desc) + '">' +
+'<link rel="canonical" href="' + canonical + '">' +
+'<meta property="og:title" content="' + attr(title) + '"><meta property="og:description" content="' + attr(desc) + '">' +
+'<meta property="og:url" content="' + canonical + '"><meta property="og:type" content="website">' +
+'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+'<script type="application/ld+json">' + JSON.stringify(jsonld) + '</script>' +
+'<style>' +
+':root{--dark:#0a0d12;--orange:#C2410C;--orange-bright:#e85d2a;--ivory:#e8e3d8;--dim:#8893a6;--line:rgba(194,65,12,.16);--up:#4f9d5d;--down:#c46a4a}' +
+'*{box-sizing:border-box}body{margin:0;background:var(--dark);color:var(--ivory);font-family:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6}' +
+'.wrap{max-width:1040px;margin:0 auto;padding:0 24px}' +
+'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
+'.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.hero{padding:60px 0 30px;border-bottom:1px solid var(--line)}' +
+'.kick{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
+'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.1;margin:0 0 16px}' +
+'.lede{font-size:17px;color:#c3ccd9;max-width:700px;margin:0}.upd{font-size:12px;color:var(--dim);margin-top:18px;letter-spacing:.03em}' +
+'.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:46px 0}' +
+'@media(max-width:720px){.grid{grid-template-columns:1fr}}' +
+'.stat{border:1px solid var(--line);border-radius:14px;padding:24px}' +
+'.stat-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:10px}' +
+'.stat-val{font-family:"Playfair Display",serif;font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}' +
+'.stat-sub{font-size:13px;color:var(--dim);margin-top:8px}' +
+'.d{font-weight:700}.d.up{color:var(--up)}.d.down{color:var(--down)}.d.flat{color:var(--dim)}' +
+'section{padding:10px 0 50px;border-top:1px solid var(--line)}' +
+'h2{font-family:"Playfair Display",serif;font-size:25px;font-weight:700;margin:34px 0 10px}' +
+'p.body{color:#c3ccd9;font-size:16px;max-width:760px}' +
+'.links a{color:var(--orange-bright);text-decoration:none;font-weight:600;border-bottom:1px solid var(--line);margin-right:22px}' +
+'.cta{background:var(--orange);color:#fff;text-decoration:none;font-weight:700;padding:13px 26px;border-radius:8px;display:inline-block;margin-top:18px;font-size:14px}' +
+'.method{color:var(--dim);font-size:13px;max-width:760px;margin-top:30px}' +
+'</style></head><body>' +
+'<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
+'<nav class="nav"><a href="' + base + '/buildings/">Buildings</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + canonical + '">Stats</a></nav></div></header>' +
+'<div class="hero"><div class="wrap">' +
+'<p class="kick">San Francisco · Market Statistics</p>' +
+'<h1>San Francisco Condo Market Stats</h1>' +
+'<p class="lede">The San Francisco condo market in three numbers, measured against the prior year. Computed from recorded sales across our cataloged buildings\u2014medians, not averages, so outliers don\u2019t skew the picture.</p>' +
+'<p class="upd">Updated ' + updated + ' · trailing 12 months vs prior 12 months</p>' +
+'</div></div>' +
+'<div class="wrap">' +
+'<div class="grid">' +
+card('Recorded Sales', intc(p.cur_sales), dVol, false) +
+card('Median Sale Price', money(p.cur_median_price), dPrice, false) +
+card('Median Price / Sq Ft', money(p.cur_median_psf), dPsf, false) +
+'</div>' +
+'<section><h2>What the numbers say</h2><p class="body">' + esc(narrative) + '</p>' +
+'<p class="body" style="margin-top:14px">Across ' + (intc(p.catalogued_buildings) || 'our') + ' active buildings in ' + (intc(p.active_neighborhoods) || 'several') + ' neighborhoods. For the building-by-building and neighborhood breakdown, see the rankings.</p>' +
+'<p class="links" style="margin-top:20px"><a href="' + base + '/san-francisco-condo-rankings">View full rankings \u2192</a><a href="' + base + '/buildings/">Browse buildings \u2192</a></p>' +
+'</section>' +
+'<p class="method">Figures are computed from recorded sale transactions in cataloged San Francisco condo buildings, comparing the trailing twelve months with the twelve months prior. Price and price-per-square-foot are medians. McMullen Properties LLC \u00b7 CA DRE #02016832.</p>' +
+'<a class="cta" href="' + base + '/buildings/">Explore all buildings \u2192</a>' +
+'<div style="height:60px"></div>' +
+'</div></body></html>';
+
+  return new Response(html, {
+    status: 200,
+    headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' },
+  });
+}
+
+
 async function callReportRpc(name, body) {
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
@@ -372,7 +503,7 @@ async function renderRankingsHub(mk) {
 'a.bld{color:var(--orange-bright)}' +
 '</style></head><body>' +
 '<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
-'<nav class="nav"><a href="' + base + '/buildings/">Buildings</a><a href="' + base + '/intelligence/">Intelligence</a><a href="' + canonical + '">Rankings</a></nav></div></header>' +
+'<nav class="nav"><a href="' + base + '/buildings/">Buildings</a><a href="' + base + '/intelligence/">Intelligence</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a href="' + canonical + '">Rankings</a></nav></div></header>' +
 '<div class="hero"><div class="wrap">' +
 '<p class="kick">San Francisco · Data Rankings</p>' +
 '<h1>San Francisco Condo Rankings</h1>' +
