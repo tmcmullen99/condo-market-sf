@@ -333,15 +333,19 @@
     <div class="wrap">
       <div class="section-head">
         <h2 class="section-title">How prices have <em>moved</em></h2>
-        <span class="section-sub">Citywide median $/sf, by quarter</span>
+       <span class="section-sub">Median $/sf by quarter · citywide or by neighborhood</span>
       </div>
       <div class="timeline-shell">
         <div class="timeline-toggle">
+          <select id="timeline-hood" style="font-family:var(--ff-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory);background:var(--cm-card);border:1px solid var(--cm-rule);border-radius:999px;padding:8px 16px;cursor:pointer;">
+            <option value="">All San Francisco</option>
+          </select>
           <div class="timeline-period" id="timeline-period">
             <button data-range="1">1y</button>
             <button data-range="3">3y</button>
             <button class="on" data-range="10">10y</button>
           </div>
+        </div>
         </div>
         <div class="timeline-canvas-wrap">
           <canvas id="timeline-chart"></canvas>
@@ -706,24 +710,58 @@
     });
   });
 
-  // ───────── Timeline ─────────
+// ───────── Timeline ─────────
   let timelineChart = null;
   let allQuarters = [];
+  let timelineYears = 10;
+  let timelineHood = '';
 
   async function initTimeline() {
     try {
-      allQuarters = await rpc('intelligence_psf_quarterly', { p_market_slug: MARKET });
-      drawTimeline(10);
+      allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: null });
+      drawTimeline(timelineYears);
+      populateTimelineHoods();
     } catch (e) {
       console.warn('timeline failed', e);
     }
   }
 
-  function drawTimeline(years) {
+  async function populateTimelineHoods() {
+    try {
+      const bs = await getBuildings();
+      const hoods = [...new Set(bs.map(b => b.hood).filter(Boolean))].sort();
+      const sel = document.getElementById('timeline-hood');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">All San Francisco</option>' +
+        hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
+      sel.addEventListener('change', async () => {
+        timelineHood = sel.value;
+        try {
+          allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: timelineHood || null });
+          drawTimeline(timelineYears);
+        } catch (e) { console.warn('hood timeline failed', e); }
+      });
+    } catch (e) {}
+  }
+
+function drawTimeline(years) {
+    timelineYears = years;
     const cutoff = new Date();
     cutoff.setFullYear(cutoff.getFullYear() - years);
     const filtered = allQuarters.filter(q => new Date(q.quarter_start + 'T00:00:00') >= cutoff);
-    if (filtered.length === 0) return;
+    const wrap = document.querySelector('.timeline-canvas-wrap');
+    if (filtered.length === 0) {
+      if (timelineChart) { timelineChart.destroy(); timelineChart = null; }
+      if (wrap) wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-family:var(--ff-display);font-style:italic;font-size:17px;text-align:center;padding:0 20px;">Not enough recorded sales in ' + (timelineHood || 'this selection') + ' over this period to chart a reliable trend.</div>';
+      document.getElementById('bookend-start-date').textContent = '--';
+      document.getElementById('bookend-end-date').textContent = '--';
+      document.getElementById('bookend-start').textContent = '--';
+      document.getElementById('bookend-end').textContent = '--';
+      return;
+    }
+    if (wrap && !document.getElementById('timeline-chart')) {
+      wrap.innerHTML = '<canvas id="timeline-chart"></canvas>';
+    }
 
     const labels = filtered.map(q => {
       const d = new Date(q.quarter_start + 'T00:00:00');
