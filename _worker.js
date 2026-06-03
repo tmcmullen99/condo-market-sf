@@ -100,7 +100,7 @@ async function renderChrome(request, env, kind) {
   }
 
   if (kind === 'intel' && mk.tag === 'sf') {
-    const widget = neighborhoodCompareWidget(mk);
+    const widget = neighborhoodCompareWidget(mk) + priceMovementWidget(mk);
     // Place ABOVE the footer, in the dark content area. Try anchors in order;
     // each replace only fires if the marker exists, so the first match wins.
     if (html.indexOf('<footer') !== -1) {
@@ -514,6 +514,46 @@ function neighborhoodCompareWidget(mk) {
 'function render(){var a=data[elA.value],b=data[elB.value];out.innerHTML=\'<div style="display:flex;gap:14px;flex-wrap:wrap">\'+cell(a)+cell(b)+\'</div>\';}' +
 'elA.addEventListener("change",render);elB.addEventListener("change",render);render();' +
 '}).catch(function(){out.innerHTML=\'<p style="color:#8893a6">Neighborhood data is loading\\u2014refresh in a moment.</p>\';});' +
+'})();</script>';
+}
+
+/* ---- intel page: price movement widget (1/3/5/10yr, client-rendered) ---- */
+function priceMovementWidget(mk) {
+  var SB = SUPABASE_URL, AK = SUPABASE_ANON_KEY;
+  return '' +
+'<section id="cm-pm" style="background:#0a0d12;color:#e8e3d8"><div style="max-width:1040px;margin:0 auto;padding:8px 24px 64px;font-family:\'DM Sans\',sans-serif">' +
+'<p style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#C2410C;margin:0 0 12px">How Prices Have Moved</p>' +
+'<h2 style="font-family:\'Playfair Display\',serif;font-size:27px;font-weight:700;margin:0 0 8px;color:#e8e3d8">Price movement by neighborhood</h2>' +
+'<p style="color:#8893a6;font-size:15px;max-width:680px;margin:0 0 22px">Choose a neighborhood and a time horizon to see how the median price per square foot has moved. Horizons without enough recorded sales to be reliable are marked accordingly.</p>' +
+'<select id="cmPmNb" style="width:100%;max-width:420px;background:#0d111a;color:#e8e3d8;border:1px solid rgba(194,65,12,.3);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit;margin-bottom:18px"></select>' +
+'<div id="cmPmTabs" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px"></div>' +
+'<div id="cmPmOut"></div></div></section>' +
+'<script>(function(){' +
+'var SB="' + SB + '",AK="' + AK + '";' +
+'var sel=document.getElementById("cmPmNb"),tabs=document.getElementById("cmPmTabs"),out=document.getElementById("cmPmOut");' +
+'if(!sel)return;' +
+'var HORIZONS=[1,3,5,10],active=1,cache={};' +
+'function money(n){return(n==null||isNaN(n))?"\\u2014":"$"+Number(n).toLocaleString("en-US");}' +
+'function hdr(h){return h+(h===1?" Year":" Years");}' +
+'function drawTabs(){tabs.innerHTML=HORIZONS.map(function(h){' +
+'var on=h===active;return \'<button data-h="\'+h+\'" style="background:\'+(on?"#C2410C":"transparent")+\';color:\'+(on?"#fff":"#8893a6")+\';border:1px solid \'+(on?"#C2410C":"rgba(194,65,12,.3)")+\';border-radius:8px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">\'+hdr(h)+\'</button>\';}).join("");' +
+'Array.prototype.forEach.call(tabs.querySelectorAll("button"),function(b){b.addEventListener("click",function(){active=Number(b.getAttribute("data-h"));drawTabs();render();});});}' +
+'function render(){var rows=cache[sel.value];if(!rows){out.innerHTML="";return;}' +
+'var r=null;for(var i=0;i<rows.length;i++){if(rows[i].horizon_years===active)r=rows[i];}' +
+'if(!r||r.pct_change==null){out.innerHTML=\'<div style="border:1px solid rgba(194,65,12,.16);border-radius:14px;padding:24px;color:#8893a6;font-size:15px">Not enough recorded sales in \'+sel.value+\' over this \'+hdr(active).toLowerCase()+\' window to report a reliable change.</div>\';return;}' +
+'var up=r.pct_change>=0,col=up?"#4f9d5d":"#c46a4a",arr=up?"\\u25B2":"\\u25BC";' +
+'out.innerHTML=\'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch">\'' +
+'+\'<div style="flex:1;min-width:160px;border:1px solid rgba(194,65,12,.16);border-radius:14px;padding:22px"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8893a6;font-weight:700">\'+hdr(active)+\' Ago</div><div style="font-size:28px;font-weight:700;color:#e8e3d8;font-variant-numeric:tabular-nums">\'+money(r.median_then)+\'</div><div style="font-size:12px;color:#8893a6;margin-top:4px">median $/sqft</div></div>\'' +
+'+\'<div style="flex:1;min-width:160px;border:1px solid rgba(194,65,12,.16);border-radius:14px;padding:22px"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8893a6;font-weight:700">Today</div><div style="font-size:28px;font-weight:700;color:#e85d2a;font-variant-numeric:tabular-nums">\'+money(r.median_now)+\'</div><div style="font-size:12px;color:#8893a6;margin-top:4px">median $/sqft</div></div>\'' +
+'+\'<div style="flex:1;min-width:160px;border:1px solid rgba(194,65,12,.16);border-radius:14px;padding:22px"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8893a6;font-weight:700">Change</div><div style="font-size:28px;font-weight:700;color:\'+col+\';font-variant-numeric:tabular-nums">\'+arr+\' \'+Math.abs(r.pct_change)+\'%</div><div style="font-size:12px;color:#8893a6;margin-top:4px">over \'+hdr(active).toLowerCase()+\'</div></div></div>\';}' +
+'function loadNb(){var nb=sel.value;if(cache[nb]){render();return;}' +
+'fetch(SB+"/rest/v1/rpc/neighborhood_price_movement",{method:"POST",headers:{apikey:AK,Authorization:"Bearer "+AK,"Content-Type":"application/json"},body:JSON.stringify({p_market_domain:"sanfranciscocondomarket.com",p_neighborhood:nb})})' +
+'.then(function(r){return r.json();}).then(function(rows){cache[nb]=rows;render();});}' +
+'fetch(SB+"/rest/v1/rpc/neighborhoods_index",{method:"POST",headers:{apikey:AK,Authorization:"Bearer "+AK,"Content-Type":"application/json"},body:JSON.stringify({p_market_domain:"sanfranciscocondomarket.com"})})' +
+'.then(function(r){return r.json();}).then(function(rows){' +
+'sel.innerHTML=rows.map(function(n){return \'<option value="\'+n.neighborhood.replace(/"/g,"")+\'">\'+n.neighborhood+\'</option>\';}).join("");' +
+'sel.addEventListener("change",loadNb);drawTabs();loadNb();' +
+'}).catch(function(){out.innerHTML=\'<p style="color:#8893a6">Price data is loading\\u2014refresh in a moment.</p>\';});' +
 '})();</script>';
 }
 
