@@ -100,7 +100,16 @@ async function renderChrome(request, env, kind) {
   }
 
   if (kind === 'intel' && mk.tag === 'sf') {
-    html = html.replace('</body>', neighborhoodCompareWidget(mk) + '</body>');
+    const widget = neighborhoodCompareWidget(mk);
+    // Place ABOVE the footer, in the dark content area. Try anchors in order;
+    // each replace only fires if the marker exists, so the first match wins.
+    if (html.indexOf('<footer') !== -1) {
+      html = html.replace('<footer', widget + '<footer');
+    } else if (html.indexOf('</main>') !== -1) {
+      html = html.replace('</main>', widget + '</main>');
+    } else {
+      html = html.replace('</body>', widget + '</body>');
+    }
   }
 
   html = applyMarketSwaps(html, mk);
@@ -472,14 +481,14 @@ body + '</body></html>';
 function neighborhoodCompareWidget(mk) {
   var SB = SUPABASE_URL, AK = SUPABASE_ANON_KEY;
   return '' +
-'<section id="cm-nb-compare" style="max-width:1040px;margin:0 auto;padding:56px 24px;border-top:1px solid rgba(194,65,12,.16);font-family:\'DM Sans\',sans-serif">' +
+'<section id="cm-nb-compare" style="background:#0a0d12;color:#e8e3d8"><div style="max-width:1040px;margin:0 auto;padding:64px 24px;font-family:\'DM Sans\',sans-serif">' +
 '<p style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#C2410C;margin:0 0 12px">Neighborhood Data</p>' +
 '<h2 style="font-family:\'Playfair Display\',serif;font-size:27px;font-weight:700;margin:0 0 8px;color:#e8e3d8">Compare two neighborhoods</h2>' +
 '<p style="color:#8893a6;font-size:15px;max-width:680px;margin:0 0 22px">Pick any two San Francisco neighborhoods to compare median price per square foot, sale price, and recent activity side by side. For the full picture on any one, visit its <a href="https://www.sanfranciscocondomarket.com/neighborhoods" style="color:#e85d2a;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.16)">neighborhood page</a>.</p>' +
 '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px">' +
 '<select id="cmNbA" style="flex:1;min-width:200px;background:#0d111a;color:#e8e3d8;border:1px solid rgba(194,65,12,.3);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit"></select>' +
 '<select id="cmNbB" style="flex:1;min-width:200px;background:#0d111a;color:#e8e3d8;border:1px solid rgba(194,65,12,.3);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit"></select>' +
-'</div><div id="cmNbOut"></div></section>' +
+'</div><div id="cmNbOut"></div></div></section>' +
 '<script>(function(){' +
 'var SB="' + SB + '",AK="' + AK + '";' +
 'var elA=document.getElementById("cmNbA"),elB=document.getElementById("cmNbB"),out=document.getElementById("cmNbOut");' +
