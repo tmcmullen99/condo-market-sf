@@ -99,6 +99,10 @@ async function renderChrome(request, env, kind) {
       .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
   }
 
+  if (kind === 'intel' && mk.tag === 'sf') {
+    html = html.replace('</body>', neighborhoodCompareWidget(mk) + '</body>');
+  }
+
   html = applyMarketSwaps(html, mk);
 
   const headers = new Headers(res.headers);
@@ -165,6 +169,17 @@ export default {
         (url.pathname === '/san-francisco-condos' ||
          url.pathname === '/san-francisco-condos/')) {
       return renderBuildingsDirectory(hostMk);
+    }
+
+    // Neighborhoods hub.
+    if (request.method === 'GET' &&
+        (url.pathname === '/neighborhoods' || url.pathname === '/neighborhoods/')) {
+      return renderNeighborhoodsHub(hostMk);
+    }
+    // Neighborhood detail: /neighborhood/<slug>
+    const nbM = url.pathname.match(/^\/neighborhood\/([^\/]+)\/?$/);
+    if (nbM && request.method === 'GET') {
+      return renderNeighborhoodDetail(hostMk, decodeURIComponent(nbM[1]));
     }
 
     // /building/<slug>/report → 301 to building page #market section.
@@ -255,6 +270,12 @@ async function renderSitemap(mk) {
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-market-stats');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condos');
+  if (mk.tag === 'sf') staticUrls.push('/neighborhoods');
+  // per-neighborhood detail URLs (SF)
+  let nbRows = [];
+  if (mk.tag === 'sf') {
+    nbRows = await callReportRpc('neighborhoods_index', { p_market_domain: mk.domain });
+  }
   const today = new Date().toISOString().slice(0, 10);
   const urlsXml = [];
   for (const u of staticUrls) {
@@ -264,10 +285,227 @@ async function renderSitemap(mk) {
     const lm = r.updated_at ? String(r.updated_at).slice(0, 10) : today;
     urlsXml.push('<url><loc>' + base + '/building/' + r.slug + '/</loc><lastmod>' + lm + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
   }
+  for (const n of (nbRows || [])) {
+    urlsXml.push('<url><loc>' + base + '/neighborhood/' + hoodSlug(n.neighborhood) + '</loc><lastmod>' + today + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+  }
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urlsXml.join('\n') + '\n</urlset>\n';
   return new Response(xml, { status: 200, headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
+}
+
+/* ----------------------- data hub: neighborhoods ------------------------ */
+function hoodSlug(name) {
+  return String(name || '').toLowerCase().trim()
+    .replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+async function renderNeighborhoodsHub(mk) {
+  const DOMAIN = 'sanfranciscocondomarket.com';
+  if (mk.tag !== 'sf') {
+    return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + DOMAIN + '/neighborhoods', 'Cache-Control': 'public, max-age=3600' } });
+  }
+  const base = 'https://www.' + DOMAIN;
+  const canonical = base + '/neighborhoods';
+  const updated = new Date().toISOString().slice(0, 10);
+  const rows = await callReportRpc('neighborhoods_index', { p_market_domain: DOMAIN });
+  const list = Array.isArray(rows) ? rows : [];
+
+  const cards = list.map(function (n) {
+    const stat = n.is_thin
+      ? '<div class="nstat thin">Limited recent sales</div>'
+      : '<div class="nstat">' + (money(n.median_psf) || '\u2014') + '<span>/sqft median</span></div>';
+    return '<a class="ncard" href="' + base + '/neighborhood/' + hoodSlug(n.neighborhood) + '">' +
+      '<div class="nname">' + esc(n.neighborhood) + '</div>' + stat +
+      '<div class="nmeta">' + intc(n.building_count) + ' building' + (n.building_count == 1 ? '' : 's') +
+      ' \u00b7 ' + intc(n.sales_12mo) + ' sales / 12mo</div></a>';
+  }).join('');
+
+  const itemListEls = list.map(function (n, i) {
+    return { '@type': 'ListItem', position: i + 1, url: base + '/neighborhood/' + hoodSlug(n.neighborhood), name: n.neighborhood };
+  });
+  const jsonld = { '@context': 'https://schema.org', '@type': 'ItemList',
+    name: 'San Francisco Condo Neighborhoods', numberOfItems: list.length, itemListElement: itemListEls };
+
+  const title = 'San Francisco Condo Market by Neighborhood';
+  const desc  = 'Condo market data for ' + intc(list.length) + ' San Francisco neighborhoods\u2014median price per square foot, sales volume, and the buildings in each. Compare neighborhoods side by side.';
+
+  const html = nbChrome(title, desc, canonical, jsonld, base,
+    '<div class="hero"><div class="wrap">' +
+    '<p class="kick">San Francisco · Neighborhoods</p>' +
+    '<h1>San Francisco Condos by Neighborhood</h1>' +
+    '<p class="lede">The condo market varies block to block. Here\u2019s every San Francisco neighborhood we catalog\u2014its median price per square foot, recent sales activity, and the buildings within it. Tap any neighborhood for the full breakdown, or compare two side by side on the intelligence page.</p>' +
+    '<p class="upd">' + intc(list.length) + ' neighborhoods · updated ' + updated + '</p></div></div>' +
+    '<div class="wrap"><p class="links"><a href="' + base + '/intelligence/">Compare neighborhoods \u2192</a><a href="' + base + '/san-francisco-condo-rankings">Rankings \u2192</a></p>' +
+    '<div class="ngrid">' + cards + '</div>' +
+    '<p class="method">Median price per square foot is computed from recorded sales over the trailing twelve months; neighborhoods with fewer than five recent sales show activity counts only, not a median. McMullen Properties LLC \u00b7 CA DRE #02016832.</p>' +
+    '<div style="height:50px"></div></div>');
+  return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
+}
+
+async function renderNeighborhoodDetail(mk, rawSlug) {
+  const DOMAIN = 'sanfranciscocondomarket.com';
+  if (mk.tag !== 'sf') {
+    return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + DOMAIN + '/neighborhoods', 'Cache-Control': 'public, max-age=3600' } });
+  }
+  const base = 'https://www.' + DOMAIN;
+  const slug = hoodSlug(rawSlug);
+
+  // Resolve slug -> canonical neighborhood name via the index.
+  const idx = await callReportRpc('neighborhoods_index', { p_market_domain: DOMAIN });
+  const match = (Array.isArray(idx) ? idx : []).find(function (n) { return hoodSlug(n.neighborhood) === slug; });
+  if (!match) {
+    return new Response(null, { status: 302, headers: { 'Location': base + '/neighborhoods' } });
+  }
+  const hood = match.neighborhood;
+  const canonical = base + '/neighborhood/' + slug;
+  const updated = new Date().toISOString().slice(0, 10);
+
+  const [detRows, bldRows] = await Promise.all([
+    callReportRpc('neighborhood_detail', { p_market_domain: DOMAIN, p_neighborhood: hood }),
+    callReportRpc('neighborhood_buildings', { p_market_domain: DOMAIN, p_neighborhood: hood }),
+  ]);
+  const d = (detRows && detRows[0]) ? detRows[0] : {};
+  const blds = Array.isArray(bldRows) ? bldRows : [];
+
+  const dPsf  = pctDelta(d.cur_median_psf, d.prior_median_psf);
+  const dPrice = pctDelta(d.cur_median_price, d.prior_median_price);
+
+  // stat cards: full mode vs honest thin mode
+  let statBlock;
+  if (d.is_thin) {
+    statBlock = '<div class="thinnote"><strong>' + esc(hood) + '</strong> has ' + intc(d.building_count) +
+      ' cataloged building' + (d.building_count == 1 ? '' : 's') + ' and ' + intc(d.cur_sales) +
+      ' recorded sale' + (d.cur_sales == 1 ? '' : 's') + ' in the past year\u2014too few for a reliable median. ' +
+      'See the buildings below, or the citywide stats for context.</div>';
+  } else {
+    const c = function (label, val, dd, inv) {
+      return '<div class="stat"><div class="stat-label">' + label + '</div><div class="stat-val">' + (val || '\u2014') +
+        '</div><div class="stat-sub">' + (dd != null ? deltaSpan(dd, inv) + ' YoY' : '') + '</div></div>';
+    };
+    statBlock = '<div class="grid">' +
+      c('Median $/Sq Ft', money(d.cur_median_psf), dPsf, false) +
+      c('Median Price', money(d.cur_median_price), dPrice, false) +
+      '<div class="stat"><div class="stat-label">Sales / 12mo</div><div class="stat-val">' + intc(d.cur_sales) +
+      '</div><div class="stat-sub">' + intc(d.building_count) + ' buildings</div></div></div>';
+  }
+
+  const bRows = blds.map(function (b) {
+    const psf = b.median_psf ? money(b.median_psf) : '\u2014';
+    return '<tr><td><a href="' + base + '/building/' + esc(b.slug) + '/">' + esc(b.display_name) + '</a></td>' +
+      '<td class="num">' + (b.year_built || '\u2014') + '</td><td class="num">' + (b.unit_count ? intc(b.unit_count) : '\u2014') +
+      '</td><td class="num">' + psf + '</td></tr>';
+  }).join('');
+
+  const jsonld = { '@context': 'https://schema.org', '@type': 'Dataset',
+    name: hood + ' San Francisco Condo Market', url: canonical, dateModified: updated,
+    creator: { '@type': 'RealEstateAgent', name: 'McMullen Properties LLC' } };
+
+  const title = hood + ' Condos \u2014 Market Data, Prices & Buildings | San Francisco';
+  const desc  = (d.is_thin
+    ? hood + ' San Francisco condo buildings and recent sales activity.'
+    : hood + ' San Francisco condos: median ' + (money(d.cur_median_psf) || '') + '/sqft across ' +
+      intc(d.building_count) + ' buildings, ' + intc(d.cur_sales) + ' recent sales. Year built, size, and price per building.');
+
+  const body =
+    '<div class="hero"><div class="wrap">' +
+    '<p class="kick"><a href="' + base + '/neighborhoods" style="color:inherit;text-decoration:none">San Francisco Neighborhoods</a> · ' + esc(hood) + '</p>' +
+    '<h1>' + esc(hood) + ' Condo Market</h1>' +
+    '<p class="lede">Recorded sales, pricing, and the cataloged condo buildings in ' + esc(hood) + ', San Francisco\u2014measured over the trailing twelve months.</p>' +
+    '<p class="upd">Updated ' + updated + '</p></div></div>' +
+    '<div class="wrap">' + statBlock +
+    '<section><h2>Buildings in ' + esc(hood) + '</h2>' +
+    '<table><thead><tr><th>Building</th><th class="num">Built</th><th class="num">Units</th><th class="num">Median $/sqft</th></tr></thead><tbody>' +
+    (bRows || '<tr><td colspan="4">No cataloged buildings.</td></tr>') + '</tbody></table></section>' +
+    '<p class="links"><a href="' + base + '/neighborhoods">\u2190 All neighborhoods</a><a href="' + base + '/intelligence/">Compare neighborhoods \u2192</a></p>' +
+    '<p class="method">Per-building price per square foot is the median of recorded sales over the trailing twelve months, shown where sales exist. Neighborhood medians are suppressed below five recent sales. McMullen Properties LLC \u00b7 CA DRE #02016832.</p>' +
+    '<div style="height:50px"></div></div>';
+
+  const html = nbChrome(title, desc, canonical, jsonld, base, body);
+  return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
+}
+
+// shared chrome for neighborhood pages (header/nav/styles)
+function nbChrome(title, desc, canonical, jsonld, base, body) {
+  return '<!doctype html><html lang="en"><head>' +
+'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+'<title>' + esc(title) + '</title><meta name="description" content="' + attr(desc) + '">' +
+'<link rel="canonical" href="' + canonical + '">' +
+'<meta property="og:title" content="' + attr(title) + '"><meta property="og:description" content="' + attr(desc) + '">' +
+'<meta property="og:url" content="' + canonical + '"><meta property="og:type" content="website">' +
+'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+'<script type="application/ld+json">' + JSON.stringify(jsonld) + '</script>' +
+'<style>' +
+':root{--dark:#0a0d12;--orange:#C2410C;--orange-bright:#e85d2a;--ivory:#e8e3d8;--dim:#8893a6;--line:rgba(194,65,12,.16);--up:#4f9d5d;--down:#c46a4a}' +
+'*{box-sizing:border-box}body{margin:0;background:var(--dark);color:var(--ivory);font-family:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6}' +
+'.wrap{max-width:1040px;margin:0 auto;padding:0 24px}' +
+'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
+'.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.hero{padding:56px 0 28px;border-bottom:1px solid var(--line)}' +
+'.kick{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
+'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0 0 16px}' +
+'.lede{font-size:17px;color:#c3ccd9;max-width:700px;margin:0}.upd{font-size:12px;color:var(--dim);margin-top:16px}' +
+'.links{padding:22px 0}.links a{color:var(--orange-bright);text-decoration:none;font-weight:600;border-bottom:1px solid var(--line);margin-right:22px;font-size:14px}' +
+'.ngrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px 0 30px}@media(max-width:820px){.ngrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:540px){.ngrid{grid-template-columns:1fr}}' +
+'.ncard{display:block;border:1px solid var(--line);border-radius:12px;padding:18px;text-decoration:none;transition:border-color .15s}.ncard:hover{border-color:var(--orange)}' +
+'.nname{font-family:"Playfair Display",serif;font-size:20px;font-weight:700;color:var(--ivory)}' +
+'.nstat{font-size:22px;font-weight:700;color:var(--orange-bright);margin-top:8px;font-variant-numeric:tabular-nums}.nstat span{font-size:12px;color:var(--dim);font-weight:500;margin-left:4px}.nstat.thin{font-size:14px;color:var(--dim);font-weight:600}' +
+'.nmeta{font-size:12.5px;color:var(--dim);margin-top:6px}' +
+'.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:34px 0}@media(max-width:720px){.grid{grid-template-columns:1fr}}' +
+'.stat{border:1px solid var(--line);border-radius:14px;padding:22px}.stat-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:10px}' +
+'.stat-val{font-family:"Playfair Display",serif;font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}.stat-sub{font-size:13px;color:var(--dim);margin-top:8px}' +
+'.d{font-weight:700}.d.up{color:var(--up)}.d.down{color:var(--down)}.d.flat{color:var(--dim)}' +
+'.thinnote{border:1px solid var(--line);border-radius:12px;padding:20px;color:#c3ccd9;font-size:15px;margin:30px 0}' +
+'section{padding:18px 0 10px;border-top:1px solid var(--line)}h2{font-family:"Playfair Display",serif;font-size:23px;font-weight:700;margin:24px 0 16px}' +
+'table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:0 12px 10px;border-bottom:1px solid var(--line)}' +
+'th.num,td.num{text-align:right}td{padding:12px;border-bottom:1px solid rgba(136,147,166,.12);font-variant-numeric:tabular-nums}td a{color:var(--ivory);text-decoration:none;font-weight:600;border-bottom:1px solid var(--line)}td a:hover{color:var(--orange-bright)}' +
+'.method{color:var(--dim);font-size:13px;max-width:760px;margin-top:26px}' +
+'</style></head><body>' +
+'<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
+'<nav class="nav"><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a></nav></div></header>' +
+body + '</body></html>';
+}
+
+/* ---- intel page: neighborhood comparison widget (client-rendered) ---- */
+function neighborhoodCompareWidget(mk) {
+  var SB = SUPABASE_URL, AK = SUPABASE_ANON_KEY;
+  return '' +
+'<section id="cm-nb-compare" style="max-width:1040px;margin:0 auto;padding:56px 24px;border-top:1px solid rgba(194,65,12,.16);font-family:\'DM Sans\',sans-serif">' +
+'<p style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#C2410C;margin:0 0 12px">Neighborhood Data</p>' +
+'<h2 style="font-family:\'Playfair Display\',serif;font-size:27px;font-weight:700;margin:0 0 8px;color:#e8e3d8">Compare two neighborhoods</h2>' +
+'<p style="color:#8893a6;font-size:15px;max-width:680px;margin:0 0 22px">Pick any two San Francisco neighborhoods to compare median price per square foot, sale price, and recent activity side by side. For the full picture on any one, visit its <a href="https://www.sanfranciscocondomarket.com/neighborhoods" style="color:#e85d2a;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.16)">neighborhood page</a>.</p>' +
+'<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px">' +
+'<select id="cmNbA" style="flex:1;min-width:200px;background:#0d111a;color:#e8e3d8;border:1px solid rgba(194,65,12,.3);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit"></select>' +
+'<select id="cmNbB" style="flex:1;min-width:200px;background:#0d111a;color:#e8e3d8;border:1px solid rgba(194,65,12,.3);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit"></select>' +
+'</div><div id="cmNbOut"></div></section>' +
+'<script>(function(){' +
+'var SB="' + SB + '",AK="' + AK + '";' +
+'var elA=document.getElementById("cmNbA"),elB=document.getElementById("cmNbB"),out=document.getElementById("cmNbOut");' +
+'if(!elA)return;' +
+'function money(n){return(n==null||isNaN(n))?"\\u2014":"$"+Number(n).toLocaleString("en-US");}' +
+'function intc(n){return(n==null)?"0":Number(n).toLocaleString("en-US");}' +
+'function slug(s){return String(s||"").toLowerCase().trim().replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}' +
+'fetch(SB+"/rest/v1/rpc/neighborhoods_index",{method:"POST",headers:{apikey:AK,Authorization:"Bearer "+AK,"Content-Type":"application/json"},body:JSON.stringify({p_market_domain:"sanfranciscocondomarket.com"})})' +
+'.then(function(r){return r.json();}).then(function(rows){' +
+'var data={};rows.forEach(function(n){data[n.neighborhood]=n;});' +
+'var opts=rows.map(function(n){return \'<option value="\'+n.neighborhood.replace(/"/g,"")+\'">\'+n.neighborhood+\'</option>\';}).join("");' +
+'elA.innerHTML=opts;elB.innerHTML=opts;' +
+'if(rows.length>1){elA.selectedIndex=0;elB.selectedIndex=1;}' +
+'function cell(n){if(!n)return "";' +
+'var psf=n.is_thin?\'<span style="color:#8893a6;font-size:14px">Limited recent sales</span>\':money(n.median_psf);' +
+'var price=n.is_thin?"\\u2014":money(n.median_price);' +
+'return \'<div style="flex:1;min-width:220px;border:1px solid rgba(194,65,12,.16);border-radius:14px;padding:22px">\'' +
+'+\'<div style="font-family:\\\'Playfair Display\\\',serif;font-size:21px;font-weight:700;color:#e8e3d8;margin-bottom:16px">\'+n.neighborhood+\'</div>\'' +
+'+\'<div style="margin-bottom:12px"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8893a6;font-weight:700">Median $/sqft</div><div style="font-size:26px;font-weight:700;color:#e85d2a;font-variant-numeric:tabular-nums">\'+psf+\'</div></div>\'' +
+'+\'<div style="margin-bottom:12px"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8893a6;font-weight:700">Median price</div><div style="font-size:20px;font-weight:700;color:#e8e3d8;font-variant-numeric:tabular-nums">\'+price+\'</div></div>\'' +
+'+\'<div style="margin-bottom:14px"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8893a6;font-weight:700">Sales / 12mo</div><div style="font-size:20px;font-weight:700;color:#e8e3d8">\'+intc(n.sales_12mo)+\' <span style="font-size:13px;color:#8893a6;font-weight:500">/ \'+intc(n.building_count)+\' buildings</span></div></div>\'' +
+'+\'<a href="https://www.sanfranciscocondomarket.com/neighborhood/\'+slug(n.neighborhood)+\'" style="color:#e85d2a;text-decoration:none;font-size:13px;font-weight:600">View \'+n.neighborhood+\' \\u2192</a></div>\';}' +
+'function render(){var a=data[elA.value],b=data[elB.value];out.innerHTML=\'<div style="display:flex;gap:14px;flex-wrap:wrap">\'+cell(a)+cell(b)+\'</div>\';}' +
+'elA.addEventListener("change",render);elB.addEventListener("change",render);render();' +
+'}).catch(function(){out.innerHTML=\'<p style="color:#8893a6">Neighborhood data is loading\\u2014refresh in a moment.</p>\';});' +
+'})();</script>';
 }
 
 /* -------------------- data hub: buildings directory --------------------- */
