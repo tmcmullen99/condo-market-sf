@@ -107,6 +107,15 @@
   .bookend-date { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 4px; }
   .bookend-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
   .bookend-r { text-align: right; }
+  /* ── Price movement: stat cards ── */
+  .pm-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  @media (max-width: 720px) { .pm-cards { grid-template-columns: 1fr; } }
+  .pm-card { border: 1px solid var(--cm-rule); border-radius: 12px; padding: 20px 22px; background: var(--cm-card); }
+  .pm-card-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 8px; }
+  .pm-card-val { font-family: var(--ff-display); font-weight: 500; font-size: 30px; line-height: 1; color: var(--cm-ivory); }
+  .pm-card-val.peri { color: var(--cm-rust); }
+  .pm-card-sub { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-dim); margin-top: 6px; }
+  .pm-note { grid-column: 1 / -1; border: 1px solid var(--cm-rule); border-radius: 12px; padding: 20px 22px; background: var(--cm-card); font-family: var(--ff-display); font-style: italic; font-size: 16px; color: var(--cm-ivory-dim); }
   .activity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
   .activity-card { background: var(--cm-card); border: 1px solid var(--cm-rule); border-radius: 12px; overflow: hidden; box-shadow: var(--cm-shadow); transition: transform .15s ease, box-shadow .15s ease, border-color .15s; cursor: pointer; display: flex; flex-direction: column; }
   .activity-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(31,36,48,0.14); border-color: var(--cm-peri); }
@@ -329,24 +338,25 @@
   </section>
 
 
-  <section class="section">
+  <section class="section" id="price-movement">
     <div class="wrap">
       <div class="section-head">
-        <h2 class="section-title">How prices have <em>moved</em></h2>
-       <span class="section-sub">Median $/sf by quarter · citywide or by neighborhood</span>
+        <h2 class="section-title">Price movement by <em>neighborhood</em></h2>
+        <span class="section-sub">Median $/sf · then vs now, charted by quarter</span>
       </div>
       <div class="timeline-shell">
         <div class="timeline-toggle">
-          <select id="timeline-hood" style="font-family:var(--ff-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory);background:var(--cm-card);border:1px solid var(--cm-rule);border-radius:999px;padding:8px 16px;cursor:pointer;">
-            <option value="">All San Francisco</option>
+          <select id="pm-hood" style="font-family:var(--ff-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory);background:var(--cm-card);border:1px solid var(--cm-rule);border-radius:999px;padding:8px 16px;cursor:pointer;">
+            <option value="">All</option>
           </select>
-          <div class="timeline-period" id="timeline-period">
-            <button data-range="1">1y</button>
-            <button data-range="3">3y</button>
-            <button class="on" data-range="10">10y</button>
+          <div class="timeline-period" id="pm-period">
+            <button data-range="1">1 Year</button>
+            <button data-range="3">3 Years</button>
+            <button data-range="5">5 Years</button>
+            <button class="on" data-range="10">10 Years</button>
           </div>
         </div>
-        </div>
+        <div class="pm-cards" id="pm-cards" style="display:none;"></div>
         <div class="timeline-canvas-wrap">
           <canvas id="timeline-chart"></canvas>
         </div>
@@ -601,7 +611,6 @@
   function colorForMetric(value, min, max) {
     if (value == null || max <= min) return '#9fb4d8';
     const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
-    // peri (#9fb4d8) → bronze (#d4a574) → rust (#c95742)
     if (t < 0.5) {
       const k = t * 2;
       return lerpColor([0x9f, 0xb4, 0xd8], [0xd4, 0xa5, 0x74], k);
@@ -643,7 +652,6 @@
     buildingMarkers.forEach(m => map.removeLayer(m));
     buildingMarkers = [];
 
-    // Compute min/max for the active metric
     const valuesByBldg = new Map();
     cachedBuildings.forEach(b => {
       const slug = (b.href || '').split('/').pop();
@@ -651,7 +659,7 @@
       if (!card) return;
       let v = null;
       if (currentMetric === 'psf') v = card.median_psf_36mo;
-      else if (currentMetric === 'volume') v = (card.most_recent_sale_price || 0) * (card.sales_36mo || 0); // rough total
+      else if (currentMetric === 'volume') v = (card.most_recent_sale_price || 0) * (card.sales_36mo || 0);
       else if (currentMetric === 'velocity') v = card.sales_36mo;
       if (v != null) valuesByBldg.set(slug, v);
     });
@@ -659,7 +667,6 @@
     const min = Math.min(...vals);
     const max = Math.max(...vals);
 
-    // Update legend labels
     const legendLow = document.getElementById('legend-low');
     const legendHigh = document.getElementById('legend-high');
     if (currentMetric === 'psf') {
@@ -710,49 +717,94 @@
     });
   });
 
-// ───────── Timeline ─────────
+  // ───────── Price movement (unified: cards + graph, 1/3/5/10yr) ─────────
   let timelineChart = null;
   let allQuarters = [];
-  let timelineYears = 10;
-  let timelineHood = '';
+  let pmYears = 10;
+  let pmHood = '';
+  let pmMoveCache = {};
+
+  function pmStatCards() {
+    const cardsEl = document.getElementById('pm-cards');
+    if (!cardsEl) return;
+    if (!pmHood) { cardsEl.style.display = 'none'; return; }
+    cardsEl.style.display = 'grid';
+    const rows = pmMoveCache[pmHood];
+    if (!rows) { cardsEl.innerHTML = ''; return; }
+    let r = null;
+    for (let i = 0; i < rows.length; i++) if (rows[i].horizon_years === pmYears) r = rows[i];
+    const hl = pmYears + (pmYears === 1 ? ' year' : ' years');
+    const hLabel = pmYears + (pmYears === 1 ? ' Year' : ' Years');
+    if (!r || r.pct_change == null) {
+      cardsEl.innerHTML = '<div class="pm-note">Not enough recorded sales in ' + escapeHtml(pmHood) + ' over this ' + hl + ' window to report a reliable change.</div>';
+      return;
+    }
+    const up = r.pct_change >= 0;
+    const col = up ? '#4f7a39' : '#b8472f';
+    const arr = up ? '▲' : '▼';
+    const box = (label, val, sub, peri, color) =>
+      '<div class="pm-card"><div class="pm-card-label">' + label + '</div>' +
+      '<div class="pm-card-val' + (peri ? ' peri' : '') + '"' + (color ? ' style="color:' + color + '"' : '') + '>' + val + '</div>' +
+      '<div class="pm-card-sub">' + sub + '</div></div>';
+    cardsEl.innerHTML =
+      box(hLabel + ' Ago', '$' + Math.round(r.median_then).toLocaleString(), 'median $/sqft', false, null) +
+      box('Today', '$' + Math.round(r.median_now).toLocaleString(), 'median $/sqft', true, null) +
+      box('Change', arr + ' ' + Math.abs(r.pct_change) + '%', 'over ' + hl, false, col);
+  }
+
+  async function refreshStatCards() {
+    const cardsEl = document.getElementById('pm-cards');
+    if (!pmHood) { if (cardsEl) cardsEl.style.display = 'none'; return; }
+    if (pmMoveCache[pmHood]) { pmStatCards(); return; }
+    try {
+      const p = await getPayload();
+      const domain = (p.market && p.market.domain) || 'sanfranciscocondomarket.com';
+      pmMoveCache[pmHood] = await rpc('neighborhood_price_movement', { p_market_domain: domain, p_neighborhood: pmHood });
+    } catch (e) { pmMoveCache[pmHood] = []; }
+    pmStatCards();
+  }
 
   async function initTimeline() {
     try {
       allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: null });
-      drawTimeline(timelineYears);
-      populateTimelineHoods();
+      drawTimeline(pmYears);
+      populatePmHoods();
     } catch (e) {
-      console.warn('timeline failed', e);
+      console.warn('price movement failed', e);
     }
   }
 
-  async function populateTimelineHoods() {
+  async function populatePmHoods() {
     try {
       const bs = await getBuildings();
       const hoods = [...new Set(bs.map(b => b.hood).filter(Boolean))].sort();
-      const sel = document.getElementById('timeline-hood');
+      const sel = document.getElementById('pm-hood');
       if (!sel) return;
-      sel.innerHTML = '<option value="">All San Francisco</option>' +
+      let regionLabel = 'San Francisco';
+      try { const p = await getPayload(); regionLabel = (p.market && p.market.region) || regionLabel; } catch (e) {}
+      sel.innerHTML = '<option value="">All ' + escapeHtml(regionLabel) + '</option>' +
         hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
       sel.addEventListener('change', async () => {
-        timelineHood = sel.value;
+        pmHood = sel.value;
         try {
-          allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: timelineHood || null });
-          drawTimeline(timelineYears);
-        } catch (e) { console.warn('hood timeline failed', e); }
+          allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: pmHood || null });
+        } catch (e) { allQuarters = []; }
+        drawTimeline(pmYears);
+        refreshStatCards();
       });
     } catch (e) {}
   }
 
-function drawTimeline(years) {
-    timelineYears = years;
+  function drawTimeline(years) {
+    pmYears = years;
+    refreshStatCards();
     const cutoff = new Date();
     cutoff.setFullYear(cutoff.getFullYear() - years);
     const filtered = allQuarters.filter(q => new Date(q.quarter_start + 'T00:00:00') >= cutoff);
     const wrap = document.querySelector('.timeline-canvas-wrap');
     if (filtered.length === 0) {
       if (timelineChart) { timelineChart.destroy(); timelineChart = null; }
-      if (wrap) wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-family:var(--ff-display);font-style:italic;font-size:17px;text-align:center;padding:0 20px;">Not enough recorded sales in ' + (timelineHood || 'this selection') + ' over this period to chart a reliable trend.</div>';
+      if (wrap) wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-family:var(--ff-display);font-style:italic;font-size:17px;text-align:center;padding:0 20px;">Not enough recorded sales in ' + (pmHood || 'this selection') + ' over this period to chart a reliable trend.</div>';
       document.getElementById('bookend-start-date').textContent = '--';
       document.getElementById('bookend-end-date').textContent = '--';
       document.getElementById('bookend-start').textContent = '--';
@@ -828,7 +880,6 @@ function drawTimeline(years) {
       }
     });
 
-    // Bookends
     const first = filtered[0];
     const last = filtered[filtered.length - 1];
     document.getElementById('bookend-start-date').textContent = labels[0];
@@ -837,9 +888,9 @@ function drawTimeline(years) {
     document.getElementById('bookend-end').textContent = '$' + last.median_psf.toLocaleString() + '/sf';
   }
 
-  document.querySelectorAll('#timeline-period button').forEach(btn => {
+  document.querySelectorAll('#pm-period button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#timeline-period button').forEach(b => b.classList.remove('on'));
+      document.querySelectorAll('#pm-period button').forEach(b => b.classList.remove('on'));
       btn.classList.add('on');
       drawTimeline(parseInt(btn.dataset.range, 10));
     });
@@ -881,7 +932,6 @@ function drawTimeline(years) {
       const [cards, buildings] = await Promise.all([rpc('homepage_building_cards', { p_market_slug: MARKET }), getBuildings()]);
       const cardBySlug = new Map(cards.map(c => [c.building_slug, c]));
 
-      // Join card data into buildings
       const enriched = buildings.map(b => {
         const slug = (b.href || '').split('/').pop();
         const c = cardBySlug.get(slug) || {};
@@ -1063,9 +1113,9 @@ function drawTimeline(years) {
     rows.sort((a, b) => {
       const av = getVal(a), bv = getVal(b);
       if (av == null && bv == null) return 0;
-      if (av == null) return 1;   // nulls sort last
+      if (av == null) return 1;
       if (bv == null) return -1;
-      return bv - av;             // descending
+      return bv - av;
     });
     const maxHeld7 = Math.max(1, ...rows.map(r => r.held7 || 0));
     const body = document.getElementById('cmp-body');
