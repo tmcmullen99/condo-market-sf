@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>window.__CM_MARKET__=window.__CM_MARKET__||"san-francisco-condo-market";</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Refer &amp; save · Condo Market SF</title>
-<meta name="description" content="Refer five friends to Condo Market SF and save 1% off your commission on your next transaction. 0.2% per successful signup, capped at 1%.">
+<title>Get $10,000 toward your next deal · Condo Market</title>
+<meta name="description" content="Create a free Condo Market account and we credit $10,000 toward your next transaction. The credit parks in your account, never expires, and is redeemable whenever you buy or sell through Condo Market.">
 <link rel="canonical" href="https://www.sanfranciscocondomarket.com/refer/">
 <link rel="icon" href="/favicon.svg">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Refer &amp; save · Condo Market SF">
-<meta property="og:description" content="Five referrals, 1% off your commission. Permanent credit, applied at your next Condo Market transaction.">
+<meta property="og:title" content="Get $10,000 toward your next deal · Condo Market">
+<meta property="og:description" content="A $10,000 account credit toward your next transaction through Condo Market. Never expires. Redeem whenever you're ready.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -17,8 +18,13 @@
 <style>
   :root {
     --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
+    --cm-gold: #d8b384; --cm-gold-dim: rgba(216,179,132,0.72);
     --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
+    --cm-ivory-faint: rgba(232, 227, 216, 0.4);
     --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-rule-soft: rgba(232, 227, 216, 0.08);
+    --cm-gain: #7fb98a;
+    --cm-card: #1a1f2e;
     --ff-display: 'Playfair Display', Georgia, serif;
     --ff-body: 'DM Sans', -apple-system, sans-serif;
     --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -29,56 +35,109 @@
   body {
     background: var(--cm-navy-deep); color: var(--cm-ivory);
     font-family: var(--ff-body); font-weight: 300; line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
   }
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1; mix-blend-mode: overlay; }
   main { position: relative; z-index: 2; }
   a { color: inherit; text-decoration: none; }
   .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
-  .wrap-narrow { max-width: 780px; margin: 0 auto; padding: 0 var(--gutter); }
+  .wrap-narrow { max-width: 820px; margin: 0 auto; padding: 0 var(--gutter); }
 
   .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
   .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); }
   .wordmark em { color: var(--cm-peri); }
   .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
-  .nav-meta a { color: var(--cm-ivory-dim); }
+  .nav-meta a { color: var(--cm-ivory-dim); transition: color 0.15s; }
   .nav-meta a:hover { color: var(--cm-ivory); }
   .nav-meta a.active { color: var(--cm-peri); }
   .signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
   .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
 
-  .hero { padding: 80px 0 48px; text-align: center; }
-  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 22px; }
-  .hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1.02; letter-spacing: -0.015em; margin-bottom: 20px; }
-  .hero h1 em { font-style: italic; color: var(--cm-peri); }
-  .hero p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 58ch; margin: 0 auto; }
+  /* ── Hero ── */
+  .hero { padding: 88px 0 56px; text-align: center; }
+  .hero-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cm-gold); margin-bottom: 22px; }
+  .hero h1 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(42px, 6.4vw, 80px); line-height: 1.02; letter-spacing: -0.015em; margin-bottom: 22px; }
+  .hero h1 em { font-style: italic; color: var(--cm-gold); }
+  .hero p { font-size: 18px; color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto 36px; }
+  .hero-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-p { display: inline-block; background: var(--cm-gold); color: var(--cm-navy-deep); padding: 15px 32px; border-radius: 999px; font-weight: 600; font-size: 15px; font-family: var(--ff-body); border: none; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 8px 30px rgba(216,179,132,0.18); }
+  .btn-p:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(216,179,132,0.28); }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 8px; padding: 15px 26px; border-radius: 999px; border: 1px solid var(--cm-rule); color: var(--cm-ivory); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; background: transparent; transition: border-color 0.15s; }
+  .btn-ghost:hover { border-color: var(--cm-peri); color: var(--cm-peri); }
 
-  .calc-section { padding: 48px 0 64px; }
+  /* ── Big credit medallion ── */
+  .medallion { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px auto 40px; }
+  .medallion .amt { font-family: var(--ff-display); font-style: italic; font-weight: 700; font-size: clamp(64px, 11vw, 132px); color: var(--cm-gold); line-height: 0.95; letter-spacing: -0.02em; text-shadow: 0 4px 40px rgba(216,179,132,0.22); }
+  .medallion .amt-sub { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-faint); }
 
-  .link-box { padding: 60px 0; background: var(--cm-navy); border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); }
-  .link-head { text-align: center; margin-bottom: 28px; }
-  .link-head h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.5vw, 40px); margin-bottom: 14px; color: var(--cm-ivory); }
-  .link-head h2 em { font-style: italic; color: var(--cm-peri); }
-  .link-head p { color: var(--cm-ivory-dim); max-width: 48ch; margin: 0 auto; }
-  .link-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 28px; }
-  .link-field { flex: 1 1 320px; min-width: 280px; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 14px 18px; font-family: var(--ff-mono); font-size: 14px; color: var(--cm-peri); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .copy-btn { background: var(--cm-peri); color: var(--cm-navy); padding: 14px 26px; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s; }
+  /* ── Section scaffolding ── */
+  .section { padding: 72px 0; border-top: 1px solid var(--cm-rule); }
+  .section-tint { background: var(--cm-navy); }
+  .sec-head { text-align: center; margin-bottom: 44px; }
+  .sec-kicker { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cm-gold); margin-bottom: 14px; }
+  .sec-head h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(30px, 4vw, 46px); line-height: 1.08; margin-bottom: 16px; }
+  .sec-head h2 em { font-style: italic; color: var(--cm-peri); }
+  .sec-head p { color: var(--cm-ivory-dim); max-width: 56ch; margin: 0 auto; font-size: 16px; }
+
+  /* ── How it works (3 steps) ── */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; }
+  .step { padding: 26px 0; border-top: 2px solid var(--cm-gold); }
+  .step-n { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--cm-gold); margin-bottom: 12px; }
+  .step h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 23px; color: var(--cm-ivory); margin-bottom: 10px; }
+  .step p { color: var(--cm-ivory-dim); font-size: 14.5px; }
+
+  /* ── Commission slider ── */
+  .slider-card { background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 18px; padding: clamp(24px, 4vw, 44px); box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.28); }
+  .slider-control { margin-bottom: 36px; }
+  .slider-label-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .slider-label { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-ivory-dim); }
+  .slider-value { font-family: var(--ff-display); font-style: italic; font-weight: 700; font-size: clamp(28px, 4vw, 40px); color: var(--cm-peri); }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--cm-gold) 0%, var(--cm-gold) var(--pct,8%), rgba(232,227,216,0.14) var(--pct,8%), rgba(232,227,216,0.14) 100%); outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--cm-gold); border: 3px solid var(--cm-navy-deep); box-shadow: 0 2px 10px rgba(0,0,0,0.4); cursor: grab; }
+  input[type=range]::-webkit-slider-thumb:active { cursor: grabbing; }
+  input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: var(--cm-gold); border: 3px solid var(--cm-navy-deep); box-shadow: 0 2px 10px rgba(0,0,0,0.4); cursor: grab; }
+  .slider-ends { display: flex; justify-content: space-between; margin-top: 10px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--cm-ivory-faint); }
+
+  .breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--cm-rule); border: 1px solid var(--cm-rule); border-radius: 14px; overflow: hidden; }
+  @media (max-width: 680px) { .breakdown { grid-template-columns: 1fr; } }
+  .bd-cell { background: var(--cm-navy-deep); padding: 24px 22px; text-align: center; }
+  .bd-cell .bd-k { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-ivory-faint); margin-bottom: 10px; }
+  .bd-cell .bd-v { font-family: var(--ff-display); font-weight: 500; font-size: clamp(26px, 3.4vw, 34px); line-height: 1; }
+  .bd-cell .bd-note { font-family: var(--ff-mono); font-size: 10.5px; color: var(--cm-ivory-faint); margin-top: 9px; }
+  .bd-gross .bd-v { color: var(--cm-ivory); }
+  .bd-credit .bd-v { color: var(--cm-gold); }
+  .bd-net { background: linear-gradient(180deg, rgba(127,185,138,0.10), var(--cm-navy-deep)); }
+  .bd-net .bd-v { color: var(--cm-gain); }
+  .bd-net .bd-k { color: var(--cm-gain); }
+
+  .slider-readout { text-align: center; margin: 30px 0 4px; font-family: var(--ff-body); font-size: 16px; color: var(--cm-ivory-dim); line-height: 1.6; }
+  .slider-readout b { color: var(--cm-gold); font-weight: 600; }
+  .slider-cta { text-align: center; margin-top: 30px; }
+
+  /* ── Share block ── */
+  .share-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+  @media (max-width: 860px) { .share-grid { grid-template-columns: 1fr; gap: 28px; } }
+  .share-copy h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; margin-bottom: 16px; }
+  .share-copy h2 em { font-style: italic; color: var(--cm-peri); }
+  .share-copy p { color: var(--cm-ivory-dim); font-size: 16px; margin-bottom: 14px; max-width: 48ch; }
+  .share-panel { background: var(--cm-navy); border: 1px solid var(--cm-rule); border-radius: 16px; padding: 30px; }
+  .share-panel .sp-eyebrow { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cm-gold); margin-bottom: 14px; }
+  .share-field-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .share-field { flex: 1 1 220px; min-width: 0; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 13px 16px; font-family: var(--ff-mono); font-size: 13px; color: var(--cm-peri); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .copy-btn { background: var(--cm-peri); color: var(--cm-navy-deep); padding: 13px 24px; border-radius: 10px; font-family: var(--ff-body); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
   .copy-btn:hover { opacity: 0.88; }
+  .share-note { font-family: var(--ff-mono); font-size: 11px; color: var(--cm-ivory-faint); margin-top: 16px; line-height: 1.6; }
+  .share-gate { text-align: center; }
+  .share-gate p { color: var(--cm-ivory-dim); margin-bottom: 18px; }
 
-  .gate { text-align: center; padding: 40px 0 0; }
-  .btn-p { display: inline-block; background: var(--cm-peri); color: var(--cm-navy); padding: 13px 28px; border-radius: 999px; font-weight: 500; font-size: 14px; text-decoration: none; }
-  .btn-p:hover { opacity: 0.88; }
-
-  .how { padding: 72px 0; }
-  .how-head { text-align: center; margin-bottom: 40px; }
-  .how-head h2 { font-family: var(--ff-display); font-weight: 500; font-size: clamp(32px, 4vw, 44px); margin-bottom: 14px; }
-  .how-head h2 em { font-style: italic; color: var(--cm-peri); }
-  .how-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px; }
-  .how-step { padding: 24px 0; border-top: 1px solid var(--cm-peri); }
-  .how-step-n { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--cm-peri); margin-bottom: 10px; }
-  .how-step h3 { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); margin-bottom: 10px; }
-  .how-step p { color: var(--cm-ivory-dim); font-size: 14px; }
+  /* ── Fine print ── */
+  .fineprint { padding: 56px 0 72px; border-top: 1px solid var(--cm-rule); }
+  .fp-inner { max-width: 760px; margin: 0 auto; }
+  .fp-title { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-ivory-faint); margin-bottom: 18px; text-align: center; }
+  .fp-body { font-size: 12.5px; line-height: 1.85; color: var(--cm-ivory-faint); }
+  .fp-body p { margin-bottom: 14px; }
+  .fp-body strong { color: var(--cm-ivory-dim); font-weight: 500; }
 
   footer { padding: 48px 0 40px; background: var(--cm-navy); color: var(--cm-ivory-dim); font-size: 13px; border-top: 1px solid var(--cm-rule); }
   .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
@@ -86,20 +145,25 @@
   footer h5 { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory); margin-bottom: 14px; font-weight: 500; }
   footer ul { list-style: none; }
   footer li { padding: 4px 0; }
+  footer a:hover { color: var(--cm-ivory); }
   .footer-fine { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--cm-rule); font-size: 12px; opacity: 0.7; text-align: center; }
+
+  /* reveal */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
 </style>
 </head>
 <body>
 <header class="masthead">
   <div class="wrap">
     <div class="masthead-row">
-      <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
+      <a href="/" class="wordmark">Condo <em>Market</em> · <span class="cm-wm-tag">sf</span></a>
       <nav class="nav-meta">
         <a href="/buildings/">Buildings</a>
         <a href="/intelligence/">Intelligence</a>
-        <a href="/history/">History</a>
         <a href="/how-it-works/">How it works</a>
-        <a href="/refer/" class="active">Refer</a>
+        <a href="/refer/" class="active">$10K Credit</a>
         <a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>
       </nav>
     </div>
@@ -107,60 +171,137 @@
 </header>
 
 <main>
+  <!-- HERO -->
   <section class="hero">
     <div class="wrap">
-      <div class="hero-kicker">Share the floor</div>
-      <h1>Refer five neighbors. <em>Save</em> 1%.</h1>
-      <p>Every neighbor who joins Condo Market through your link earns you 0.2% off your commission. Five = 1% off. The credit lives in your account permanently and applies at your next Condo Market transaction.</p>
-    </div>
-  </section>
-
-  <section class="calc-section">
-    <div class="wrap-narrow">
-      <div data-cm-referral-calc
-           id="cm-rc-main"
-           data-property-value="1500000"
-           data-cta-href="#signup"
-           data-cta-label="Create account →"></div>
-    </div>
-  </section>
-
-  <section class="link-box">
-    <div class="wrap-narrow">
-      <div class="link-head">
-        <h2>Your <em>link</em></h2>
-        <p id="link-sub">Sign in to get your personal referral link.</p>
+      <div class="hero-kicker">Founding member offer</div>
+      <h1>Get <em>$10,000</em> toward<br>your next deal.</h1>
+      <div class="medallion">
+        <div class="amt">$10,000</div>
+        <div class="amt-sub">credited to your account · never expires</div>
       </div>
-      <div class="link-row" id="link-row" style="display:none;">
-        <div class="link-field" id="link-field">—</div>
-        <button class="copy-btn" id="copy-btn">Copy</button>
-      </div>
-      <div class="gate" id="gate">
-        <a class="btn-p" href="#signin" data-cm-auth="login">Sign in to get your link →</a>
+      <p>Create a free Condo Market account and we credit <strong>$10,000</strong> toward your next transaction. It parks in your account until you're ready — buying or selling, this year or in five. No strings, no countdown once it's yours.</p>
+      <div class="hero-cta-row">
+        <button class="btn-p" data-cm-auth="signup">Claim your $10,000 →</button>
+        <a class="btn-ghost" href="#slider">See what it saves you</a>
       </div>
     </div>
   </section>
 
-  <section class="how">
+  <!-- HOW IT WORKS -->
+  <section class="section">
     <div class="wrap-narrow">
-      <div class="how-head">
-        <h2>How it <em>works</em></h2>
+      <div class="sec-head reveal">
+        <div class="sec-kicker">How it works</div>
+        <h2>Claim it once. <em>Keep</em> it until you need it.</h2>
+        <p>The credit is yours the moment you create an account. There's nothing to redeem upfront and nothing to track — it simply waits in your account and comes off your costs when you transact.</p>
       </div>
-      <div class="how-steps">
-        <div class="how-step">
-          <div class="how-step-n">01.</div>
-          <h3>Get your link</h3>
-          <p>Create an account and we generate a personal referral URL. Share it via text, email, social — anywhere.</p>
+      <div class="steps reveal">
+        <div class="step">
+          <div class="step-n">01 · CLAIM</div>
+          <h3>Create your account</h3>
+          <p>Sign up free — takes under a minute. The $10,000 credit is attached to your account immediately and shown on your dashboard.</p>
         </div>
-        <div class="how-step">
-          <div class="how-step-n">02.</div>
-          <h3>Earn per signup</h3>
-          <p>Each neighbor who creates an account through your link earns you 0.2% off your eventual commission. Capped at 5 referrals = 1%.</p>
+        <div class="step">
+          <div class="step-n">02 · HOLD</div>
+          <h3>Let it sit</h3>
+          <p>The credit never expires. Browse buildings, track owner tenure, watch the market. Your $10,000 is parked and waiting — no clock, no conditions to maintain.</p>
         </div>
-        <div class="how-step">
-          <div class="how-step-n">03.</div>
-          <h3>Use it forever</h3>
-          <p>The credit accumulates in your account permanently. Applies automatically the next time you transact through Condo Market.</p>
+        <div class="step">
+          <div class="step-n">03 · REDEEM</div>
+          <h3>Apply it to your deal</h3>
+          <p>When you buy or sell through Condo Market, the credit comes straight off your transaction costs. One redemption, real dollars, whenever you're ready.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMISSION SLIDER -->
+  <section class="section section-tint" id="slider">
+    <div class="wrap-narrow">
+      <div class="sec-head reveal">
+        <div class="sec-kicker">What $10,000 actually does</div>
+        <h2>Your commission, <em>minus</em> ten thousand.</h2>
+        <p>Most Bay Area condo sales carry a total commission around 3% of the sale price. Slide your property value to see that cost — and exactly what a flat $10,000 credit takes off it.</p>
+      </div>
+
+      <div class="slider-card reveal">
+        <div class="slider-control">
+          <div class="slider-label-row">
+            <span class="slider-label">Your property value</span>
+            <span class="slider-value" id="pv-display">$800,000</span>
+          </div>
+          <input type="range" id="pv-slider" min="800000" max="3000000" step="50000" value="800000">
+          <div class="slider-ends"><span>$800K</span><span>$3M</span></div>
+        </div>
+
+        <div class="breakdown">
+          <div class="bd-cell bd-gross">
+            <div class="bd-k">3% total commission</div>
+            <div class="bd-v" id="bd-gross">$24,000</div>
+            <div class="bd-note">typical cost to transact</div>
+          </div>
+          <div class="bd-cell bd-credit">
+            <div class="bd-k">Your credit</div>
+            <div class="bd-v" id="bd-credit">– $10,000</div>
+            <div class="bd-note">flat, never expires</div>
+          </div>
+          <div class="bd-cell bd-net">
+            <div class="bd-k">Commission after credit</div>
+            <div class="bd-v" id="bd-net">$14,000</div>
+            <div class="bd-note" id="bd-net-note">a 41.7% reduction</div>
+          </div>
+        </div>
+
+        <div class="slider-readout" id="readout">
+          On an <b>$800,000</b> sale, a 3% commission runs <b>$24,000</b>. Your $10,000 credit brings it down to <b>$14,000</b>.
+        </div>
+
+        <div class="slider-cta">
+          <button class="btn-p" data-cm-auth="signup">Claim your $10,000 →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHARE WITH A FRIEND -->
+  <section class="section">
+    <div class="wrap">
+      <div class="share-grid">
+        <div class="share-copy reveal">
+          <h2>Friends share good deals <em>with friends.</em></h2>
+          <p>Know someone thinking about buying or selling a condo? Send them to Condo Market. If they create an account, they get the same $10,000 credit you did — the offer is open to anyone who signs up.</p>
+          <p>You don't earn anything for sharing, and you don't need to. It's simply a genuinely good offer worth passing along to someone who'd use it.</p>
+        </div>
+        <div class="share-panel reveal">
+          <div class="sp-eyebrow">Pass it along</div>
+          <div class="share-gate" id="share-gate">
+            <p>Sign in to get a link you can text or email to a friend.</p>
+            <button class="btn-p" data-cm-auth="login">Sign in to share →</button>
+          </div>
+          <div id="share-live" style="display:none;">
+            <div class="share-field-row">
+              <div class="share-field" id="share-field">—</div>
+              <button class="copy-btn" id="share-copy-btn">Copy</button>
+            </div>
+            <div class="share-note" id="share-note">Anyone who signs up through this link gets their own $10,000 credit. You receive no payment or reward for sharing — see the disclosures below.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINE PRINT -->
+  <section class="fineprint">
+    <div class="wrap">
+      <div class="fp-inner">
+        <div class="fp-title">Offer terms &amp; disclosures</div>
+        <div class="fp-body" id="fp-body">
+          <p><strong>The credit.</strong> The $10,000 is a platform account credit applied toward the costs of a real estate transaction <strong>initiated through Condo Market via Tim McMullen, California DRE&nbsp;#02016832</strong> (McMullen Properties, operating under Real Broker). It is not cash, has no surrender value, cannot be withdrawn or transferred, and is limited to one credit per account and one redemption per person. The credit does not expire and may be redeemed at any time, subject to these terms.</p>
+          <p><strong>Assignment of the deal.</strong> Tim McMullen reserves the right to refer or assign any resulting transaction to any agent affiliated with Condo Market or McMullen Properties. The credit remains honored on a qualifying transaction regardless of which affiliated agent is assigned.</p>
+          <p><strong>No reward for sharing.</strong> Condo Market users <strong>cannot and do not receive any gift, payment, commission, fee, rebate, discount, or other monetary or material reward</strong> for referring, sharing, or recommending Condo Market to any other person. The $10,000 credit is an offer extended directly to each new account holder on their own signup — it is never compensation to anyone for a referral. Sharing Condo Market with a friend earns the person sharing nothing; a friend who signs up simply qualifies for the same publicly available offer on their own. Friends share good deals with friends.</p>
+          <p><strong>Property-management relationships.</strong> Any percentage-based arrangement (for example, a 1% participation) exists solely between Condo Market and the management of buildings with which Condo Market has an established relationship. It is a business arrangement at the building/management level and is unrelated to, and never payable to, individual Condo Market users.</p>
+          <p><strong>General.</strong> This offer is not a guarantee of any particular service, price, or transaction outcome, and is void where prohibited. Condo Market may modify or discontinue the offer for new signups at any time; credits already granted to existing accounts are honored under the terms in effect when granted. Real estate brokerage services are provided through Real Broker. This is not legal, tax, or financial advice.</p>
         </div>
       </div>
     </div>
@@ -171,82 +312,136 @@
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · sf</div>
-        <p style="max-width:42ch;">A private exchange for every condo in San Francisco. Tim McMullen · DRE #02016832 · McMullen Properties.</p>
+        <div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> · <span class="cm-wm-tag">sf</span></div>
+        <p style="max-width:42ch;">A private exchange for every condo in <span id="footer-region">San Francisco</span>. Tim McMullen · DRE #02016832 · McMullen Properties.</p>
       </div>
-      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/history/">History</a></li><li><a href="/refer/">Refer</a></li></ul></div>
+      <div><h5>Explore</h5><ul><li><a href="/buildings/">Buildings</a></li><li><a href="/intelligence/">Intelligence</a></li><li><a href="/refer/">$10K Credit</a></li></ul></div>
       <div><h5>Account</h5><ul><li><a href="#signin" data-cm-auth="login">Sign in</a></li><li><a href="#signup" data-cm-auth="signup">Create account</a></li><li><a href="/dashboard/">Dashboard</a></li></ul></div>
-      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
+      <div><h5>About</h5><ul><li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li><li><a id="footer-email" href="mailto:tim@mcmullen.properties">Contact</a></li></ul></div>
     </div>
     <div class="footer-fine">© 2026 Condo Market SF · McMullen Properties · DRE #02016832</div>
   </div>
 </footer>
 
-<!-- Calculator widget (auto-mounts on [data-cm-referral-calc]) -->
-<script src="/assets/cm-referral-calc.js"></script>
+<!-- Commission slider logic -->
+<script>
+(function () {
+  'use strict';
+  var CREDIT = 10000;
+  var RATE = 0.03;
+  var slider = document.getElementById('pv-slider');
+  var pvDisplay = document.getElementById('pv-display');
+  var bdGross = document.getElementById('bd-gross');
+  var bdNet = document.getElementById('bd-net');
+  var bdNetNote = document.getElementById('bd-net-note');
+  var readout = document.getElementById('readout');
 
-<!-- Auth-aware logic: shows referral link to signed-in users, swaps calculator into progress mode with their actual count -->
+  function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function moneyShort(n) {
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + 'M';
+    return '$' + Math.round(n / 1e3) + 'K';
+  }
+  function update() {
+    var pv = Number(slider.value);
+    var gross = pv * RATE;
+    var net = Math.max(0, gross - CREDIT);
+    var pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.setProperty('--pct', pct + '%');
+    pvDisplay.textContent = money(pv);
+    bdGross.textContent = money(gross);
+    bdNet.textContent = money(net);
+    if (gross > 0) {
+      var reduction = Math.min(100, (CREDIT / gross) * 100);
+      if (gross <= CREDIT) {
+        bdNetNote.textContent = 'fully covered';
+        readout.innerHTML = 'On a <b>' + money(pv) + '</b> sale, a 3% commission runs <b>' + money(gross) + '</b> — your $10,000 credit covers all of it, with ' + money(CREDIT - gross) + ' to spare.';
+      } else {
+        bdNetNote.textContent = 'a ' + reduction.toFixed(1) + '% reduction';
+        readout.innerHTML = 'On a <b>' + money(pv) + '</b> sale, a 3% commission runs <b>' + money(gross) + '</b>. Your $10,000 credit brings it down to <b>' + money(net) + '</b>.';
+      }
+    }
+  }
+  slider.addEventListener('input', update);
+  update();
+})();
+</script>
+
+<!-- Reveal on scroll -->
+<script>
+(function () {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.reveal').forEach(function (e) { e.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function (e) { io.observe(e); });
+})();
+</script>
+
+<!-- Market-aware chrome + share link for signed-in users -->
 <script type="module">
   import { CM } from '/assets/cm-supabase.js';
 
-  async function render() {
-    const session = await CM.getSession();
-    const gate = document.getElementById('gate');
-    const linkRow = document.getElementById('link-row');
-    const linkField = document.getElementById('link-field');
-    const sub = document.getElementById('link-sub');
-    const calcEl = document.getElementById('cm-rc-main');
+  var MARKET = (typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) || 'san-francisco-condo-market';
+  var SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
-    if (!session?.user) {
-      gate.style.display = 'block';
-      linkRow.style.display = 'none';
-      sub.textContent = 'Sign in to get your personal referral link.';
+  // Market-key the visible chrome (wordmark tag, region phrases, contact email).
+  async function applyChrome() {
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/home_page_payload', {
+        method: 'POST',
+        headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_market_slug: MARKET })
+      });
+      if (!r.ok) return;
+      var p = await r.json();
+      var mk = (p && p.market) || {};
+      var region = mk.region || 'San Francisco', tag = mk.tag || 'sf', email = mk.email || 'tim@mcmullen.properties';
+      window.__CM_DOMAIN__ = mk.domain || 'sanfranciscocondomarket.com';
+      document.querySelectorAll('.cm-wm-tag').forEach(function (el) { el.textContent = tag; });
+      var fr = document.getElementById('footer-region'); if (fr) fr.textContent = region;
+      var fe = document.getElementById('footer-email'); if (fe) fe.setAttribute('href', 'mailto:' + email);
+      var lg = document.querySelector('.footer-fine'); if (lg && mk.brand) lg.textContent = '© 2026 ' + mk.brand + ' · McMullen Properties · DRE #02016832';
+    } catch (e) {}
+  }
+
+  async function renderShare() {
+    var gate = document.getElementById('share-gate');
+    var live = document.getElementById('share-live');
+    var field = document.getElementById('share-field');
+    var session = null;
+    try { session = await CM.getSession(); } catch (e) {}
+
+    if (!session || !session.user) {
+      if (gate) gate.style.display = 'block';
+      if (live) live.style.display = 'none';
       return;
     }
+    if (gate) gate.style.display = 'none';
 
-    gate.style.display = 'none';
-
-    let profile = null;
-    let credits = [];
+    var profile = null;
     try { profile = await CM.getMyProfile(); } catch (e) {}
-    try { credits = await CM.listMyReferralCredits(); } catch (e) {}
+    var code = profile && profile.referral_code;
+    var origin = 'https://www.' + (window.__CM_DOMAIN__ || 'sanfranciscocondomarket.com');
+    var link = code ? (origin + '/?offer=impossible&ref=' + encodeURIComponent(code)) : (origin + '/?offer=impossible');
 
-    const code = profile?.referral_code;
-    if (!code) {
-      sub.textContent = 'Your code is being generated — refresh in a moment.';
-      return;
-    }
+    if (live) live.style.display = 'block';
+    if (field) field.textContent = link;
 
-    const link = `${window.location.origin}/?ref=${code}`;
-    linkField.textContent = link;
-    linkRow.style.display = 'flex';
-    sub.textContent = 'Share this link. Every signup through it earns you 0.2% off — up to 1% across 5.';
-
-    // Swap calculator into progress mode using actual referral count
-    if (calcEl && window.CMReferralCalc) {
-      const referralCount = Math.min(credits.length, 5);
-      calcEl.innerHTML = '';
-      calcEl.classList.remove('cm-rc');
-      calcEl.classList.remove('cm-rc-ivory');
-      calcEl.dataset.referralCount = String(referralCount);
-      calcEl.dataset.mode = 'progress';
-      calcEl.dataset.ctaHref = '#share-link';
-      calcEl.dataset.ctaLabel = 'Share my link →';
-      window.CMReferralCalc.mount(calcEl);
-    }
-
-    document.getElementById('copy-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('copy-btn');
-      try {
-        await navigator.clipboard.writeText(link);
-        btn.textContent = 'Copied';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-      } catch (e) { btn.textContent = 'Error'; }
+    var btn = document.getElementById('share-copy-btn');
+    if (btn) btn.addEventListener('click', async function () {
+      try { await navigator.clipboard.writeText(link); btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+      catch (e) { btn.textContent = 'Error'; }
     });
   }
 
-  window.addEventListener('cm-ready', render);
-  window.addEventListener('cm-auth-change', render);
+  applyChrome();
+  renderShare();
+  window.addEventListener('cm-ready', renderShare);
+  window.addEventListener('cm-auth-change', renderShare);
 </script>
 </body>
 </html>
