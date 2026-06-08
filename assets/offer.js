@@ -22,6 +22,7 @@
  */
 
 import { sb } from './cm-supabase.js';
+import { openAuthModal } from './cm-auth.js';
 
 const OFFER_SLUG   = 'impossible_offer_v1';
 const WINDOW_HOURS = 24;
@@ -139,7 +140,8 @@ function injectStyles() {
     letter-spacing:.04em;font-variant-numeric:tabular-nums;}
   .cmo-bar-lead-m{display:none;}
   .cmo-bar-cta{flex:none;background:var(--gold);color:#1a1f2e;font-weight:600;font-size:13px;
-    text-decoration:none;border-radius:999px;padding:9px 16px;white-space:nowrap;}
+    text-decoration:none;border:none;cursor:pointer;font-family:inherit;
+    border-radius:999px;padding:9px 16px;white-space:nowrap;}
   .cmo-bar-cta:hover{opacity:.9;color:#1a1f2e;}
   .cmo-bar-x{flex:none;background:none;border:none;color:rgba(232,227,216,0.4);font-size:18px;
     line-height:1;cursor:pointer;padding:4px 6px;}
@@ -179,7 +181,7 @@ function injectStyles() {
   .cmo-row input:focus{outline:none;border-color:var(--gold);}
   .cmo-btn{display:block;width:100%;text-align:center;background:var(--gold);color:#1a1f2e;
     font-weight:600;font-size:.95rem;border:none;border-radius:10px;padding:.85rem 1.5rem;
-    cursor:pointer;text-decoration:none;margin-top:1rem;}
+    cursor:pointer;text-decoration:none;margin-top:1rem;font-family:inherit;}
   .cmo-btn:hover{opacity:.9;color:#1a1f2e;}
   .cmo-link{display:block;text-align:center;background:none;border:none;color:rgba(232,227,216,.5);
     font-size:.85rem;cursor:pointer;margin-top:.8rem;width:100%;}
@@ -207,10 +209,11 @@ function mountBar() {
       '<span class="cmo-bar-clock" data-cmo-countdown>--:--:--</span>' +
       '<span class="cmo-bar-trail"> for <b>' + AMOUNT_LABEL + '</b> off your first transaction</span>' +
     '</div>' +
-    '<a class="cmo-bar-cta" href="' + signupHref() + '">Claim <span class="cmo-bar-cta-amt">' + AMOUNT_LABEL + '</span> \u2192</a>' +
+    '<button class="cmo-bar-cta" type="button" data-cmo-claim>Claim <span class="cmo-bar-cta-amt">' + AMOUNT_LABEL + '</span> \u2192</button>' +
     '<button class="cmo-bar-x" aria-label="Hide">\u00d7</button>';
   document.body.appendChild(bar);
   renderCountdown(bar.querySelector('[data-cmo-countdown]'));
+  bar.querySelector('[data-cmo-claim]').addEventListener('click', () => openAuthModal('signup'));
   bar.querySelector('.cmo-bar-x').addEventListener('click', () => { sessionStorage.setItem(SS.barHidden, '1'); bar.remove(); });
 }
 
@@ -271,9 +274,10 @@ function showExitIntent() {
     '<div class="cmo-big" data-cmo-countdown>--:--:--</div>' +
     '<p class="cmo-sub">Create your free account before the clock runs out and ' + AMOUNT_LABEL +
     ' is credited to your first transaction \u2014 forever.</p>' +
-    '<a class="cmo-btn" href="' + signupHref() + '">Claim my ' + AMOUNT_LABEL + ' \u2192</a>',
+    '<button class="cmo-btn" type="button" data-cmo-claim>Claim my ' + AMOUNT_LABEL + ' \u2192</button>',
     { cls: 'cmo-exit' }
   );
+  el.querySelector('[data-cmo-claim]').addEventListener('click', () => openAuthModal('signup'));
   renderCountdown(el.querySelector('[data-cmo-countdown]'));
 }
 
