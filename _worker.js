@@ -82,6 +82,7 @@ async function renderChrome(request, env, kind) {
 
   const inject =
     '\n<script>window.__CM_MARKET__=' + JSON.stringify(mk.slug) + ';</script>' +
+    '\n<script src="/assets/cm-track.js" defer></script>' +
     '\n<link rel="canonical" href="' + attr(c.url) + '">';
   html = html.replace('<head>', '<head>' + inject);
 
@@ -1267,6 +1268,7 @@ function renderBuilding(p) {
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
     '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
+    '<script src="/assets/cm-track.js" defer></script>\n' +
     jsonLd + '\n' +
     '<style>' + CSS + '</style>\n' +
     '<style>' + EXTRA_CSS + '</style>\n' +
