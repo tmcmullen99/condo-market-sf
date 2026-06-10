@@ -276,6 +276,13 @@ async function handleSubmit() {
         } catch (e) { console.error('TOS accept after signup failed', e); }
       }
 
+     if (window.cmTrack) {
+        window.cmTrack('conversion', {
+          type: 'signup',
+          confirmed: !!data?.session
+        });
+      }
+
       if (data?.user && !data?.session) {
         setMessage('ok', 'Check your email for a confirmation link to finish signing up.');
       } else {
