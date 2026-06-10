@@ -745,11 +745,19 @@ async function renderForm(modal, ctx) {
       message:       message,
     });
 
-    if (result.error) {
+  if (result.error) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Send to agent →';
       msgEl.innerHTML = '<div class="cm-om-msg is-error">' + escapeHtml('Submission failed: ' + result.error.message) + '</div>';
       return;
+    }
+
+    if (window.cmTrack) {
+      window.cmTrack('offer_submit', {
+        building_slug: ctx.building_slug || null,
+        offer_amount: amount,
+        unit_label: unit_label || null
+      });
     }
 
     renderSuccess(modal, { amount, building: buildingName });
