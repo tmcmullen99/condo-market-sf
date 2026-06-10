@@ -101,6 +101,15 @@
     .btn:disabled { opacity:0.4; cursor:not-allowed; }
     .btn-tiny { padding:6px 12px; font-size:11px; }
 
+    .market-group { margin-bottom:40px; }
+    .market-group-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+    .market-group-header h3 { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin:0; font-weight:500; }
+    .market-badge { display:inline-block; padding:3px 10px; border-radius:99px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; font-weight:500; }
+    .market-badge.sf { background:rgba(212,165,116,0.15); color:var(--gold); border:1px solid rgba(212,165,116,0.3); }
+    .market-badge.sv { background:rgba(145,161,186,0.15); color:#91a1ba; border:1px solid rgba(145,161,186,0.3); }
+    .market-badge.em { background:rgba(200,169,110,0.15); color:#c8a96e; border:1px solid rgba(200,169,110,0.3); }
+    .cc-header .market-badge { margin-left:auto; }
+
     .waves-detail { margin-top:18px; padding-top:18px; border-top:1px solid var(--border-soft); display:none; }
     .waves-detail.open { display:block; }
     .waves-detail h4 { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; font-weight:500; }
@@ -125,6 +134,7 @@
     <nav class="admin-nav">
       <strong>Campaigns</strong>
       <a href="just-sold.html">Just-Sold</a>
+      <a href="eichler-pending.html">Eichler Pending</a>
       <a href="../">Site</a>
       <div class="spacer"></div>
       <span class="clock" id="clock"></span>
@@ -140,7 +150,7 @@
 
     <section class="panel">
       <h2>Campaigns</h2>
-      <p class="panel-sub">Sorted by status (active → draft → paused → complete) then next-wave time.</p>
+      <p class="panel-sub">Sorted by market then status (active → draft → paused → complete). Three markets: SF Condo, SV Condo, Eichler.</p>
       <div id="campaigns-list"><div class="loading">Loading…</div></div>
     </section>
 
@@ -221,23 +231,49 @@
       window._nextWaveAt = data.next_wave_at;
     }
 
+    const MARKET_META = {
+      'san-francisco-condo-market':  { label:'SF Condo Market',          badge:'sf', display:'San Francisco Condo Market' },
+      'silicon-valley-condo-market': { label:'SV Condo Market',          badge:'sv', display:'Silicon Valley Condo Market' },
+      'eichler-market':              { label:'Eichler Market',            badge:'em', display:'Eichler Market — Silicon Valley' },
+    };
+    const MARKET_ORDER = ['san-francisco-condo-market','silicon-valley-condo-market','eichler-market'];
+
     async function renderCampaigns() {
       const { data, error } = await sb.from('v_campaign_dashboard').select('*');
       const list = document.getElementById('campaigns-list');
       if (error) { list.innerHTML = `<div class="loading">Error: ${esc(error.message)}</div>`; return; }
       if (!data?.length) { list.innerHTML = `<div class="empty">No campaigns yet.</div>`; return; }
-      list.innerHTML = data.map(c => {
-        const cd = countdownString(c.next_batch_at);
-        return `
-        <div class="campaign-card ${c.status}">
-          <div class="cc-header">
-            <div class="cc-meta">
-              <span class="cc-pill ${c.status}">${c.status}</span>
-              <div class="cc-title">${esc(c.name)}</div>
-              <div class="cc-slug">${esc(c.slug)}</div>
-              <div class="cc-tpl">${esc(c.template_slug)} ← ${esc(c.audience_view)}</div>
-            </div>
+
+      // Group by market
+      const byMarket = {};
+      for (const c of data) {
+        const m = c.market_slug || 'unknown';
+        if (!byMarket[m]) byMarket[m] = [];
+        byMarket[m].push(c);
+      }
+
+      const allMarkets = [...MARKET_ORDER, ...Object.keys(byMarket).filter(m => !MARKET_ORDER.includes(m))];
+      list.innerHTML = allMarkets.filter(m => byMarket[m]?.length).map(m => {
+        const meta = MARKET_META[m] || { label: m, badge: 'sf', display: m };
+        const campaigns = byMarket[m];
+        return `<div class="market-group">
+          <div class="market-group-header">
+            <h3>${esc(meta.display)}</h3>
+            <span class="market-badge ${meta.badge}">${esc(meta.label)}</span>
           </div>
+          ${campaigns.map(c => {
+            const cd = countdownString(c.next_batch_at);
+            return `
+            <div class="campaign-card ${c.status}">
+              <div class="cc-header">
+                <div class="cc-meta">
+                  <span class="cc-pill ${c.status}">${c.status}</span>
+                  <div class="cc-title">${esc(c.name)}</div>
+                  <div class="cc-slug">${esc(c.slug)}</div>
+                  <div class="cc-tpl">${esc(c.template_slug)} ← ${esc(c.audience_view)}</div>
+                </div>
+                <span class="market-badge ${meta.badge}">${esc(meta.label)}</span>
+              </div>
 
           <div class="cc-countdown ${cd.state}" data-next="${c.next_batch_at||''}">
             <div>
@@ -290,6 +326,9 @@
             <h4>Wave history</h4>
             <div id="waves-table-${c.slug}"><div class="loading" style="padding:20px;">Loading…</div></div>
           </div>
+        </div>`;
+          `;
+          }).join('')}
         </div>`;
       }).join('');
     }
