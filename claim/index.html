@@ -349,6 +349,13 @@
       }
 
       const result = data || {};
+      if (window.cmTrack) {
+        window.cmTrack('claim_submit', {
+          building_slug: buildingSlug,
+          unit: unit,
+          auto_verified: !!result.auto_verified
+        });
+      }
       showContent(renderResult(
         result.claim || { building_slug: buildingSlug, unit_address: unit, status: 'pending' },
         result.mmm,
