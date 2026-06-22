@@ -429,6 +429,23 @@ img { display: block; max-width: 100%; }
   animation: pulse 1.6s ease-out infinite;
 }
 .cm-marker.is-dimmed { opacity: .25; }
+/* Active-listings highlight (distinct from hover .is-active). Accent ring. */
+.cm-marker.has-active {
+  background: var(--peri); width: 15px; height: 15px;
+  box-shadow: 0 0 0 4px var(--peri-soft), 0 0 14px rgba(159,180,216,.55);
+  cursor: pointer;
+}
+.cm-marker.has-active:hover { box-shadow: 0 0 0 6px var(--peri-soft), 0 0 18px rgba(159,180,216,.7); }
+.cm-map-legend {
+  background: rgba(10,13,18,.86); color: #e8e3d8; font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px; line-height: 1.3; padding: 8px 12px; border-radius: 8px;
+  border: 1px solid var(--peri-dim); backdrop-filter: blur(6px); margin: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.cm-legend-dot {
+  width: 11px; height: 11px; border-radius: 50%; background: var(--peri);
+  box-shadow: 0 0 0 3px var(--peri-soft); flex: 0 0 auto;
+}
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 4px var(--peri-soft), 0 0 8px rgba(159,180,216,.3); }
   50%      { box-shadow: 0 0 0 10px rgba(159,180,216,.08), 0 0 20px rgba(159,180,216,.5); }
@@ -541,6 +558,14 @@ img { display: block; max-width: 100%; }
 }
 .bldg-card.is-hidden { display: none !important; }
 .bldg-card:hover { border-color: var(--navy); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,31,46,.08); }
+.bldg-card.has-active { border-color: var(--peri); box-shadow: 0 0 0 2px var(--peri-soft); }
+.bldg-card.has-active:hover { border-color: var(--peri); box-shadow: 0 0 0 2px var(--peri-soft), 0 8px 24px rgba(26,31,46,.12); }
+.bldg-active-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  background: var(--peri); color: #0a0d12; font-weight: 700; font-size: 11px;
+  letter-spacing: .03em; padding: 4px 10px; border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
 .bldg-img-wrap { position: relative; aspect-ratio: 16/11; background: var(--card); overflow: hidden; }
 .bldg-img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
 .bldg-card:hover .bldg-img { transform: scale(1.04); }
@@ -1559,15 +1584,28 @@ img { display: block; max-width: 100%; }
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
 
     BLDGS.forEach(function (b) {
-      var icon = L.divIcon({ html: '<div class="cm-marker" data-hood="' + esc(b.hood) + '"></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
+      var hasActive = b.active_count > 0;
+      var icon = L.divIcon({ html: '<div class="cm-marker' + (hasActive ? ' has-active' : '') + '" data-hood="' + esc(b.hood) + '"' + (hasActive ? ' data-slug="' + esc(b.slug) + '"' : '') + '></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
       L.marker([b.lat, b.lng], { icon: icon })
-        .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : ''), { direction: 'top', offset: [0, -8] })
+        .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : '') + (hasActive ? '<br><span style="color:var(--peri);font-weight:600;">' + b.active_count + ' active listing' + (b.active_count === 1 ? '' : 's') + ' →</span>' : ''), { direction: 'top', offset: [0, -8] })
         .on('click', function () {
+          if (hasActive) { window.location.href = '/building/' + b.slug + '/#active'; return; }
           var card = document.querySelector('.hood[data-hood="' + (b.hood || '').replace(/"/g, '') + '"]');
           if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); var btn = card.querySelector('.hood-expand'); if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click(); }
         })
         .addTo(map);
     });
+
+    // Legend — shown only when at least one building has active listings.
+    if (BLDGS.some(function (b) { return b.active_count > 0; })) {
+      var legend = L.control({ position: 'bottomleft' });
+      legend.onAdd = function () {
+        var div = L.DomUtil.create('div', 'cm-map-legend');
+        div.innerHTML = '<span class="cm-legend-dot"></span> Highlighted buildings have active listings to view';
+        return div;
+      };
+      legend.addTo(map);
+    }
 
     function setActiveHood(name) {
       var h = HOODS.filter(function (x) { return x.name === name; })[0];
@@ -1605,11 +1643,13 @@ img { display: block; max-width: 100%; }
     setHTML('idx-pills', pills.join(''));
 
     var cards = idx.map(function (b) {
+      var ac = (b.active_count != null ? Number(b.active_count) : 0);
       var img = b.hero_image_url ? '<img class="bldg-img" src="' + esc(b.hero_image_url) + '" alt="' + esc(b.name) + '" loading="lazy">' : '<div class="bldg-img bldg-img--ph"></div>';
+      var activeBadge = ac > 0 ? '<span class="bldg-active-badge">' + ac + ' active</span>' : '';
       var stats = '<span><strong>' + (b.units != null ? nf(b.units) : '—') + '</strong> units</span>' + (b.psf != null ? '<span><strong>$' + nf(b.psf) + '</strong>/sf</span>' : '') + (b.year_built != null ? '<span>' + b.year_built + '</span>' : '');
       var search = esc(((b.name || '') + ' ' + (b.address || '') + ' ' + (b.neighborhood || '')).toLowerCase());
-      return '<a class="bldg-card" href="/building/' + esc(b.slug) + '/" data-hood="' + esc(b.neighborhood || '') + '" data-search="' + search + '">' +
-        '<div class="bldg-img-wrap">' + img + '</div>' +
+      return '<a class="bldg-card' + (ac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + (ac > 0 ? '#active' : '') + '" data-hood="' + esc(b.neighborhood || '') + '" data-search="' + search + '">' +
+        '<div class="bldg-img-wrap">' + img + activeBadge + '</div>' +
         '<div class="bldg-body"><h4 class="bldg-name">' + esc(b.name) + '</h4>' +
         '<p class="bldg-street">' + esc(b.address || '') + (b.neighborhood ? ' &middot; ' + esc(b.neighborhood) : '') + '</p>' +
         '<div class="bldg-stats">' + stats + '</div></div></a>';
@@ -1723,7 +1763,7 @@ img { display: block; max-width: 100%; }
     renderTicker(idx, st, fees, mk);
     var HOODS = renderAtlas(hoods);
     renderIndex(idx, hoods);
-    var BLDGS = idx.filter(function (b) { return b.lat != null && b.lng != null; }).map(function (b) { return { name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng, slug: b.slug, psf: b.psf }; });
+    var BLDGS = idx.filter(function (b) { return b.lat != null && b.lng != null; }).map(function (b) { return { name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng, slug: b.slug, psf: b.psf, active_count: (b.active_count != null ? Number(b.active_count) : 0) }; });
     initMap(BLDGS, HOODS);
     wireIndexControls(idx.length);
     intelTeaser(idx);
