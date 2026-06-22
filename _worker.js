@@ -630,13 +630,13 @@ function homeActiveTeaser(pl, mk) {
     if (aBeds  != null) specBits.push(aBeds + ' bd');
     if (aBaths != null) specBits.push(aBaths + ' ba');
     if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
-    const spec = specBits.length ? '<div class="hat-card-spec">' + specBits.join(' \\u00b7 ') + '</div>' : '';
+    const spec = specBits.length ? '<div class="hat-card-spec">' + specBits.join(' \u00b7 ') + '</div>' : '';
     const media = a.photo
       ? '<img class="hat-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'hat-card-img--ph\');this.removeAttribute(\'src\');">'
       : '<div class="hat-card-img hat-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
     return '<a class="hat-card" href="/listing/' + aMls + '">' + media +
       '<div class="hat-card-body"><div class="hat-card-price">' + aPrice + '</div>' +
-      '<div class="hat-card-bldg">' + aName + (aUnit ? ' \\u00b7 #' + aUnit : '') + '</div>' + spec +
+      '<div class="hat-card-bldg">' + aName + (aUnit ? ' \u00b7 #' + aUnit : '') + '</div>' + spec +
       '</div></a>';
   }).join('');
 
@@ -661,7 +661,7 @@ function homeActiveTeaser(pl, mk) {
     '<section class="hat-wrap"><div class="hat-inner">' +
     '<div class="hat-head">' +
     '<h2 class="hat-title">' + count + ' active ' + (count === 1 ? 'listing' : 'listings') + ' <em>for sale now</em></h2>' +
-    '<a class="hat-link" href="/active-listings">View all active listings \\u2192</a>' +
+    '<a class="hat-link" href="/active-listings">View all active listings \u2192</a>' +
     '</div>' +
     '<div class="hat-grid">' + cards + '</div>' +
     '</div></section>';
@@ -1194,7 +1194,7 @@ function renderActiveListings(p) {
     if (aBeds  != null) specBits.push(aBeds + ' bd');
     if (aBaths != null) specBits.push(aBaths + ' ba');
     if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
-    const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \\u00b7 ') + '</div>' : '';
+    const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \u00b7 ') + '</div>' : '';
     const media = a.photo
       ? '<img class="al-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
       : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
@@ -1206,7 +1206,7 @@ function renderActiveListings(p) {
       media +
       '<div class="al-card-body">' +
       '<div class="al-card-price">' + aPrice + '</div>' +
-      '<div class="al-card-bldg">' + aName + (aUnit ? ' \\u00b7 #' + aUnit : '') + '</div>' +
+      '<div class="al-card-bldg">' + aName + (aUnit ? ' \u00b7 #' + aUnit : '') + '</div>' +
       (aHood ? '<div class="al-card-hood">' + aHood + '</div>' : '') +
       spec +
       '</div></a>';
@@ -1214,11 +1214,11 @@ function renderActiveListings(p) {
 
   const grid = count > 0
     ? '<div class="al-grid" id="al-grid">' + cards + '</div>'
-    : '<div class="al-empty"><p>No active listings right now \\u2014 the market moves fast. Check back soon, or browse buildings to set up alerts.</p>' +
+    : '<div class="al-empty"><p>No active listings right now \u2014 the market moves fast. Check back soon, or browse buildings to set up alerts.</p>' +
       '<a class="btn-primary" href="/buildings/">Browse buildings</a></div>';
 
-  const title = 'Active Condo Listings for Sale \\u00b7 ' + brand;
-  const metaDesc = esc('Every active condo listing in ' + region + ' tracked to its building \\u2014 ' + (count > 0 ? count + ' currently for sale. ' : '') + 'Live MLS data, building-matched, with full per-unit detail.');
+  const title = 'Active Condo Listings for Sale \u00b7 ' + brand;
+  const metaDesc = esc('Every active condo listing in ' + region + ' tracked to its building \u2014 ' + (count > 0 ? count + ' currently for sale. ' : '') + 'Live MLS data, building-matched, with full per-unit detail.');
   const canonical = 'https://www.' + domain + '/active-listings';
 
   const AL_CSS =
@@ -1278,7 +1278,7 @@ function renderActiveListings(p) {
     '<style>' + CSS + '</style>\n<style>' + EXTRA_CSS + '</style>\n<style>' + AL_CSS + '</style>\n' +
     '</head>\n<body>\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
-    '<a href="/" class="wordmark">Condo <em>Market</em> \\u00b7 ' + tag + '</a>' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + tag + '</a>' +
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/active-listings">Active Listings</a><a href="/how-it-works/">How it works</a>' +
@@ -1296,7 +1296,7 @@ function renderActiveListings(p) {
     '<div class="al-layout"><div id="al-map"></div>' + grid + '</div>' +
     '</div></main>\n\n' +
     '<footer class="site-footer"><div class="wrap">' +
-    '<p class="foot-legal" style="font-size:11px;color:rgba(232,227,216,.4);padding:40px 0;">Operated by McMullen Properties \\u00b7 CA DRE #02016832 \\u00b7 under Real Broker. ' +
+    '<p class="foot-legal" style="font-size:11px;color:rgba(232,227,216,.4);padding:40px 0;">Operated by McMullen Properties \u00b7 CA DRE #02016832 \u00b7 under Real Broker. ' +
     'Listing data deemed reliable but not guaranteed; listing agents and brokerages of record represent sellers. Condo Market SF is a marketing platform, not a brokerage.</p>' +
     '</div></footer>\n' +
     mapScript + '\n' +
@@ -1344,7 +1344,7 @@ function renderListing(r, photos) {
   if (gallery.length > 1) {
     const items = gallery.map(function (u, i) {
       return '<div class="lg-item' + (i === 0 ? ' lg-item--lead' : '') + '">' +
-        '<img src="' + esc(u) + '" alt="' + unitAddr + ' \\u2014 photo ' + (i + 1) + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" ' +
+        '<img src="' + esc(u) + '" alt="' + unitAddr + ' \u2014 photo ' + (i + 1) + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" ' +
         'onerror="this.parentNode.style.display=\'none\';"></div>';
     }).join('');
     gallerySection =
@@ -1408,7 +1408,7 @@ function renderListing(r, photos) {
     '<section class="section" id="attribution"><div class="wrap">' +
     '<p class="mls-attribution">Listing data deemed reliable but not guaranteed. ' +
     'Active-listing information is displayed as a courtesy; the listing agent and brokerage of record represent the seller. ' +
-    bName + ' \\u00b7 ' + mls + '.</p>' +
+    bName + ' \u00b7 ' + mls + '.</p>' +
     '</div></section>';
 
   // JSON-LD: RealEstateListing + Offer for rich results / AIO citation.
@@ -1423,11 +1423,11 @@ function renderListing(r, photos) {
   };
   const jsonLdScript = '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>';
 
-  const title = (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : '') + ' \\u00b7 For Sale \\u00b7 ' + mlsBrand;
+  const title = (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : '') + ' \u00b7 For Sale \u00b7 ' + mlsBrand;
   const metaDesc = esc(
     (unitAddr || bName) + ' is for sale' +
     (priceNum != null ? ' at ' + money(priceNum) : '') +
-    (beds != null ? ' \\u2014 ' + beds + ' bed' : '') +
+    (beds != null ? ' \u2014 ' + beds + ' bed' : '') +
     (baths != null ? ', ' + baths + ' bath' : '') +
     (sqft != null ? ', ' + intc(sqft) + ' sq ft' : '') +
     ' in ' + bName + (hood ? ', ' + hood : '') + ', ' + region + '.'
@@ -1468,7 +1468,7 @@ function renderListing(r, photos) {
     '<style>' + LISTING_CSS + '</style>\n' +
     '</head>\n<body>\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
-    '<a href="/" class="wordmark">Condo <em>Market</em> \\u00b7 ' + tag + '</a>' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + tag + '</a>' +
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/active-listings">Active Listings</a><a href="/how-it-works/">How it works</a>' +
@@ -1481,7 +1481,7 @@ function renderListing(r, photos) {
     '</div></div>\n\n' +
     '<main>\n' +
     '<section class="hero"><div class="wrap"><div class="hero-head"><div>' +
-    (hood ? '<div class="hero-kicker">' + hood + ' \\u00b7 For Sale</div>' : '<div class="hero-kicker">For Sale</div>') +
+    (hood ? '<div class="hero-kicker">' + hood + ' \u00b7 For Sale</div>' : '<div class="hero-kicker">For Sale</div>') +
     '<h1>' + (unitAddr || bName) + '<em>.</em></h1>' +
     '<div class="listing-price">' + priceDisp + '</div>' +
     heroStats +
@@ -1499,7 +1499,7 @@ function renderListing(r, photos) {
     attribution +
     '</main>\n\n' +
     '<footer class="site-footer"><div class="wrap">' +
-    '<p class="foot-legal">Operated by McMullen Properties \\u00b7 CA DRE #02016832 \\u00b7 under Real Broker. ' +
+    '<p class="foot-legal">Operated by McMullen Properties \u00b7 CA DRE #02016832 \u00b7 under Real Broker. ' +
     'Condo Market SF is a marketing platform and is not a real estate brokerage.</p>' +
     '</div></footer>\n' +
     '<script src="/assets/cm-supabase.js" defer></script>\n' +
@@ -1565,7 +1565,7 @@ function renderBuilding(p) {
       if (aBeds  != null) specBits.push(aBeds + ' bd');
       if (aBaths != null) specBits.push(aBaths + ' ba');
       if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
-      const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \\u00b7 ') + '</div>' : '';
+      const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \u00b7 ') + '</div>' : '';
       const media = a.photo
         ? '<img class="al-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
         : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
@@ -1582,7 +1582,7 @@ function renderBuilding(p) {
       '<section class="section" id="active"><div class="wrap">' +
       '<div class="section-head"><div class="section-kicker">For sale now</div>' +
       '<h2 class="section-title">' + activeCount + ' active ' + plural + ' in <em>this building</em></h2>' +
-      '<p class="section-sub">Currently on the market. Tap any unit for full detail \\u2014 or make an offer.</p></div>' +
+      '<p class="section-sub">Currently on the market. Tap any unit for full detail \u2014 or make an offer.</p></div>' +
       '<div class="al-grid">' + cards + '</div>' +
       '</div></section>\n';
   }
