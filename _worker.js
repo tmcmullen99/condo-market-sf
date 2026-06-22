@@ -114,31 +114,7 @@ async function renderChrome(request, env, kind) {
       .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
   }
 
-  // Home: compact Active Listings teaser (live count + top cards) → /active-listings.
-  if (kind === 'home') {
-    let teaser = '';
-    try {
-      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/active_listings_page', {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ p_market_slug: mk.slug }),
-      });
-      if (r.ok) {
-        const pl = await r.json();
-        teaser = homeActiveTeaser(pl, mk);
-      }
-    } catch (e) { teaser = ''; }
-    if (teaser) {
-      if (html.indexOf('<footer') !== -1)      html = html.replace('<footer', teaser + '<footer');
-      else if (html.indexOf('</main>') !== -1) html = html.replace('</main>', teaser + '</main>');
-      else                                      html = html.replace('</body>', teaser + '</body>');
-    }
-  }
+  // (Home active-listings teaser removed — replaced by building-list highlights.)
 
   if (kind === 'intel' && mk.tag === 'sf') {
     const widget = neighborhoodCompareWidget(mk) + priceMovementWidget(mk);
