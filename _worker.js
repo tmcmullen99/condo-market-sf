@@ -153,6 +153,25 @@ async function renderChrome(request, env, kind) {
     }
   }
 
+  // Comprehensive sitewide footer: replace the static page footer with CM_FOOTER.
+  try {
+    const fd = await fetchFooterData(mk);
+    const cf = CM_FOOTER(fd);
+    const fStart = html.indexOf('<footer');
+    if (fStart !== -1) {
+      const fEnd = html.indexOf('</footer>', fStart);
+      if (fEnd !== -1) {
+        html = html.slice(0, fStart) + cf + html.slice(fEnd + '</footer>'.length);
+      } else {
+        html = html.replace('</body>', cf + '</body>');
+      }
+    } else if (html.indexOf('</main>') !== -1) {
+      html = html.replace('</main>', '</main>' + cf);
+    } else {
+      html = html.replace('</body>', cf + '</body>');
+    }
+  } catch (e) { /* leave original footer on failure */ }
+
   html = applyMarketSwaps(html, mk);
 
   const headers = new Headers(res.headers);
@@ -262,6 +281,7 @@ export default {
         if (res.ok) payload = await res.json();
       } catch (e) { payload = null; }
       if (!payload) payload = { count: 0, listings: [] };
+      payload.footerData = await fetchFooterData(hostMk);
       const html = applyMarketSwaps(renderActiveListings(payload), hostMk);
       return new Response(html, {
         status: 200,
@@ -303,7 +323,7 @@ export default {
         return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=600' } });
       }
 
-      const listingHtml = applyMarketSwaps(renderListing(d), hostMk);
+      const listingHtml = applyMarketSwaps(renderListing(d, await fetchFooterData(hostMk)), hostMk);
       return new Response(listingHtml, {
         status: 200,
         headers: {
@@ -311,6 +331,35 @@ export default {
           'cache-control': 'public, max-age=120, s-maxage=300',
         },
       });
+    }
+
+    // Location SEO pages: /condos-in-<city>, /buy-a-condo-in-<city>, /sell-a-condo-in-<city>
+    const cityM = url.pathname.match(/^\/(condos-in|buy-a-condo-in|sell-a-condo-in)\/?([^\/]+)\/?$/)
+               || url.pathname.match(/^\/(condos-in|buy-a-condo-in|sell-a-condo-in)-([^\/]+)\/?$/);
+    if (cityM) {
+      const intentMap = { 'condos-in': 'browse', 'buy-a-condo-in': 'buy', 'sell-a-condo-in': 'sell' };
+      const intent = intentMap[cityM[1]];
+      const citySlug = decodeURIComponent(cityM[2]).trim().toLowerCase();
+      const cityData = await fetchCityData(citySlug, hostMk);
+      if (!cityData) {
+        return wrapStaticWithSwaps(request, env, hostMk);
+      }
+      // Cross-domain: city belongs to a market different from host → 301.
+      if (cityData.market && cityData.market.domain && cityData.market.domain !== hostMk.domain &&
+          Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase())) {
+        const target = 'https://www.' + cityData.market.domain + url.pathname + url.search;
+        return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
+      }
+      const html = applyMarketSwaps(renderCityPage(hostMk, cityData, intent, await fetchFooterData(hostMk)), hostMk);
+      return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
+    }
+
+    // Market-level buy / sell hubs.
+    if (url.pathname === '/buy' || url.pathname === '/buy/' || url.pathname === '/sell' || url.pathname === '/sell/') {
+      const intent = (url.pathname.indexOf('buy') !== -1) ? 'buy' : 'sell';
+      const cities = await fetchMarketCities(hostMk);
+      const html = applyMarketSwaps(renderBuySellHub(hostMk, cities, intent, await fetchFooterData(hostMk)), hostMk);
+      return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
     }
 
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
@@ -359,6 +408,7 @@ export default {
       return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
     }
 
+    payload.footerData = await fetchFooterData(hostMk);
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
     return new Response(bodyHtml, {
       status: 200,
@@ -388,7 +438,7 @@ async function renderSitemap(mk) {
     if (res.ok) rows = await res.json();
   } catch (e) { rows = []; }
 
-  const staticUrls = ['/buildings/', '/intelligence/', '/how-it-works/'];
+  const staticUrls = ['/', '/buildings/', '/intelligence/', '/how-it-works/', '/active-listings', '/buy', '/sell'];
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-market-stats');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condos');
@@ -398,14 +448,38 @@ async function renderSitemap(mk) {
   if (mk.tag === 'sf') {
     nbRows = await callReportRpc('neighborhoods_index', { p_market_domain: mk.domain });
   }
+  // City + buy/sell intent pages for every city in this market.
+  const footerData = await fetchFooterData(mk);
+  const cityList = (footerData && footerData.cities) ? footerData.cities : [];
+  // Active listing pages for this market.
+  let activeListings = [];
+  try {
+    const alRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/active_listings_page', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_market_slug: mk.slug }),
+    });
+    if (alRes.ok) { const p = await alRes.json(); activeListings = (p && p.listings) ? p.listings : []; }
+  } catch (e) { activeListings = []; }
+
   const today = new Date().toISOString().slice(0, 10);
   const urlsXml = [];
   for (const u of staticUrls) {
     urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
   }
+  // City pages (browse + buy + sell)
+  for (const c of cityList) {
+    urlsXml.push('<url><loc>' + base + '/condos-in-' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
+    urlsXml.push('<url><loc>' + base + '/buy-a-condo-in-' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+    urlsXml.push('<url><loc>' + base + '/sell-a-condo-in-' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+  }
   for (const r of (rows || [])) {
     const lm = r.updated_at ? String(r.updated_at).slice(0, 10) : today;
     urlsXml.push('<url><loc>' + base + '/building/' + r.slug + '/</loc><lastmod>' + lm + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+  }
+  // Active listing detail pages (fresh — listings change often).
+  for (const a of activeListings) {
+    if (a && a.mls) urlsXml.push('<url><loc>' + base + '/listing/' + a.mls + '</loc><lastmod>' + today + '</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>');
   }
   for (const n of (nbRows || [])) {
     urlsXml.push('<url><loc>' + base + '/neighborhood/' + hoodSlug(n.neighborhood) + '</loc><lastmod>' + today + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
@@ -464,6 +538,312 @@ async function renderNeighborhoodsHub(mk) {
     '<div style="height:50px"></div></div>');
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
 }
+
+// Fetch a city's catalogued buildings (+ derive simple aggregates) via embedded filter.
+async function fetchCityData(citySlug, hostMk) {
+  try {
+    // City meta
+    const cRes = await fetch(SUPABASE_URL + '/rest/v1/cities?slug=eq.' + encodeURIComponent(citySlug) +
+      '&select=slug,display_name,state,domain,market_status&limit=1',
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
+    if (!cRes.ok) return null;
+    const cArr = await cRes.json();
+    if (!Array.isArray(cArr) || !cArr.length) return null;
+    const city = cArr[0];
+
+    // Buildings in the city (embedded cities.slug filter; buildings_public_select = true)
+    const bRes2 = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,unit_count,year_built,hero_image_url,cities!inner(slug)&cities.slug=eq.' +
+      encodeURIComponent(citySlug) + '&is_catalogued=eq.true&order=unit_count.desc.nullslast',
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
+    let buildings = [];
+    if (bRes2.ok) buildings = await bRes2.json();
+    if (!Array.isArray(buildings) || !buildings.length) return null;
+
+    // Group by neighborhood
+    const byHood = {};
+    let units = 0;
+    buildings.forEach(function (b) {
+      if (b.unit_count) units += Number(b.unit_count);
+      const h = b.neighborhood || '';
+      (byHood[h] = byHood[h] || []).push(b);
+    });
+
+    // Determine market for cross-domain + branding
+    const mkt = (city.domain && MARKET_BY_HOST[city.domain]) ? MARKETS[MARKET_BY_HOST[city.domain]]
+              : (citySlug === 'san-francisco' ? MARKETS.sf : MARKETS.sv);
+
+    return { city: city, buildings: buildings, byHood: byHood, totalUnits: units, market: mkt };
+  } catch (e) { return null; }
+}
+
+// All cities in a market that have catalogued buildings (for buy/sell hubs + footer).
+async function fetchMarketCities(hostMk) {
+  try {
+    // Cities whose buildings are catalogued; simplest: pull catalogued buildings w/ city, aggregate.
+    const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=cities!inner(slug,display_name,domain)&is_catalogued=eq.true&limit=2000',
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
+    if (!res.ok) return [];
+    const rows = await res.json();
+    const counts = {};
+    (rows || []).forEach(function (r) {
+      const c = r.cities; if (!c || !c.slug) return;
+      // market filter by domain
+      const cMkt = (c.domain && MARKET_BY_HOST[c.domain]) ? MARKET_BY_HOST[c.domain] : (c.slug === 'san-francisco' ? 'sf' : 'sv');
+      if (cMkt !== hostMk.tag) return;
+      if (!counts[c.slug]) counts[c.slug] = { slug: c.slug, name: c.display_name, n: 0 };
+      counts[c.slug].n++;
+    });
+    return Object.keys(counts).map(function (k) { return counts[k]; }).sort(function (a, b) { return b.n - a.n; });
+  } catch (e) { return []; }
+}
+
+
+/* ── (C) RENDER FUNCTIONS — paste near renderNeighborhoodDetail() ────────── */
+
+function renderCityPage(mk, data, intent, footerData) {
+  // SF defaults; applyMarketSwaps recolors/renames for SV.
+  const region   = 'San Francisco';
+  const tag      = 'sf';
+  const domain   = 'sanfranciscocondomarket.com';
+  const brand    = 'Condo Market SF';
+
+  const city     = data.city;
+  const cityName = esc(city.display_name);
+  const citySlug = esc(city.slug);
+  const bldgs    = data.buildings;
+  const byHood   = data.byHood;
+  const nBldgs   = bldgs.length;
+  const nUnits   = data.totalUnits;
+  const nHoods   = Object.keys(byHood).filter(function (h) { return h; }).length;
+
+  // Intent-specific copy
+  let kicker, h1, lede, intentPath, ctaLabel, ctaHref;
+  if (intent === 'buy') {
+    kicker = 'Buy a condo in ' + cityName;
+    h1 = 'Buy a condo in <em>' + cityName + '</em>';
+    lede = 'Every condo building in ' + cityName + ', with ten years of sale history, owner tenure, and live activity \u2014 so you can buy with the full picture, not just what\u0027s listed. On Condo Market, every unit is available for the right price, listed or not.';
+    intentPath = 'buy-a-condo-in-';
+    ctaLabel = 'Browse active listings';
+    ctaHref = '/active-listings';
+  } else if (intent === 'sell') {
+    kicker = 'Sell a condo in ' + cityName;
+    h1 = 'Sell a condo in <em>' + cityName + '</em>';
+    lede = 'Thinking of selling in ' + cityName + '? See exactly what your building has sold for, what owners are asking, and reach buyers who are searching your building by name \u2014 without listing publicly until you choose to.';
+    intentPath = 'sell-a-condo-in-';
+    ctaLabel = 'Calculate your payout';
+    ctaHref = '/calculate-payout-from-condo-sale';
+  } else {
+    kicker = 'Condos in ' + cityName;
+    h1 = 'Condos in <em>' + cityName + '</em>';
+    lede = 'Every condominium building in ' + cityName + ' \u2014 ' + intc(nBldgs) + ' building' + (nBldgs === 1 ? '' : 's') + (nUnits ? ', ' + intc(nUnits) + ' homes' : '') + ' \u2014 with ten years of sales, owner tenure, and live market intelligence.';
+    intentPath = 'condos-in-';
+    ctaLabel = 'Browse active listings';
+    ctaHref = '/active-listings';
+  }
+
+  // Building cards grouped by neighborhood (or flat if no hoods)
+  const hoodNames = Object.keys(byHood).sort(function (a, b) {
+    if (!a) return 1; if (!b) return -1; return byHood[b].length - byHood[a].length;
+  });
+  function bldgCard(b) {
+    const img = b.hero_image_url
+      ? '<img class="cl-card-img" src="' + esc(b.hero_image_url) + '" alt="' + esc(b.display_name) + '" loading="lazy" onerror="this.style.display=\'none\';">'
+      : '<div class="cl-card-img cl-card-img--ph"></div>';
+    const meta = [];
+    if (b.unit_count != null) meta.push(intc(b.unit_count) + ' units');
+    if (b.year_built != null) meta.push('Built ' + b.year_built);
+    return '<a class="cl-card" href="/building/' + esc(b.slug) + '/">' + img +
+      '<div class="cl-card-body"><div class="cl-card-name">' + esc(b.display_name) + '</div>' +
+      (b.neighborhood ? '<div class="cl-card-hood">' + esc(b.neighborhood) + '</div>' : '') +
+      (meta.length ? '<div class="cl-card-meta">' + meta.join(' \u00b7 ') + '</div>' : '') +
+      '</div></a>';
+  }
+  let bldgSections = '';
+  const realHoods = hoodNames.filter(function (h) { return h; });
+  if (realHoods.length > 1) {
+    bldgSections = realHoods.map(function (h) {
+      return '<div class="cl-hood-group"><h3 class="cl-hood-title">' + esc(h) + ' <span class="cl-hood-count">' + byHood[h].length + '</span></h3>' +
+        '<div class="cl-grid">' + byHood[h].map(bldgCard).join('') + '</div></div>';
+    }).join('');
+    if (byHood['']) bldgSections += '<div class="cl-hood-group"><div class="cl-grid">' + byHood[''].map(bldgCard).join('') + '</div></div>';
+  } else {
+    bldgSections = '<div class="cl-grid">' + bldgs.map(bldgCard).join('') + '</div>';
+  }
+
+  // Cross-intent links (buy ↔ sell ↔ browse) for this city
+  const crossLinks =
+    '<div class="cl-cross">' +
+    (intent !== 'browse' ? '<a href="/condos-in-' + citySlug + '">All condos in ' + cityName + '</a>' : '') +
+    (intent !== 'buy'    ? '<a href="/buy-a-condo-in-' + citySlug + '">Buy a condo in ' + cityName + '</a>' : '') +
+    (intent !== 'sell'   ? '<a href="/sell-a-condo-in-' + citySlug + '">Sell a condo in ' + cityName + '</a>' : '') +
+    '</div>';
+
+  // SEO
+  const title = (intent === 'buy' ? 'Buy a Condo in ' + cityName : intent === 'sell' ? 'Sell a Condo in ' + cityName : 'Condos in ' + cityName) +
+    ' \u00b7 ' + brand;
+  const metaDesc = esc(
+    (intent === 'buy' ? 'Buy a condo in ' + city.display_name + ': ' : intent === 'sell' ? 'Sell a condo in ' + city.display_name + ': ' : 'Condos in ' + city.display_name + ': ') +
+    intc(nBldgs) + ' buildings' + (nUnits ? ', ' + intc(nUnits) + ' homes' : '') + ', ten years of sales history, owner tenure, and live market intelligence on Condo Market.'
+  );
+  const canonical = 'https://www.' + domain + '/' + (intent === 'buy' ? 'buy-a-condo-in-' : intent === 'sell' ? 'sell-a-condo-in-' : 'condos-in-') + citySlug;
+
+  // JSON-LD: CollectionPage + ItemList of buildings + breadcrumb
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    'name': title,
+    'url': canonical,
+    'description': metaDesc,
+    'about': { '@type': 'Place', 'name': city.display_name + ', CA' },
+    'mainEntity': {
+      '@type': 'ItemList',
+      'numberOfItems': nBldgs,
+      'itemListElement': bldgs.slice(0, 25).map(function (b, i) {
+        return { '@type': 'ListItem', 'position': i + 1, 'name': b.display_name, 'url': 'https://www.' + domain + '/building/' + b.slug + '/' };
+      }),
+    },
+  };
+  const jsonLdScript = '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>';
+
+  const CL_CSS =
+    '.cl-hero{padding:48px 0 8px}' +
+    '.cl-kick{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#9fb4d8;font-weight:700;margin:0 0 10px}' +
+    '.cl-h1{font-family:"Playfair Display",Georgia,serif;font-size:44px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.015em}' +
+    '.cl-h1 em{font-style:italic;color:#9fb4d8}' +
+    '.cl-lede{font-size:16px;line-height:1.6;color:rgba(232,227,216,.75);max-width:680px;margin:18px 0 0}' +
+    '.cl-stats{display:flex;gap:32px;margin:28px 0 0;flex-wrap:wrap}' +
+    '.cl-stat .cl-stat-v{font-family:"Playfair Display",Georgia,serif;font-size:28px;color:#fff;font-weight:700}' +
+    '.cl-stat .cl-stat-l{font-size:12px;color:rgba(232,227,216,.55);letter-spacing:.04em}' +
+    '.cl-ctarow{display:flex;gap:14px;flex-wrap:wrap;margin:26px 0 0}' +
+    '.cl-btn{display:inline-block;background:#9fb4d8;color:#0a0d12;font-weight:600;font-size:14px;padding:13px 26px;border-radius:999px;text-decoration:none}' +
+    '.cl-btn-ghost{display:inline-block;border:1px solid rgba(159,180,216,.4);color:#e8e3d8;font-weight:600;font-size:14px;padding:13px 26px;border-radius:999px;text-decoration:none}' +
+    '.cl-cross{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 0}' +
+    '.cl-cross a{font-size:13px;color:#9fb4d8;text-decoration:none;font-weight:600}' +
+    '.cl-cross a:hover{text-decoration:underline}' +
+    '.cl-hood-group{margin:40px 0 0}' +
+    '.cl-hood-title{font-family:"Playfair Display",Georgia,serif;font-size:22px;color:#fff;margin:0 0 16px;display:flex;align-items:center;gap:10px}' +
+    '.cl-hood-count{font-size:12px;color:#9fb4d8;background:rgba(159,180,216,.12);border-radius:999px;padding:2px 10px;font-family:"DM Sans",sans-serif}' +
+    '.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}' +
+    '.cl-card{display:block;background:rgba(159,180,216,.05);border:1px solid rgba(159,180,216,.12);border-radius:14px;overflow:hidden;text-decoration:none;transition:border-color .15s,transform .15s}' +
+    '.cl-card:hover{border-color:rgba(159,180,216,.4);transform:translateY(-2px)}' +
+    '.cl-card-img{width:100%;height:150px;object-fit:cover;display:block;background:rgba(159,180,216,.08)}' +
+    '.cl-card-img--ph{background:linear-gradient(135deg,rgba(159,180,216,.12),rgba(159,180,216,.03))}' +
+    '.cl-card-body{padding:13px 15px 15px}' +
+    '.cl-card-name{font-size:15px;color:#fff;font-weight:600}' +
+    '.cl-card-hood{font-size:12px;color:#9fb4d8;margin-top:3px}' +
+    '.cl-card-meta{font-size:12px;color:rgba(232,227,216,.55);margin-top:6px}' +
+    '.cl-about{margin:48px 0 0;max-width:720px}' +
+    '.cl-about h2{font-family:"Playfair Display",Georgia,serif;font-size:26px;color:#fff;margin:0 0 14px}' +
+    '.cl-about p{font-size:15px;line-height:1.7;color:rgba(232,227,216,.72);margin:0 0 14px}';
+
+  const statsRow =
+    '<div class="cl-stats">' +
+    '<div class="cl-stat"><div class="cl-stat-v">' + intc(nBldgs) + '</div><div class="cl-stat-l">Building' + (nBldgs === 1 ? '' : 's') + '</div></div>' +
+    (nUnits ? '<div class="cl-stat"><div class="cl-stat-v">' + intc(nUnits) + '</div><div class="cl-stat-l">Homes</div></div>' : '') +
+    (nHoods ? '<div class="cl-stat"><div class="cl-stat-v">' + intc(nHoods) + '</div><div class="cl-stat-l">Neighborhood' + (nHoods === 1 ? '' : 's') + '</div></div>' : '') +
+    '</div>';
+
+  // Intent-tailored "about" prose (original, factual, content for SEO/AIO)
+  let aboutBody;
+  if (intent === 'buy') {
+    aboutBody = '<p>Buying a condo in ' + cityName + ' means more than scrolling active listings. On Condo Market you can see every building in ' + cityName + ', what each has sold for over the past decade, how long owners typically hold, and where prices are moving \u2014 before you ever make an offer.</p>' +
+      '<p>Because every owner on the platform can name a price whether or not they\u0027re publicly listed, the inventory you can pursue in ' + cityName + ' is far larger than what shows on the MLS. Find the building you want, and make an offer on a home that was never listed.</p>';
+  } else if (intent === 'sell') {
+    aboutBody = '<p>Selling a condo in ' + cityName + ' starts with knowing what your home is worth. Condo Market shows you exactly what units in your building have sold for, current asking prices, and the depth of buyer demand searching your building by name.</p>' +
+      '<p>You don\u0027t have to list publicly to test the market. Set a price, reach qualified buyers privately, and only go public when it makes sense for you. See your estimated payout, then decide.</p>';
+  } else {
+    aboutBody = '<p>' + cityName + ' is home to ' + intc(nBldgs) + ' condominium building' + (nBldgs === 1 ? '' : 's') + (nUnits ? ' totaling roughly ' + intc(nUnits) + ' homes' : '') + (nHoods ? ' across ' + intc(nHoods) + ' neighborhoods' : '') + '. Condo Market tracks each one with ten years of sale history, owner tenure patterns, and live market activity.</p>' +
+      '<p>Browse the buildings below to see per-building sales, current active listings, and price trends \u2014 or explore whether to <a href="/buy-a-condo-in-' + citySlug + '" style="color:#9fb4d8">buy</a> or <a href="/sell-a-condo-in-' + citySlug + '" style="color:#9fb4d8">sell</a> in ' + cityName + '.</p>';
+  }
+
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+    '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + esc(title) + '</title>\n' +
+    '<meta name="description" content="' + metaDesc + '">\n' +
+    '<link rel="canonical" href="' + canonical + '">\n' +
+    '<meta property="og:type" content="website">\n<meta property="og:title" content="' + esc(title) + '">\n' +
+    '<meta property="og:description" content="' + metaDesc + '">\n<meta property="og:url" content="' + canonical + '">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
+    jsonLdScript + '\n' +
+    '<style>' + CSS + '</style>\n<style>' + EXTRA_CSS + '</style>\n<style>' + CL_CSS + '</style>\n' +
+    '</head>\n<body>\n' +
+    CM_MASTHEAD(tag) +
+    '<div class="wrap"><div class="crumb">' +
+    '<a href="/">Condo Market</a><span class="sep">/</span>' +
+    '<a href="/buildings/">Buildings</a><span class="sep">/</span>' + cityName +
+    '</div></div>\n\n' +
+    '<main><div class="wrap">' +
+    '<div class="cl-hero">' +
+    '<p class="cl-kick">' + esc(kicker) + '</p>' +
+    '<h1 class="cl-h1">' + h1 + '</h1>' +
+    '<p class="cl-lede">' + lede + '</p>' +
+    statsRow +
+    '<div class="cl-ctarow"><a class="cl-btn" href="' + ctaHref + '">' + ctaLabel + '</a>' +
+    '<a class="cl-btn-ghost" href="/buildings/">All buildings</a></div>' +
+    crossLinks +
+    '</div>' +
+    '<div class="cl-about"><h2>' + (intent === 'buy' ? 'Buying in ' + cityName : intent === 'sell' ? 'Selling in ' + cityName : 'About ' + cityName) + '</h2>' + aboutBody + '</div>' +
+    '<section style="margin:48px 0 0"><div class="section-head"><div class="section-kicker">The buildings</div>' +
+    '<h2 class="section-title">Every condo building in <em>' + cityName + '</em></h2></div>' +
+    bldgSections +
+    '</section>' +
+    '</div></main>\n\n' +
+    CM_FOOTER(footerData) +
+    '</body>\n</html>';
+}
+
+function renderBuySellHub(mk, cities, intent, footerData) {
+  const region = 'San Francisco';
+  const tag    = 'sf';
+  const domain = 'sanfranciscocondomarket.com';
+  const brand  = 'Condo Market SF';
+  const verb   = (intent === 'buy') ? 'Buy' : 'Sell';
+  const pathPre = (intent === 'buy') ? 'buy-a-condo-in-' : 'sell-a-condo-in-';
+
+  const cityCards = (cities || []).map(function (c) {
+    return '<a class="cl-card" href="/' + pathPre + esc(c.slug) + '" style="padding:18px 20px;display:flex;justify-content:space-between;align-items:center;">' +
+      '<span class="cl-card-name">' + esc(c.name) + '</span>' +
+      '<span class="cl-card-meta">' + c.n + ' building' + (c.n === 1 ? '' : 's') + ' \u2192</span></a>';
+  }).join('');
+
+  const title = verb + ' a Condo in ' + region + ' \u00b7 ' + brand;
+  const metaDesc = esc(verb + ' a condo anywhere in the ' + region + ' market. Browse every city and building with ten years of sales, owner tenure, and live market intelligence on Condo Market.');
+  const canonical = 'https://www.' + domain + '/' + (intent === 'buy' ? 'buy' : 'sell');
+
+  const HUB_CSS =
+    '.cl-hero{padding:48px 0 8px}' +
+    '.cl-kick{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#9fb4d8;font-weight:700;margin:0 0 10px}' +
+    '.cl-h1{font-family:"Playfair Display",Georgia,serif;font-size:44px;color:#fff;margin:0;letter-spacing:-.015em}' +
+    '.cl-h1 em{font-style:italic;color:#9fb4d8}' +
+    '.cl-lede{font-size:16px;line-height:1.6;color:rgba(232,227,216,.75);max-width:680px;margin:18px 0 0}' +
+    '.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:36px 0 0}' +
+    '.cl-card{background:rgba(159,180,216,.05);border:1px solid rgba(159,180,216,.12);border-radius:14px;text-decoration:none;transition:border-color .15s}' +
+    '.cl-card:hover{border-color:rgba(159,180,216,.4)}' +
+    '.cl-card-name{font-size:16px;color:#fff;font-weight:600}' +
+    '.cl-card-meta{font-size:12px;color:#9fb4d8}';
+
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+    '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + esc(title) + '</title>\n<meta name="description" content="' + metaDesc + '">\n' +
+    '<link rel="canonical" href="' + canonical + '">\n' +
+    '<meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + metaDesc + '"><meta property="og:url" content="' + canonical + '">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
+    '<style>' + CSS + '</style>\n<style>' + EXTRA_CSS + '</style>\n<style>' + HUB_CSS + '</style>\n' +
+    '</head>\n<body>\n' +
+    CM_MASTHEAD(tag) +
+    '<div class="wrap"><div class="crumb"><a href="/">Condo Market</a><span class="sep">/</span>' + verb + '</div></div>\n' +
+    '<main><div class="wrap"><div class="cl-hero">' +
+    '<p class="cl-kick">' + verb + ' a condo</p>' +
+    '<h1 class="cl-h1">' + verb + ' a condo in <em>' + region + '</em></h1>' +
+    '<p class="cl-lede">Choose your city to see every building, ten years of sales, and live market intelligence \u2014 then ' + (intent === 'buy' ? 'make an offer on any unit, listed or not' : 'see what your home is worth and reach buyers privately') + '.</p>' +
+    '<div class="cl-grid">' + cityCards + '</div>' +
+    '</div></div></main>\n' +
+    CM_FOOTER(footerData) +
+    '</body>\n</html>';
+}
+
 
 async function renderNeighborhoodDetail(mk, rawSlug) {
   const DOMAIN = 'sanfranciscocondomarket.com';
@@ -956,6 +1336,137 @@ card('Median Price / Sq Ft', money(p.cur_median_psf), dPsf, false) +
 }
 
 
+function CM_MASTHEAD(tag) {
+  return '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + tag + '</a>' +
+    '<nav class="nav-meta">' +
+    '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
+    '<a href="/active-listings">Active Listings</a><a href="/buy">Buy</a><a href="/sell">Sell</a>' +
+    '<a href="/how-it-works/">How it works</a>' +
+    '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
+    '</nav></div></div></header>\n\n';
+}
+
+// footerData = { byCityHood: { city: { hood: [ {slug,name} ] } }, cities: [ {slug,name,n} ] }
+function CM_FOOTER(footerData) {
+  const fd = footerData || { byCityHood: {}, cities: [] };
+  const cities = fd.cities || [];
+  const byCityHood = fd.byCityHood || {};
+
+  // Building columns grouped by neighborhood (within each city).
+  let bldgCols = '';
+  const cityNames = Object.keys(byCityHood);
+  cityNames.forEach(function (cityName) {
+    const hoods = byCityHood[cityName];
+    const hoodNames = Object.keys(hoods).sort();
+    // For multi-city markets (SV), header each city; for single-city (SF) skip city header.
+    if (cityNames.length > 1) {
+      bldgCols += '<div class="cf-city-head">' + esc(cityName) + '</div>';
+    }
+    hoodNames.forEach(function (h) {
+      const list = hoods[h];
+      bldgCols += '<div class="cf-group">' +
+        '<h5 class="cf-group-title">' + (h ? esc(h) : esc(cityName)) + '</h5><ul>' +
+        list.map(function (b) { return '<li><a href="/building/' + esc(b.slug) + '/">' + esc(b.name) + '</a></li>'; }).join('') +
+        '</ul></div>';
+    });
+  });
+
+  // City link column (buy/sell intent)
+  const cityLinks = cities.map(function (c) {
+    return '<li><a href="/condos-in-' + esc(c.slug) + '">Condos in ' + esc(c.name) + '</a></li>';
+  }).join('');
+  const buyLinks = cities.map(function (c) {
+    return '<li><a href="/buy-a-condo-in-' + esc(c.slug) + '">Buy in ' + esc(c.name) + '</a></li>';
+  }).join('');
+  const sellLinks = cities.map(function (c) {
+    return '<li><a href="/sell-a-condo-in-' + esc(c.slug) + '">Sell in ' + esc(c.name) + '</a></li>';
+  }).join('');
+
+  return '<footer class="cf"><div class="wrap">' +
+    // Top: brand + primary nav
+    '<div class="cf-top">' +
+    '<div class="cf-brand">' +
+    '<div class="wordmark" style="font-size:20px;margin-bottom:12px;">Condo <em>Market</em> \u00b7 sf</div>' +
+    '<p class="cf-tag">A private marketplace for every condo in San Francisco. Ten years of sales, owner tenure, live activity \u2014 every unit available for the right price.</p>' +
+    '<div class="cf-primary">' +
+    '<a href="/buildings/">All buildings</a><a href="/active-listings">Active listings</a>' +
+    '<a href="/intelligence/">Intelligence</a><a href="/buy">Buy a condo</a>' +
+    '<a href="/sell">Sell a condo</a><a href="/how-it-works/">How it works</a>' +
+    '</div></div>' +
+    '<div class="cf-intent">' +
+    '<div class="cf-intent-col"><h5 class="cf-group-title">By city</h5><ul>' + cityLinks + '</ul></div>' +
+    '<div class="cf-intent-col"><h5 class="cf-group-title">Buy</h5><ul>' + buyLinks + '</ul></div>' +
+    '<div class="cf-intent-col"><h5 class="cf-group-title">Sell</h5><ul>' + sellLinks + '</ul></div>' +
+    '</div>' +
+    '</div>' +
+    // Building directory (comprehensive, grouped)
+    '<div class="cf-dir-head">Browse every building</div>' +
+    '<div class="cf-dir">' + bldgCols + '</div>' +
+    // Fine print
+    '<div class="cf-fine">\u00a9 2026 Condo Market SF \u00b7 Operated by McMullen Properties \u00b7 CA DRE #02016832 \u00b7 under Real Broker. ' +
+    'Condo Market SF is a marketing platform and is not a real estate brokerage. ' +
+    '<a href="/methodology/">Methodology</a> \u00b7 <a href="/how-it-works/">How it works</a> \u00b7 <a href="tel:+14156919272">415-691-9272</a></div>' +
+    '</div></footer>\n' +
+    CM_FOOTER_CSS;
+}
+
+const CM_FOOTER_CSS =
+  '<style>' +
+  '.cf{background:#0a0d12;border-top:1px solid rgba(159,180,216,.12);padding:56px 0 32px;color:rgba(232,227,216,.6)}' +
+  '.cf .wordmark{color:#fff}.cf .wordmark em{color:#9fb4d8;font-style:italic}' +
+  '.cf-top{display:grid;grid-template-columns:1.4fr 2fr;gap:48px;padding-bottom:40px;border-bottom:1px solid rgba(159,180,216,.1)}' +
+  '.cf-tag{font-size:13px;line-height:1.6;max-width:38ch;margin:0 0 18px}' +
+  '.cf-primary{display:flex;flex-wrap:wrap;gap:8px 18px}' +
+  '.cf-primary a{font-size:13px;color:#9fb4d8;text-decoration:none;font-weight:600}' +
+  '.cf-primary a:hover{text-decoration:underline}' +
+  '.cf-intent{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}' +
+  '.cf-intent-col ul{list-style:none;padding:0;margin:0}' +
+  '.cf-intent-col li{margin-bottom:7px}' +
+  '.cf-intent-col a{font-size:12.5px;color:rgba(232,227,216,.62);text-decoration:none}' +
+  '.cf-intent-col a:hover{color:#9fb4d8}' +
+  '.cf-group-title{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9fb4d8;margin:0 0 12px;font-weight:700}' +
+  '.cf-dir-head{font-family:"Playfair Display",Georgia,serif;font-size:18px;color:#fff;margin:36px 0 20px}' +
+  '.cf-dir{column-count:4;column-gap:32px}' +
+  '@media(max-width:980px){.cf-dir{column-count:2}.cf-top{grid-template-columns:1fr;gap:32px}}' +
+  '@media(max-width:560px){.cf-dir{column-count:1}.cf-intent{grid-template-columns:1fr}}' +
+  '.cf-city-head{font-family:"Playfair Display",Georgia,serif;font-size:15px;color:#fff;margin:6px 0 12px;break-inside:avoid;border-bottom:1px solid rgba(159,180,216,.12);padding-bottom:6px}' +
+  '.cf-group{break-inside:avoid;margin-bottom:20px}' +
+  '.cf-group ul{list-style:none;padding:0;margin:0}' +
+  '.cf-group li{margin-bottom:6px}' +
+  '.cf-group a{font-size:12.5px;color:rgba(232,227,216,.58);text-decoration:none;line-height:1.35}' +
+  '.cf-group a:hover{color:#9fb4d8}' +
+  '.cf-fine{font-size:11px;line-height:1.6;color:rgba(232,227,216,.4);border-top:1px solid rgba(159,180,216,.1);padding-top:24px;margin-top:36px}' +
+  '.cf-fine a{color:rgba(232,227,216,.55);text-decoration:none}.cf-fine a:hover{color:#9fb4d8}' +
+  '</style>';
+
+// Fetch all catalogued buildings for the host market, grouped city → neighborhood,
+// plus the city list. One embedded-filter query; cached via page cache-control.
+async function fetchFooterData(hostMk) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,cities!inner(slug,display_name,domain)&is_catalogued=eq.true&order=display_name.asc&limit=2000',
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
+    if (!res.ok) return { byCityHood: {}, cities: [] };
+    const rows = await res.json();
+    const byCityHood = {};
+    const cityCounts = {};
+    (rows || []).forEach(function (b) {
+      const c = b.cities; if (!c || !c.slug) return;
+      const cMkt = (c.domain && MARKET_BY_HOST[c.domain]) ? MARKET_BY_HOST[c.domain] : (c.slug === 'san-francisco' ? 'sf' : 'sv');
+      if (cMkt !== hostMk.tag) return;
+      const cityName = c.display_name;
+      const hood = b.neighborhood || '';
+      byCityHood[cityName] = byCityHood[cityName] || {};
+      (byCityHood[cityName][hood] = byCityHood[cityName][hood] || []).push({ slug: b.slug, name: b.display_name });
+      if (!cityCounts[c.slug]) cityCounts[c.slug] = { slug: c.slug, name: cityName, n: 0 };
+      cityCounts[c.slug].n++;
+    });
+    const cities = Object.keys(cityCounts).map(function (k) { return cityCounts[k]; }).sort(function (a, b) { return b.n - a.n; });
+    return { byCityHood: byCityHood, cities: cities };
+  } catch (e) { return { byCityHood: {}, cities: [] }; }
+}
+
+
 async function callReportRpc(name, body) {
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
@@ -1276,16 +1787,13 @@ function renderActiveListings(p) {
     '</div>' +
     '<div class="al-layout"><div id="al-map"></div>' + grid + '</div>' +
     '</div></main>\n\n' +
-    '<footer class="site-footer"><div class="wrap">' +
-    '<p class="foot-legal" style="font-size:11px;color:rgba(232,227,216,.4);padding:40px 0;">Operated by McMullen Properties \u00b7 CA DRE #02016832 \u00b7 under Real Broker. ' +
-    'Listing data deemed reliable but not guaranteed; listing agents and brokerages of record represent sellers. Condo Market SF is a marketing platform, not a brokerage.</p>' +
-    '</div></footer>\n' +
+    CM_FOOTER(p.footerData) +
     mapScript + '\n' +
     '</body>\n</html>';
 }
 
 
-function renderListing(d) {
+function renderListing(d, footerData) {
   // Reads the listing_detail(p_mls) RPC payload. SF defaults; applyMarketSwaps()
   // recolors/renames for SV at serve time.
   const mlsBrand = 'Condo Market SF';
@@ -1533,10 +2041,7 @@ function renderListing(d) {
     toolsSection +
     attribution +
     '</main>\n\n' +
-    '<footer class="site-footer"><div class="wrap">' +
-    '<p class="foot-legal">Operated by McMullen Properties \u00b7 CA DRE #02016832 \u00b7 under Real Broker. ' +
-    'Condo Market SF is a marketing platform and is not a real estate brokerage.</p>' +
-    '</div></footer>\n' +
+    CM_FOOTER(footerData) +
     '<script src="/assets/cm-supabase.js" defer></script>\n' +
     '<script src="/assets/cm-actions.js" defer></script>\n' +
     mapScript + '\n' +
@@ -1906,22 +2411,7 @@ function renderBuilding(p) {
     mortgageSection +
     offerSection +
     '</main>\n\n' +
-    '<footer><div class="wrap"><div class="footer-grid">' +
-    '<div><div class="wordmark" style="margin-bottom:14px;">Condo <em>Market</em> \u00b7 ' + mkTag + '</div>' +
-    '<p style="max-width:42ch;">A private exchange for every condo in ' + mkRegion + '. Live offer signals, editorial dossiers.</p></div>' +
-    '<div><h5>Explore</h5><ul>' +
-    '<li><a href="/buildings/">All buildings</a></li><li><a href="/intelligence/">Intelligence</a></li>' +
-    '<li><a href="/history/">History</a></li><li><a href="/refer/">Refer</a></li></ul></div>' +
-    '<div><h5>Account</h5><ul>' +
-    '<li><a href="#signin" data-cm-auth="login">Sign in</a></li>' +
-    '<li><a href="#signup" data-cm-auth="signup">Create account</a></li>' +
-    '<li><a href="/dashboard/">Dashboard</a></li></ul></div>' +
-    '<div><h5>About</h5><ul>' +
-    '<li><a href="/methodology/">Methodology</a></li><li><a href="/how-it-works/">How it works</a></li>' +
-    '<li><a href="tel:+14156919272">415-691-9272</a></li>' +
-    '<li><a href="mailto:' + mkEmail + '">Contact</a></li></ul></div>' +
-    '</div><div class="footer-fine">\u00a9 2026 ' + mkBrand + ' \u00b7 McMullen Properties \u00b7 DRE #02016832</div>' +
-    '</div></footer>\n\n' +
+    CM_FOOTER(p.footerData) +
     '<script>' + MORT_CALC + '</script>\n' +
     '<script type="module" src="/assets/cm-featured.js"></script>\n' +
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
