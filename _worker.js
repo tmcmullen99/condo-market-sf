@@ -114,6 +114,32 @@ async function renderChrome(request, env, kind) {
       .replace(/(<link rel="preload" as="image" href=")[^"]*(")/i, function (m, a, b) { return a + hero + b; });
   }
 
+  // Home: compact Active Listings teaser (live count + top cards) → /active-listings.
+  if (kind === 'home') {
+    let teaser = '';
+    try {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/active_listings_page', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ p_market_slug: mk.slug }),
+      });
+      if (r.ok) {
+        const pl = await r.json();
+        teaser = homeActiveTeaser(pl, mk);
+      }
+    } catch (e) { teaser = ''; }
+    if (teaser) {
+      if (html.indexOf('<footer') !== -1)      html = html.replace('<footer', teaser + '<footer');
+      else if (html.indexOf('</main>') !== -1) html = html.replace('</main>', teaser + '</main>');
+      else                                      html = html.replace('</body>', teaser + '</body>');
+    }
+  }
+
   if (kind === 'intel' && mk.tag === 'sf') {
     const widget = neighborhoodCompareWidget(mk) + priceMovementWidget(mk);
     // Place ABOVE the footer, in the dark content area. Try anchors in order;
@@ -213,6 +239,77 @@ export default {
     if (reportM && request.method === 'GET') {
       const target = 'https://' + url.host + '/building/' + reportM[1] + '/#market';
       return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
+    }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   (A) ROUTE HANDLER  — paste inside fetch() before the building route match
+   ───────────────────────────────────────────────────────────────────────── */
+
+    // /active-listings → server-rendered market grid + map enhancement.
+    if (url.pathname === '/active-listings' || url.pathname === '/active-listings/') {
+      let payload = null;
+      try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/active_listings_page', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ p_market_slug: hostMk.slug }),
+        });
+        if (res.ok) payload = await res.json();
+      } catch (e) { payload = null; }
+      if (!payload) payload = { count: 0, listings: [] };
+      const html = applyMarketSwaps(renderActiveListings(payload), hostMk);
+      return new Response(html, {
+        status: 200,
+        headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=120, s-maxage=300' },
+      });
+    }
+
+    // /listing/<mls> → server-rendered standalone active-listing page.
+    const lm = url.pathname.match(/^\/listing\/([^\/]+)\/?$/);
+    if (lm) {
+      const mls = decodeURIComponent(lm[1]).trim().toUpperCase();
+      let row = null;
+      try {
+        const res = await fetch(
+          SUPABASE_URL + '/rest/v1/v_condo_active_listings?mls_number=eq.' + encodeURIComponent(mls) + '&select=*&limit=1',
+          { headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Accept': 'application/json',
+          } }
+        );
+        if (res.ok) { const arr = await res.json(); row = Array.isArray(arr) && arr.length ? arr[0] : null; }
+      } catch (e) { row = null; }
+
+      // No live listing with that MLS → 301 to the building if we can infer it,
+      // else fall through to static (avoids dead-end 404, preserves any link equity).
+      if (!row) {
+        return wrapStaticWithSwaps(request, env, hostMk);
+      }
+
+      // Cross-domain canonical: an SV listing requested on the SF host (or vice
+      // versa) 301s to its correct market domain, mirroring the building rule.
+      const lMktDomain = row.market_domain;
+      const hostIsKnownMarketL = Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase());
+      if (hostIsKnownMarketL && lMktDomain && lMktDomain !== hostMk.domain) {
+        const target = 'https://www.' + lMktDomain + '/listing/' + encodeURIComponent(mls) + url.search;
+        return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=600' } });
+      }
+
+      const listingHtml = applyMarketSwaps(renderListing(row), hostMk);
+      return new Response(listingHtml, {
+        status: 200,
+        headers: {
+          'content-type': 'text/html;charset=utf-8',
+          // Shorter TTL than buildings: listings change/expire faster.
+          'cache-control': 'public, max-age=120, s-maxage=300',
+        },
+      });
     }
 
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
@@ -493,6 +590,63 @@ body + '</body></html>';
 }
 
 /* ---- intel page: neighborhood comparison widget (client-rendered) ---- */
+function homeActiveTeaser(pl, mk) {
+  const count = (pl && pl.count != null) ? Number(pl.count) : 0;
+  const listings = (pl && Array.isArray(pl.listings)) ? pl.listings : [];
+  if (count <= 0 || !listings.length) return '';   // no empty teaser on the homepage
+  const top = listings.slice(0, 3);
+  const region = mk.region || 'San Francisco';
+
+  const cards = top.map(function (a) {
+    const aMls   = esc(a.mls || '');
+    const aName  = esc(a.building_name || 'Building');
+    const aUnit  = a.unit ? esc(a.unit) : '';
+    const aAddr  = esc(a.unit_address || '');
+    const aPrice = (a.price != null) ? money(Number(a.price)) : 'Price on request';
+    const aBeds  = (a.beds != null && a.beds !== '') ? Number(a.beds) : null;
+    const aBaths = (a.baths != null && a.baths !== '') ? Number(a.baths) : null;
+    const aSqft  = (a.sqft != null && a.sqft !== '') ? Number(a.sqft) : null;
+    const specBits = [];
+    if (aBeds  != null) specBits.push(aBeds + ' bd');
+    if (aBaths != null) specBits.push(aBaths + ' ba');
+    if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
+    const spec = specBits.length ? '<div class="hat-card-spec">' + specBits.join(' \\u00b7 ') + '</div>' : '';
+    const media = a.photo
+      ? '<img class="hat-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'hat-card-img--ph\');this.removeAttribute(\'src\');">'
+      : '<div class="hat-card-img hat-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
+    return '<a class="hat-card" href="/listing/' + aMls + '">' + media +
+      '<div class="hat-card-body"><div class="hat-card-price">' + aPrice + '</div>' +
+      '<div class="hat-card-bldg">' + aName + (aUnit ? ' \\u00b7 #' + aUnit : '') + '</div>' + spec +
+      '</div></a>';
+  }).join('');
+
+  return '<style>' +
+    '.hat-wrap{background:#0a0d12;padding:64px 0}' +
+    '.hat-inner{max-width:1280px;margin:0 auto;padding:0 32px}' +
+    '.hat-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px}' +
+    '.hat-title{font-family:"Playfair Display",Georgia,serif;font-size:30px;color:#fff;margin:0}' +
+    '.hat-title em{font-style:italic;color:#9fb4d8}' +
+    '.hat-link{font-size:13px;color:#9fb4d8;text-decoration:none;font-weight:600;white-space:nowrap}' +
+    '.hat-link:hover{text-decoration:underline}' +
+    '.hat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}' +
+    '.hat-card{display:block;background:rgba(159,180,216,.05);border:1px solid rgba(159,180,216,.12);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,transform .15s}' +
+    '.hat-card:hover{border-color:rgba(159,180,216,.4);transform:translateY(-2px)}' +
+    '.hat-card-img{width:100%;height:170px;object-fit:cover;display:block;background:rgba(159,180,216,.08)}' +
+    '.hat-card-img--ph{background:linear-gradient(135deg,rgba(159,180,216,.1),rgba(159,180,216,.03))}' +
+    '.hat-card-body{padding:14px 16px 16px}' +
+    '.hat-card-price{font-family:"Playfair Display",Georgia,serif;font-size:21px;color:#fff;font-weight:700}' +
+    '.hat-card-bldg{font-size:13px;color:#e8e3d8;margin-top:4px}' +
+    '.hat-card-spec{font-size:12px;color:rgba(232,227,216,.6);margin-top:8px}' +
+    '</style>' +
+    '<section class="hat-wrap"><div class="hat-inner">' +
+    '<div class="hat-head">' +
+    '<h2 class="hat-title">' + count + ' active ' + (count === 1 ? 'listing' : 'listings') + ' <em>for sale now</em></h2>' +
+    '<a class="hat-link" href="/active-listings">View all active listings \\u2192</a>' +
+    '</div>' +
+    '<div class="hat-grid">' + cards + '</div>' +
+    '</div></section>';
+}
+
 function neighborhoodCompareWidget(mk) {
   var SB = SUPABASE_URL, AK = SUPABASE_ANON_KEY;
   return '' +
@@ -996,6 +1150,307 @@ function paragraphs(text) {
 }
 
 /* --------------------------- page renderer ------------------------------- */
+function renderActiveListings(p) {
+  const region = 'San Francisco';
+  const tag    = 'sf';
+  const domain = 'sanfranciscocondomarket.com';
+  const brand  = 'Condo Market SF';
+
+  const count = (p && p.count != null) ? Number(p.count) : 0;
+  const listings = (p && Array.isArray(p.listings)) ? p.listings : [];
+
+  // Server-rendered cards (crawlable). Each links to /listing/<mls>.
+  const cards = listings.map(function (a) {
+    const aMls   = esc(a.mls || '');
+    const aName  = esc(a.building_name || 'Building');
+    const aHood  = a.neighborhood ? esc(a.neighborhood) : '';
+    const aUnit  = a.unit ? esc(a.unit) : '';
+    const aAddr  = esc(a.unit_address || '');
+    const aPrice = (a.price != null) ? money(Number(a.price)) : 'Price on request';
+    const aBeds  = (a.beds != null && a.beds !== '') ? Number(a.beds) : null;
+    const aBaths = (a.baths != null && a.baths !== '') ? Number(a.baths) : null;
+    const aSqft  = (a.sqft != null && a.sqft !== '') ? Number(a.sqft) : null;
+    const specBits = [];
+    if (aBeds  != null) specBits.push(aBeds + ' bd');
+    if (aBaths != null) specBits.push(aBaths + ' ba');
+    if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
+    const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \\u00b7 ') + '</div>' : '';
+    const media = a.photo
+      ? '<img class="al-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
+      : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
+    return '<a class="al-card" href="/listing/' + aMls + '" ' +
+      'data-mls="' + aMls + '"' +
+      (a.lat != null ? ' data-lat="' + a.lat + '"' : '') +
+      (a.lng != null ? ' data-lng="' + a.lng + '"' : '') +
+      ' data-price="' + (a.price != null ? a.price : '') + '">' +
+      media +
+      '<div class="al-card-body">' +
+      '<div class="al-card-price">' + aPrice + '</div>' +
+      '<div class="al-card-bldg">' + aName + (aUnit ? ' \\u00b7 #' + aUnit : '') + '</div>' +
+      (aHood ? '<div class="al-card-hood">' + aHood + '</div>' : '') +
+      spec +
+      '</div></a>';
+  }).join('');
+
+  const grid = count > 0
+    ? '<div class="al-grid" id="al-grid">' + cards + '</div>'
+    : '<div class="al-empty"><p>No active listings right now \\u2014 the market moves fast. Check back soon, or browse buildings to set up alerts.</p>' +
+      '<a class="btn-primary" href="/buildings/">Browse buildings</a></div>';
+
+  const title = 'Active Condo Listings for Sale \\u00b7 ' + brand;
+  const metaDesc = esc('Every active condo listing in ' + region + ' tracked to its building \\u2014 ' + (count > 0 ? count + ' currently for sale. ' : '') + 'Live MLS data, building-matched, with full per-unit detail.');
+  const canonical = 'https://www.' + domain + '/active-listings';
+
+  const AL_CSS =
+    '.al-wrap-head{padding:36px 0 8px}' +
+    '.al-count{font-family:"Playfair Display",Georgia,serif;font-style:italic;color:#9fb4d8;font-size:15px}' +
+    '.al-layout{display:grid;grid-template-columns:1fr;gap:24px;margin-top:8px}' +
+    '#al-map{width:100%;height:0;border-radius:16px;overflow:hidden;transition:height .2s;background:rgba(159,180,216,.06)}' +
+    '#al-map.is-on{height:380px;margin-bottom:8px}' +
+    '.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}' +
+    '.al-card{display:block;background:rgba(159,180,216,.05);border:1px solid rgba(159,180,216,.12);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,transform .15s}' +
+    '.al-card:hover{border-color:rgba(159,180,216,.4);transform:translateY(-2px)}' +
+    '.al-card-img{width:100%;height:180px;object-fit:cover;display:block;background:rgba(159,180,216,.08)}' +
+    '.al-card-img--ph{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(159,180,216,.1),rgba(159,180,216,.03))}' +
+    '.al-card-body{padding:15px 17px 17px}' +
+    '.al-card-price{font-family:"Playfair Display",Georgia,serif;font-size:22px;color:#fff;font-weight:700}' +
+    '.al-card-bldg{font-size:13px;color:#e8e3d8;margin-top:4px}' +
+    '.al-card-hood{font-size:12px;color:#9fb4d8;margin-top:2px}' +
+    '.al-card-spec{font-size:12px;color:rgba(232,227,216,.6);margin-top:8px}' +
+    '.al-empty{text-align:center;padding:60px 20px;color:rgba(232,227,216,.6)}' +
+    '.al-empty .btn-primary{margin-top:18px}' +
+    '.btn-primary{display:inline-block;background:#9fb4d8;color:#0a0d12;font-weight:600;font-size:14px;padding:13px 26px;border-radius:999px;text-decoration:none}';
+
+  // Map enhancement: only initializes if listings carry lat/lng (pending CRO5 RPC field).
+  // Reads data-lat/data-lng off the server-rendered cards — no extra fetch.
+  const mapScript =
+    '<script>(function(){' +
+    'var cards=[].slice.call(document.querySelectorAll(".al-card[data-lat][data-lng]"));' +
+    'if(!cards.length)return;' +              // no coords yet → map stays hidden, grid stands alone
+    'var box=document.getElementById("al-map");if(!box)return;' +
+    'var css=document.createElement("link");css.rel="stylesheet";css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(css);' +
+    'var js=document.createElement("script");js.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";' +
+    'js.onload=function(){' +
+    'box.classList.add("is-on");' +
+    'var map=L.map(box,{scrollWheelZoom:false}).setView([37.78,-122.41],12);' +
+    'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"\\u00a9 OpenStreetMap, \\u00a9 CARTO",maxZoom:19}).addTo(map);' +
+    'var pts=[];' +
+    'cards.forEach(function(c){var la=parseFloat(c.getAttribute("data-lat")),ln=parseFloat(c.getAttribute("data-lng"));if(isNaN(la)||isNaN(ln))return;' +
+    'var pr=c.getAttribute("data-price"),href=c.getAttribute("href");' +
+    'var m=L.circleMarker([la,ln],{radius:8,fillColor:"#9fb4d8",color:"#0a0d12",weight:2,fillOpacity:.9}).addTo(map);' +
+    'm.on("click",function(){window.location.href=href;});' +
+    'pts.push([la,ln]);});' +
+    'if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:14});' +
+    '};document.head.appendChild(js);' +
+    '})();</script>';
+
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+    '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + esc(title) + '</title>\n' +
+    '<meta name="description" content="' + metaDesc + '">\n' +
+    '<link rel="canonical" href="' + canonical + '">\n' +
+    '<meta property="og:type" content="website">\n' +
+    '<meta property="og:title" content="' + esc(title) + '">\n' +
+    '<meta property="og:description" content="' + metaDesc + '">\n' +
+    '<meta property="og:url" content="' + canonical + '">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
+    '<style>' + CSS + '</style>\n<style>' + EXTRA_CSS + '</style>\n<style>' + AL_CSS + '</style>\n' +
+    '</head>\n<body>\n' +
+    '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> \\u00b7 ' + tag + '</a>' +
+    '<nav class="nav-meta">' +
+    '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
+    '<a href="/active-listings">Active Listings</a><a href="/how-it-works/">How it works</a>' +
+    '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
+    '</nav></div></div></header>\n\n' +
+    '<div class="wrap"><div class="crumb">' +
+    '<a href="/">Condo Market</a><span class="sep">/</span>Active Listings' +
+    '</div></div>\n\n' +
+    '<main><div class="wrap">' +
+    '<div class="al-wrap-head">' +
+    '<div class="section-kicker">For sale now</div>' +
+    '<h1 style="font-family:\'Playfair Display\',Georgia,serif;font-size:40px;color:#fff;margin:6px 0 0;">Active <em style="color:#9fb4d8;font-style:italic;">Listings</em></h1>' +
+    '<p class="al-count">' + (count > 0 ? count + ' active in ' + region + ', tracked to their buildings.' : 'Live MLS, building-matched.') + '</p>' +
+    '</div>' +
+    '<div class="al-layout"><div id="al-map"></div>' + grid + '</div>' +
+    '</div></main>\n\n' +
+    '<footer class="site-footer"><div class="wrap">' +
+    '<p class="foot-legal" style="font-size:11px;color:rgba(232,227,216,.4);padding:40px 0;">Operated by McMullen Properties \\u00b7 CA DRE #02016832 \\u00b7 under Real Broker. ' +
+    'Listing data deemed reliable but not guaranteed; listing agents and brokerages of record represent sellers. Condo Market SF is a marketing platform, not a brokerage.</p>' +
+    '</div></footer>\n' +
+    mapScript + '\n' +
+    '</body>\n</html>';
+}
+
+
+function renderListing(r) {
+  // SF defaults; applyMarketSwaps() recolors/renames for SV at serve time.
+  const mlsBrand  = 'Condo Market SF';
+  const region    = 'San Francisco';
+  const tag       = 'sf';
+  const domain    = 'sanfranciscocondomarket.com';
+
+  const mls       = esc(r.mls_number);
+  const bSlug     = esc(r.building_slug || '');
+  const bName     = esc(r.building_name || 'Building');
+  const hood      = r.neighborhood ? esc(r.neighborhood) : '';
+  const unitAddr  = esc(r.unit_address || '');
+  const unitLabel = r.unit_label ? esc(r.unit_label) : '';
+  const city      = esc(r.city || region);
+  const zip       = esc(r.zip || '');
+  const priceNum  = (r.price != null) ? Number(r.price) : null;
+  const beds      = (r.beds != null && r.beds !== '') ? Number(r.beds) : null;
+  const baths     = (r.baths != null && r.baths !== '') ? Number(r.baths) : null;
+  const sqft      = (r.sqft != null && r.sqft !== '') ? Number(r.sqft) : null;
+  const yearBuilt = (r.year_built != null) ? r.year_built : null;
+  const photo     = r.photo_url || '';
+  const buildingUrl = '/building/' + bSlug;   // host-relative; market-correct host already
+  const ppsf      = (priceNum != null && sqft) ? Math.round(priceNum / sqft) : null;
+
+  const priceDisp = (priceNum != null) ? money(priceNum) : 'Price on request';
+
+  // Hero photo with graceful fallback (Matrix MediaServer may be mid-rehost).
+  const heroMedia = photo
+    ? '<img class="hero-img" src="' + esc(photo) + '" alt="' + unitAddr + '" loading="eager" ' +
+      'onerror="this.classList.add(\'hero-img--ph\');this.removeAttribute(\'src\');">'
+    : '<div class="hero-img hero-img--ph" role="img" aria-label="' + unitAddr + '"></div>';
+
+  // Stat tiles (hide nulls per handoff: beds/baths/sqft can be null).
+  const hstats = [];
+  if (beds  != null) hstats.push('<div><div class="hstat-label">Beds</div><div class="hstat-val">' + beds + '</div></div>');
+  if (baths != null) hstats.push('<div><div class="hstat-label">Baths</div><div class="hstat-val">' + (Number.isInteger(baths) ? baths : baths) + '</div></div>');
+  if (sqft  != null) hstats.push('<div><div class="hstat-label">Sq Ft</div><div class="hstat-val">' + intc(sqft) + '</div></div>');
+  if (ppsf  != null) hstats.push('<div><div class="hstat-label">$/sf</div><div class="hstat-val"><span class="peri">' + money(ppsf) + '</span></div></div>');
+  const heroStats = hstats.length ? '<div class="hero-stats">' + hstats.join('') + '</div>' : '';
+
+  // Facts block
+  const facts = [];
+  facts.push(['Building', '<a href="' + buildingUrl + '" style="color:inherit;text-decoration:underline;">' + bName + '</a>']);
+  if (hood)      facts.push(['Neighborhood', hood]);
+  if (unitLabel) facts.push(['Unit', unitLabel]);
+  facts.push(['Address', unitAddr]);
+  if (city)      facts.push(['City', city + (zip ? ' ' + zip : '')]);
+  if (yearBuilt != null) facts.push(['Year built', String(yearBuilt)]);
+  facts.push(['MLS #', mls]);
+  const factsBlock =
+    '<div class="dossier-card"><div class="facts">' +
+    facts.map(function (f) { return '<div class="fact"><div class="fact-label">' + f[0] + '</div><div class="fact-val">' + f[1] + '</div></div>'; }).join('') +
+    '</div></div>';
+
+  // CTA: user tools (Schedule Showing + Create Offer). Hooks for the offer-workflow
+  // build; data attributes carry the listing context to the JS layer.
+  const toolsSection =
+    '<section class="section" id="tools"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">Make a move</div>' +
+    '<h2 class="section-title">Interested in <em>' + (unitLabel ? ('Unit ' + unitLabel) : 'this home') + '</em>?</h2>' +
+    '<p class="section-sub">Schedule a showing, or start an offer. Every offer is personally reviewed by Tim on a short video call before drafting.</p></div>' +
+    '<div class="cta-row">' +
+    '<a class="btn-primary" href="#" data-cm-offer data-mls="' + mls + '" data-building="' + bSlug + '" data-unit="' + unitLabel + '" data-price="' + (priceNum != null ? priceNum : '') + '">Create an offer</a>' +
+    '<a class="btn-ghost" href="#" data-cm-showing data-mls="' + mls + '" data-building="' + bSlug + '">Schedule a showing</a>' +
+    '</div>' +
+    '<p class="tools-fineprint">A valid offer requires lender pre-approval and proof of funds, uploaded securely during the offer flow.</p>' +
+    '</div></section>';
+
+  // MLS attribution (IDX/MLS display-rule compliance + credibility).
+  const attribution =
+    '<section class="section" id="attribution"><div class="wrap">' +
+    '<p class="mls-attribution">Listing data deemed reliable but not guaranteed. ' +
+    'Active-listing information is displayed as a courtesy; the listing agent and brokerage of record represent the seller. ' +
+    bName + ' \\u00b7 ' + mls + '.</p>' +
+    '</div></section>';
+
+  // JSON-LD: RealEstateListing + Offer for rich results / AIO citation.
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    'name': (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : ''),
+    'url': 'https://www.' + domain + '/listing/' + mls,
+    'datePosted': r.first_listed_at || undefined,
+    'address': { '@type': 'PostalAddress', 'streetAddress': unitAddr, 'addressLocality': city, 'postalCode': zip, 'addressRegion': 'CA', 'addressCountry': 'US' },
+    'offers': (priceNum != null) ? { '@type': 'Offer', 'price': priceNum, 'priceCurrency': 'USD', 'availability': 'https://schema.org/InStock' } : undefined,
+  };
+  const jsonLdScript = '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>';
+
+  const title = (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : '') + ' \\u00b7 For Sale \\u00b7 ' + mlsBrand;
+  const metaDesc = esc(
+    (unitAddr || bName) + ' is for sale' +
+    (priceNum != null ? ' at ' + money(priceNum) : '') +
+    (beds != null ? ' \\u2014 ' + beds + ' bed' : '') +
+    (baths != null ? ', ' + baths + ' bath' : '') +
+    (sqft != null ? ', ' + intc(sqft) + ' sq ft' : '') +
+    ' in ' + bName + (hood ? ', ' + hood : '') + ', ' + region + '.'
+  );
+  const canonical = 'https://www.' + domain + '/listing/' + mls;
+
+  const LISTING_CSS =
+    '.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}' +
+    '.btn-primary{display:inline-block;background:#9fb4d8;color:#0a0d12;font-weight:600;font-size:14px;padding:14px 28px;border-radius:999px;text-decoration:none;transition:filter .15s}' +
+    '.btn-primary:hover{filter:brightness(1.08)}' +
+    '.btn-ghost{display:inline-block;border:1px solid rgba(159,180,216,.4);color:#e8e3d8;font-weight:600;font-size:14px;padding:14px 28px;border-radius:999px;text-decoration:none;transition:border-color .15s}' +
+    '.btn-ghost:hover{border-color:#9fb4d8}' +
+    '.tools-fineprint{font-size:12px;color:rgba(232,227,216,.5);margin-top:16px}' +
+    '.mls-attribution{font-size:11px;line-height:1.6;color:rgba(232,227,216,.4)}' +
+    '.listing-price{font-family:"Playfair Display",Georgia,serif;font-size:34px;color:#fff;margin:8px 0 0}';
+
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+    '<meta charset="utf-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + esc(title) + '</title>\n' +
+    '<meta name="description" content="' + metaDesc + '">\n' +
+    '<link rel="canonical" href="' + canonical + '">\n' +
+    '<meta property="og:type" content="website">\n' +
+    '<meta property="og:title" content="' + esc(title) + '">\n' +
+    '<meta property="og:description" content="' + metaDesc + '">\n' +
+    '<meta property="og:url" content="' + canonical + '">\n' +
+    (photo ? '<meta property="og:image" content="' + esc(photo) + '">\n' : '') +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
+    jsonLdScript + '\n' +
+    '<style>' + CSS + '</style>\n' +
+    '<style>' + EXTRA_CSS + '</style>\n' +
+    '<style>' + LISTING_CSS + '</style>\n' +
+    '</head>\n<body>\n' +
+    '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
+    '<a href="/" class="wordmark">Condo <em>Market</em> \\u00b7 ' + tag + '</a>' +
+    '<nav class="nav-meta">' +
+    '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
+    '<a href="/active-listings">Active Listings</a><a href="/how-it-works/">How it works</a>' +
+    '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
+    '</nav></div></div></header>\n\n' +
+    '<div class="wrap"><div class="crumb">' +
+    '<a href="/">Condo Market</a><span class="sep">/</span>' +
+    '<a href="/active-listings">Active Listings</a><span class="sep">/</span>' +
+    '<a href="' + buildingUrl + '">' + bName + '</a><span class="sep">/</span>' + (unitLabel || mls) +
+    '</div></div>\n\n' +
+    '<main>\n' +
+    '<section class="hero"><div class="wrap"><div class="hero-head"><div>' +
+    (hood ? '<div class="hero-kicker">' + hood + ' \\u00b7 For Sale</div>' : '<div class="hero-kicker">For Sale</div>') +
+    '<h1>' + (unitAddr || bName) + '<em>.</em></h1>' +
+    '<div class="listing-price">' + priceDisp + '</div>' +
+    heroStats +
+    '</div><div class="hero-img-wrap">' +
+    (hood ? '<span class="hero-badge">' + hood + '</span>' : '') +
+    heroMedia +
+    '</div></div></div></section>\n' +
+    '<section class="section"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">The unit</div>' +
+    '<h2 class="section-title">Details <em>&amp; facts</em></h2></div>' +
+    factsBlock +
+    '</div></section>\n' +
+    toolsSection +
+    attribution +
+    '</main>\n\n' +
+    '<footer class="site-footer"><div class="wrap">' +
+    '<p class="foot-legal">Operated by McMullen Properties \\u00b7 CA DRE #02016832 \\u00b7 under Real Broker. ' +
+    'Condo Market SF is a marketing platform and is not a real estate brokerage.</p>' +
+    '</div></footer>\n' +
+    '<script src="/assets/cm-supabase.js" defer></script>\n' +
+    '<script src="/assets/cm-actions.js" defer></script>\n' +
+    '</body>\n</html>';
+}
+
+
 function renderBuilding(p) {
   const name = esc(p.name);
   const slug = esc(p.slug);
@@ -1036,6 +1491,45 @@ function renderBuilding(p) {
 
   /* GALLERY */
   const imgs = Array.isArray(p.images) ? p.images.filter(function (i) { return i && i.url && i.role !== 'og'; }) : [];
+  /* ACTIVE LISTINGS in this building (from building_page_payload: active_count, active_listings) */
+  let activeSection = '';
+  const activeCount = (p.active_count != null) ? Number(p.active_count) : 0;
+  const activeArr = Array.isArray(p.active_listings) ? p.active_listings : [];
+  if (activeCount > 0 && activeArr.length) {
+    const cards = activeArr.map(function (a) {
+      const aMls   = esc(a.mls || '');
+      const aUnit  = a.unit ? esc(a.unit) : '';
+      const aAddr  = esc(a.address || '');
+      const aPrice = (a.price != null) ? money(Number(a.price)) : 'Price on request';
+      const aBeds  = (a.beds != null && a.beds !== '') ? Number(a.beds) : null;
+      const aBaths = (a.baths != null && a.baths !== '') ? Number(a.baths) : null;
+      const aSqft  = (a.sqft != null && a.sqft !== '') ? Number(a.sqft) : null;
+      const specBits = [];
+      if (aBeds  != null) specBits.push(aBeds + ' bd');
+      if (aBaths != null) specBits.push(aBaths + ' ba');
+      if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
+      const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \\u00b7 ') + '</div>' : '';
+      const media = a.photo
+        ? '<img class="al-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
+        : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
+      return '<a class="al-card" href="/listing/' + aMls + '">' +
+        media +
+        '<div class="al-card-body">' +
+        '<div class="al-card-price">' + aPrice + '</div>' +
+        (aUnit ? '<div class="al-card-unit">Unit ' + aUnit + '</div>' : '') +
+        spec +
+        '</div></a>';
+    }).join('');
+    const plural = activeCount === 1 ? 'listing' : 'listings';
+    activeSection =
+      '<section class="section" id="active"><div class="wrap">' +
+      '<div class="section-head"><div class="section-kicker">For sale now</div>' +
+      '<h2 class="section-title">' + activeCount + ' active ' + plural + ' in <em>this building</em></h2>' +
+      '<p class="section-sub">Currently on the market. Tap any unit for full detail \\u2014 or make an offer.</p></div>' +
+      '<div class="al-grid">' + cards + '</div>' +
+      '</div></section>\n';
+  }
+
   let gallerySection = '';
   if (imgs.length === 1) {
     gallerySection =
@@ -1272,6 +1766,17 @@ function renderBuilding(p) {
     jsonLd + '\n' +
     '<style>' + CSS + '</style>\n' +
     '<style>' + EXTRA_CSS + '</style>\n' +
+    '<style>' +
+    '.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}' +
+    '.al-card{display:block;background:rgba(159,180,216,.05);border:1px solid rgba(159,180,216,.12);border-radius:14px;overflow:hidden;text-decoration:none;transition:border-color .15s,transform .15s}' +
+    '.al-card:hover{border-color:rgba(159,180,216,.4);transform:translateY(-2px)}' +
+    '.al-card-img{width:100%;height:170px;object-fit:cover;display:block;background:rgba(159,180,216,.08)}' +
+    '.al-card-img--ph{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(159,180,216,.1),rgba(159,180,216,.03))}' +
+    '.al-card-body{padding:14px 16px 16px}' +
+    '.al-card-price{font-family:\"Playfair Display\",Georgia,serif;font-size:21px;color:#fff;font-weight:700}' +
+    '.al-card-unit{font-size:12px;color:#9fb4d8;margin-top:3px;letter-spacing:.04em}' +
+    '.al-card-spec{font-size:12px;color:rgba(232,227,216,.6);margin-top:8px}' +
+    '</style>\n' +
     '</head>\n<body>\n\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
     '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + mkTag + '</a>' +
@@ -1298,6 +1803,7 @@ function renderBuilding(p) {
     '<section class="section" id="featured-mmm"><div class="wrap">' +
     '<div data-cm-featured data-building="' + slug + '"></div>' +
     '</div></section>\n' +
+    activeSection +
     stickyNav + '\n' +
     gallerySection +
     aboutSection +
