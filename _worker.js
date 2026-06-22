@@ -273,60 +273,41 @@ export default {
     const lm = url.pathname.match(/^\/listing\/([^\/]+)\/?$/);
     if (lm) {
       const mls = decodeURIComponent(lm[1]).trim().toUpperCase();
-      let row = null;
+      let d = null;
       try {
-        const res = await fetch(
-          SUPABASE_URL + '/rest/v1/v_condo_active_listings?mls_number=eq.' + encodeURIComponent(mls) + '&select=*&limit=1',
-          { headers: {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/listing_detail', {
+          method: 'POST',
+          headers: {
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
             'Accept': 'application/json',
-          } }
-        );
-        if (res.ok) { const arr = await res.json(); row = Array.isArray(arr) && arr.length ? arr[0] : null; }
-      } catch (e) { row = null; }
+          },
+          body: JSON.stringify({ p_mls: mls }),
+        });
+        if (res.ok) d = await res.json();
+      } catch (e) { d = null; }
 
-      // No live listing with that MLS → 301 to the building if we can infer it,
-      // else fall through to static (avoids dead-end 404, preserves any link equity).
-      if (!row) {
+      // No live listing → fall through to static (avoids dead-end 404).
+      if (!d || !d.mls) {
         return wrapStaticWithSwaps(request, env, hostMk);
       }
 
-      // Cross-domain canonical: an SV listing requested on the SF host (or vice
-      // versa) 301s to its correct market domain, mirroring the building rule.
-      const lMktDomain = row.market_domain;
+      // Cross-domain canonical: a listing whose market differs from the host
+      // 301s to its correct domain, mirroring the building rule.
+      const lMkt = (d.market_slug && MARKETS) ? (d.market_slug.indexOf('silicon') !== -1 ? MARKETS.sv : MARKETS.sf) : null;
+      const lMktDomain = lMkt ? lMkt.domain : null;
       const hostIsKnownMarketL = Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase());
       if (hostIsKnownMarketL && lMktDomain && lMktDomain !== hostMk.domain) {
         const target = 'https://www.' + lMktDomain + '/listing/' + encodeURIComponent(mls) + url.search;
         return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=600' } });
       }
 
-      // Full photo gallery from listing_photos (prefer rehosted public_url,
-      // fall back to source_url). Ordered by sort_order. May be empty for condos
-      // until the backend scrapes their galleries (only the feed thumbnail exists).
-      let photos = [];
-      try {
-        const pres = await fetch(
-          SUPABASE_URL + '/rest/v1/listing_photos?mls_number=eq.' + encodeURIComponent(mls) +
-          '&select=public_url,source_url,sort_order&order=sort_order.asc',
-          { headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-            'Accept': 'application/json',
-          } }
-        );
-        if (pres.ok) {
-          const arr = await pres.json();
-          if (Array.isArray(arr)) photos = arr.map(function (p) { return p.public_url || p.source_url; }).filter(Boolean);
-        }
-      } catch (e) { photos = []; }
-
-      const listingHtml = applyMarketSwaps(renderListing(row, photos), hostMk);
+      const listingHtml = applyMarketSwaps(renderListing(d), hostMk);
       return new Response(listingHtml, {
         status: 200,
         headers: {
           'content-type': 'text/html;charset=utf-8',
-          // Shorter TTL than buildings: listings change/expire faster.
           'cache-control': 'public, max-age=120, s-maxage=300',
         },
       });
@@ -1304,45 +1285,46 @@ function renderActiveListings(p) {
 }
 
 
-function renderListing(r, photos) {
-  // SF defaults; applyMarketSwaps() recolors/renames for SV at serve time.
-  const mlsBrand  = 'Condo Market SF';
-  const region    = 'San Francisco';
-  const tag       = 'sf';
-  const domain    = 'sanfranciscocondomarket.com';
+function renderListing(d) {
+  // Reads the listing_detail(p_mls) RPC payload. SF defaults; applyMarketSwaps()
+  // recolors/renames for SV at serve time.
+  const mlsBrand = 'Condo Market SF';
+  const region   = 'San Francisco';
+  const tag      = 'sf';
+  const domain   = 'sanfranciscocondomarket.com';
 
-  const gallery = Array.isArray(photos) ? photos.filter(Boolean) : [];
-
-  const mls       = esc(r.mls_number);
-  const bSlug     = esc(r.building_slug || '');
-  const bName     = esc(r.building_name || 'Building');
-  const hood      = r.neighborhood ? esc(r.neighborhood) : '';
-  const unitAddr  = esc(r.unit_address || '');
-  const unitLabel = r.unit_label ? esc(r.unit_label) : '';
-  const city      = esc(r.city || region);
-  const zip       = esc(r.zip || '');
-  const priceNum  = (r.price != null) ? Number(r.price) : null;
-  const beds      = (r.beds != null && r.beds !== '') ? Number(r.beds) : null;
-  const baths     = (r.baths != null && r.baths !== '') ? Number(r.baths) : null;
-  const sqft      = (r.sqft != null && r.sqft !== '') ? Number(r.sqft) : null;
-  const yearBuilt = (r.year_built != null) ? r.year_built : null;
-  const photo     = r.photo_url || '';
-  const buildingUrl = '/building/' + bSlug;   // host-relative; market-correct host already
+  const mls       = esc(d.mls);
+  const bSlug     = esc(d.building_slug || '');
+  const bName     = esc(d.building_name || 'Building');
+  const hood      = d.neighborhood ? esc(d.neighborhood) : '';
+  const unitAddr  = esc(d.address || '');
+  const unitLabel = d.unit ? esc(d.unit) : '';
+  const city      = esc(d.city || region);
+  const zip       = esc(d.zip || '');
+  const priceNum  = (d.price != null) ? Number(d.price) : null;
+  const beds      = (d.beds != null && d.beds !== '') ? Number(d.beds) : null;
+  const baths     = (d.baths != null && d.baths !== '') ? Number(d.baths) : null;
+  const sqft      = (d.sqft != null && d.sqft !== '') ? Number(d.sqft) : null;
+  const yearBuilt = (d.year_built != null) ? d.year_built : null;
+  const lat       = (d.lat != null) ? Number(d.lat) : null;
+  const lng       = (d.lng != null) ? Number(d.lng) : null;
+  const descriptor = d.descriptor ? esc(d.descriptor) : '';
+  const bStats    = d.building_stats || {};
+  const buildingUrl = '/building/' + bSlug;
   const ppsf      = (priceNum != null && sqft) ? Math.round(priceNum / sqft) : null;
-
   const priceDisp = (priceNum != null) ? money(priceNum) : 'Price on request';
 
-  // Hero uses the first gallery image if we have the full set; else the feed thumbnail.
-  const heroSrc = gallery.length ? gallery[0] : photo;
+  // Photos: photos[] is 1..N. Single photo → hero only; many → gallery grid.
+  const photos = Array.isArray(d.photos) ? d.photos.map(function (p) { return p && p.url; }).filter(Boolean) : [];
+  const heroSrc = photos.length ? photos[0] : '';
   const heroMedia = heroSrc
     ? '<img class="hero-img" src="' + esc(heroSrc) + '" alt="' + unitAddr + '" loading="eager" ' +
       'onerror="this.classList.add(\'hero-img--ph\');this.removeAttribute(\'src\');">'
     : '<div class="hero-img hero-img--ph" role="img" aria-label="' + unitAddr + '"></div>';
 
-  // Full gallery grid (only when we have more than the single hero image).
   let gallerySection = '';
-  if (gallery.length > 1) {
-    const items = gallery.map(function (u, i) {
+  if (photos.length > 1) {
+    const items = photos.map(function (u, i) {
       return '<div class="lg-item' + (i === 0 ? ' lg-item--lead' : '') + '">' +
         '<img src="' + esc(u) + '" alt="' + unitAddr + ' \u2014 photo ' + (i + 1) + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" ' +
         'onerror="this.parentNode.style.display=\'none\';"></div>';
@@ -1350,20 +1332,20 @@ function renderListing(r, photos) {
     gallerySection =
       '<section class="section" id="gallery"><div class="wrap">' +
       '<div class="section-head"><div class="section-kicker">Photography</div>' +
-      '<h2 class="section-title">' + gallery.length + ' <em>photos</em></h2></div>' +
+      '<h2 class="section-title">' + photos.length + ' <em>photos</em></h2></div>' +
       '<div class="lg-grid">' + items + '</div>' +
       '</div></section>\n';
   }
 
-  // Stat tiles (hide nulls per handoff: beds/baths/sqft can be null).
+  // Hero stat tiles (hide nulls).
   const hstats = [];
   if (beds  != null) hstats.push('<div><div class="hstat-label">Beds</div><div class="hstat-val">' + beds + '</div></div>');
-  if (baths != null) hstats.push('<div><div class="hstat-label">Baths</div><div class="hstat-val">' + (Number.isInteger(baths) ? baths : baths) + '</div></div>');
+  if (baths != null) hstats.push('<div><div class="hstat-label">Baths</div><div class="hstat-val">' + baths + '</div></div>');
   if (sqft  != null) hstats.push('<div><div class="hstat-label">Sq Ft</div><div class="hstat-val">' + intc(sqft) + '</div></div>');
   if (ppsf  != null) hstats.push('<div><div class="hstat-label">$/sf</div><div class="hstat-val"><span class="peri">' + money(ppsf) + '</span></div></div>');
   const heroStats = hstats.length ? '<div class="hero-stats">' + hstats.join('') + '</div>' : '';
 
-  // Facts block
+  // Facts block.
   const facts = [];
   facts.push(['Building', '<a href="' + buildingUrl + '" style="color:inherit;text-decoration:underline;">' + bName + '</a>']);
   if (hood)      facts.push(['Neighborhood', hood]);
@@ -1376,12 +1358,6 @@ function renderListing(r, photos) {
   if (sqft  != null) facts.push(['Interior', intc(sqft) + ' sq ft']);
   if (ppsf  != null) facts.push(['Price / sq ft', money(ppsf)]);
   if (yearBuilt != null) facts.push(['Year built', String(yearBuilt)]);
-  if (r.first_listed_at) {
-    try {
-      const d = new Date(r.first_listed_at);
-      if (!isNaN(d)) facts.push(['Listed', d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })]);
-    } catch (e) {}
-  }
   facts.push(['Status', 'Active']);
   facts.push(['MLS #', mls]);
   const factsBlock =
@@ -1389,8 +1365,45 @@ function renderListing(r, photos) {
     facts.map(function (f) { return '<div class="fact"><div class="fact-label">' + f[0] + '</div><div class="fact-val">' + f[1] + '</div></div>'; }).join('') +
     '</div></div>';
 
-  // CTA: user tools (Schedule Showing + Create Offer). Hooks for the offer-workflow
-  // build; data attributes carry the listing context to the JS layer.
+  // About this home — generated factual descriptor (always present; our own prose).
+  const aboutSection = descriptor
+    ? '<section class="section" id="about"><div class="wrap">' +
+      '<div class="section-head"><div class="section-kicker">About this home</div>' +
+      '<h2 class="section-title">The <em>residence</em></h2></div>' +
+      '<div class="prose"><p>' + descriptor + '</p></div>' +
+      '</div></section>\n'
+    : '';
+
+  // Building intelligence panel — the differentiator. From building_stats.
+  let intelSection = '';
+  const bPsf  = (bStats.median_psf_12mo   != null) ? Number(bStats.median_psf_12mo)   : null;
+  const bMed  = (bStats.median_price_12mo != null) ? Number(bStats.median_price_12mo) : null;
+  const bSold = (bStats.sold_12mo         != null) ? Number(bStats.sold_12mo)         : null;
+  if (bPsf != null || bMed != null || bSold != null) {
+    const tiles = [];
+    if (bSold != null) tiles.push('<div class="bi-tile"><div class="bi-val">' + intc(bSold) + '</div><div class="bi-lab">Sales, last 12 mo</div></div>');
+    if (bPsf  != null) tiles.push('<div class="bi-tile"><div class="bi-val">' + money(bPsf) + '</div><div class="bi-lab">Median $/sq ft</div></div>');
+    if (bMed  != null) tiles.push('<div class="bi-tile"><div class="bi-val">' + money(bMed) + '</div><div class="bi-lab">Median sale price</div></div>');
+    intelSection =
+      '<section class="section" id="intel"><div class="wrap">' +
+      '<div class="section-head"><div class="section-kicker">Building intelligence</div>' +
+      '<h2 class="section-title">' + bName + ' <em>by the numbers</em></h2>' +
+      '<p class="section-sub">Our proprietary read on the building behind this listing \u2014 ten years of sales, tenure, and trend.</p></div>' +
+      '<div class="bi-grid">' + tiles.join('') + '</div>' +
+      '<a class="bi-link" href="' + buildingUrl + '">See all sales &amp; trends at ' + bName + ' \u2192</a>' +
+      '</div></section>\n';
+  }
+
+  // Map (single marker).
+  let mapSection = '';
+  if (lat != null && lng != null) {
+    mapSection =
+      '<section class="section" id="map"><div class="wrap">' +
+      '<div id="cm-listing-map" data-lat="' + lat + '" data-lng="' + lng + '"></div>' +
+      '</div></section>\n';
+  }
+
+  // Tools: Schedule Showing + Create Offer (hooks for the offer workflow).
   const toolsSection =
     '<section class="section" id="tools"><div class="wrap">' +
     '<div class="section-head"><div class="section-kicker">Make a move</div>' +
@@ -1403,7 +1416,7 @@ function renderListing(r, photos) {
     '<p class="tools-fineprint">A valid offer requires lender pre-approval and proof of funds, uploaded securely during the offer flow.</p>' +
     '</div></section>';
 
-  // MLS attribution (IDX/MLS display-rule compliance + credibility).
+  // MLS attribution (building-level; per-listing agent attribution arrives with API access).
   const attribution =
     '<section class="section" id="attribution"><div class="wrap">' +
     '<p class="mls-attribution">Listing data deemed reliable but not guaranteed. ' +
@@ -1411,14 +1424,15 @@ function renderListing(r, photos) {
     bName + ' \u00b7 ' + mls + '.</p>' +
     '</div></section>';
 
-  // JSON-LD: RealEstateListing + Offer for rich results / AIO citation.
+  // JSON-LD.
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
     'name': (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : ''),
     'url': 'https://www.' + domain + '/listing/' + mls,
-    'datePosted': r.first_listed_at || undefined,
+    'description': d.descriptor || undefined,
     'address': { '@type': 'PostalAddress', 'streetAddress': unitAddr, 'addressLocality': city, 'postalCode': zip, 'addressRegion': 'CA', 'addressCountry': 'US' },
+    'geo': (lat != null && lng != null) ? { '@type': 'GeoCoordinates', 'latitude': lat, 'longitude': lng } : undefined,
     'offers': (priceNum != null) ? { '@type': 'Offer', 'price': priceNum, 'priceCurrency': 'USD', 'availability': 'https://schema.org/InStock' } : undefined,
   };
   const jsonLdScript = '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>';
@@ -1447,7 +1461,25 @@ function renderListing(r, photos) {
     '.lg-item{border-radius:12px;overflow:hidden;background:rgba(159,180,216,.06);aspect-ratio:4/3}' +
     '.lg-item--lead{grid-column:1 / -1;aspect-ratio:16/9}' +
     '.lg-item img{width:100%;height:100%;object-fit:cover;display:block}' +
-    '@media(min-width:760px){.lg-grid{grid-template-columns:repeat(3,1fr)}.lg-item--lead{grid-column:1 / -1;aspect-ratio:21/9}}';
+    '@media(min-width:760px){.lg-grid{grid-template-columns:repeat(3,1fr)}.lg-item--lead{grid-column:1 / -1;aspect-ratio:21/9}}' +
+    '.bi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}' +
+    '.bi-tile{background:rgba(159,180,216,.06);border:1px solid rgba(159,180,216,.14);border-radius:14px;padding:22px 20px;text-align:center}' +
+    '.bi-val{font-family:"Playfair Display",Georgia,serif;font-size:30px;color:#fff;font-weight:700}' +
+    '.bi-lab{font-size:12px;color:rgba(232,227,216,.6);margin-top:6px;letter-spacing:.04em}' +
+    '.bi-link{display:inline-block;margin-top:20px;color:#9fb4d8;font-weight:600;font-size:14px;text-decoration:none}' +
+    '.bi-link:hover{text-decoration:underline}' +
+    '#cm-listing-map{width:100%;height:340px;border-radius:16px;overflow:hidden;background:rgba(159,180,216,.06)}';
+
+  const mapScript = (lat != null && lng != null)
+    ? '<script>(function(){var box=document.getElementById("cm-listing-map");if(!box)return;' +
+      'var la=parseFloat(box.getAttribute("data-lat")),ln=parseFloat(box.getAttribute("data-lng"));if(isNaN(la)||isNaN(ln))return;' +
+      'var css=document.createElement("link");css.rel="stylesheet";css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(css);' +
+      'var js=document.createElement("script");js.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";' +
+      'js.onload=function(){var map=L.map(box,{scrollWheelZoom:false,zoomControl:true}).setView([la,ln],15);' +
+      'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"\\u00a9 OpenStreetMap, \\u00a9 CARTO",maxZoom:19}).addTo(map);' +
+      'L.circleMarker([la,ln],{radius:9,fillColor:"#9fb4d8",color:"#0a0d12",weight:2,fillOpacity:.95}).addTo(map);};document.head.appendChild(js);' +
+      '})();</script>'
+    : '';
 
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
     '<meta charset="utf-8">\n' +
@@ -1459,7 +1491,7 @@ function renderListing(r, photos) {
     '<meta property="og:title" content="' + esc(title) + '">\n' +
     '<meta property="og:description" content="' + metaDesc + '">\n' +
     '<meta property="og:url" content="' + canonical + '">\n' +
-    (photo ? '<meta property="og:image" content="' + esc(photo) + '">\n' : '') +
+    (heroSrc ? '<meta property="og:image" content="' + esc(heroSrc) + '">\n' : '') +
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
     jsonLdScript + '\n' +
@@ -1490,11 +1522,14 @@ function renderListing(r, photos) {
     heroMedia +
     '</div></div></div></section>\n' +
     gallerySection +
+    aboutSection +
     '<section class="section"><div class="wrap">' +
     '<div class="section-head"><div class="section-kicker">The unit</div>' +
     '<h2 class="section-title">Details <em>&amp; facts</em></h2></div>' +
     factsBlock +
     '</div></section>\n' +
+    intelSection +
+    mapSection +
     toolsSection +
     attribution +
     '</main>\n\n' +
@@ -1504,9 +1539,9 @@ function renderListing(r, photos) {
     '</div></footer>\n' +
     '<script src="/assets/cm-supabase.js" defer></script>\n' +
     '<script src="/assets/cm-actions.js" defer></script>\n' +
+    mapScript + '\n' +
     '</body>\n</html>';
 }
-
 
 function renderBuilding(p) {
   const name = esc(p.name);
