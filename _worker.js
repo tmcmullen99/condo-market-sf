@@ -301,7 +301,27 @@ export default {
         return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=600' } });
       }
 
-      const listingHtml = applyMarketSwaps(renderListing(row), hostMk);
+      // Full photo gallery from listing_photos (prefer rehosted public_url,
+      // fall back to source_url). Ordered by sort_order. May be empty for condos
+      // until the backend scrapes their galleries (only the feed thumbnail exists).
+      let photos = [];
+      try {
+        const pres = await fetch(
+          SUPABASE_URL + '/rest/v1/listing_photos?mls_number=eq.' + encodeURIComponent(mls) +
+          '&select=public_url,source_url,sort_order&order=sort_order.asc',
+          { headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Accept': 'application/json',
+          } }
+        );
+        if (pres.ok) {
+          const arr = await pres.json();
+          if (Array.isArray(arr)) photos = arr.map(function (p) { return p.public_url || p.source_url; }).filter(Boolean);
+        }
+      } catch (e) { photos = []; }
+
+      const listingHtml = applyMarketSwaps(renderListing(row, photos), hostMk);
       return new Response(listingHtml, {
         status: 200,
         headers: {
@@ -1284,12 +1304,14 @@ function renderActiveListings(p) {
 }
 
 
-function renderListing(r) {
+function renderListing(r, photos) {
   // SF defaults; applyMarketSwaps() recolors/renames for SV at serve time.
   const mlsBrand  = 'Condo Market SF';
   const region    = 'San Francisco';
   const tag       = 'sf';
   const domain    = 'sanfranciscocondomarket.com';
+
+  const gallery = Array.isArray(photos) ? photos.filter(Boolean) : [];
 
   const mls       = esc(r.mls_number);
   const bSlug     = esc(r.building_slug || '');
@@ -1310,11 +1332,28 @@ function renderListing(r) {
 
   const priceDisp = (priceNum != null) ? money(priceNum) : 'Price on request';
 
-  // Hero photo with graceful fallback (Matrix MediaServer may be mid-rehost).
-  const heroMedia = photo
-    ? '<img class="hero-img" src="' + esc(photo) + '" alt="' + unitAddr + '" loading="eager" ' +
+  // Hero uses the first gallery image if we have the full set; else the feed thumbnail.
+  const heroSrc = gallery.length ? gallery[0] : photo;
+  const heroMedia = heroSrc
+    ? '<img class="hero-img" src="' + esc(heroSrc) + '" alt="' + unitAddr + '" loading="eager" ' +
       'onerror="this.classList.add(\'hero-img--ph\');this.removeAttribute(\'src\');">'
     : '<div class="hero-img hero-img--ph" role="img" aria-label="' + unitAddr + '"></div>';
+
+  // Full gallery grid (only when we have more than the single hero image).
+  let gallerySection = '';
+  if (gallery.length > 1) {
+    const items = gallery.map(function (u, i) {
+      return '<div class="lg-item' + (i === 0 ? ' lg-item--lead' : '') + '">' +
+        '<img src="' + esc(u) + '" alt="' + unitAddr + ' \\u2014 photo ' + (i + 1) + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" ' +
+        'onerror="this.parentNode.style.display=\'none\';"></div>';
+    }).join('');
+    gallerySection =
+      '<section class="section" id="gallery"><div class="wrap">' +
+      '<div class="section-head"><div class="section-kicker">Photography</div>' +
+      '<h2 class="section-title">' + gallery.length + ' <em>photos</em></h2></div>' +
+      '<div class="lg-grid">' + items + '</div>' +
+      '</div></section>\n';
+  }
 
   // Stat tiles (hide nulls per handoff: beds/baths/sqft can be null).
   const hstats = [];
@@ -1331,7 +1370,19 @@ function renderListing(r) {
   if (unitLabel) facts.push(['Unit', unitLabel]);
   facts.push(['Address', unitAddr]);
   if (city)      facts.push(['City', city + (zip ? ' ' + zip : '')]);
+  if (priceNum != null) facts.push(['List price', money(priceNum)]);
+  if (beds  != null) facts.push(['Bedrooms', String(beds)]);
+  if (baths != null) facts.push(['Bathrooms', String(baths)]);
+  if (sqft  != null) facts.push(['Interior', intc(sqft) + ' sq ft']);
+  if (ppsf  != null) facts.push(['Price / sq ft', money(ppsf)]);
   if (yearBuilt != null) facts.push(['Year built', String(yearBuilt)]);
+  if (r.first_listed_at) {
+    try {
+      const d = new Date(r.first_listed_at);
+      if (!isNaN(d)) facts.push(['Listed', d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })]);
+    } catch (e) {}
+  }
+  facts.push(['Status', 'Active']);
   facts.push(['MLS #', mls]);
   const factsBlock =
     '<div class="dossier-card"><div class="facts">' +
@@ -1391,7 +1442,12 @@ function renderListing(r) {
     '.btn-ghost:hover{border-color:#9fb4d8}' +
     '.tools-fineprint{font-size:12px;color:rgba(232,227,216,.5);margin-top:16px}' +
     '.mls-attribution{font-size:11px;line-height:1.6;color:rgba(232,227,216,.4)}' +
-    '.listing-price{font-family:"Playfair Display",Georgia,serif;font-size:34px;color:#fff;margin:8px 0 0}';
+    '.listing-price{font-family:"Playfair Display",Georgia,serif;font-size:34px;color:#fff;margin:8px 0 0}' +
+    '.lg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}' +
+    '.lg-item{border-radius:12px;overflow:hidden;background:rgba(159,180,216,.06);aspect-ratio:4/3}' +
+    '.lg-item--lead{grid-column:1 / -1;aspect-ratio:16/9}' +
+    '.lg-item img{width:100%;height:100%;object-fit:cover;display:block}' +
+    '@media(min-width:760px){.lg-grid{grid-template-columns:repeat(3,1fr)}.lg-item--lead{grid-column:1 / -1;aspect-ratio:21/9}}';
 
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
     '<meta charset="utf-8">\n' +
@@ -1433,6 +1489,7 @@ function renderListing(r) {
     (hood ? '<span class="hero-badge">' + hood + '</span>' : '') +
     heroMedia +
     '</div></div></div></section>\n' +
+    gallerySection +
     '<section class="section"><div class="wrap">' +
     '<div class="section-head"><div class="section-kicker">The unit</div>' +
     '<h2 class="section-title">Details <em>&amp; facts</em></h2></div>' +
