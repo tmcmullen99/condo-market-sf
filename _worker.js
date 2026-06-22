@@ -1384,12 +1384,13 @@ function CM_FOOTER(footerData) {
     'Condo Market SF is a marketing platform and is not a real estate brokerage. ' +
     '<a href="/methodology/">Methodology</a> \u00b7 <a href="/how-it-works/">How it works</a> \u00b7 <a href="tel:+14156919272">415-691-9272</a></div>' +
     '</div></footer>\n' +
+    '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
     CM_FOOTER_CSS;
 }
 
 const CM_FOOTER_CSS =
   '<style>' +
-  '.cf{background:#0a0d12;border-top:1px solid rgba(159,180,216,.12);padding:56px 0 32px;color:rgba(232,227,216,.6)}' +
+  '.cf{background:#0a0d12;border-top:1px solid rgba(159,180,216,.12);padding:48px 0 32px;margin-top:0;color:rgba(232,227,216,.6)}' +
   '.cf .wordmark{color:#fff}.cf .wordmark em{color:#9fb4d8;font-style:italic}' +
   '.cf-top{display:grid;grid-template-columns:1.4fr 2fr;gap:48px;padding-bottom:40px;border-bottom:1px solid rgba(159,180,216,.1)}' +
   '.cf-tag{font-size:13px;line-height:1.6;max-width:38ch;margin:0 0 18px}' +
