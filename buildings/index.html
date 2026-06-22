@@ -415,6 +415,13 @@ img { display: block; max-width: 100%; }
 .hood-bldg:hover { background: var(--card); }
 .hood-bldg-name { font-size: 13px; font-weight: 600; color: var(--navy); }
 .hood-bldg-meta { font-size: 11px; color: var(--text-mute); }
+.hood-bldg.has-active { background: var(--peri-soft); box-shadow: inset 2px 0 0 var(--peri); }
+.hood-bldg.has-active:hover { background: rgba(159,180,216,.18); }
+.hood-bldg-active {
+  display: inline-block; margin-left: 8px; font-size: 10px; font-weight: 700;
+  letter-spacing: .03em; color: var(--navy); background: var(--peri);
+  padding: 1px 7px; border-radius: 999px; vertical-align: middle;
+}
 
 /* Leaflet marker overrides */
 .cm-marker {
@@ -429,17 +436,20 @@ img { display: block; max-width: 100%; }
   animation: pulse 1.6s ease-out infinite;
 }
 .cm-marker.is-dimmed { opacity: .25; }
-/* Active-listings highlight (distinct from hover .is-active). Accent ring. */
+/* Active-listings highlight — bold accent pin, unmistakable vs navy regular dots. */
 .cm-marker.has-active {
-  background: var(--peri); width: 18px; height: 18px; border: 2px solid #fff;
-  box-shadow: 0 0 0 4px var(--peri-soft), 0 0 18px rgba(159,180,216,.7);
-  cursor: pointer; z-index: 500;
-  animation: cmActivePulse 2s ease-out infinite;
+  background: #9fb4d8; width: 20px; height: 20px; border: 3px solid #fff;
+  box-shadow: 0 0 0 3px #9fb4d8, 0 0 0 6px rgba(159,180,216,.3), 0 2px 10px rgba(0,0,0,.35);
+  cursor: pointer; z-index: 600;
+  animation: cmActivePulse 1.8s ease-out infinite;
 }
-.cm-marker.has-active:hover { box-shadow: 0 0 0 7px var(--peri-soft), 0 0 22px rgba(159,180,216,.85); }
+.cm-marker.has-active:hover {
+  box-shadow: 0 0 0 3px #9fb4d8, 0 0 0 9px rgba(159,180,216,.35), 0 2px 14px rgba(0,0,0,.45);
+}
 @keyframes cmActivePulse {
-  0%, 100% { box-shadow: 0 0 0 4px var(--peri-soft), 0 0 14px rgba(159,180,216,.5); }
-  50%      { box-shadow: 0 0 0 9px rgba(159,180,216,.1), 0 0 22px rgba(159,180,216,.7); }
+  0%   { box-shadow: 0 0 0 3px #9fb4d8, 0 0 0 4px rgba(159,180,216,.5), 0 2px 10px rgba(0,0,0,.35); }
+  50%  { box-shadow: 0 0 0 3px #9fb4d8, 0 0 0 12px rgba(159,180,216,.06), 0 2px 10px rgba(0,0,0,.35); }
+  100% { box-shadow: 0 0 0 3px #9fb4d8, 0 0 0 4px rgba(159,180,216,.5), 0 2px 10px rgba(0,0,0,.35); }
 }
 .cm-map-legend {
   background: rgba(10,13,18,.86); color: #e8e3d8; font-family: 'DM Sans', sans-serif;
@@ -1317,7 +1327,7 @@ img { display: block; max-width: 100%; }
 
 <!-- ═══ HOW IT WORKS ═══ -->
 
-<section class="cm-section cm-section-light" id="hiw">
+<section class="cm-section cm-section-light" id="hiw" style="padding-bottom: 40px;">
   <div class="cm-container">
     <div class="cm-section-head">
       <p class="cm-eyebrow">How it works</p>
@@ -1563,8 +1573,10 @@ img { display: block; max-width: 100%; }
       HOODS.push({ name: h.name, sw: [h.bbox_sw_lat, h.bbox_sw_lng], ne: [h.bbox_ne_lat, h.bbox_ne_lng], count: h.buildings, units: h.units, psf_med: h.psf_median });
       var psfRange = (h.psf_min != null && h.psf_max != null) ? '$' + nf(h.psf_min) + '–$' + nf(h.psf_max) + '/sf' : '';
       var bldgs = (h.building_list || []).map(function (b) {
+        var bac = (b.active_count != null ? Number(b.active_count) : 0);
         var meta = esc(b.address || '') + (b.units != null ? ' &middot; ' + b.units + ' units' : '') + (b.psf != null ? ' &middot; $' + nf(b.psf) + '/sf' : '');
-        return '<a class="hood-bldg" href="/building/' + esc(b.slug) + '/" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
+        var actTag = bac > 0 ? '<span class="hood-bldg-active">' + bac + ' active</span>' : '';
+        return '<a class="hood-bldg' + (bac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + (bac > 0 ? '#active' : '') + '" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + actTag + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
       }).join('');
       return '<article class="hood" data-hood="' + esc(h.name) + '">' +
         '<header class="hood-head"><div class="hood-title"><h3 class="hood-name">' + esc(h.name) + '</h3>' + (h.is_hot ? '<span class="hood-hot">Hot</span>' : '') + '</div>' +
