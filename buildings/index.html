@@ -463,6 +463,18 @@ img { display: block; max-width: 100%; }
   width: 11px; height: 11px; border-radius: 50%; background: var(--peri);
   box-shadow: 0 0 0 3px var(--peri-soft); flex: 0 0 auto;
 }
+.cm-map-toggle {
+  display: inline-flex; margin: 12px; padding: 3px; gap: 2px;
+  background: rgba(10,13,18,.86); border: 1px solid var(--peri-dim);
+  border-radius: 999px; backdrop-filter: blur(6px); font-family: 'DM Sans', sans-serif;
+}
+.cm-tg-btn {
+  border: 0; background: transparent; color: rgba(232,227,216,.65); cursor: pointer;
+  font-size: 12px; font-weight: 600; letter-spacing: .01em; padding: 6px 14px;
+  border-radius: 999px; transition: all .15s; white-space: nowrap;
+}
+.cm-tg-btn:hover { color: #fff; }
+.cm-tg-btn.is-on { background: var(--peri); color: #0a0d12; }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 4px var(--peri-soft), 0 0 8px rgba(159,180,216,.3); }
   50%      { box-shadow: 0 0 0 10px rgba(159,180,216,.08), 0 0 20px rgba(159,180,216,.5); }
@@ -1602,10 +1614,11 @@ img { display: block; max-width: 100%; }
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
 
+    var CM_MARKERS = [];
     BLDGS.forEach(function (b) {
       var hasActive = b.active_count > 0;
       var icon = L.divIcon({ html: '<div class="cm-marker' + (hasActive ? ' has-active' : '') + '" data-hood="' + esc(b.hood) + '"' + (hasActive ? ' data-slug="' + esc(b.slug) + '"' : '') + '></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
-      L.marker([b.lat, b.lng], { icon: icon })
+      var mk = L.marker([b.lat, b.lng], { icon: icon })
         .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : '') + (hasActive ? '<br><span style="color:var(--peri);font-weight:600;">' + b.active_count + ' active listing' + (b.active_count === 1 ? '' : 's') + ' →</span>' : ''), { direction: 'top', offset: [0, -8] })
         .on('click', function () {
           if (hasActive) { window.location.href = '/building/' + b.slug + '/#active'; return; }
@@ -1613,7 +1626,33 @@ img { display: block; max-width: 100%; }
           if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); var btn = card.querySelector('.hood-expand'); if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click(); }
         })
         .addTo(map);
+      CM_MARKERS.push({ marker: mk, hasActive: hasActive });
     });
+
+    // Toggle: All buildings ⇆ With active listings. Only shown when active exist.
+    var anyActive = BLDGS.some(function (b) { return b.active_count > 0; });
+    if (anyActive) {
+      var toggle = L.control({ position: 'topleft' });
+      toggle.onAdd = function () {
+        var div = L.DomUtil.create('div', 'cm-map-toggle');
+        div.innerHTML =
+          '<button type="button" class="cm-tg-btn is-on" data-mode="all">All buildings</button>' +
+          '<button type="button" class="cm-tg-btn" data-mode="active">Active listings</button>';
+        L.DomEvent.disableClickPropagation(div);
+        div.addEventListener('click', function (e) {
+          var btn = e.target.closest('.cm-tg-btn'); if (!btn) return;
+          var mode = btn.getAttribute('data-mode');
+          div.querySelectorAll('.cm-tg-btn').forEach(function (b2) { b2.classList.toggle('is-on', b2 === btn); });
+          CM_MARKERS.forEach(function (rec) {
+            var show = (mode === 'all') || rec.hasActive;
+            var el = rec.marker.getElement();
+            if (el) el.style.display = show ? '' : 'none';
+          });
+        });
+        return div;
+      };
+      toggle.addTo(map);
+    }
 
     // Legend — shown only when at least one building has active listings.
     if (BLDGS.some(function (b) { return b.active_count > 0; })) {
