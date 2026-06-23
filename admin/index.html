@@ -467,6 +467,15 @@ window.cmOpenLeadEmail = function(payloadEnc) {
   });
 };
 
+// Delegated click handler for "Book a Meet" buttons. Attached once at document level
+// so it survives the dashboard's 30s re-render and avoids inline onclick (CSP-safe).
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-cm-lead-email]');
+  if (!btn) return;
+  e.preventDefault();
+  window.cmOpenLeadEmail(btn.getAttribute('data-cm-lead-email'));
+});
+
 function renderActionItem(it) {
   const temp = ['hot','warm','cool','cold'].includes(it.temperature) ? it.temperature : 'cool';
   const meta = actionTypeMeta[it.type] || { icon:'•', label:'Action' };
@@ -483,7 +492,7 @@ function renderActionItem(it) {
   if (it.type === 'hot_lead_call' && it.entity_email) {
     const { subject, body } = buildHotLeadEmail(it);
     const payload = encodeURIComponent(JSON.stringify({ to: it.entity_email, subject, body }));
-    actionHtml = `<button class="btn primary" onclick="cmOpenLeadEmail('${payload}')">${escapeHtml(it.action_label||'Book a Meet')} →</button>`;
+    actionHtml = `<button type="button" class="btn primary" data-cm-lead-email="${payload}">${escapeHtml(it.action_label||'Book a Meet')} →</button>`;
   } else {
     actionHtml = `<a href="${escapeHtml(href)}" class="btn primary"${target}>${escapeHtml(it.action_label||'Open')} →</a>`;
   }
