@@ -313,12 +313,16 @@ if (location.pathname.startsWith('/building/')) {
   import('/assets/cm-building-sales.js').catch(() => {});
 }
 
-// Site-tracking beacon — load on EVERY page (building detail, dashboard, cma, index…).
-// Skips if a beacon <script> is already present (e.g. the direct include still on
-// /buildings/), so it can never double-load or double-count.
-if (!document.querySelector('script[src*="cm-beacon.js"]')) {
-  const cmBeacon = document.createElement('script');
-  cmBeacon.src = '/assets/cm-beacon.js';
-  cmBeacon.async = true;
-  document.head.appendChild(cmBeacon);
+// Site-tracking — load the FULL tracker (cm-track.js: pageview/dwell/scroll +
+// CTA auto-wiring + window.cmTrack for funnel events) on EVERY page. Guard against
+// double-loading: skip if cm-track.js is already directly included (server-rendered
+// pages do this via the worker) OR if the legacy beacon is present. This makes the
+// funnel-event instrumentation in cm-auth.js work sitewide, including on static pages
+// like /owner-signup/ that previously loaded only the beacon (no cmTrack, no CTA tracking).
+if (!document.querySelector('script[src*="cm-track.js"]') &&
+    !document.querySelector('script[src*="cm-beacon.js"]')) {
+  const cmTrk = document.createElement('script');
+  cmTrk.src = '/assets/cm-track.js';
+  cmTrk.defer = true;
+  document.head.appendChild(cmTrk);
 }
