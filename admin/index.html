@@ -129,6 +129,14 @@ a{color:inherit;text-decoration:none}
     </div>
     <div class="nav-section" data-section="dashboard"><div class="nav-item" data-route="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></div></div>
     <div class="nav-section" data-section="approvals"><div class="nav-item" data-route="approvals"><span class="nav-icon">✅</span><span>Approvals</span></div></div>
+    <div class="nav-section" data-section="analytics">
+      <div class="nav-item" data-route="analytics"><span class="nav-icon">📊</span><span>Analytics</span></div>
+      <div class="nav-sub">
+        <div class="sub-item" data-route="analytics/overview"><span class="sub-dot"></span>Overview</div>
+        <div class="sub-item" data-route="analytics/funnel"><span class="sub-dot"></span>Signup funnel</div>
+        <div class="sub-item" data-route="analytics/pages"><span class="sub-dot"></span>Pages &amp; CTAs</div>
+      </div>
+    </div>
     <div class="nav-section" data-section="platform">
       <div class="nav-item" data-route="platform"><span class="nav-icon">📈</span><span>Platform</span></div>
       <div class="nav-sub">
@@ -270,12 +278,12 @@ function handleHashChange() {
   const topEl = document.querySelector(`.nav-section[data-section="${topSection}"]`);
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
- const sectionName = { dashboard:'Dashboard', approvals:'Approvals', platform:'Platform', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subLabels = { 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'platform/overview':'Overview', 'platform/leads':'Hot leads', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
+ const sectionName = { dashboard:'Dashboard', approvals:'Approvals', analytics:'Analytics', platform:'Platform', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
+  const subLabels = { 'analytics/overview':'Overview', 'analytics/funnel':'Signup funnel', 'analytics/pages':'Pages & CTAs', 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'platform/overview':'Overview', 'platform/leads':'Hot leads', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'approvals':renderApprovals, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
+  const renderers = { 'dashboard':renderDashboard, 'approvals':renderApprovals, 'analytics':()=>{location.hash='#analytics/overview'}, 'analytics/overview':renderAnalyticsOverview, 'analytics/funnel':renderAnalyticsFunnel, 'analytics/pages':renderAnalyticsPages, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -646,6 +654,142 @@ function renderOwnersList(allOwners, filter) {
   }));
 }
 // ---------- APPROVALS ----------
+
+// ─────────────────────────────────────────────────────────────────────────
+// ANALYTICS — traffic + signup funnel + page/CTA performance across SF/SV/Eichler
+// Reads the analytics_dashboard(p_days) RPC (server-aggregated, one call).
+// ─────────────────────────────────────────────────────────────────────────
+let _analyticsCache = {};
+let _analyticsDays = 30;
+
+async function _loadAnalytics(days) {
+  if (_analyticsCache[days]) return _analyticsCache[days];
+  const { data, error } = await sb.rpc('analytics_dashboard', { p_days: days });
+  if (error) throw error;
+  _analyticsCache[days] = data;
+  return data;
+}
+
+function _analyticsHeader(active) {
+  const tabs = [['overview','Overview'],['funnel','Signup funnel'],['pages','Pages & CTAs']];
+  const windows = [[7,'7d'],[30,'30d'],[90,'90d']];
+  return `<div class="an-head">
+    <div class="an-tabs">${tabs.map(([k,l])=>`<a class="an-tab${active===k?' on':''}" href="#analytics/${k}">${l}</a>`).join('')}</div>
+    <div class="an-win">${windows.map(([d,l])=>`<button class="an-winbtn${_analyticsDays===d?' on':''}" onclick="_setAnalyticsDays(${d})">${l}</button>`).join('')}</div>
+  </div>
+  <style>
+    .an-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+    .an-tabs{display:flex;gap:6px}
+    .an-tab{padding:7px 14px;border-radius:8px;text-decoration:none;color:#64748b;font-weight:600;font-size:13px}
+    .an-tab.on{background:#1a1f2e;color:#fff}
+    .an-win{display:flex;gap:4px;background:#f1f5f9;padding:3px;border-radius:8px}
+    .an-winbtn{border:0;background:transparent;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;color:#64748b;cursor:pointer}
+    .an-winbtn.on{background:#fff;color:#1a1f2e;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+    .an-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+    .an-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px}
+    .an-kpi-v{font-size:28px;font-weight:700;color:#1a1f2e;font-family:Georgia,serif}
+    .an-kpi-l{font-size:12px;color:#64748b;margin-top:4px}
+    .an-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+    .an-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;padding:10px 14px;border-bottom:1px solid #e2e8f0}
+    .an-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f1f5f9;color:#334155}
+    .an-table tr:last-child td{border-bottom:0}
+    .an-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+    .an-bar-fill{height:100%;background:#1a1f2e}
+    .an-funnel-step{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+    .an-funnel-label{width:160px;font-size:13px;color:#334155;font-weight:600}
+    .an-funnel-track{flex:1;height:30px;background:#f1f5f9;border-radius:6px;position:relative;overflow:hidden}
+    .an-funnel-bar{height:100%;background:linear-gradient(90deg,#1a1f2e,#3b4a6b);border-radius:6px;display:flex;align-items:center;padding-left:10px;color:#fff;font-size:12px;font-weight:600;min-width:2px}
+    .an-funnel-pct{width:70px;text-align:right;font-size:12px;color:#64748b}
+    .an-empty{padding:30px;text-align:center;color:#94a3b8;font-size:13px}
+    .an-note{font-size:12px;color:#94a3b8;margin:8px 0 20px}
+  </style>`;
+}
+
+window._setAnalyticsDays = function(d){ _analyticsDays = d; handleHashChange(); };
+
+function _fmtDwell(s){ if(s==null) return '—'; s=+s; if(s>=60) return Math.round(s/60)+'m '+(s%60)+'s'; return s+'s'; }
+
+async function renderAnalyticsOverview() {
+  const el = document.getElementById('content');
+  try {
+    const d = await _loadAnalytics(_analyticsDays);
+    const totViews = (d.markets||[]).reduce((a,m)=>a+(+m.pageviews||0),0);
+    const totVis = (d.markets||[]).reduce((a,m)=>a+(+m.visitors||0),0);
+    const su = d.funnel||{};
+    const kpis = [
+      ['Pageviews', totViews.toLocaleString()],
+      ['Visitors', totVis.toLocaleString()],
+      ['Signups started', (su.signup_started||0).toLocaleString()],
+      ['Accounts created', (su.signup_succeeded||0).toLocaleString()],
+    ];
+    const marketRows = (d.markets||[]).map(m=>`<tr>
+      <td><strong>${m.market}</strong></td>
+      <td>${(+m.pageviews).toLocaleString()}</td>
+      <td>${(+m.visitors).toLocaleString()}</td>
+      <td>${_fmtDwell(m.avg_dwell)}</td>
+      <td>${m.cta_clicks||0}</td></tr>`).join('');
+    el.innerHTML = _analyticsHeader('overview') +
+      `<div class="an-kpis">${kpis.map(k=>`<div class="an-kpi"><div class="an-kpi-v">${k[1]}</div><div class="an-kpi-l">${k[0]}</div></div>`).join('')}</div>
+      <p class="an-note">Window: last ${d.window_days} days · funnel events begin from the day instrumentation went live.</p>
+      <table class="an-table"><thead><tr><th>Market</th><th>Pageviews</th><th>Visitors</th><th>Avg dwell</th><th>CTA clicks</th></tr></thead>
+      <tbody>${marketRows||'<tr><td colspan=5 class=an-empty>No data</td></tr>'}</tbody></table>`;
+  } catch(e){ el.innerHTML = _analyticsHeader('overview') + `<div class="an-empty">Could not load analytics: ${e.message}</div>`; }
+}
+
+async function renderAnalyticsFunnel() {
+  const el = document.getElementById('content');
+  try {
+    const d = await _loadAnalytics(_analyticsDays);
+    const f = d.funnel||{};
+    const steps = [
+      ['Signup started', f.signup_started||0],
+      ['Form submitted', f.signup_submitted||0],
+      ['Account created', f.signup_succeeded||0],
+    ];
+    const top = steps[0][1] || 1;
+    const funnelHtml = steps.map((s,i)=>{
+      const pct = steps[0][1] ? Math.round(s[1]/steps[0][1]*100) : 0;
+      const w = Math.max(2, Math.round(s[1]/top*100));
+      return `<div class="an-funnel-step"><div class="an-funnel-label">${s[0]}</div>
+        <div class="an-funnel-track"><div class="an-funnel-bar" style="width:${w}%">${s[1]}</div></div>
+        <div class="an-funnel-pct">${i===0?'':pct+'%'}</div></div>`;
+    }).join('');
+    const failures = (d.failure_reasons||[]);
+    const failHtml = failures.length
+      ? `<table class="an-table"><thead><tr><th>Failure reason</th><th>Count</th></tr></thead><tbody>${failures.map(x=>`<tr><td>${x.reason}</td><td>${x.n}</td></tr>`).join('')}</tbody></table>`
+      : '<div class="an-empty">No signup failures recorded in this window. (Good — or no attempts yet.)</div>';
+    const dropNote = (f.signup_started && f.signup_succeeded!=null)
+      ? `<p class="an-note">Of ${f.signup_started} signups started, ${f.signup_succeeded} completed (${Math.round((f.signup_succeeded/f.signup_started)*100)}%). ${f.signup_existing||0} were existing users; ${f.signup_failed||0} failed.</p>`
+      : '<p class="an-note">No signup attempts recorded yet in this window. Data populates as visitors interact with the signup modal.</p>';
+    el.innerHTML = _analyticsHeader('funnel') +
+      `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:22px;margin-bottom:24px">${funnelHtml}</div>
+      ${dropNote}
+      <h4 style="margin:24px 0 10px;font-size:14px;color:#1a1f2e">Why signups fail</h4>
+      ${failHtml}`;
+  } catch(e){ el.innerHTML = _analyticsHeader('funnel') + `<div class="an-empty">Could not load funnel: ${e.message}</div>`; }
+}
+
+async function renderAnalyticsPages() {
+  const el = document.getElementById('content');
+  try {
+    const d = await _loadAnalytics(_analyticsDays);
+    const maxV = Math.max(...(d.top_pages||[]).map(p=>+p.pageviews), 1);
+    const pageRows = (d.top_pages||[]).map(p=>`<tr>
+      <td><code style="font-size:12px">${p.path}</code></td>
+      <td>${(+p.pageviews).toLocaleString()}</td>
+      <td>${(+p.visitors).toLocaleString()}</td>
+      <td>${_fmtDwell(p.avg_dwell)}</td>
+      <td style="width:120px"><div class="an-bar"><div class="an-bar-fill" style="width:${Math.round(p.pageviews/maxV*100)}%"></div></div></td></tr>`).join('');
+    const ctaRows = (d.ctas||[]).map(c=>`<tr><td>${c.label}</td><td>${c.clicks}</td></tr>`).join('');
+    el.innerHTML = _analyticsHeader('pages') +
+      `<table class="an-table"><thead><tr><th>Page</th><th>Views</th><th>Visitors</th><th>Avg dwell</th><th></th></tr></thead>
+      <tbody>${pageRows||'<tr><td colspan=5 class=an-empty>No data</td></tr>'}</tbody></table>
+      <h4 style="margin:24px 0 10px;font-size:14px;color:#1a1f2e">CTA clicks</h4>
+      <table class="an-table"><thead><tr><th>CTA label</th><th>Clicks</th></tr></thead>
+      <tbody>${ctaRows||'<tr><td colspan=2 class=an-empty>No CTA clicks recorded yet</td></tr>'}</tbody></table>`;
+  } catch(e){ el.innerHTML = _analyticsHeader('pages') + `<div class="an-empty">Could not load: ${e.message}</div>`; }
+}
+
 async function renderApprovals() {
   document.getElementById('content').innerHTML = `
     <div class="section-head">
