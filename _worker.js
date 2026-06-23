@@ -2202,7 +2202,7 @@ function renderBuilding(p) {
       '<div class="dossier-enhanced-cta">' +
       '<h4>Sign in to see the <em style="color:var(--cm-peri);">full dossier</em></h4>' +
       '<p>' + enhancedCtaCopy + '</p>' +
-      '<a class="btn-primary" href="#signup" data-cm-auth="signup">Unlock enhanced data \u2192</a></div>' +
+      '<a class="btn-primary" href="#signup" data-cm-auth="signup" data-cm-cta="unlock-enhanced-data">Unlock enhanced data \u2192</a></div>' +
       '<div class="cm-inline-cta" style="margin-top:32px;text-align:center;">' +
       '<a href="#offer" data-cm-offer-trigger data-building-slug="' + slug + '" class="cm-inline-cta-link" style="display:inline-flex;align-items:center;gap:8px;color:var(--cm-bronze, #d4a574);font-family:var(--cm-ff-mono, \'JetBrains Mono\', monospace);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;padding:10px 20px;border:1px solid rgba(212, 165, 116, 0.4);border-radius:999px;transition:all 150ms ease;">See a number worth acting on? Make an offer \u2192</a></div>' +
       '</div></section>';
@@ -2287,7 +2287,7 @@ function renderBuilding(p) {
     '<a class="btn-primary" data-cm-offer-trigger data-building-slug="' + slug + '" style="cursor:pointer;">Make an offer \u2192</a></div>' +
     '<div class="offer-option"><h3>Sell \u2014 name your price</h3>' +
     '<p>Set a Make-Me-Move number, not a listing. Keep living in your unit. We notify you only when a buyer\u2019s offer matches your number.</p>' +
-    '<a class="btn-ghost" href="/owner-signup/?address=' + encodeURIComponent(p.address || '') + '">Set your price \u2192</a></div></div>' +
+    '<a class="btn-ghost" data-cm-cta="set-your-price" href="/owner-signup/?address=' + encodeURIComponent(p.address || '') + '">Set your price \u2192</a></div></div>' +
     '<p style="margin-top:24px;font-size:13px;color:var(--cm-ivory-dim);">All offers require a free account. <a href="#signin" data-cm-auth="login" style="color:var(--cm-peri);">Already have one? Sign in.</a></p>' +
     '</div></section>';
 
