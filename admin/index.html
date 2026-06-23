@@ -341,13 +341,78 @@ function mailtoToGmail(mailto) {
   }
 }
 
+// Parse the hot-lead item's display strings into usable pieces for a personalized
+// email. The RPC builds title as "<name> — N clicks…" and subtitle as either
+// "Likely owns <building> · <unit>" or "High intent · no account yet".
+function parseHotLead(it) {
+  const title = it.title || '';
+  const subtitle = it.subtitle || '';
+  // name = everything before the em-dash; if it's an email, use the part before @.
+  let name = title.split('—')[0].trim();
+  if (name.indexOf('@') !== -1) name = name.split('@')[0];
+  const firstName = name && !name.includes('@') ? name.split(/\s+/)[0] : '';
+  // building + unit from "Likely owns <building> · <unit>"
+  let building = '', unit = '';
+  const m = subtitle.match(/Likely owns\s+(.+?)\s+·\s+(.+)$/);
+  if (m) { building = m[1].trim(); unit = (m[2] || '').trim(); if (unit === '?') unit = ''; }
+  return { firstName, building, unit };
+}
+
+// Compose the personalized "open to a quick call?" email for a hot lead.
+// Soft ask, no meeting link, flexible scheduling; folds in the Condo Market value.
+function buildHotLeadEmail(it) {
+  const { firstName, building } = parseHotLead(it);
+  // "your unit in BUILDING" framing — personal to the building (the reliable signal)
+  // without naming a specific unit number the inference might have wrong.
+  const yourUnit = building ? `your unit in ${building}` : 'your condo';
+  const where = building ? `your unit in ${building}` : 'your place';
+
+  const subject = building
+    ? `A quick thought on your unit in ${building}`
+    : `A quick thought on your condo`;
+
+  const greeting = firstName ? `Hi ${firstName},` : `Hi,`;
+  const ownLine = building
+    ? `I noticed you've been keeping an eye on ${building} — and from what I can tell, you may own a unit in the building.`
+    : `I noticed you've been keeping an eye on the market lately.`;
+
+  const body =
+`${greeting}
+
+${ownLine} No agenda here — I just help owners in the building think through what their unit is worth and what their options look like, whether or not selling is even on the table.
+
+A few things that tend to be useful to talk through:
+
+• Commission. We work at a flat 3%, versus the 5–6% most owners assume is just "the way it is." On ${where}, that difference is real money back in your pocket.
+
+• How you go to market — on your terms. You don't have to jump straight to "for sale." Owners on Condo Market can set a private Make Me Move number (a price you'd quietly say yes to), test the waters as a Coming Soon, or go fully On Market — and move between those as it suits you. No pressure, no public listing until you decide.
+
+• Tenants. If the unit is rented, that's not a complication — we map out the scenarios (sell with the lease in place, time it to a turnover, or sell to another investor) so it's simple to navigate.
+
+Would you be open to a quick call to talk it through? I'm happy to work around your schedule — just let me know a day or two that's easy for you and I'll make it work.
+
+Best,
+Tim McMullen
+Condo Market SF`;
+
+  return { subject, body };
+}
+
 function renderActionItem(it) {
   const temp = ['hot','warm','cool','cold'].includes(it.temperature) ? it.temperature : 'cool';
   const meta = actionTypeMeta[it.type] || { icon:'•', label:'Action' };
   let href = it.action_href || '#';
-  // Email actions: open a Gmail compose window (from tim@sanfranciscocondomarket.com)
-  // instead of a mailto: that hits the OS default mail client.
-  if (href.startsWith('mailto:')) href = mailtoToGmail(href);
+  // Hot leads: compose a personalized "open to a quick call?" email (subject has the
+  // unit, soft CTA, no meeting link, folds in the 3% / Make-Me-Move / tenant value).
+  if (it.type === 'hot_lead_call' && it.entity_email) {
+    const { subject, body } = buildHotLeadEmail(it);
+    href = mailtoToGmail('mailto:' + it.entity_email +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body));
+  } else if (href.startsWith('mailto:')) {
+    // Other email actions: keep their copy, just open in Gmail compose.
+    href = mailtoToGmail(href);
+  }
   const isExternal = !href.startsWith('#') && !href.startsWith('mailto:');
   const target = isExternal ? ' target="_blank"' : '';
   const showAge = it.type !== 'hot_lead_call' && it.age;
