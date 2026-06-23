@@ -391,48 +391,110 @@ A few things that tend to be useful to talk through:
 
 Would you be open to a quick call to talk it through? I'm happy to work around your schedule — just let me know a day or two that's easy for you and I'll make it work.
 
-Best,
-
-Tim McMullen
-Founder · Condo Market SF
-tim@sanfranciscocondomarket.com
-(415) 691-9272
-sanfranciscocondomarket.com
-
-Condo Market · SF
-A private exchange for every condo in San Francisco
-
-Tim McMullen · Licensed Real Estate Agent · DRE #02016832
-McMullen Properties LLC under Real Broker · Brokerage DRE #02228473`;
+Best,`;
 
   return { subject, body };
 }
 
+// Copy-paste panel for hot-lead outreach. Shows recipient + subject + body with
+// copy buttons. You paste into a NEW Gmail compose from whichever account fits the
+// lead's market — Gmail attaches that account's own rich signature automatically.
+window.cmOpenLeadEmail = function(payloadEnc) {
+  let p;
+  try { p = JSON.parse(decodeURIComponent(payloadEnc)); } catch (e) { return; }
+  const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const old = document.getElementById('cm-lead-email-modal');
+  if (old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'cm-lead-email-modal';
+  wrap.innerHTML = `
+  <div class="cm-lem-backdrop" onclick="if(event.target===this)this.parentElement.remove()">
+    <div class="cm-lem-card">
+      <div class="cm-lem-head">
+        <div>
+          <div class="cm-lem-eyebrow">Outreach draft</div>
+          <h3 class="cm-lem-title">Send from your own inbox</h3>
+        </div>
+        <button class="cm-lem-x" onclick="document.getElementById('cm-lead-email-modal').remove()">✕</button>
+      </div>
+      <p class="cm-lem-note">Open a <b>new email</b> in Gmail from <b>tim@sanfranciscocondomarket.com</b> (SF) or <b>tim@siliconvalleycondomarket.com</b> (SV), paste the parts below, and send. Your account's signature is added automatically — so it arrives as a real, personal note in their primary inbox.</p>
+
+      <label class="cm-lem-label">To</label>
+      <div class="cm-lem-field"><span class="cm-lem-val">${esc(p.to)}</span><button class="cm-lem-copy" data-copy="to">Copy</button></div>
+
+      <label class="cm-lem-label">Subject</label>
+      <div class="cm-lem-field"><span class="cm-lem-val">${esc(p.subject)}</span><button class="cm-lem-copy" data-copy="subject">Copy</button></div>
+
+      <label class="cm-lem-label">Message <span style="color:var(--muted,#94a3b8);font-weight:400">— do not add a signature, Gmail adds yours</span></label>
+      <div class="cm-lem-body">${esc(p.body)}</div>
+      <button class="cm-lem-copy-body" data-copy="body">Copy message</button>
+
+      <div class="cm-lem-actions">
+        <button class="cm-lem-copyall" data-copy="all">Copy subject + message</button>
+      </div>
+    </div>
+  </div>
+  <style>
+    .cm-lem-backdrop{position:fixed;inset:0;background:rgba(10,13,18,.6);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+    .cm-lem-card{background:#fff;border-radius:16px;max-width:620px;width:100%;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,.3);font-family:-apple-system,Helvetica,Arial,sans-serif}
+    .cm-lem-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+    .cm-lem-eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c2410c;font-weight:700}
+    .cm-lem-title{margin:2px 0 0;font-family:Georgia,serif;font-size:22px;color:#1a1f2e}
+    .cm-lem-x{border:0;background:#f1f5f9;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;color:#475569}
+    .cm-lem-note{font-size:13px;line-height:1.55;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin:0 0 18px}
+    .cm-lem-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;font-weight:700;margin:0 0 5px}
+    .cm-lem-field{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:9px 12px;margin-bottom:14px}
+    .cm-lem-val{flex:1;font-size:14px;color:#1a1f2e;word-break:break-word}
+    .cm-lem-copy,.cm-lem-copy-body,.cm-lem-copyall{border:1px solid #1a1f2e;background:#1a1f2e;color:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+    .cm-lem-copy-body{margin:8px 0 0}
+    .cm-lem-body{white-space:pre-wrap;font-size:13px;line-height:1.5;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:14px;max-height:300px;overflow:auto}
+    .cm-lem-actions{margin-top:18px;display:flex;justify-content:flex-end}
+    .cm-lem-copyall{background:#c2410c;border-color:#c2410c;padding:9px 18px;font-size:13px}
+    .cm-lem-copy.done,.cm-lem-copy-body.done,.cm-lem-copyall.done{background:#059669;border-color:#059669}
+  </style>`;
+  document.body.appendChild(wrap);
+  wrap.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const kind = btn.getAttribute('data-copy');
+      const text = kind === 'to' ? p.to
+                 : kind === 'subject' ? p.subject
+                 : kind === 'body' ? p.body
+                 : `${p.subject}\n\n${p.body}`;
+      try { await navigator.clipboard.writeText(text); } catch (e) {}
+      const orig = btn.textContent; btn.textContent = 'Copied ✓'; btn.classList.add('done');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('done'); }, 1400);
+    });
+  });
+};
+
 function renderActionItem(it) {
   const temp = ['hot','warm','cool','cold'].includes(it.temperature) ? it.temperature : 'cool';
   const meta = actionTypeMeta[it.type] || { icon:'•', label:'Action' };
-  let href = it.action_href || '#';
-  // Hot leads: compose a personalized "open to a quick call?" email (subject has the
-  // unit, soft CTA, no meeting link, folds in the 3% / Make-Me-Move / tenant value).
-  if (it.type === 'hot_lead_call' && it.entity_email) {
-    const { subject, body } = buildHotLeadEmail(it);
-    href = mailtoToGmail('mailto:' + it.entity_email +
-      '?subject=' + encodeURIComponent(subject) +
-      '&body=' + encodeURIComponent(body));
-  } else if (href.startsWith('mailto:')) {
-    // Other email actions: keep their copy, just open in Gmail compose.
-    href = mailtoToGmail(href);
-  }
+  const href = it.action_href || '#';
   const isExternal = !href.startsWith('#') && !href.startsWith('mailto:');
   const target = isExternal ? ' target="_blank"' : '';
   const showAge = it.type !== 'hot_lead_call' && it.age;
+
+  // Hot leads: the button opens a copy-paste panel with the personalized message.
+  // You paste it into a NEW compose from tim@sanfranciscocondomarket.com OR
+  // tim@siliconvalleycondomarket.com — your Gmail adds that account's own rich
+  // signature, and it sends from your real inbox (lands in Primary, not Promotions).
+  let actionHtml;
+  if (it.type === 'hot_lead_call' && it.entity_email) {
+    const { subject, body } = buildHotLeadEmail(it);
+    const payload = encodeURIComponent(JSON.stringify({ to: it.entity_email, subject, body }));
+    actionHtml = `<button class="btn primary" onclick="cmOpenLeadEmail('${payload}')">${escapeHtml(it.action_label||'Book a Meet')} →</button>`;
+  } else {
+    actionHtml = `<a href="${escapeHtml(href)}" class="btn primary"${target}>${escapeHtml(it.action_label||'Open')} →</a>`;
+  }
+
   return `<div class="row ${temp}">
     <div class="row-badge"><div class="row-badge-icon">${meta.icon}</div><div class="row-badge-text" style="color:var(--${temp})">${escapeHtml(meta.label)}</div></div>
     <div class="row-main">
       <h3>${escapeHtml(it.title||'')}</h3>
       <div class="sub">${escapeHtml(it.subtitle||'')}</div>
     </div>
-    <div class="row-actions"><div class="age">${showAge ? fmtAge(it.age) : ''}</div><div class="action-row"><a href="${escapeHtml(href)}" class="btn primary"${target}>${escapeHtml(it.action_label||'Open')} →</a></div></div>
+    <div class="row-actions"><div class="age">${showAge ? fmtAge(it.age) : ''}</div><div class="action-row">${actionHtml}</div></div>
   </div>`;
 }
 
