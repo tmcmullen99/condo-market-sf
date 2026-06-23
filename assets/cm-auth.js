@@ -245,6 +245,7 @@ async function handleSubmit() {
   submitBtn.disabled = true;
   submitBtn.textContent = (currentMode === 'signup') ? 'Creating...' : 'Signing in...';
   setMessage(null, '');
+  if (window.cmTrack) window.cmTrack(currentMode === 'signup' ? 'signup_submitted' : 'login_submitted', { stage: 'form_submit' });
 
   try {
     if (currentMode === 'signup') {
@@ -258,6 +259,7 @@ async function handleSubmit() {
       // can actually get back into their existing account.
       const isExistingUser = !!(data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
       if (isExistingUser) {
+        if (window.cmTrack) window.cmTrack('signup_existing_user', { stage: 'already_registered' });
         const { error: magicErr } = await CM.sendMagicLink({ email });
         if (magicErr) {
           setMessage('err', 'This email already has an account. Click "Email me a sign-in link" below to get back in.');
@@ -277,9 +279,10 @@ async function handleSubmit() {
       }
 
      if (window.cmTrack) {
-        window.cmTrack('conversion', {
+        window.cmTrack('signup_succeeded', {
           type: 'signup',
-          confirmed: !!data?.session
+          confirmed: !!data?.session,
+          stage: data?.session ? 'account_created' : 'email_confirmation_pending'
         });
       }
 
@@ -292,10 +295,15 @@ async function handleSubmit() {
     } else {
       const { data, error } = await CM.signIn({ email, password });
       if (error) throw error;
+      if (window.cmTrack) window.cmTrack('login_succeeded', { stage: 'signed_in' });
       setMessage('ok', 'Welcome back.');
       setTimeout(closeAuthModal, 800);
     }
   } catch (err) {
+    if (window.cmTrack) window.cmTrack(currentMode === 'signup' ? 'signup_failed' : 'login_failed', {
+      stage: 'error',
+      reason: (err && err.message) ? String(err.message).slice(0, 200) : 'unknown'
+    });
     setMessage('err', err.message || 'Something went wrong. Please try again.');
   } finally {
     submitBtn.disabled = false;
@@ -340,6 +348,7 @@ export function openAuthModal(mode = 'signup') {
   applyMode();
   modalEl.classList.add('cm-open');
   refreshReferrerBanner();
+  if (window.cmTrack) window.cmTrack(currentMode === 'login' ? 'login_started' : 'signup_started', { stage: 'modal_open' });
   setTimeout(() => modalEl.querySelector('.cm-email').focus(), 50);
 }
 
