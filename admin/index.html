@@ -299,9 +299,27 @@ const actionTypeMeta = {
   new_account:        { icon:'✨', label:'Signup' }
 };
 
+// Cache of building display_name (lowercased) → slug, so a lead's building NAME
+// can be resolved to its real page slug. Avoids guessing slugs (which risks 404s).
+window._cmBldgSlugByName = window._cmBldgSlugByName || null;
+async function ensureBuildingSlugMap() {
+  if (window._cmBldgSlugByName) return window._cmBldgSlugByName;
+  const map = {};
+  try {
+    const { data } = await sb.from('buildings').select('slug,display_name');
+    (data || []).forEach(b => {
+      if (b.display_name) map[String(b.display_name).toLowerCase().trim()] = b.slug;
+      if (b.slug) map[String(b.slug).replace(/-/g,' ').toLowerCase().trim()] = b.slug; // also match prettified slug
+    });
+  } catch (e) {}
+  window._cmBldgSlugByName = map;
+  return map;
+}
+
 async function loadActionQueue() {
   const mount = document.getElementById('action-queue-mount');
   if (!mount) return;
+  await ensureBuildingSlugMap();
   const { data, error } = await sb.rpc('operator_action_queue', { p_limit: 40 });
   if (error) { mount.innerHTML = `<div class="empty" style="margin-bottom:28px">Action queue error: ${escapeHtml(error.message)}</div>`; return; }
   mount.innerHTML = renderActionQueue(data || {});
@@ -362,10 +380,27 @@ function parseHotLead(it) {
 // Soft ask, no meeting link, flexible scheduling; folds in the Condo Market value.
 function buildHotLeadEmail(it) {
   const { firstName, building } = parseHotLead(it);
-  // "your unit in BUILDING" framing — personal to the building (the reliable signal)
-  // without naming a specific unit number the inference might have wrong.
-  const yourUnit = building ? `your unit in ${building}` : 'your condo';
   const where = building ? `your unit in ${building}` : 'your place';
+
+  // Per-lead tracking token (stable per email) so a click on the link below lands
+  // in site_events (utm_content=token) and ties back to THIS lead.
+  const token = 'lead_' + (it.entity_email || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) + '_' +
+                Math.random().toString(36).slice(2, 7);
+  // Market → which site's How It Works. Default SF; SV if the item is tagged SV.
+  const isSV = /silicon|sv\b/i.test(it.subtitle || '') || it.market === 'SV';
+  const domain = isSV ? 'siliconvalleycondomarket.com' : 'sanfranciscocondomarket.com';
+  const market = isSV ? 'SV' : 'SF';
+  const link = `https://www.${domain}/how-it-works/?view=seller&utm_source=tim_email&utm_campaign=hot_lead_outreach&utm_content=${encodeURIComponent(token + ":howitworks")}#centerpiece-seller`;
+
+  // Resolve the building's real page slug from its name (no guessing → no 404s).
+  let buildingLink = '';
+  if (building) {
+    const slugMap = window._cmBldgSlugByName || {};
+    const slug = slugMap[building.toLowerCase().trim()];
+    if (slug) {
+      buildingLink = `https://www.${domain}/building/${slug}/?utm_source=tim_email&utm_campaign=hot_lead_outreach&utm_content=${encodeURIComponent(token + ":building")}#market`;
+    }
+  }
 
   const subject = building
     ? `A quick thought on your unit in ${building}`
@@ -388,12 +423,18 @@ A few things that tend to be useful to talk through:
 • How you go to market — on your terms. You don't have to jump straight to "for sale." Owners on Condo Market can set a private Make Me Move number (a price you'd quietly say yes to), test the waters as a Coming Soon, or go fully On Market — and move between those as it suits you. No pressure, no public listing until you decide.
 
 • Tenants. If the unit is rented, that's not a complication — we map out the scenarios (sell with the lease in place, time it to a turnover, or sell to another investor) so it's simple to navigate.
+${buildingLink ? `
+I keep a live page for ${building} — recent sales, price-per-square-foot trends, and how it's moving right now. Worth a look even if you're just curious where values stand:
+${buildingLink}
+` : ''}
+If it's helpful, here's a short walk-through of exactly how it works for owners — what your options are and what the numbers look like:
+${link}
 
 Would you be open to a quick call to talk it through? I'm happy to work around your schedule — just let me know a day or two that's easy for you and I'll make it work.
 
 Best,`;
 
-  return { subject, body };
+  return { subject, body, token, market, building, email: it.entity_email };
 }
 
 // Copy-paste panel for hot-lead outreach. Shows recipient + subject + body with
@@ -431,6 +472,7 @@ window.cmOpenLeadEmail = function(payloadEnc) {
 
       <div class="cm-lem-actions">
         <button class="cm-lem-copyall" data-copy="all">Copy subject + message</button>
+        <button class="cm-lem-marksent" id="cm-lem-marksent">✓ Mark as sent</button>
       </div>
     </div>
   </div>
@@ -448,8 +490,11 @@ window.cmOpenLeadEmail = function(payloadEnc) {
     .cm-lem-copy,.cm-lem-copy-body,.cm-lem-copyall{border:1px solid #1a1f2e;background:#1a1f2e;color:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
     .cm-lem-copy-body{margin:8px 0 0}
     .cm-lem-body{white-space:pre-wrap;font-size:13px;line-height:1.5;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:14px;max-height:300px;overflow:auto}
-    .cm-lem-actions{margin-top:18px;display:flex;justify-content:flex-end}
+    .cm-lem-actions{margin-top:18px;display:flex;justify-content:flex-end;gap:10px}
     .cm-lem-copyall{background:#c2410c;border-color:#c2410c;padding:9px 18px;font-size:13px}
+    .cm-lem-marksent{border:1px solid #059669;background:#fff;color:#059669;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+    .cm-lem-marksent:hover{background:#ecfdf5}
+    .cm-lem-marksent.done{background:#059669;color:#fff}
     .cm-lem-copy.done,.cm-lem-copy-body.done,.cm-lem-copyall.done{background:#059669;border-color:#059669}
   </style>`;
   document.body.appendChild(wrap);
@@ -464,6 +509,26 @@ window.cmOpenLeadEmail = function(payloadEnc) {
       const orig = btn.textContent; btn.textContent = 'Copied ✓'; btn.classList.add('done');
       setTimeout(() => { btn.textContent = orig; btn.classList.remove('done'); }, 1400);
     });
+  });
+
+  // Mark as sent → log the outreach so the queue dedupes and history is recorded.
+  const markBtn = wrap.querySelector('#cm-lem-marksent');
+  if (markBtn) markBtn.addEventListener('click', async () => {
+    markBtn.disabled = true; markBtn.textContent = 'Saving…';
+    try {
+      const { error } = await sb.rpc('log_lead_outreach', {
+        p_email: p.to, p_name: null, p_building: p.building || null,
+        p_market: p.market || null, p_subject: p.subject || null, p_lead_token: p.token || null
+      });
+      if (error) throw error;
+      markBtn.textContent = '✓ Sent — logged'; markBtn.classList.add('done');
+      // refresh the queue so this lead reflects contacted state
+      if (typeof loadActionQueue === 'function') loadActionQueue();
+      setTimeout(() => { const m = document.getElementById('cm-lead-email-modal'); if (m) m.remove(); }, 900);
+    } catch (e) {
+      markBtn.disabled = false; markBtn.textContent = 'Try again';
+      alert('Could not log send: ' + (e.message || e));
+    }
   });
 };
 
@@ -490,8 +555,8 @@ function renderActionItem(it) {
   // signature, and it sends from your real inbox (lands in Primary, not Promotions).
   let actionHtml;
   if (it.type === 'hot_lead_call' && it.entity_email) {
-    const { subject, body } = buildHotLeadEmail(it);
-    const payload = encodeURIComponent(JSON.stringify({ to: it.entity_email, subject, body }));
+    const em = buildHotLeadEmail(it);
+    const payload = encodeURIComponent(JSON.stringify({ to: it.entity_email, subject: em.subject, body: em.body, token: em.token, market: em.market, building: em.building }));
     actionHtml = `<button type="button" class="btn primary" data-cm-lead-email="${payload}">${escapeHtml(it.action_label||'Book a Meet')} →</button>`;
   } else {
     actionHtml = `<a href="${escapeHtml(href)}" class="btn primary"${target}>${escapeHtml(it.action_label||'Open')} →</a>`;
