@@ -2472,8 +2472,9 @@ const CSS = `
   .hstat-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 6px; }
   .hstat-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 28px; color: var(--cm-ivory); line-height: 1; }
   .hstat-val .peri { color: var(--cm-peri); }
-  .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: var(--cm-navy); min-height: 340px; aspect-ratio: 4/5; }
-  .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: var(--cm-navy); aspect-ratio: 3/2; max-height: 460px; }
+  .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.04) contrast(1.02); }
+  .hero-img-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 60px rgba(10,13,18,0.28); border-radius: 12px; z-index: 2; }
   .hero-badge { position: absolute; top: 16px; left: 16px; background: rgba(26,31,46,0.85); color: var(--cm-peri); padding: 6px 12px; border-radius: 4px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; backdrop-filter: blur(8px); }
   .sticky-nav { position: sticky; top: 0; z-index: 50; background: var(--cm-navy-deep); border-top: 1px solid var(--cm-rule); border-bottom: 1px solid var(--cm-rule); }
   .sticky-nav-row { display: flex; gap: 28px; overflow-x: auto; padding: 14px 0; scrollbar-width: none; }
