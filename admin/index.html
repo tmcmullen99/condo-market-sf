@@ -314,10 +314,40 @@ function renderActionQueue(payload) {
   return head + `<div class="row-list" style="margin-bottom:28px">${items.map(renderActionItem).join('')}</div>`;
 }
 
+// Convert a mailto: URL into a Gmail compose URL. Opens Gmail's web composer
+// (new message) prefilled with recipient/subject/body. authuser hints Gmail to
+// use Tim's Condo Market identity — requires tim@sanfranciscocondomarket.com to be
+// a logged-in account or a configured "send-as" alias in that Gmail account.
+const CM_FROM_ADDRESS = 'tim@sanfranciscocondomarket.com';
+function mailtoToGmail(mailto) {
+  try {
+    const rest = mailto.slice('mailto:'.length);
+    const qIdx = rest.indexOf('?');
+    const to = decodeURIComponent(qIdx === -1 ? rest : rest.slice(0, qIdx));
+    const params = new URLSearchParams(qIdx === -1 ? '' : rest.slice(qIdx + 1));
+    const gmail = new URL('https://mail.google.com/mail/');
+    gmail.searchParams.set('view', 'cm');   // compose
+    gmail.searchParams.set('fs', '1');       // full screen
+    gmail.searchParams.set('tf', '1');
+    gmail.searchParams.set('authuser', CM_FROM_ADDRESS);
+    gmail.searchParams.set('from', CM_FROM_ADDRESS);
+    if (to) gmail.searchParams.set('to', to);
+    if (params.get('subject')) gmail.searchParams.set('su', params.get('subject'));
+    if (params.get('body')) gmail.searchParams.set('body', params.get('body'));
+    if (params.get('cc')) gmail.searchParams.set('cc', params.get('cc'));
+    return gmail.toString();
+  } catch (e) {
+    return mailto; // fall back to mailto if parsing fails
+  }
+}
+
 function renderActionItem(it) {
   const temp = ['hot','warm','cool','cold'].includes(it.temperature) ? it.temperature : 'cool';
   const meta = actionTypeMeta[it.type] || { icon:'•', label:'Action' };
-  const href = it.action_href || '#';
+  let href = it.action_href || '#';
+  // Email actions: open a Gmail compose window (from tim@sanfranciscocondomarket.com)
+  // instead of a mailto: that hits the OS default mail client.
+  if (href.startsWith('mailto:')) href = mailtoToGmail(href);
   const isExternal = !href.startsWith('#') && !href.startsWith('mailto:');
   const target = isExternal ? ' target="_blank"' : '';
   const showAge = it.type !== 'hot_lead_call' && it.age;
