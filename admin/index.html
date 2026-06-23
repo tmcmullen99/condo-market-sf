@@ -316,10 +316,25 @@ async function ensureBuildingSlugMap() {
   return map;
 }
 
+// Cache of lead_email (lowercased) → { last_sent, sends } so the dashboard can show
+// which leads have already been emailed (persistent sent-state + dedup awareness).
+window._cmOutreachByEmail = window._cmOutreachByEmail || null;
+async function ensureOutreachMap(force) {
+  if (window._cmOutreachByEmail && !force) return window._cmOutreachByEmail;
+  const map = {};
+  try {
+    const { data } = await sb.rpc('recent_outreach_emails', { p_days: 120 });
+    (data || []).forEach(r => { map[String(r.lead_email).toLowerCase()] = { last_sent: r.last_sent, sends: r.sends }; });
+  } catch (e) {}
+  window._cmOutreachByEmail = map;
+  return map;
+}
+
 async function loadActionQueue() {
   const mount = document.getElementById('action-queue-mount');
   if (!mount) return;
   await ensureBuildingSlugMap();
+  await ensureOutreachMap(true);
   const { data, error } = await sb.rpc('operator_action_queue', { p_limit: 40 });
   if (error) { mount.innerHTML = `<div class="empty" style="margin-bottom:28px">Action queue error: ${escapeHtml(error.message)}</div>`; return; }
   mount.innerHTML = renderActionQueue(data || {});
@@ -495,6 +510,7 @@ window.cmOpenLeadEmail = function(payloadEnc) {
     .cm-lem-marksent{border:1px solid #059669;background:#fff;color:#059669;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
     .cm-lem-marksent:hover{background:#ecfdf5}
     .cm-lem-marksent.done{background:#059669;color:#fff}
+    .emailed-badge{display:inline-block;margin-top:4px;font-size:10px;font-weight:600;color:#059669;background:rgba(5,150,105,0.12);border:1px solid rgba(5,150,105,0.3);border-radius:5px;padding:2px 7px;white-space:nowrap}
     .cm-lem-copy.done,.cm-lem-copy-body.done,.cm-lem-copyall.done{background:#059669;border-color:#059669}
   </style>`;
   document.body.appendChild(wrap);
@@ -513,6 +529,12 @@ window.cmOpenLeadEmail = function(payloadEnc) {
 
   // Mark as sent → log the outreach so the queue dedupes and history is recorded.
   const markBtn = wrap.querySelector('#cm-lem-marksent');
+  // If this lead was already emailed, reflect that immediately on open.
+  const priorSend = (window._cmOutreachByEmail || {})[String(p.to).toLowerCase()];
+  if (markBtn && priorSend && priorSend.last_sent) {
+    const d = new Date(priorSend.last_sent).toLocaleDateString([], { month:'short', day:'numeric' });
+    markBtn.textContent = `✓ Sent ${d}`; markBtn.classList.add('done');
+  }
   if (markBtn) markBtn.addEventListener('click', async () => {
     markBtn.disabled = true; markBtn.textContent = 'Saving…';
     try {
@@ -521,8 +543,11 @@ window.cmOpenLeadEmail = function(payloadEnc) {
         p_market: p.market || null, p_subject: p.subject || null, p_lead_token: p.token || null
       });
       if (error) throw error;
+      // Persist in-memory so the sent state survives closing/reopening the panel.
+      window._cmOutreachByEmail = window._cmOutreachByEmail || {};
+      const ex = window._cmOutreachByEmail[String(p.to).toLowerCase()];
+      window._cmOutreachByEmail[String(p.to).toLowerCase()] = { last_sent: new Date().toISOString(), sends: (ex ? ex.sends : 0) + 1 };
       markBtn.textContent = '✓ Sent — logged'; markBtn.classList.add('done');
-      // refresh the queue so this lead reflects contacted state
       if (typeof loadActionQueue === 'function') loadActionQueue();
       setTimeout(() => { const m = document.getElementById('cm-lead-email-modal'); if (m) m.remove(); }, 900);
     } catch (e) {
@@ -554,10 +579,18 @@ function renderActionItem(it) {
   // tim@siliconvalleycondomarket.com — your Gmail adds that account's own rich
   // signature, and it sends from your real inbox (lands in Primary, not Promotions).
   let actionHtml;
+  let emailedBadge = '';
   if (it.type === 'hot_lead_call' && it.entity_email) {
     const em = buildHotLeadEmail(it);
     const payload = encodeURIComponent(JSON.stringify({ to: it.entity_email, subject: em.subject, body: em.body, token: em.token, market: em.market, building: em.building }));
-    actionHtml = `<button type="button" class="btn primary" data-cm-lead-email="${payload}">${escapeHtml(it.action_label||'Book a Meet')} →</button>`;
+    // Has this lead already been emailed? (persistent sent-state from the outreach log)
+    const prior = (window._cmOutreachByEmail || {})[String(it.entity_email).toLowerCase()];
+    if (prior && prior.last_sent) {
+      const d = new Date(prior.last_sent).toLocaleDateString([], { month:'short', day:'numeric' });
+      emailedBadge = `<div class="emailed-badge" title="${prior.sends} send${prior.sends===1?'':'s'} logged">✓ Emailed ${d}</div>`;
+    }
+    const label = prior ? 'Email again' : (it.action_label || 'Book a Meet');
+    actionHtml = `<button type="button" class="btn ${prior ? 'ghost' : 'primary'}" data-cm-lead-email="${payload}">${escapeHtml(label)} →</button>`;
   } else {
     actionHtml = `<a href="${escapeHtml(href)}" class="btn primary"${target}>${escapeHtml(it.action_label||'Open')} →</a>`;
   }
@@ -568,7 +601,7 @@ function renderActionItem(it) {
       <h3>${escapeHtml(it.title||'')}</h3>
       <div class="sub">${escapeHtml(it.subtitle||'')}</div>
     </div>
-    <div class="row-actions"><div class="age">${showAge ? fmtAge(it.age) : ''}</div><div class="action-row">${actionHtml}</div></div>
+    <div class="row-actions"><div class="age">${showAge ? fmtAge(it.age) : ''}${emailedBadge}</div><div class="action-row">${actionHtml}</div></div>
   </div>`;
 }
 
