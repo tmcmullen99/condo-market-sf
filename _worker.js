@@ -242,23 +242,10 @@ export default {
 
     // /active-listings → server-rendered market grid + map enhancement.
     if (url.pathname === '/active-listings' || url.pathname === '/active-listings/') {
-      let payload = null;
-      try {
-        const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/active_listings_page', {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({ p_market_slug: hostMk.slug }),
-        });
-        if (res.ok) payload = await res.json();
-      } catch (e) { payload = null; }
+      let payload = await fetchActiveListingsView(hostMk);
       if (!payload) payload = { count: 0, listings: [] };
       payload.footerData = await fetchFooterData(hostMk);
-      const html = applyMarketSwaps(renderActiveListings(payload), hostMk);
+      const html = applyMarketSwaps(renderActiveListings(payload, hostMk), hostMk);
       return new Response(html, {
         status: 200,
         headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=120, s-maxage=300' },
@@ -529,7 +516,7 @@ async function fetchCityData(citySlug, hostMk) {
 
     // Buildings in the city (embedded cities.slug filter; buildings_public_select = true)
     const bRes2 = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,unit_count,year_built,hero_image_url,cities!inner(slug)&cities.slug=eq.' +
-      encodeURIComponent(citySlug) + '&is_catalogued=eq.true&order=unit_count.desc.nullslast',
+      encodeURIComponent(citySlug) + '&is_catalogued=eq.true&slug=not.like.*-eichlers&display_name=not.ilike.*eichler*&order=unit_count.desc.nullslast',
       { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
     let buildings = [];
     if (bRes2.ok) buildings = await bRes2.json();
@@ -556,7 +543,7 @@ async function fetchCityData(citySlug, hostMk) {
 async function fetchMarketCities(hostMk) {
   try {
     // Cities whose buildings are catalogued; simplest: pull catalogued buildings w/ city, aggregate.
-    const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=cities!inner(slug,display_name,domain)&is_catalogued=eq.true&limit=2000',
+    const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=cities!inner(slug,display_name,domain)&is_catalogued=eq.true&slug=not.like.*-eichlers&display_name=not.ilike.*eichler*&limit=2000',
       { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
     if (!res.ok) return [];
     const rows = await res.json();
@@ -1421,7 +1408,7 @@ const CM_FOOTER_CSS =
 // plus the city list. One embedded-filter query; cached via page cache-control.
 async function fetchFooterData(hostMk) {
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,cities!inner(slug,display_name,domain)&is_catalogued=eq.true&order=display_name.asc&limit=2000',
+    const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,cities!inner(slug,display_name,domain)&is_catalogued=eq.true&slug=not.like.*-eichlers&display_name=not.ilike.*eichler*&order=display_name.asc&limit=2000',
       { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
     if (!res.ok) return { byCityHood: {}, cities: [] };
     const rows = await res.json();
@@ -1639,44 +1626,87 @@ function paragraphs(text) {
 }
 
 /* --------------------------- page renderer ------------------------------- */
-function renderActiveListings(p) {
-  const region = 'San Francisco';
-  const tag    = 'sf';
-  const domain = 'sanfranciscocondomarket.com';
-  const brand  = 'Condo Market SF';
+// Reads the backend contract view v_active_listings_display (Active/Pending/Contingent,
+// building-matched, Sold excluded, status normalized). Scopes to this market by first
+// resolving the market's building slugs (buildings→cities→markets), then filtering the
+// view to those slugs. No backend change needed; lights up Pending/Contingent automatically.
+async function fetchActiveListingsView(hostMk) {
+  const H = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' };
+  try {
+    // 1. building slugs in this market. Resolve market reliably via the
+    //    buildings→cities→markets join (city.domain is null for SV, so we use
+    //    markets.wordmark_tag, embedded in the select and filtered in JS).
+    const bRes = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,cities!inner(markets!inner(wordmark_tag))&is_catalogued=eq.true&slug=not.like.*-eichlers&limit=3000', { headers: H });
+    let slugs = [];
+    if (bRes.ok) {
+      const brows = await bRes.json();
+      (brows || []).forEach(function (b) {
+        const tag = b && b.cities && b.cities.markets && b.cities.markets.wordmark_tag;
+        if (tag === hostMk.tag) slugs.push(b.slug);
+      });
+    }
+    if (!slugs.length) return { count: 0, listings: [] };
+    // 2. view rows for those slugs
+    const inList = '(' + slugs.map(function (s) { return '"' + s.replace(/"/g, '') + '"'; }).join(',') + ')';
+    const vRes = await fetch(SUPABASE_URL + '/rest/v1/v_active_listings_display?select=*&building_slug=in.' + encodeURIComponent(inList) + '&order=first_listed_at.desc&limit=1000', { headers: H });
+    if (!vRes.ok) return { count: 0, listings: [] };
+    const rows = await vRes.json();
+    return { count: (rows || []).length, listings: rows || [] };
+  } catch (e) { return { count: 0, listings: [] }; }
+}
+
+function renderActiveListings(p, hostMk) {
+  const mk     = hostMk || { tag:'sf', region:'San Francisco', brand:'Condo Market SF', domain:'sanfranciscocondomarket.com' };
+  const region = mk.region;
+  const tag    = mk.tag;
+  const domain = mk.domain;
+  const brand  = mk.brand;
 
   const count = (p && p.count != null) ? Number(p.count) : 0;
   const listings = (p && Array.isArray(p.listings)) ? p.listings : [];
 
+  // Status badge from display_status (already normalized by the view).
+  function statusBadge(s) {
+    const v = (s || 'Active').toString();
+    if (v === 'Pending')    return '<span class="al-badge al-badge--pending">Pending</span>';
+    if (v === 'Contingent') return '<span class="al-badge al-badge--contingent">Contingent</span>';
+    return ''; // Active = no badge (design default)
+  }
+
+  // Sort: Active first, then Pending/Contingent; newest first within each.
+  const order = { 'Active': 0, 'Pending': 1, 'Contingent': 1 };
+  const sorted = listings.slice().sort(function (a, b) {
+    const oa = order[a.display_status] != null ? order[a.display_status] : 2;
+    const ob = order[b.display_status] != null ? order[b.display_status] : 2;
+    if (oa !== ob) return oa - ob;
+    return (new Date(b.first_listed_at || 0)) - (new Date(a.first_listed_at || 0));
+  });
+
   // Server-rendered cards (crawlable). Each links to /listing/<mls>.
-  const cards = listings.map(function (a) {
-    const aMls   = esc(a.mls || '');
-    const aName  = esc(a.building_name || 'Building');
-    const aHood  = a.neighborhood ? esc(a.neighborhood) : '';
-    const aUnit  = a.unit ? esc(a.unit) : '';
-    const aAddr  = esc(a.unit_address || '');
+  const cards = sorted.map(function (a) {
+    const aMls   = esc(a.mls_number || '');
+    const aSlug  = esc(a.building_slug || '');
+    const aUnit  = a.unit_label ? esc(a.unit_label) : '';
+    const aAddr  = esc(a.unit_address || a.building_address || '');
     const aPrice = (a.price != null) ? money(Number(a.price)) : 'Price on request';
     const aBeds  = (a.beds != null && a.beds !== '') ? Number(a.beds) : null;
     const aBaths = (a.baths != null && a.baths !== '') ? Number(a.baths) : null;
     const aSqft  = (a.sqft != null && a.sqft !== '') ? Number(a.sqft) : null;
+    const badge  = statusBadge(a.display_status);
     const specBits = [];
     if (aBeds  != null) specBits.push(aBeds + ' bd');
     if (aBaths != null) specBits.push(aBaths + ' ba');
     if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
     const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \u00b7 ') + '</div>' : '';
-    const media = a.photo
-      ? '<img class="al-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
+    const media = a.photo_url
+      ? '<img class="al-card-img" src="' + esc(a.photo_url) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
       : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
-    return '<a class="al-card" href="/listing/' + aMls + '" ' +
-      'data-mls="' + aMls + '"' +
-      (a.lat != null ? ' data-lat="' + a.lat + '"' : '') +
-      (a.lng != null ? ' data-lng="' + a.lng + '"' : '') +
-      ' data-price="' + (a.price != null ? a.price : '') + '">' +
-      media +
+    return '<a class="al-card" href="/listing/' + aMls + '" data-mls="' + aMls + '" data-price="' + (a.price != null ? a.price : '') + '">' +
+      '<div class="al-card-media">' + media + (badge ? '<div class="al-card-badge-wrap">' + badge + '</div>' : '') + '</div>' +
       '<div class="al-card-body">' +
       '<div class="al-card-price">' + aPrice + '</div>' +
-      '<div class="al-card-bldg">' + aName + (aUnit ? ' \u00b7 #' + aUnit : '') + '</div>' +
-      (aHood ? '<div class="al-card-hood">' + aHood + '</div>' : '') +
+      '<div class="al-card-bldg">' + esc(a.building_address || aSlug) + (aUnit ? ' \u00b7 #' + aUnit : '') + '</div>' +
+      (a.city ? '<div class="al-card-hood">' + esc(a.city) + '</div>' : '') +
       spec +
       '</div></a>';
   }).join('');
@@ -1700,6 +1730,11 @@ function renderActiveListings(p) {
     '.al-card{display:block;background:rgba(159,180,216,.05);border:1px solid rgba(159,180,216,.12);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,transform .15s}' +
     '.al-card:hover{border-color:rgba(159,180,216,.4);transform:translateY(-2px)}' +
     '.al-card-img{width:100%;height:180px;object-fit:cover;display:block;background:rgba(159,180,216,.08)}' +
+    '.al-card-media{position:relative}' +
+    '.al-card-badge-wrap{position:absolute;top:12px;left:12px}' +
+    '.al-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:5px 11px;border-radius:6px;backdrop-filter:blur(6px)}' +
+    '.al-badge--pending{background:rgba(217,119,6,.92);color:#fff}' +
+    '.al-badge--contingent{background:rgba(217,119,6,.92);color:#fff}' +
     '.al-card-img--ph{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(159,180,216,.1),rgba(159,180,216,.03))}' +
     '.al-card-body{padding:15px 17px 17px}' +
     '.al-card-price{font-family:"Playfair Display",Georgia,serif;font-size:22px;color:#fff;font-weight:700}' +
