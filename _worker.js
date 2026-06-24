@@ -1693,13 +1693,18 @@ function renderActiveListings(p, hostMk) {
     const aBaths = (a.baths != null && a.baths !== '') ? Number(a.baths) : null;
     const aSqft  = (a.sqft != null && a.sqft !== '') ? Number(a.sqft) : null;
     const badge  = statusBadge(a.display_status);
+    // Prefer re-hosted Supabase storage cover over the MLS MediaServer URL in
+    // photo_url (hotlink-protected). Cover is always listing-photos/<mls>/00.jpg.
+    const aPhoto = aMls
+      ? SUPABASE_URL + '/storage/v1/object/public/listing-photos/' + encodeURIComponent(aMls) + '/00.jpg'
+      : (a.photo_url || '');
     const specBits = [];
     if (aBeds  != null) specBits.push(aBeds + ' bd');
     if (aBaths != null) specBits.push(aBaths + ' ba');
     if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
     const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \u00b7 ') + '</div>' : '';
-    const media = a.photo_url
-      ? '<img class="al-card-img" src="' + esc(a.photo_url) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
+    const media = aPhoto
+      ? '<img class="al-card-img" src="' + esc(aPhoto) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
       : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
     return '<a class="al-card" href="/listing/' + aMls + '" data-mls="' + aMls + '" data-price="' + (a.price != null ? a.price : '') + '">' +
       '<div class="al-card-media">' + media + (badge ? '<div class="al-card-badge-wrap">' + badge + '</div>' : '') + '</div>' +
@@ -2118,8 +2123,14 @@ function renderBuilding(p) {
       if (aBaths != null) specBits.push(aBaths + ' ba');
       if (aSqft  != null) specBits.push(intc(aSqft) + ' sf');
       const spec = specBits.length ? '<div class="al-card-spec">' + specBits.join(' \u00b7 ') + '</div>' : '';
-      const media = a.photo
-        ? '<img class="al-card-img" src="' + esc(a.photo) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
+      // Photo: prefer the re-hosted Supabase storage cover (stable, no hotlink
+      // protection) over the raw MLS MediaServer URL in a.photo, which the MLS
+      // host blocks when hotlinked. Cover is always listing-photos/<mls>/00.jpg.
+      const aPhoto = aMls
+        ? SUPABASE_URL + '/storage/v1/object/public/listing-photos/' + encodeURIComponent(aMls) + '/00.jpg'
+        : (a.photo || '');
+      const media = aPhoto
+        ? '<img class="al-card-img" src="' + esc(aPhoto) + '" alt="' + aAddr + '" loading="lazy" onerror="this.classList.add(\'al-card-img--ph\');this.removeAttribute(\'src\');">'
         : '<div class="al-card-img al-card-img--ph" role="img" aria-label="' + aAddr + '"></div>';
       return '<a class="al-card" href="/listing/' + aMls + '">' +
         media +
