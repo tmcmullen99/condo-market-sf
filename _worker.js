@@ -1804,6 +1804,7 @@ function renderActiveListings(p, hostMk) {
     '</div>' +
     '<div class="al-layout"><div id="al-map"></div>' + grid + '</div>' +
     '</div></main>\n\n' +
+    leadToolsSection('', null, mk) +
     CM_FOOTER(p.footerData) +
     mapScript + '\n' +
     '</body>\n</html>';
@@ -2063,6 +2064,94 @@ function renderListing(d, footerData) {
     '<script src="/assets/cm-actions.js" defer></script>\n' +
     mapScript + '\n' +
     '</body>\n</html>';
+}
+
+// ── Lead-capture tools section: HOA cheat-sheet, video market review, and a
+// funnel-aware "talk to Tim" capture + Google Calendar scheduler. Rendered on
+// building pages and active-listing pages. Submits to capture_lead / hoa-doc-request.
+function leadToolsSection(slug, buildingName, mk) {
+  var hasBuilding = !!(slug && String(slug).length);
+  var nm = esc(buildingName || (mk && mk.region ? mk.region : 'this market'));
+  var s  = esc(slug || '');
+  var market = (mk && mk.tag === 'sv') ? 'sv' : 'sf';
+  var calUrl = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ3Ro-mJuYsbPWaLPZXUTo6gEa9qxdTVMpdX1E88E529PAUTuDC2CXdwNgjQrDsOJGo8IZRD8og5?gv=true';
+  var heading = hasBuilding ? ('Get the inside view on <em>' + nm + '</em>') : ('Get the inside view on the <em>' + nm + '</em> market');
+  var videoCopy = hasBuilding
+    ? ('A short video walkthrough of recent sales in ' + nm + ' and the buildings around it \u2014 what\u2019s moving, and what it means for value.')
+    : ('A short video walkthrough of what\u2019s selling across ' + nm + ' right now \u2014 the buildings to watch and what it means for value.');
+  return ''
+  + '<section class="section" id="resources"><div class="wrap">'
+  + '<div class="section-head"><div class="section-kicker">Go deeper</div>'
+  + '<h2 class="section-title">' + heading + '</h2>'
+  + '<p class="section-sub">' + (hasBuilding ? 'Three ways' : 'A couple of ways') + ' to learn more \u2014 no account required. Tell us where to send it and it\u2019s on its way.</p></div>'
+  + '<div class="lt-grid' + (hasBuilding ? '' : ' lt-grid--2') + '">'
+  // Tool 1: Video market review
+  + '<div class="lt-card" data-lt-tool="video_review">'
+  + '<div class="lt-ic">\u25B6</div>'
+  + '<h3>Watch the market review</h3>'
+  + '<p>' + videoCopy + '</p>'
+  + '<form class="lt-form" data-lt-form="video_review"><input type="email" required placeholder="you@email.com" aria-label="Your email"><button type="submit">Send me the video \u2192</button></form>'
+  + '<div class="lt-done" hidden>\u2713 On its way \u2014 check your inbox shortly.</div>'
+  + '</div>'
+  // Tool 2: HOA / CC&R cheat sheet (building pages only \u2014 needs a specific building)
+  + (hasBuilding ? (
+      '<div class="lt-card" data-lt-tool="hoa_docs">'
+    + '<div class="lt-ic">\u25A4</div>'
+    + '<h3>HOA &amp; CC&amp;R cheat sheet</h3>'
+    + '<p>A plain-English summary of ' + nm + '\u2019s rules, fees, rental policy, and the fine print that actually matters \u2014 delivered within 24 hours.</p>'
+    + '<form class="lt-form" data-lt-form="hoa_docs"><input type="email" required placeholder="you@email.com" aria-label="Your email"><button type="submit">Email me the summary \u2192</button></form>'
+    + '<div class="lt-done" hidden>\u2713 Got it \u2014 your summary arrives within 24 hours.</div>'
+    + '</div>'
+    ) : '')
+  // Tool 3: Talk to Tim (funnel-aware: high intent)
+  + '<div class="lt-card lt-card--cal" data-lt-tool="tour_request">'
+  + '<div class="lt-ic">\u25C9</div>'
+  + '<h3>Talk it through with Tim</h3>'
+  + '<p>Ready to go deeper? Grab a time directly \u2014 or leave your email and Tim will reach out.</p>'
+  + '<button type="button" class="lt-cal-open" data-cal-open>Book a time \u2192</button>'
+  + '<form class="lt-form lt-form--inline" data-lt-form="tour_request"><input type="email" required placeholder="\u2026or leave your email" aria-label="Your email"><button type="submit">Send</button></form>'
+  + '<div class="lt-done" hidden>\u2713 Thanks \u2014 Tim will be in touch.</div>'
+  + '</div>'
+  + '</div>'
+  // Calendar drawer (hidden until opened)
+  + '<div class="lt-cal-wrap" id="lt-cal-wrap" hidden><iframe src="' + calUrl + '" style="border:0" width="100%" height="600" frameborder="0" title="Schedule with Tim"></iframe></div>'
+  + '</div>'
+  + '<style>'
+  + '.lt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}'
+  + '.lt-grid--2{grid-template-columns:repeat(2,1fr);max-width:720px}'
+  + '.lt-card{background:var(--cm-navy-2,#232a3f);border:1px solid rgba(159,180,216,.16);border-radius:16px;padding:26px 24px;display:flex;flex-direction:column}'
+  + '.lt-ic{width:42px;height:42px;border-radius:11px;background:rgba(159,180,216,.14);color:var(--cm-peri,#9fb4d8);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:16px}'
+  + '.lt-card h3{font-family:inherit;font-size:18px;margin:0 0 8px;color:var(--cm-ivory,#f3f1ea)}'
+  + '.lt-card p{font-size:14px;line-height:1.55;color:var(--cm-ivory-dim,#aeb6c6);margin:0 0 18px;flex:1}'
+  + '.lt-form{display:flex;flex-direction:column;gap:8px}'
+  + '.lt-form--inline{margin-top:10px}'
+  + '.lt-form input{background:rgba(0,0,0,.22);border:1px solid rgba(159,180,216,.22);border-radius:9px;padding:11px 13px;color:#fff;font-family:inherit;font-size:14px}'
+  + '.lt-form input:focus{outline:none;border-color:var(--cm-peri,#9fb4d8)}'
+  + '.lt-form button,.lt-cal-open{background:var(--cm-peri,#9fb4d8);color:var(--cm-navy,#1a1f2e);border:none;border-radius:9px;padding:11px 16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s}'
+  + '.lt-form button:hover,.lt-cal-open:hover{filter:brightness(1.06)}'
+  + '.lt-cal-open{width:100%;margin-bottom:4px}'
+  + '.lt-done{font-size:13px;color:var(--cm-peri,#9fb4d8);font-weight:600;padding-top:6px}'
+  + '.lt-cal-wrap{margin-top:22px;background:#fff;border-radius:14px;overflow:hidden}'
+  + '@media(max-width:760px){.lt-grid{grid-template-columns:1fr}}'
+  + '</style>'
+  + '<script>(function(){'
+  + 'var SB="' + SUPABASE_URL + '",AK="' + SUPABASE_ANON_KEY + '",SLUG="' + s + '",NM="' + nm.replace(/"/g,'\\"') + '",MK="' + market + '";'
+  + 'function track(t,m){try{if(window.cmTrack)window.cmTrack(t,m);}catch(e){}}'
+  + 'var capIntent={video_review:"video_review",tour_request:"tour_request"};'
+  + 'document.querySelectorAll("[data-lt-form]").forEach(function(f){'
+  + 'f.addEventListener("submit",function(e){e.preventDefault();'
+  + 'var tool=f.getAttribute("data-lt-form");var email=(f.querySelector("input")||{}).value;'
+  + 'if(!email)return;var btn=f.querySelector("button");if(btn){btn.disabled=true;btn.textContent="Sending\u2026";}'
+  + 'var done=function(){var d=f.parentNode.querySelector(".lt-done");if(d){f.style.display="none";d.hidden=false;}track("cta_click",{tool:tool,action:"lead_captured",building:SLUG});};'
+  + 'var fail=function(){if(btn){btn.disabled=false;btn.textContent="Try again";}};'
+  + 'if(tool==="hoa_docs"){'
+  + 'fetch(SB+"/functions/v1/hoa-doc-request",{method:"POST",headers:{"Content-Type":"application/json","apikey":AK,"Authorization":"Bearer "+AK},body:JSON.stringify({email:email,building_slug:SLUG,building_name:NM,market:MK})}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok)done();else fail();}).catch(fail);'
+  + '}else{'
+  + 'fetch(SB+"/rest/v1/rpc/capture_lead",{method:"POST",headers:{"Content-Type":"application/json","apikey":AK,"Authorization":"Bearer "+AK},body:JSON.stringify({p_email:email,p_building_slug:SLUG,p_intent:capIntent[tool]||"interest",p_source:tool+"_form",p_message:tool+" request for "+NM})}).then(function(r){if(r.ok)done();else fail();}).catch(fail);'
+  + '}});});'
+  + 'var co=document.querySelector("[data-cal-open]");if(co){co.addEventListener("click",function(){var w=document.getElementById("lt-cal-wrap");if(w){w.hidden=false;w.scrollIntoView({behavior:"smooth",block:"center"});track("cta_click",{tool:"calendar",action:"opened",building:SLUG});}});}'
+  + '})();</script>'
+  + '</section>';
 }
 
 function renderBuilding(p) {
@@ -2433,6 +2522,7 @@ function renderBuilding(p) {
     compareSection +
     mortgageSection +
     offerSection +
+    leadToolsSection(slug, name, mk) +
     '</main>\n\n' +
     CM_FOOTER(p.footerData) +
     '<script>' + MORT_CALC + '</script>\n' +
