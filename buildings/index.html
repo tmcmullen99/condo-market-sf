@@ -1511,6 +1511,7 @@ img { display: block; max-width: 100%; }
 
     var nB = ci(st.buildings), nU = ci(st.units), nH = ci(st.neighborhoods),
         psf = '$' + ci(st.median_psf_36mo), vol = moneyB(st.volume_10y),
+        psf3 = '$' + ci(st.median_psf_3mo),
         s10 = ci(st.sales_10y), tot = ci(st.total_sales), latest = fullDate(st.latest_sale_date);
     var txn = (fees.transaction_pct != null) ? fees.transaction_pct : 3,
         hoa = (fees.hoa_pct != null) ? fees.hoa_pct : 1;
@@ -1533,10 +1534,10 @@ img { display: block; max-width: 100%; }
         '<li><span class="k">Neighborhoods</span><span class="v">' + nH + '</span></li>' +
         '<li><span class="k">Sales · 10y</span><span class="v">' + s10 + '</span></li>' +
         '<li><span class="k">Per-unit detail</span><span class="v peri">Members</span></li></ul></div>' +
-      '<div class="intel-v2-card"><p class="intel-v2-eyebrow">Median value</p><p class="intel-v2-big">' + psf + '</p><p class="intel-v2-big-unit">median $/sf · 36 mo</p><ul class="intel-v2-list">' +
+      '<div class="intel-v2-card"><p class="intel-v2-eyebrow">Median value</p><p class="intel-v2-big">' + psf3 + '</p><p class="intel-v2-big-unit">median $/sf · 3 mo</p><ul class="intel-v2-list">' +
         '<li><span class="k">Total sales tracked</span><span class="v">' + tot + '</span></li>' +
         '<li><span class="k">Latest recorded sale</span><span class="v">' + latest + '</span></li>' +
-        '<li><span class="k">Window</span><span class="v">Trailing 36mo</span></li></ul></div>' +
+        '<li><span class="k">Window</span><span class="v">Trailing 3mo</span></li></ul></div>' +
       '<div class="intel-v2-card"><p class="intel-v2-eyebrow">Transaction volume</p><p class="intel-v2-big">' + vol + '</p><p class="intel-v2-big-unit">10-year volume</p><ul class="intel-v2-list">' +
         '<li><span class="k">Sales tracked</span><span class="v">' + s10 + '</span></li>' +
         '<li><span class="k">Median $/sf</span><span class="v">' + psf + '</span></li>' +
