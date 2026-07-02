@@ -236,6 +236,19 @@ export default {
       return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
     }
 
+    // Merged-building 301s. 250 King St + 260 King St were merged into one
+    // 595-unit development, "The Beacon" (2026-07-01). Preserve inbound links,
+    // saved references, and SEO by 301-ing the retired slugs to the canonical.
+    const MERGED_SLUGS = { '250-king-st': 'the-beacon', '260-king-st': 'the-beacon' };
+    const mergedM = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
+    if (mergedM && request.method === 'GET') {
+      const canonical = MERGED_SLUGS[mergedM[1].toLowerCase()];
+      if (canonical) {
+        const target = 'https://' + url.host + '/building/' + canonical + '/' + url.search + url.hash;
+        return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
+      }
+    }
+
 /* ─────────────────────────────────────────────────────────────────────────
    (A) ROUTE HANDLER  — paste inside fetch() before the building route match
    ───────────────────────────────────────────────────────────────────────── */
