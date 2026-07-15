@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1031 exchange for condo investors · Condo Market</title>
+<meta name="description" content="Stop being a landlord. Start being an investor. How condo owners use a 1031 exchange to roll a rental condo into higher-yielding, hands-off assets — deferring the capital-gains tax entirely.">
+
+<!-- HOST-AWARE ACCENT (runs before paint to avoid gold flash) -->
+<script>
+(function() {
+  var h = location.hostname.toLowerCase();
+  var isSV = h.indexOf('siliconvalley') !== -1;
+  var accent = isSV ? '#00A8B5' : '#C2410C';
+  var accentDeep = isSV ? '#006D75' : '#9A3412';
+  var s = document.documentElement.style;
+  s.setProperty('--accent', accent);
+  s.setProperty('--accent-deep', accentDeep);
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy: #1a1f2e;
+  --navy-soft: #232838;
+  --blue-gray: #91a1ba;
+  --charcoal: #353535;
+  --white: #ffffff;
+  --cream: #f6f4ee;
+  --cream-deep: #ebe7da;
+  --line: #e1ddd0;
+  --accent: #C2410C;
+  --accent-deep: #9A3412;
+  --accent-tint: rgba(194,65,12,0.08);
+  --shadow-card: 0 6px 24px rgba(26,31,46,0.06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; overflow-x: hidden; }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: var(--white);
+  color: var(--charcoal);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+button { font-family: inherit; cursor: pointer; }
+a { color: inherit; }
+
+/* ========== TOP NAV ========== */
+.topnav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(26, 31, 46, 0.97);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--white);
+  padding: 14px 28px;
+  display: flex; align-items: center; gap: 24px;
+}
+.topnav a { color: var(--cream); text-decoration: none; font-size: 14px; font-weight: 500; }
+.topnav a:hover { color: var(--accent); }
+.topnav-brand {
+  font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px;
+  color: var(--white); flex: 1;
+}
+.topnav-brand a { color: var(--white); font-weight: 700; }
+.topnav-brand .accent { color: var(--accent); font-style: italic; font-weight: 600; }
+.topnav .pill {
+  background: var(--accent); color: var(--white);
+  padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  transition: background 0.15s;
+}
+.topnav .pill:hover { background: var(--accent-deep); color: var(--white); }
+@media (max-width: 700px) {
+  .topnav { padding: 12px 16px; gap: 16px; }
+  .topnav a:not(.pill) { display: none; }
+}
+
+/* ========== HERO + PARALLAX ========== */
+.hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
+  color: var(--white);
+  padding: 110px 24px 120px;
+  text-align: center;
+}
+.hero-parallax { position: absolute; inset: 0; pointer-events: none; z-index: 0; will-change: transform; }
+.hero-parallax .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.35; }
+.hero-parallax .blob-1 { width: 380px; height: 380px; top: -100px; left: -100px; background: var(--accent); opacity: 0.18; }
+.hero-parallax .blob-2 { width: 280px; height: 280px; top: 200px; right: -80px; background: var(--blue-gray); opacity: 0.15; }
+.hero-parallax .blob-3 { width: 220px; height: 220px; bottom: -80px; left: 30%; background: var(--accent-deep); opacity: 0.12; }
+.hero > * { position: relative; z-index: 1; }
+.hero .eyebrow {
+  font-size: 12px; letter-spacing: 2.8px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 24px; font-weight: 600;
+}
+.hero h1 {
+  color: var(--white); font-size: clamp(44px, 6.2vw, 80px); line-height: 1.02;
+  max-width: 980px; margin: 0 auto 24px; font-weight: 800;
+}
+.hero h1 .accent { color: var(--accent); font-style: italic; font-weight: 700; }
+.hero p.lead {
+  font-size: clamp(17px, 1.5vw, 21px); color: var(--cream);
+  max-width: 700px; margin: 0 auto 44px; line-height: 1.5; opacity: 0.92;
+}
+.hero-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.hero .btn-primary {
+  background: var(--accent); color: var(--white);
+  padding: 16px 36px; border-radius: 8px; font-weight: 600; font-size: 16px;
+  text-decoration: none; display: inline-block; transition: all 0.15s;
+}
+.hero .btn-primary:hover { background: var(--accent-deep); transform: translateY(-2px); }
+.hero .btn-ghost {
+  background: rgba(255,255,255,0.06); color: var(--white);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 16px 36px; border-radius: 8px; font-weight: 600; font-size: 16px;
+  text-decoration: none; display: inline-block; transition: all 0.15s;
+}
+.hero .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ========== SECTIONS ========== */
+section.story { padding: 100px 24px; position: relative; overflow: hidden; }
+section.story.alt { background: var(--cream); }
+.section-inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
+.section-eyebrow {
+  font-size: 12px; letter-spacing: 2.2px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px; font-weight: 600;
+}
+.section-title {
+  font-size: clamp(34px, 4.4vw, 56px); line-height: 1.05; margin-bottom: 22px; font-weight: 800;
+}
+.section-title em { font-style: italic; color: var(--accent); font-weight: 700; }
+.section-lead {
+  font-size: clamp(17px, 1.4vw, 20px);
+  color: var(--charcoal); max-width: 760px; line-height: 1.55; margin-bottom: 44px;
+}
+
+/* PAIN / RULE CARDS */
+.pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.pain-card {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 14px; padding: 32px;
+  transition: all 0.3s; position: relative;
+}
+.pain-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: var(--shadow-card); }
+.pain-card .num {
+  font-family: 'Playfair Display', serif; font-size: 36px;
+  color: var(--accent); font-weight: 800; margin-bottom: 12px; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.pain-card h3 {
+  font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
+  color: var(--navy); margin-bottom: 10px; letter-spacing: -0.01em;
+}
+.pain-card p { font-size: 14px; color: var(--charcoal); margin: 0; line-height: 1.55; }
+@media (max-width: 800px) { .pain-grid { grid-template-columns: 1fr; } }
+.rules-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+@media (max-width: 980px) { .rules-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 680px) { .rules-grid { grid-template-columns: 1fr; } }
+
+/* REFRAME BAND */
+.reframe {
+  background: var(--navy); color: var(--white);
+  padding: 90px 24px; text-align: center; position: relative; overflow: hidden;
+}
+.reframe-bg {
+  position: absolute; inset: 0; opacity: 0.05; pointer-events: none;
+  background: radial-gradient(circle at 70% 40%, var(--accent) 0%, transparent 55%);
+}
+.reframe > * { position: relative; z-index: 1; }
+.reframe .eyebrow {
+  font-size: 12px; letter-spacing: 2.8px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 20px; font-weight: 600;
+}
+.reframe h2 {
+  color: var(--white); font-size: clamp(30px, 4.2vw, 52px);
+  line-height: 1.1; font-weight: 800; max-width: 880px; margin: 0 auto 20px;
+}
+.reframe h2 em { color: var(--accent); font-style: italic; }
+.reframe p { font-size: 18px; color: var(--cream); max-width: 660px; margin: 0 auto; opacity: 0.92; }
+
+/* ========== COMPARISON TABLE ========== */
+.comp-widget {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 14px; padding: 28px; margin-top: 12px;
+  box-shadow: var(--shadow-card); overflow-x: auto;
+}
+.comp-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+.comp-table thead th {
+  text-align: left; padding: 12px 12px;
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--blue-gray); font-weight: 600;
+  border-bottom: 1px solid var(--line);
+}
+.comp-table thead th.win { color: var(--accent-deep); }
+.comp-table tbody td {
+  padding: 15px 12px; border-bottom: 1px solid var(--line);
+  color: var(--charcoal); vertical-align: top;
+}
+.comp-table tbody tr:last-child td { border-bottom: none; }
+.comp-table .row-label { font-weight: 600; color: var(--navy); white-space: nowrap; }
+.comp-table .lose::before { content: '✕ '; color: var(--blue-gray); }
+.comp-table .win-cell { background: var(--accent-tint); color: var(--navy); }
+.comp-table .win-cell::before { content: '✓ '; color: var(--accent-deep); font-weight: 700; }
+
+/* ========== CALCULATOR (navy tool card) ========== */
+.mmm-tool {
+  background: linear-gradient(135deg, var(--navy) 0%, #2a3045 100%);
+  color: var(--white); border-radius: 18px;
+  padding: 56px 48px; margin-top: 12px; overflow: hidden; position: relative;
+}
+.mmm-tool .section-eyebrow { color: var(--accent); }
+.mmm-tool h3 { color: var(--white); font-size: clamp(26px, 3vw, 38px); margin-bottom: 14px; line-height: 1.1; }
+.mmm-tool .sub { font-size: 16px; color: var(--cream); opacity: 0.9; margin-bottom: 28px; }
+.calc-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 44px; align-items: start; }
+@media (max-width: 860px) { .calc-grid { grid-template-columns: 1fr; } }
+.calc-field { margin-bottom: 30px; }
+.calc-field:last-child { margin-bottom: 0; }
+.calc-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.calc-label .name { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.calc-label .val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--white); }
+.mmm-slider {
+  width: 100%; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.15);
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+.mmm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); cursor: grab;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15); border: none;
+}
+.mmm-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+.mmm-slider::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); cursor: grab; border: none;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+}
+.calc-hint { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 8px; }
+.calc-out {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 30px;
+}
+.calc-out .out-label {
+  font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 6px;
+}
+.calc-out .out-big {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(44px, 5vw, 60px);
+  font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  color: var(--white); margin-bottom: 20px;
+}
+.calc-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); font-size: 14px;
+}
+.calc-row .k { color: rgba(255,255,255,0.65); }
+.calc-row .v { font-weight: 600; color: var(--white); }
+.calc-fine { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 20px; line-height: 1.7; }
+
+/* ========== DST ========== */
+.dst-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 44px; align-items: start; margin-top: 12px; }
+@media (max-width: 900px) { .dst-grid { grid-template-columns: 1fr; } }
+.dst-copy ul { margin: 24px 0 0; padding: 0; list-style: none; }
+.dst-copy li {
+  padding: 8px 0 8px 26px; position: relative; font-size: 15px; color: var(--charcoal);
+}
+.dst-copy li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+.dst-fine { font-size: 12px; color: var(--blue-gray); margin-top: 22px; line-height: 1.7; }
+.dst-flow {
+  background: linear-gradient(135deg, var(--navy) 0%, #2a3045 100%);
+  color: var(--white); border-radius: 18px; padding: 40px 36px;
+}
+.dst-flow .flow-eyebrow {
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 22px;
+}
+.dst-step {
+  display: grid; grid-template-columns: 56px 1fr; gap: 18px; align-items: start;
+  padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.dst-step:last-child { border-bottom: none; }
+.dst-step .n {
+  font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800;
+  color: var(--accent); opacity: 0.75; line-height: 1.1;
+}
+.dst-step h4 { color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; }
+.dst-step p { font-size: 13px; color: var(--blue-gray); margin: 3px 0 0; }
+
+/* ========== MECHANICS ========== */
+.toolkit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 12px; }
+.toolkit-card {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 14px; padding: 32px;
+  transition: all 0.25s; display: block; position: relative;
+}
+.toolkit-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(26,31,46,0.08); }
+.toolkit-card .step {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 12px;
+}
+.toolkit-card h3 { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 10px; color: var(--navy); }
+.toolkit-card p { font-size: 14px; color: var(--charcoal); margin: 0; line-height: 1.55; }
+.toolkit-card p a { color: var(--accent-deep); font-weight: 600; text-decoration: none; }
+.toolkit-card p a:hover { text-decoration: underline; }
+@media (max-width: 800px) { .toolkit-grid { grid-template-columns: 1fr; } }
+
+/* ========== FAQ ACCORDION ========== */
+.faq { max-width: 820px; margin: 12px auto 0; }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-item:first-child { border-top: 1px solid var(--line); }
+.faq-q {
+  width: 100%; padding: 22px 0;
+  background: none; border: none; text-align: left;
+  font-family: 'Playfair Display', serif; font-size: 19px;
+  color: var(--navy); font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+}
+.faq-q .icon {
+  width: 28px; height: 28px; border: 1px solid var(--line);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--accent); flex-shrink: 0; margin-left: 16px;
+  transition: transform 0.25s, background 0.15s;
+}
+.faq-item.open .faq-q .icon {
+  transform: rotate(45deg); background: var(--accent); color: var(--white); border-color: var(--accent);
+}
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  font-size: 15px; color: var(--charcoal); line-height: 1.6;
+}
+.faq-item.open .faq-a { max-height: 400px; padding: 0 0 22px 0; }
+.faq-a a { color: var(--accent-deep); font-weight: 600; text-decoration: none; }
+.faq-a a:hover { text-decoration: underline; }
+
+/* ========== FINAL CTA ========== */
+.final {
+  background: var(--navy); color: var(--white);
+  padding: 110px 24px; text-align: center; position: relative; overflow: hidden;
+}
+.final-bg {
+  position: absolute; inset: 0; opacity: 0.05; pointer-events: none;
+  background:
+    radial-gradient(circle at 80% 30%, var(--accent) 0%, transparent 50%),
+    radial-gradient(circle at 20% 70%, var(--blue-gray) 0%, transparent 50%);
+}
+.final > * { position: relative; z-index: 1; }
+.final h2 {
+  color: var(--white); font-size: clamp(40px, 5.5vw, 72px);
+  margin-bottom: 20px; line-height: 1; font-weight: 800;
+}
+.final h2 em { color: var(--accent); font-style: italic; }
+.final p { font-size: 19px; color: var(--cream); max-width: 620px; margin: 0 auto 40px; opacity: 0.92; }
+.final .btn-primary {
+  background: var(--accent); color: var(--white);
+  padding: 18px 44px; border-radius: 8px; font-weight: 600; font-size: 17px;
+  text-decoration: none; display: inline-block; transition: all 0.15s;
+}
+.final .btn-primary:hover { background: var(--accent-deep); transform: translateY(-2px); }
+.final .small { font-size: 13px; margin-top: 18px; color: var(--blue-gray); }
+
+/* ========== FOOTER ========== */
+.footer {
+  background: var(--navy); color: var(--blue-gray);
+  padding: 36px 24px; text-align: center; font-size: 13px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer a { color: var(--cream); text-decoration: none; margin: 0 14px; }
+.footer a:hover { color: var(--accent); }
+.footer .copy { margin-top: 14px; font-size: 12px; opacity: 0.7; max-width: 860px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+/* ========== REVEAL ANIMATIONS ========== */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s ease, transform 0.8s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-stagger > * { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal-stagger.visible > *:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 0.15s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 0.25s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 0.35s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity: 1; transform: translateY(0); transition-delay: 0.45s; }
+.reveal-stagger.visible > *:nth-child(6) { opacity: 1; transform: translateY(0); transition-delay: 0.55s; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand"><a href="/how-it-works/" style="text-decoration:none;">Condo Market</a> <span class="accent">· 1031 exchange</span></div>
+  <a href="/buildings/">Browse buildings</a>
+  <a href="/how-it-works/">How it works</a>
+  <a href="/how-it-works/sell-with-tenants/">Sell with a tenant</a>
+  <a href="/save-10k/" class="pill">Save $10K →</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-parallax" data-parallax="-0.2">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="eyebrow">How it works · The 1031 path</div>
+  <h1>Stop being a landlord. <span class="accent">Start being an investor.</span></h1>
+  <p class="lead">A 1031 exchange lets you roll the full proceeds of your rental condo's sale into steady, hands-off real estate — deferring every dollar of capital-gains tax along the way. Same equity. A completely different life.</p>
+  <div class="hero-cta-row">
+    <a href="https://calendar.app.google/8iZ3UjzwVc1yQpgq8" class="btn-primary">Schedule a video call →</a>
+    <a href="#compare" class="btn-ghost">See the difference</a>
+  </div>
+</header>
+
+<!-- ========== SECTION 1: THE PAIN ========== -->
+<section class="story" id="pain">
+  <div class="section-inner">
+    <div class="section-eyebrow">If you own a rental condo, you already know</div>
+    <h2 class="section-title">Being a landlord is a job you didn't <em>mean to take</em>.</h2>
+    <p class="section-lead">You bought an investment. What you got was a pager — and the condo math makes it worse: between the mortgage, insurance, and HOA dues, many financed rental condos yield under 2%.</p>
+    <div class="pain-grid reveal-stagger">
+      <div class="pain-card">
+        <div class="num">01</div>
+        <h3>The 2 a.m. phone call</h3>
+        <p>A burst pipe, a dead water heater, a locked-out tenant. Residential landlording never really sleeps — and every emergency is yours.</p>
+      </div>
+      <div class="pain-card">
+        <div class="num">02</div>
+        <h3>HOA dues &amp; special assessments</h3>
+        <p>Dues climb every year, and a single special assessment can wipe out several years of rental profit — a risk unique to condos that you can't control and can't opt out of.</p>
+      </div>
+      <div class="pain-card">
+        <div class="num">03</div>
+        <h3>Impossible from out of state</h3>
+        <p>Move away and every toilet becomes a logistics problem. Managing a condo remotely means a property manager eating your thin margin — or midnight calls you can't answer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== REFRAME BAND ========== -->
+<section class="reframe">
+  <div class="reframe-bg"></div>
+  <div class="eyebrow">The reframe</div>
+  <h2>Your condo's equity doesn't have to keep <em>employing you</em>.</h2>
+  <p>The moment your rental is sold, that equity becomes fuel for something better: an asset that pays you without calling you. The 1031 exchange is the bridge — and it defers the tax so your full equity makes the jump.</p>
+</section>
+
+<!-- ========== SECTION 2: COMPARISON ========== -->
+<section class="story alt" id="compare">
+  <div class="section-inner">
+    <div class="section-eyebrow">Rental condo vs. commercial asset</div>
+    <h2 class="section-title">Same equity. A completely <em>different life</em>.</h2>
+    <div class="comp-widget reveal">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Rental condo</th>
+            <th class="win">Commercial asset</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Who maintains the property</td>
+            <td class="lose">You do — plus HOA dues for everything you don't</td>
+            <td class="win-cell">The tenant does, under a triple-net (NNN) lease</td>
+          </tr>
+          <tr>
+            <td class="row-label">Surprise costs</td>
+            <td class="lose">Special assessments, turnovers, repairs</td>
+            <td class="win-cell">Operating costs pass through to the tenant</td>
+          </tr>
+          <tr>
+            <td class="row-label">Cash flow</td>
+            <td class="lose">Lumpy — vacancies, turnover, thin margins</td>
+            <td class="win-cell">Steady — long leases with scheduled increases</td>
+          </tr>
+          <tr>
+            <td class="row-label">Lease length</td>
+            <td class="lose">12 months, then re-market and hope</td>
+            <td class="win-cell">5–15+ years, often with renewal options</td>
+          </tr>
+          <tr>
+            <td class="row-label">Emergency calls</td>
+            <td class="lose">Constant — the toilet is always your problem</td>
+            <td class="win-cell">Rare — the tenant runs day-to-day operations</td>
+          </tr>
+          <tr>
+            <td class="row-label">Managing from out of state</td>
+            <td class="lose">Stressful — needs boots on the ground</td>
+            <td class="win-cell">Genuinely hands-off — no midnight logistics</td>
+          </tr>
+          <tr>
+            <td class="row-label">Typical yield</td>
+            <td class="lose">Often under 2% net for financed condos</td>
+            <td class="win-cell">Frequently higher — more income per dollar invested</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 3: DEFERRAL CALCULATOR ========== -->
+<section class="story" id="calculator">
+  <div class="section-inner">
+    <div class="section-eyebrow">Run the numbers</div>
+    <h2 class="section-title">What could you keep <em>working</em> instead of paying?</h2>
+    <div class="mmm-tool reveal">
+      <div class="section-eyebrow">Live · your deferral</div>
+      <h3>Estimate your deferral.</h3>
+      <div class="sub">Two inputs. Drag to your numbers.</div>
+      <div class="calc-grid">
+        <div>
+          <div class="calc-field">
+            <div class="calc-label"><span class="name">Sale price</span><span class="val" id="c-sale">$1,500,000</span></div>
+            <input type="range" class="mmm-slider" id="i-sale" min="500000" max="10000000" step="50000" value="1500000">
+          </div>
+          <div class="calc-field">
+            <div class="calc-label"><span class="name">Your cost basis</span><span class="val" id="c-basis">$800,000</span></div>
+            <input type="range" class="mmm-slider" id="i-basis" min="100000" max="10000000" step="50000" value="800000">
+            <div class="calc-hint">What you originally paid + improvements.</div>
+          </div>
+        </div>
+        <div class="calc-out">
+          <div class="out-label">Estimated tax deferred</div>
+          <div class="out-big" id="o-deferred">$231,000</div>
+          <div class="calc-row"><span class="k">Capital gain</span><span class="v" id="o-gain">$700,000</span></div>
+          <div class="calc-row"><span class="k">Redeployable pre-tax</span><span class="v" id="o-reinvest">$1,500,000</span></div>
+          <div class="calc-fine">Illustrative estimate at a ~33% blended rate (federal + CA + recapture). Not tax advice — your CPA confirms actual figures.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 4: THE FULL PICTURE ========== -->
+<section class="story alt" id="rules">
+  <div class="section-inner">
+    <div class="section-eyebrow">The full picture</div>
+    <h2 class="section-title">Everything a 1031 exchange <em>actually does</em>.</h2>
+    <p class="section-lead">Section 1031 of the tax code lets you sell an investment property and reinvest the proceeds into another — deferring the capital-gains tax, the depreciation recapture, and the net investment income tax you'd otherwise owe. Done right, your entire equity keeps compounding instead of being cut by a third at the closing table. The rules are precise, and that precision is exactly where an experienced guide earns their keep.</p>
+    <div class="rules-grid reveal-stagger">
+      <div class="pain-card">
+        <h3>Like-kind is broad</h3>
+        <p>For real estate, "like-kind" is generous: nearly any investment property exchanges for nearly any other. A rental condo can become a retail strip, a medical office, an industrial building, or a share of a large institutional asset.</p>
+      </div>
+      <div class="pain-card">
+        <h3>The 45-day identification window</h3>
+        <p>From the day your sale closes, you have 45 calendar days to formally identify replacement properties in writing. Preparation before you sell is everything — targets are lined up in advance so the clock is never the enemy.</p>
+      </div>
+      <div class="pain-card">
+        <h3>The 180-day closing window</h3>
+        <p>You must close on the replacement within 180 days of the sale. Both clocks run at once, so the identification and the closing are planned as one sequence, not two.</p>
+      </div>
+      <div class="pain-card">
+        <h3>The qualified intermediary</h3>
+        <p>You can never touch the sale proceeds — they flow to a qualified intermediary (QI) who holds them and delivers them into the replacement purchase. Touch the money and the exchange collapses. The QI is coordinated so this is airtight.</p>
+      </div>
+      <div class="pain-card">
+        <h3>Avoiding "boot"</h3>
+        <p>To defer 100% of the gain, you generally reinvest all the proceeds and replace the debt. Any cash or debt relief you keep ("boot") is taxable. The trade is structured so you defer the maximum — or knowingly choose otherwise.</p>
+      </div>
+      <div class="pain-card">
+        <h3>Depreciation keeps compounding</h3>
+        <p>A 1031 also defers depreciation recapture, and the new asset resets a fresh depreciation schedule — more paper losses shielding your new income. Done repeatedly, gains roll forward for decades.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 5: DST ========== -->
+<section class="story" id="dst">
+  <div class="section-inner">
+    <div class="section-eyebrow">The zero-effort path</div>
+    <h2 class="section-title">Want truly passive? Exchange into a <em>Delaware Statutory Trust</em>.</h2>
+    <div class="dst-grid">
+      <div class="dst-copy">
+        <p class="section-lead" style="margin-bottom:0;">A DST is a fully-passive way to complete a 1031. Instead of buying and running a building yourself, you exchange your condo's equity into a fractional share of large, institutional-grade real estate — grocery-anchored retail, medical campuses, industrial distribution, multifamily portfolios — professionally managed by seasoned sponsors. You own a beneficial interest and simply receive monthly distributions.</p>
+        <ul>
+          <li>No tenants, no maintenance, no 2 a.m. calls — ever</li>
+          <li>Qualifies for full 1031 tax deferral</li>
+          <li>Diversify one condo across several institutional properties</li>
+          <li>Truly hands-off from anywhere in the country</li>
+          <li>Access to assets normally reserved for large investors</li>
+        </ul>
+        <p class="dst-fine">DSTs are securities sold through licensed representatives. The right specialists are coordinated for you — nothing here is an offer or tax advice.</p>
+      </div>
+      <div class="dst-flow reveal">
+        <div class="flow-eyebrow">The whole job, done for you</div>
+        <div class="dst-step">
+          <div class="n">01</div>
+          <div><h4>You sell the condo</h4><p>The sale and the exchange are prepped in parallel.</p></div>
+        </div>
+        <div class="dst-step">
+          <div class="n">02</div>
+          <div><h4>Equity flows to the QI</h4><p>Never to you — keeping the 1031 valid.</p></div>
+        </div>
+        <div class="dst-step">
+          <div class="n">03</div>
+          <div><h4>It buys your DST shares</h4><p>A fractional interest in institutional real estate.</p></div>
+        </div>
+        <div class="dst-step">
+          <div class="n">04</div>
+          <div><h4>You collect distributions</h4><p>Passive income lands — with nothing to manage.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 6: MECHANICS ========== -->
+<section class="story alt" id="mechanics">
+  <div class="section-inner">
+    <div class="section-eyebrow">The mechanics</div>
+    <h2 class="section-title">How the exchange runs, <em>start to finish</em>.</h2>
+    <div class="toolkit-grid reveal-stagger">
+      <div class="toolkit-card">
+        <div class="step">Step 1</div>
+        <h3>Sell your condo</h3>
+        <p>Proceeds go straight to a qualified intermediary — never to you — which keeps the exchange valid from day one. If your condo has a tenant, the <a href="/how-it-works/sell-with-tenants/">tenant-occupied playbook</a> maximizes the sale first.</p>
+      </div>
+      <div class="toolkit-card">
+        <div class="step">Step 2</div>
+        <h3>Identify in 45 days</h3>
+        <p>Higher-yield targets — NNN commercial, medical, industrial, or a DST — are lined up in advance, so the clock is never a scramble.</p>
+      </div>
+      <div class="toolkit-card">
+        <div class="step">Step 3</div>
+        <h3>Close within 180 days</h3>
+        <p>Roll the full amount into the new asset, deferring the capital gains and recapture you'd otherwise owe.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 7: FAQ ========== -->
+<section class="story" id="faq">
+  <div class="section-inner">
+    <div class="section-eyebrow">Common questions</div>
+    <h2 class="section-title">The things condo owners <em>ask first</em>.</h2>
+    <div class="faq">
+      <div class="faq-item">
+        <button class="faq-q">Do I have to find the new property myself? <span class="icon">+</span></button>
+        <div class="faq-a"><p>No. That's the job. Higher-performing replacement assets — NNN-leased retail, medical, industrial, or a Delaware Statutory Trust — are sourced with targets ready before your sale even closes, so the 45-day clock is never a scramble.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What if I don't want to manage anything at all? <span class="icon">+</span></button>
+        <div class="faq-a"><p>Then a Delaware Statutory Trust (DST) is likely your answer. You exchange into a fractional share of large, professionally managed institutional real estate and simply collect distributions. Zero tenants, zero toilets, zero calls.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">My condo has a tenant in it. Does that help or hurt? <span class="icon">+</span></button>
+        <div class="faq-a"><p>It usually helps your 1031 case — a tenanted condo is clearly an investment property. And on the sale itself, a tenant is a strategy, not a problem: see <a href="/how-it-works/sell-with-tenants/">selling tenant-occupied</a> for how the occupied-vs-vacant math is run before anything is signed.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I exchange one condo into several properties? <span class="icon">+</span></button>
+        <div class="faq-a"><p>Yes. You can diversify one condo into multiple assets — or several rentals into one larger, cleaner commercial holding. The structure is flexible; the strategy is what matters.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Is the tax really deferred, not just delayed a year? <span class="icon">+</span></button>
+        <div class="faq-a"><p>Deferred for as long as you keep exchanging. Roll asset into asset and the gain keeps moving forward. Many investors never pay it in their lifetime — heirs can receive a stepped-up basis. Your CPA and estate attorney confirm the specifics of your situation.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="final" id="call">
+  <div class="final-bg"></div>
+  <h2>Ready to stop being a <em>landlord</em>?</h2>
+  <p>Bring your condo — the building, roughly what you paid, what it's worth now — and in one video call we'll sketch what it could become: the asset, the tax deferred, and whether a DST is your zero-effort path. Timing matters, so let's talk before you sell.</p>
+  <a href="https://calendar.app.google/8iZ3UjzwVc1yQpgq8" class="btn-primary">Schedule a video call →</a>
+  <div class="small">No obligation · Your building's data, your numbers · Not tax advice</div>
+</section>
+
+<footer class="footer">
+  <a href="/">Home</a>
+  <a href="/buildings/">Buildings</a>
+  <a href="/how-it-works/">How it works</a>
+  <a href="/how-it-works/sell-with-tenants/">Sell with a tenant</a>
+  <a href="/save-10k/">$10K credit</a>
+  <div class="copy">© Condo Market · A McMullen Properties initiative · CA DRE #02016832. Nothing on this page is tax, legal, or investment advice; 1031 exchanges are governed by IRC §1031 and executed with your CPA, attorney, and a qualified intermediary. DSTs are securities offered through licensed representatives.</div>
+</footer>
+
+<script>
+(function() {
+  // ============== DEFERRAL CALCULATOR ==============
+  const $ = function(id) { return document.getElementById(id); };
+  const sale = $('i-sale'), basis = $('i-basis');
+  const RATE = 0.33;
+  function fmtUSD(n) { return '$' + Math.round(n).toLocaleString(); }
+
+  function updateCalc() {
+    let s = +sale.value, b = +basis.value;
+    if (b > s) { b = s; basis.value = s; }
+    const gain = Math.max(s - b, 0);
+    $('c-sale').textContent = fmtUSD(s);
+    $('c-basis').textContent = fmtUSD(b);
+    $('o-gain').textContent = fmtUSD(gain);
+    $('o-deferred').textContent = fmtUSD(gain * RATE);
+    $('o-reinvest').textContent = fmtUSD(s);
+  }
+  [sale, basis].forEach(function(el) { el.addEventListener('input', updateCalc); });
+  updateCalc();
+
+  // ============== FAQ ACCORDION ==============
+  document.querySelectorAll('.faq-q').forEach(function(q) {
+    q.addEventListener('click', function() {
+      q.closest('.faq-item').classList.toggle('open');
+    });
+  });
+
+  // ============== SCROLL REVEAL ==============
+  const obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal, .reveal-stagger, .reframe, .final').forEach(function(el) {
+    if (!el.classList.contains('reveal') && !el.classList.contains('reveal-stagger')) el.classList.add('reveal');
+    obs.observe(el);
+  });
+
+  // ============== PARALLAX ==============
+  let ticking = false;
+  window.addEventListener('scroll', function() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function() {
+      const y = window.scrollY;
+      document.querySelectorAll('[data-parallax]').forEach(function(el) {
+        const speed = parseFloat(el.dataset.parallax) || 0.2;
+        el.style.transform = 'translate3d(0, ' + (y * speed) + 'px, 0)';
+      });
+      ticking = false;
+    });
+  }, { passive: true });
+})();
+</script>
+
+</body>
+</html>
