@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sell with a tenant · Condo Market</title>
+<meta name="description" content="A tenant isn't a problem — it's a strategy. How Condo Market sells tenant-occupied condos: occupied-vs-vacant math, compliant buyouts, and direct access to the investors who already own condos here.">
+
+<!-- HOST-AWARE ACCENT (runs before paint to avoid gold flash) -->
+<script>
+(function() {
+  var h = location.hostname.toLowerCase();
+  var isSV = h.indexOf('siliconvalley') !== -1;
+  var accent = isSV ? '#00A8B5' : '#C2410C';
+  var accentDeep = isSV ? '#006D75' : '#9A3412';
+  var s = document.documentElement.style;
+  s.setProperty('--accent', accent);
+  s.setProperty('--accent-deep', accentDeep);
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy: #1a1f2e;
+  --navy-soft: #232838;
+  --blue-gray: #91a1ba;
+  --charcoal: #353535;
+  --white: #ffffff;
+  --cream: #f6f4ee;
+  --cream-deep: #ebe7da;
+  --line: #e1ddd0;
+  --accent: #C2410C;
+  --accent-deep: #9A3412;
+  --accent-tint: rgba(194,65,12,0.08);
+  --shadow-card: 0 6px 24px rgba(26,31,46,0.06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; overflow-x: hidden; }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: var(--white);
+  color: var(--charcoal);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+button { font-family: inherit; cursor: pointer; }
+a { color: inherit; }
+
+/* ========== TOP NAV ========== */
+.topnav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(26, 31, 46, 0.97);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--white);
+  padding: 14px 28px;
+  display: flex; align-items: center; gap: 24px;
+}
+.topnav a { color: var(--cream); text-decoration: none; font-size: 14px; font-weight: 500; }
+.topnav a:hover { color: var(--accent); }
+.topnav-brand {
+  font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px;
+  color: var(--white); flex: 1;
+}
+.topnav-brand a { color: var(--white); font-weight: 700; }
+.topnav-brand .accent { color: var(--accent); font-style: italic; font-weight: 600; }
+.topnav .pill {
+  background: var(--accent); color: var(--white);
+  padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  transition: background 0.15s;
+}
+.topnav .pill:hover { background: var(--accent-deep); color: var(--white); }
+@media (max-width: 700px) {
+  .topnav { padding: 12px 16px; gap: 16px; }
+  .topnav a:not(.pill) { display: none; }
+}
+
+/* ========== HERO + PARALLAX ========== */
+.hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-soft) 100%);
+  color: var(--white);
+  padding: 110px 24px 120px;
+  text-align: center;
+}
+.hero-parallax {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  will-change: transform;
+}
+.hero-parallax .blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(60px); opacity: 0.35;
+}
+.hero-parallax .blob-1 { width: 380px; height: 380px; top: -100px; left: -100px; background: var(--accent); opacity: 0.18; }
+.hero-parallax .blob-2 { width: 280px; height: 280px; top: 200px; right: -80px; background: var(--blue-gray); opacity: 0.15; }
+.hero-parallax .blob-3 { width: 220px; height: 220px; bottom: -80px; left: 30%; background: var(--accent-deep); opacity: 0.12; }
+.hero > * { position: relative; z-index: 1; }
+
+.hero .eyebrow {
+  font-size: 12px; letter-spacing: 2.8px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 24px; font-weight: 600;
+}
+.hero h1 {
+  color: var(--white); font-size: clamp(44px, 6.2vw, 80px); line-height: 1.02;
+  max-width: 980px; margin: 0 auto 24px; font-weight: 800;
+}
+.hero h1 .accent { color: var(--accent); font-style: italic; font-weight: 700; }
+.hero p.lead {
+  font-size: clamp(17px, 1.5vw, 21px); color: var(--cream);
+  max-width: 700px; margin: 0 auto 44px; line-height: 1.5; opacity: 0.92;
+}
+.hero-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.hero .btn-primary {
+  background: var(--accent); color: var(--white);
+  padding: 16px 36px; border-radius: 8px;
+  font-weight: 600; font-size: 16px;
+  text-decoration: none; display: inline-block;
+  transition: all 0.15s;
+}
+.hero .btn-primary:hover { background: var(--accent-deep); transform: translateY(-2px); }
+.hero .btn-ghost {
+  background: rgba(255,255,255,0.06); color: var(--white);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 16px 36px; border-radius: 8px;
+  font-weight: 600; font-size: 16px;
+  text-decoration: none; display: inline-block;
+  transition: all 0.15s;
+}
+.hero .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ========== SECTIONS ========== */
+section.story { padding: 100px 24px; position: relative; overflow: hidden; }
+section.story.alt { background: var(--cream); }
+.section-inner { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
+.section-eyebrow {
+  font-size: 12px; letter-spacing: 2.2px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px; font-weight: 600;
+}
+.section-title {
+  font-size: clamp(34px, 4.4vw, 56px); line-height: 1.05; margin-bottom: 22px;
+  font-weight: 800;
+}
+.section-title em { font-style: italic; color: var(--accent); font-weight: 700; }
+.section-lead {
+  font-size: clamp(17px, 1.4vw, 20px);
+  color: var(--charcoal); max-width: 760px; line-height: 1.55;
+  margin-bottom: 44px;
+}
+
+/* PAIN / PATH CARDS */
+.pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.pain-grid.two { grid-template-columns: repeat(2, 1fr); }
+.pain-card {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 14px; padding: 32px;
+  transition: all 0.3s; position: relative;
+}
+.pain-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: var(--shadow-card); }
+.pain-card .num {
+  font-family: 'Playfair Display', serif; font-size: 36px;
+  color: var(--accent); font-weight: 800; margin-bottom: 12px; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.pain-card .tag {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 12px;
+}
+.pain-card h3 {
+  font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700;
+  color: var(--navy); margin-bottom: 10px; letter-spacing: -0.01em;
+}
+.pain-card p { font-size: 14px; color: var(--charcoal); margin: 0; line-height: 1.55; }
+@media (max-width: 800px) { .pain-grid, .pain-grid.two { grid-template-columns: 1fr; } }
+
+.path-foot {
+  margin-top: 26px; padding: 20px 28px; text-align: center;
+  background: var(--accent-tint); border: 1px solid var(--line);
+  border-radius: 12px; font-size: 15px; color: var(--navy); font-weight: 500;
+}
+.path-foot em { color: var(--accent-deep); font-style: italic; }
+
+/* ========== CALCULATOR (navy tool card) ========== */
+.mmm-tool {
+  background: linear-gradient(135deg, var(--navy) 0%, #2a3045 100%);
+  color: var(--white); border-radius: 18px;
+  padding: 56px 48px; margin-top: 12px; overflow: hidden; position: relative;
+}
+.mmm-tool .section-eyebrow { color: var(--accent); }
+.mmm-tool h3 {
+  color: var(--white); font-size: clamp(26px, 3vw, 38px);
+  margin-bottom: 14px; line-height: 1.1;
+}
+.mmm-tool .sub { font-size: 16px; color: var(--cream); opacity: 0.9; margin-bottom: 28px; }
+.calc-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 44px; align-items: start; }
+@media (max-width: 860px) { .calc-grid { grid-template-columns: 1fr; } }
+
+.calc-field { margin-bottom: 30px; }
+.calc-field:last-child { margin-bottom: 0; }
+.calc-label {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;
+}
+.calc-label .name { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.calc-label .val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--white); }
+.mmm-slider {
+  width: 100%; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.15);
+  -webkit-appearance: none; appearance: none;
+  cursor: pointer;
+}
+.mmm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); cursor: grab;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+  border: none;
+}
+.mmm-slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+.mmm-slider::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); cursor: grab; border: none;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+}
+.calc-hint { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 8px; }
+
+.calc-out {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 30px;
+}
+.calc-out .out-label {
+  font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 6px;
+}
+.calc-out .out-big {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(44px, 5vw, 60px);
+  font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  color: var(--white); margin-bottom: 20px;
+}
+.calc-out .out-big .unit { font-size: 0.5em; font-weight: 700; }
+.calc-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 14px;
+}
+.calc-row .k { color: rgba(255,255,255,0.65); }
+.calc-row .v { font-weight: 600; color: var(--white); }
+.calc-row.hot .v { color: var(--accent); }
+.calc-fine {
+  font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 20px; line-height: 1.7;
+}
+
+/* ========== STAT BAR ========== */
+.stat-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  background: var(--navy); border-radius: 14px;
+  padding: 32px; margin-top: 40px; color: var(--white);
+}
+.stat-bar .stat .num {
+  font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 48px);
+  font-weight: 800; color: var(--white); line-height: 1; letter-spacing: -0.02em;
+}
+.stat-bar .stat .num .accent { color: var(--accent); }
+.stat-bar .stat .label {
+  font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--blue-gray); margin-top: 8px; font-weight: 600;
+}
+@media (max-width: 700px) {
+  .stat-bar { grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 24px; }
+}
+.stat-fine { font-size: 12px; color: var(--blue-gray); margin-top: 18px; }
+
+/* ========== STRATEGY PHASES ========== */
+.phase-list { margin-top: 12px; }
+.phase {
+  display: grid; grid-template-columns: 90px 1fr; gap: 28px; align-items: start;
+  padding: 40px 0; border-bottom: 1px solid var(--line);
+}
+.phase:last-child { border-bottom: none; }
+.phase .num {
+  font-family: 'Playfair Display', serif; font-size: 48px;
+  color: var(--accent); font-weight: 800; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.phase h3 {
+  font-family: 'Playfair Display', serif; font-size: 26px;
+  color: var(--navy); margin-bottom: 12px; line-height: 1.12;
+}
+.phase h3 em { font-style: italic; color: var(--accent); font-weight: 700; }
+.phase p { font-size: 15.5px; color: var(--charcoal); margin: 0 0 12px; line-height: 1.6; }
+.phase p:last-of-type { margin-bottom: 0; }
+.phase .note { font-size: 13.5px; color: var(--blue-gray); }
+.phase .tools {
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--blue-gray); font-weight: 600; margin-top: 12px;
+}
+@media (max-width: 640px) {
+  .phase { grid-template-columns: 1fr; gap: 10px; padding: 32px 0; }
+}
+
+/* ========== 1031 BRIDGE BAND ========== */
+.credit-band {
+  background: var(--accent); color: var(--white);
+  padding: 90px 24px; text-align: center; position: relative; overflow: hidden;
+}
+.credit-band-bg {
+  position: absolute; inset: 0; opacity: 0.08; pointer-events: none;
+  background: radial-gradient(circle at 20% 50%, var(--white) 0%, transparent 60%);
+}
+.credit-band > * { position: relative; z-index: 1; }
+.credit-band .eyebrow {
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  font-weight: 700; margin-bottom: 16px; opacity: 0.8;
+}
+.credit-band h2 {
+  color: var(--white); font-size: clamp(38px, 5vw, 64px);
+  margin-bottom: 18px; line-height: 1.02; font-weight: 800;
+}
+.credit-band p {
+  font-size: 19px; max-width: 640px; margin: 0 auto 36px;
+  color: rgba(255,255,255,0.9); line-height: 1.5;
+}
+.credit-band .btn-primary {
+  background: var(--navy); color: var(--white);
+  padding: 16px 40px; border-radius: 8px;
+  font-weight: 600; font-size: 16px;
+  text-decoration: none; display: inline-block;
+  transition: all 0.15s;
+}
+.credit-band .btn-primary:hover { background: #0f1320; transform: translateY(-2px); }
+.credit-band .small { font-size: 13px; margin-top: 18px; opacity: 0.8; }
+
+/* ========== FINAL CTA ========== */
+.final {
+  background: var(--navy); color: var(--white);
+  padding: 110px 24px; text-align: center; position: relative; overflow: hidden;
+}
+.final-bg {
+  position: absolute; inset: 0; opacity: 0.05; pointer-events: none;
+  background:
+    radial-gradient(circle at 80% 30%, var(--accent) 0%, transparent 50%),
+    radial-gradient(circle at 20% 70%, var(--blue-gray) 0%, transparent 50%);
+}
+.final > * { position: relative; z-index: 1; }
+.final h2 {
+  color: var(--white); font-size: clamp(40px, 5.5vw, 72px);
+  margin-bottom: 20px; line-height: 1; font-weight: 800;
+}
+.final h2 em { color: var(--accent); font-style: italic; }
+.final p {
+  font-size: 19px; color: var(--cream); max-width: 620px;
+  margin: 0 auto 40px; opacity: 0.92;
+}
+.final .btn-primary {
+  background: var(--accent); color: var(--white);
+  padding: 18px 44px; border-radius: 8px;
+  font-weight: 600; font-size: 17px;
+  text-decoration: none; display: inline-block;
+  transition: all 0.15s;
+}
+.final .btn-primary:hover { background: var(--accent-deep); transform: translateY(-2px); }
+.final .small { font-size: 13px; margin-top: 18px; color: var(--blue-gray); }
+
+/* ========== FOOTER ========== */
+.footer {
+  background: var(--navy); color: var(--blue-gray);
+  padding: 36px 24px; text-align: center; font-size: 13px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer a { color: var(--cream); text-decoration: none; margin: 0 14px; }
+.footer a:hover { color: var(--accent); }
+.footer .copy { margin-top: 14px; font-size: 12px; opacity: 0.7; max-width: 860px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+/* ========== REVEAL ANIMATIONS ========== */
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-stagger > * {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 0.15s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 0.25s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 0.35s; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand"><a href="/how-it-works/" style="text-decoration:none;">Condo Market</a> <span class="accent">· Sell with a tenant</span></div>
+  <a href="/buildings/">Browse buildings</a>
+  <a href="/how-it-works/">How it works</a>
+  <a href="/how-it-works/1031-exchange/">1031 exchange</a>
+  <a href="/save-10k/" class="pill">Save $10K →</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-parallax" data-parallax="-0.2">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="eyebrow">How it works · Selling tenant-occupied</div>
+  <h1>A tenant isn't a problem. <span class="accent">It's a strategy.</span></h1>
+  <p class="lead">Selling a condo with a tenant in place has two paths to top dollar: market it as an income asset to the right investor, or unlock a vacancy through a fair, compliant buyout and sell to the full market. We run both — and let the numbers decide.</p>
+  <div class="hero-cta-row">
+    <a href="https://calendar.app.google/8iZ3UjzwVc1yQpgq8" class="btn-primary">Schedule a video call →</a>
+    <a href="#strategy" class="btn-ghost">See the strategy</a>
+  </div>
+</header>
+
+<!-- ========== SECTION 1: THE CAP-RATE REALITY ========== -->
+<section class="story" id="yield">
+  <div class="section-inner">
+    <div class="section-eyebrow">The cap-rate reality</div>
+    <h2 class="section-title">What is your condo <em>actually yielding</em>?</h2>
+    <p class="section-lead">Between HOA dues, property tax, and insurance, most San Francisco rental condos net far less than their owners assume — and for financed owners, the true cash-on-cash return is often below 2%. Drag the sliders and run your own numbers.</p>
+
+    <div class="mmm-tool reveal">
+      <div class="section-eyebrow">Live · your yield</div>
+      <h3>Run your condo's numbers.</h3>
+      <div class="sub">Three inputs. Property tax (~1.18%) and an insurance estimate are applied automatically.</div>
+      <div class="calc-grid">
+        <div>
+          <div class="calc-field">
+            <div class="calc-label"><span class="name">Condo value</span><span class="val" id="c-val">$1,200,000</span></div>
+            <input type="range" class="mmm-slider" id="i-val" min="400000" max="5000000" step="25000" value="1200000">
+          </div>
+          <div class="calc-field">
+            <div class="calc-label"><span class="name">Monthly rent</span><span class="val" id="c-rent">$4,200</span></div>
+            <input type="range" class="mmm-slider" id="i-rent" min="1500" max="15000" step="100" value="4200">
+          </div>
+          <div class="calc-field">
+            <div class="calc-label"><span class="name">Monthly HOA dues</span><span class="val" id="c-hoa">$950</span></div>
+            <input type="range" class="mmm-slider" id="i-hoa" min="200" max="3500" step="25" value="950">
+            <div class="calc-hint">Special assessments not included — they only make this worse.</div>
+          </div>
+        </div>
+        <div class="calc-out">
+          <div class="out-label">Net unleveraged yield</div>
+          <div class="out-big"><span id="o-net">1.7</span><span class="unit">%</span></div>
+          <div class="calc-row"><span class="k">Gross yield (rent ÷ value)</span><span class="v" id="o-gross">4.2%</span></div>
+          <div class="calc-row"><span class="k">Annual HOA + tax + insurance</span><span class="v" id="o-costs">−$27,660</span></div>
+          <div class="calc-row"><span class="k">Net operating income</span><span class="v" id="o-noi">$22,740</span></div>
+          <div class="calc-row hot"><span class="k">Same equity at 6% commercial NNN</span><span class="v" id="o-nnn">$72,000/yr</span></div>
+          <div class="calc-fine">Illustrative estimates only — not tax, legal, or investment advice. Financed owners: subtract mortgage interest and the picture typically turns negative.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 2: TWO PATHS ========== -->
+<section class="story alt" id="paths">
+  <div class="section-inner">
+    <div class="section-eyebrow">The premise</div>
+    <h2 class="section-title">Most agents treat a tenant as an obstacle. The right buyer treats it as <em>income</em>.</h2>
+    <p class="section-lead">A tenant-occupied condo quietly costs you money when it's marketed like a vacant one and shown to buyers who don't want a lease. The value is unlocked by choosing the right path deliberately — and executing it with the analysis, legal work, and targeted outreach it deserves.</p>
+
+    <div class="pain-grid two reveal-stagger">
+      <div class="pain-card">
+        <div class="tag">Path A · Sell occupied</div>
+        <h3>Market it as an income asset</h3>
+        <p>Position the condo the way investors actually evaluate it: rent roll, lease terms, in-place yield, and upside to market rent. Then take it directly to the condo investors already in the Condo Market index — not the open market at large.</p>
+      </div>
+      <div class="pain-card">
+        <div class="tag">Path B · Deliver vacant</div>
+        <h3>Unlock the vacancy, compliantly</h3>
+        <p>A vacant condo reaches the full buyer pool and almost always commands more per square foot. San Francisco tenant buyouts are heavily regulated — required disclosures, Rent Board filings, rescission periods — so the buyout is structured with licensed legal guidance, fair to the tenant, and defensible.</p>
+      </div>
+    </div>
+    <div class="path-foot reveal">The decision is driven by <em>math, not guesswork</em> — occupied sale price vs. vacant sale price, net of buyout and carrying costs, modeled side by side before anything else happens.</div>
+  </div>
+</section>
+
+<!-- ========== SECTION 3: THE STRATEGY ========== -->
+<section class="story" id="strategy">
+  <div class="section-inner">
+    <div class="section-eyebrow">The strategy</div>
+    <h2 class="section-title">Two paths. One goal: <em>your top dollar</em>.</h2>
+
+    <div class="phase-list">
+      <div class="phase reveal">
+        <div class="num">01</div>
+        <div>
+          <h3>Model both paths, <em>then</em> decide</h3>
+          <p>Before anything else, we run the numbers on both: what your unit sells for occupied, versus what it sells for vacant net of a fair buyout and carrying costs. Building-level comps from the Condo Market catalogue anchor both sides of the analysis.</p>
+          <p class="note">On many condos, delivering the unit vacant lifts the sale price by more than the cost of a compliant buyout — but only the side-by-side analysis proves it for your unit.</p>
+          <div class="tools">Occupied-vs-vacant net analysis · Building comps · Carrying-cost model</div>
+        </div>
+      </div>
+      <div class="phase reveal">
+        <div class="num">02</div>
+        <div>
+          <h3>Structure a <em>compliant</em> tenant buyout</h3>
+          <p>When vacant is the higher-value path, the buyout is negotiated fairly and legally. San Francisco's rules are strict — pre-negotiation disclosures, Rent Board filing requirements, and rescission periods — and done wrong, a buyout is void or worse. Licensed legal counsel navigates the ordinance so the vacancy is clean and defensible.</p>
+          <p class="note">A well-structured buyout is often a win for both sides: the tenant receives a meaningful payment to relocate; the owner unlocks a materially higher vacant sale price.</p>
+          <div class="tools">Buyout agreements · Rent Ordinance compliance · Legal counsel</div>
+        </div>
+      </div>
+      <div class="phase reveal">
+        <div class="num">03</div>
+        <div>
+          <h3>Make the tenancy <em>legible</em> to investors</h3>
+          <p>If we sell occupied, investors buy numbers, not emotion. We analyze the tenancy in place — current rent vs. market rent, lease terms and expirations, payment history, deposit status — and build the case for what the unit could produce, so the buyer sees both the in-place return and the upside.</p>
+          <p class="note">A unit renting below market isn't a liability to an investor. Positioned correctly, "under-market rent" becomes "value-add opportunity."</p>
+          <div class="tools">Lease audit · Rent analysis · Market-rent study</div>
+        </div>
+      </div>
+      <div class="phase reveal">
+        <div class="num">04</div>
+        <div>
+          <h3>Build the <em>offering memorandum</em></h3>
+          <p>The condo is packaged as a professional investment offering: rent roll, income and expenses, cap rate and cash-on-cash at the asking price, HOA financial posture, and the value-add thesis. The same institutional-grade package a commercial broker would prepare — so a serious buyer can diligence it without friction.</p>
+          <div class="tools">Offering memorandum · Building analysis · Cap-rate modeling</div>
+        </div>
+      </div>
+      <div class="phase reveal">
+        <div class="num">05</div>
+        <div>
+          <h3>We already <em>know</em> the buyers</h3>
+          <p>This is where Condo Market is different. The platform maintains a working index of the actual investors who own condos across the catalogued buildings — ranked by units held, where they buy, and capacity to move. Your buyer list exists before your unit is even ready.</p>
+          <div class="tools">Ownership data · Portfolio ranking · Investor index</div>
+        </div>
+      </div>
+      <div class="phase reveal">
+        <div class="num">06</div>
+        <div>
+          <h3>Direct outreach, then <em>hard</em> negotiation</h3>
+          <p>Tailored, verified outreach invites each ranked investor to review the offering. Because the memorandum has already answered their diligence questions, negotiation stays focused on price and terms — cap-rate framing, lease contingencies, close timeline — protecting your net proceeds.</p>
+          <div class="tools">Verified outreach · Segmented campaigns · Negotiation</div>
+        </div>
+      </div>
+      <div class="phase reveal">
+        <div class="num">07</div>
+        <div>
+          <h3>Defer the gain with a <em>1031 exchange</em></h3>
+          <p>A tenant-occupied condo is usually an investment property — which means the gain likely qualifies for a 1031 exchange. Instead of paying capital-gains tax on the sale, the proceeds can roll into a like-kind property with the tax deferred. The sale and the exchange timeline are coordinated together.</p>
+          <div class="tools">Coordinated 1031 timeline · Qualified intermediary · Replacement sourcing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 4: INVESTOR NETWORK ========== -->
+<section class="story alt" id="network">
+  <div class="section-inner">
+    <div class="section-eyebrow">Why phase 05 is different</div>
+    <h2 class="section-title">We don't list and hope. We already know the <em>buyers</em>.</h2>
+    <p class="section-lead">Most agents put a tenant-occupied condo on the open market and wait for an investor to wander in. Condo Market did the opposite: built and maintains an index of the investors who actually own condos in the catalogued buildings — and the buildings they buy in.</p>
+
+    <div class="stat-bar reveal-stagger">
+      <div class="stat"><div class="num" data-count-to="1800">0</div><div class="label">Condo investors indexed</div></div>
+      <div class="stat"><div class="num" data-count-to="60">0</div><div class="label">Multi-unit holders (2+ condos)</div></div>
+      <div class="stat"><div class="num" data-count-to="200">0</div><div class="label">Buildings catalogued</div></div>
+      <div class="stat"><div class="num" data-count-to="10643">0</div><div class="label">Units in the database</div></div>
+    </div>
+    <div class="stat-fine">Figures reflect the maintained investor index and update as it grows. Every owner is stored as first-party data; do-not-contact preferences are recorded and honored.</div>
+  </div>
+</section>
+
+<!-- ========== 1031 BRIDGE BAND ========== -->
+<section class="credit-band" id="bridge">
+  <div class="credit-band-bg"></div>
+  <div class="eyebrow">After the sale</div>
+  <h2>Don't hand the gain to the IRS.</h2>
+  <p>Because a tenant-occupied condo is an investment, the gain usually qualifies for a 1031 exchange — letting you reinvest the full proceeds into your next property and defer the capital-gains tax entirely. It's the natural next move.</p>
+  <a href="/how-it-works/1031-exchange/" class="btn-primary">See the 1031 exchange path →</a>
+  <div class="small">Deferral mechanics · DSTs · The 45/180-day clocks — explained</div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="final" id="call">
+  <div class="final-bg"></div>
+  <h2>Own a condo with a <em>tenant</em>?</h2>
+  <p>A no-obligation video call to run the occupied-vs-vacant numbers on your unit — anchored to your building's actual sales data — and map the right path.</p>
+  <a href="https://calendar.app.google/8iZ3UjzwVc1yQpgq8" class="btn-primary">Schedule a video call →</a>
+  <div class="small">No listing required · No obligation · Your building's data, your numbers</div>
+</section>
+
+<footer class="footer">
+  <a href="/">Home</a>
+  <a href="/buildings/">Buildings</a>
+  <a href="/how-it-works/">How it works</a>
+  <a href="/how-it-works/1031-exchange/">1031 exchange</a>
+  <a href="/save-10k/">$10K credit</a>
+  <div class="copy">© Condo Market · A McMullen Properties initiative · CA DRE #02016832. Yield figures on this page are illustrative estimates only and do not constitute tax, legal, or investment advice; consult your CPA and attorney. Tenant buyout agreements are subject to the San Francisco Rent Ordinance and applicable law.</div>
+</footer>
+
+<script>
+(function() {
+  // ============== YIELD CALCULATOR ==============
+  const $ = function(id) { return document.getElementById(id); };
+  const val = $('i-val'), rent = $('i-rent'), hoa = $('i-hoa');
+  const TAX_RATE = 0.0118;   // approx SF property tax
+  const INSURANCE = 1800;    // annual HO-6 estimate
+  const NNN_RATE = 0.06;     // illustrative commercial NNN yield
+  function fmtUSD(n) { return '$' + Math.round(n).toLocaleString(); }
+
+  function updateCalc() {
+    const v = +val.value, r = +rent.value, h = +hoa.value;
+    $('c-val').textContent = fmtUSD(v);
+    $('c-rent').textContent = fmtUSD(r);
+    $('c-hoa').textContent = fmtUSD(h);
+
+    const grossAnnual = r * 12;
+    const costs = h * 12 + v * TAX_RATE + INSURANCE;
+    const noi = grossAnnual - costs;
+
+    $('o-gross').textContent = ((grossAnnual / v) * 100).toFixed(1) + '%';
+    $('o-costs').textContent = '\u2212$' + Math.round(costs).toLocaleString();
+    $('o-noi').textContent = noi >= 0 ? fmtUSD(noi) : '\u2212$' + Math.abs(Math.round(noi)).toLocaleString();
+    $('o-net').textContent = ((noi / v) * 100).toFixed(1);
+    $('o-nnn').textContent = fmtUSD(v * NNN_RATE) + '/yr';
+  }
+  [val, rent, hoa].forEach(function(el) { el.addEventListener('input', updateCalc); });
+  updateCalc();
+
+  // ============== ANIMATED COUNTERS ==============
+  function animateCount(el) {
+    const target = parseInt(el.dataset.countTo, 10);
+    if (!target || el.dataset.counted) return;
+    el.dataset.counted = '1';
+    const duration = 1200;
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * eased).toLocaleString();
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ============== SCROLL REVEAL ==============
+  const obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        e.target.querySelectorAll('[data-count-to]').forEach(animateCount);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal, .reveal-stagger, .stat-bar, .credit-band, .final').forEach(function(el) {
+    if (!el.classList.contains('reveal') && !el.classList.contains('reveal-stagger')) el.classList.add('reveal');
+    obs.observe(el);
+  });
+
+  // ============== PARALLAX ==============
+  let ticking = false;
+  window.addEventListener('scroll', function() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function() {
+      const y = window.scrollY;
+      document.querySelectorAll('[data-parallax]').forEach(function(el) {
+        const speed = parseFloat(el.dataset.parallax) || 0.2;
+        el.style.transform = 'translate3d(0, ' + (y * speed) + 'px, 0)';
+      });
+      ticking = false;
+    });
+  }, { passive: true });
+})();
+</script>
+
+</body>
+</html>
