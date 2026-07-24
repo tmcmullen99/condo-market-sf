@@ -412,6 +412,10 @@
 
   const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+  // Publish credentials for shared modules (cm-psf-chart.js) immediately,
+  // before any async boot step, so a module can never read them empty.
+  window.__CM_SUPABASE_URL__ = SUPABASE_URL;
+  window.__CM_SUPABASE_ANON__ = SUPABASE_ANON;
   const MARKET = (typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) || 'san-francisco-condo-market';
 
   async function rpc(name, body) {
@@ -756,8 +760,6 @@
   // homepage are guaranteed identical — same RPC, same code, same styling.
   function initTimeline() {
     if (!window.CMPsfChart) { console.warn('cm-psf-chart.js not loaded'); return; }
-    window.__CM_SUPABASE_URL__ = SUPABASE_URL;
-    window.__CM_SUPABASE_ANON__ = SUPABASE_ANON;
     return window.CMPsfChart.mount({
       market: MARKET,
       canvas: '#timeline-chart',
