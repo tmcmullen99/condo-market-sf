@@ -1123,9 +1123,11 @@ img { display: block; max-width: 100%; }
     <div class="intel-v3-showcase">
       <div class="intel-v3-card intel-v3-trajectory">
         <div class="intel-v3-card-head">
-          <p class="intel-v2-eyebrow">Citywide $/sf trajectory</p>
-          <p class="intel-v3-card-sub">Median by quarter, trailing 10 years</p>
+          <p class="intel-v2-eyebrow">$/sf trajectory</p>
+          <p class="intel-v3-card-sub" id="intel-v3-sub">Median $/sf</p>
         </div>
+        <div id="intel-v3-controls"></div>
+        <div class="cmp-empty" id="intel-v3-empty" style="display:none"></div>
         <div class="intel-v3-chart-wrap"><canvas id="intel-v3-chart"></canvas></div>
         <div class="intel-v3-bookends"><span id="intel-v3-start">—</span><span id="intel-v3-end">—</span></div>
       </div>
@@ -1776,32 +1778,23 @@ img { display: block; max-width: 100%; }
   // ─── INTEL TEASER: trajectory chart + recent sales feed ──
   function intelTeaser(idx) {
     var nameBySlug = {}; idx.forEach(function (b) { nameBySlug[b.slug] = b.name; });
-    Promise.all([
-      rpc('intelligence_psf_quarterly', { p_market_slug: MARKET }),
-      rpc('intelligence_recent_sales', { p_limit: 6, p_market_slug: MARKET })
-    ]).then(function (res) {
-      var timeline = res[0], recent = res[1];
-      if (timeline && timeline.length >= 4 && window.Chart) {
-        var labels = timeline.map(function (q) { var d = new Date(q.quarter_start + 'T00:00:00'); return 'Q' + (Math.floor(d.getMonth() / 3) + 1) + ' ' + d.getFullYear(); });
-        var data = timeline.map(function (q) { return q.median_psf; });
-        var ctx = $('#intel-v3-chart');
-        if (ctx) {
-          new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: [{ label: 'Median $/sf', data: data, borderColor: '#9fb4d8', backgroundColor: 'rgba(159,180,216,0.10)', borderWidth: 2.5, tension: 0.32, fill: true, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#9fb4d8', pointHoverBorderColor: '#1a1f2e' }] },
-            options: {
-              responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
-              plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a1f2e', borderColor: 'rgba(159,180,216,0.3)', borderWidth: 1, titleColor: '#e8e3d8', bodyColor: '#9fb4d8', titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 13 }, padding: 12, displayColors: false, callbacks: { label: function (c) { return '$' + (c.parsed.y || 0).toLocaleString() + '/sf'; } } } },
-              scales: { x: { grid: { color: '#e8edf4' }, ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 28 } }, y: { grid: { color: '#e8edf4' }, ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 }, callback: function (v) { return '$' + v.toLocaleString(); } } } }
-            }
-          });
-        }
-        var first = timeline[0], last = timeline[timeline.length - 1];
-        var dS = new Date(first.quarter_start + 'T00:00:00'), dE = new Date(last.quarter_start + 'T00:00:00');
-        var s = $('#intel-v3-start'), e = $('#intel-v3-end');
-        if (s) s.innerHTML = 'Q' + (Math.floor(dS.getMonth() / 3) + 1) + ' ' + dS.getFullYear() + '<b>$' + first.median_psf.toLocaleString() + '/sf</b>';
-        if (e) e.innerHTML = 'Q' + (Math.floor(dE.getMonth() / 3) + 1) + ' ' + dE.getFullYear() + '<b>$' + last.median_psf.toLocaleString() + '/sf</b>';
-      }
+    if (window.CMPsfChart) {
+      window.__CM_SUPABASE_URL__ = SUPABASE_URL;
+      window.__CM_SUPABASE_ANON__ = SUPABASE_ANON;
+      // Same module, same RPC, same defaults as the Intelligence page.
+      window.CMPsfChart.mount({
+        market: MARKET,
+        canvas: '#intel-v3-chart',
+        controls: '#intel-v3-controls',
+        subtitle: '#intel-v3-sub',
+        bookendStart: '#intel-v3-start',
+        bookendEnd: '#intel-v3-end',
+        empty: '#intel-v3-empty',
+        accent: '#c2410c',
+        defaults: { grain: 'quarter', years: 10, hood: '' }
+      });
+    }
+    rpc('intelligence_recent_sales', { p_limit: 6, p_market_slug: MARKET }).then(function (recent) {
       var feedEl = $('#intel-v3-feed'); if (!feedEl) return;
       if (!recent || recent.length === 0) { feedEl.innerHTML = '<div class="intel-v3-loading">No recent sales recorded yet.</div>'; return; }
       feedEl.innerHTML = recent.map(function (r) {
@@ -1812,7 +1805,7 @@ img { display: block; max-width: 100%; }
           '<div class="intel-v3-feed-meta">' + esc(bldgName) + (r.sqft ? ' · ' + nf(r.sqft) + ' sf' : '') + (psf ? ' · $' + nf(psf) + '/sf' : '') + '</div></div>' +
           '<div><div class="intel-v3-feed-price">' + moneyShort(r.sale_price) + '</div><div class="intel-v3-feed-date">' + fullDate(r.sale_date) + '</div></div></a>';
       }).join('');
-    }).catch(function (err) { console.warn('intel teaser failed', err); var f = $('#intel-v3-feed'); if (f) f.innerHTML = '<div class="intel-v3-loading">Could not load market data.</div>'; });
+    }).catch(function (err) { console.warn('recent sales failed', err); var f = $('#intel-v3-feed'); if (f) f.innerHTML = '<div class="intel-v3-loading">Could not load recent sales.</div>'; });
   }
 
   // ─── BOOT ────────────────────────────────────────────────
@@ -1834,5 +1827,6 @@ img { display: block; max-width: 100%; }
 
 </script>
   <script type="module" src="/assets/offer.js"></script>
+  <script src="/assets/cm-psf-chart.js"></script>
 </body>
 </html>
