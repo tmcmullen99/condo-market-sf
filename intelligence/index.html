@@ -342,32 +342,21 @@
     <div class="wrap">
       <div class="section-head">
         <h2 class="section-title">Price movement by <em>neighborhood</em></h2>
-        <span class="section-sub">Median $/sf · then vs now, charted by quarter</span>
+        <span class="section-sub" id="pm-sub">Median $/sf</span>
       </div>
       <div class="timeline-shell">
-        <div class="timeline-toggle">
-          <select id="pm-hood" style="font-family:var(--ff-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--cm-ivory);background:var(--cm-card);border:1px solid var(--cm-rule);border-radius:999px;padding:8px 16px;cursor:pointer;">
-            <option value="">All</option>
-          </select>
-          <div class="timeline-period" id="pm-period">
-            <button data-range="1">1 Year</button>
-            <button data-range="3">3 Years</button>
-            <button data-range="5">5 Years</button>
-            <button class="on" data-range="10">10 Years</button>
-          </div>
-        </div>
+        <div id="pm-controls"></div>
         <div class="pm-cards" id="pm-cards" style="display:none;"></div>
+        <div class="cmp-empty" id="pm-empty" style="display:none"></div>
         <div class="timeline-canvas-wrap">
           <canvas id="timeline-chart"></canvas>
         </div>
         <div class="timeline-bookends">
           <div>
-            <div class="bookend-date" id="bookend-start-date">--</div>
-            <div class="bookend-val" id="bookend-start">--</div>
+                        <div class="bookend-val" id="bookend-start">--</div>
           </div>
           <div class="bookend-r">
-            <div class="bookend-date" id="bookend-end-date">--</div>
-            <div class="bookend-val" id="bookend-end">--</div>
+                        <div class="bookend-val" id="bookend-end">--</div>
           </div>
         </div>
       </div>
@@ -719,7 +708,6 @@
 
   // ───────── Price movement (unified: cards + graph, 1/3/5/10yr) ─────────
   let timelineChart = null;
-  let allQuarters = [];
   let pmYears = 10;
   let pmHood = '';
   let pmMoveCache = {};
@@ -764,137 +752,25 @@
     pmStatCards();
   }
 
-  async function initTimeline() {
-    try {
-      allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: null });
-      drawTimeline(pmYears);
-      populatePmHoods();
-    } catch (e) {
-      console.warn('price movement failed', e);
-    }
-  }
-
-  async function populatePmHoods() {
-    try {
-      const bs = await getBuildings();
-      const hoods = [...new Set(bs.map(b => b.hood).filter(Boolean))].sort();
-      const sel = document.getElementById('pm-hood');
-      if (!sel) return;
-      let regionLabel = 'San Francisco';
-      try { const p = await getPayload(); regionLabel = (p.market && p.market.region) || regionLabel; } catch (e) {}
-      sel.innerHTML = '<option value="">All ' + escapeHtml(regionLabel) + '</option>' +
-        hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
-      sel.addEventListener('change', async () => {
-        pmHood = sel.value;
-        try {
-          allQuarters = await rpc('intelligence_psf_quarterly_hood', { p_market_slug: MARKET, p_neighborhood: pmHood || null });
-        } catch (e) { allQuarters = []; }
-        drawTimeline(pmYears);
-        refreshStatCards();
-      });
-    } catch (e) {}
-  }
-
-  function drawTimeline(years) {
-    pmYears = years;
-    refreshStatCards();
-    const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - years);
-    const filtered = allQuarters.filter(q => new Date(q.quarter_start + 'T00:00:00') >= cutoff);
-    const wrap = document.querySelector('.timeline-canvas-wrap');
-    if (filtered.length === 0) {
-      if (timelineChart) { timelineChart.destroy(); timelineChart = null; }
-      if (wrap) wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--cm-ivory-dim);font-family:var(--ff-display);font-style:italic;font-size:17px;text-align:center;padding:0 20px;">Not enough recorded sales in ' + (pmHood || 'this selection') + ' over this period to chart a reliable trend.</div>';
-      document.getElementById('bookend-start-date').textContent = '--';
-      document.getElementById('bookend-end-date').textContent = '--';
-      document.getElementById('bookend-start').textContent = '--';
-      document.getElementById('bookend-end').textContent = '--';
-      return;
-    }
-    if (wrap && !document.getElementById('timeline-chart')) {
-      wrap.innerHTML = '<canvas id="timeline-chart"></canvas>';
-    }
-
-    const labels = filtered.map(q => {
-      const d = new Date(q.quarter_start + 'T00:00:00');
-      const qNum = Math.floor(d.getMonth() / 3) + 1;
-      return `Q${qNum} ${d.getFullYear()}`;
+  // Price-movement chart. Rendered by the shared module so this page and the
+  // homepage are guaranteed identical — same RPC, same code, same styling.
+  function initTimeline() {
+    if (!window.CMPsfChart) { console.warn('cm-psf-chart.js not loaded'); return; }
+    window.__CM_SUPABASE_URL__ = SUPABASE_URL;
+    window.__CM_SUPABASE_ANON__ = SUPABASE_ANON;
+    return window.CMPsfChart.mount({
+      market: MARKET,
+      canvas: '#timeline-chart',
+      controls: '#pm-controls',
+      subtitle: '#pm-sub',
+      bookendStart: '#bookend-start',
+      bookendEnd: '#bookend-end',
+      empty: '#pm-empty',
+      accent: '#c2410c',
+      defaults: { grain: 'quarter', years: 10, hood: '' },
+      onChange: function (st) { pmHood = st.hood; pmYears = st.years; refreshStatCards(); }
     });
-    const data = filtered.map(q => q.median_psf);
-
-    const ctx = document.getElementById('timeline-chart');
-    if (timelineChart) timelineChart.destroy();
-    timelineChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Median $/sf',
-          data,
-          borderColor: '#4863a0',
-          backgroundColor: 'rgba(72,99,160,0.10)',
-          borderWidth: 2,
-          tension: 0.32,
-          fill: true,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#9fb4d8',
-          pointHoverBorderColor: '#f6f2ea'
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { intersect: false, mode: 'index' },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1a1f2e',
-            borderColor: 'rgba(232,227,216,0.14)', borderWidth: 1,
-            titleColor: '#e8e3d8', bodyColor: '#9fb4d8',
-            titleFont: { family: 'JetBrains Mono', size: 11 },
-            bodyFont: { family: 'JetBrains Mono', size: 13 },
-            padding: 12, displayColors: false,
-            callbacks: {
-              label: ctx => '$' + ctx.parsed.y.toLocaleString() + '/sf'
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(31,36,48,0.08)' },
-            ticks: {
-              color: 'rgba(31,36,48,0.55)',
-              font: { family: 'JetBrains Mono', size: 10 },
-              maxRotation: 0, autoSkip: true, autoSkipPadding: 24
-            }
-          },
-          y: {
-            grid: { color: 'rgba(31,36,48,0.08)' },
-            ticks: {
-              color: 'rgba(31,36,48,0.55)',
-              font: { family: 'JetBrains Mono', size: 10 },
-              callback: v => '$' + v.toLocaleString()
-            }
-          }
-        }
-      }
-    });
-
-    const first = filtered[0];
-    const last = filtered[filtered.length - 1];
-    document.getElementById('bookend-start-date').textContent = labels[0];
-    document.getElementById('bookend-end-date').textContent = labels[labels.length - 1];
-    document.getElementById('bookend-start').textContent = '$' + first.median_psf.toLocaleString() + '/sf';
-    document.getElementById('bookend-end').textContent = '$' + last.median_psf.toLocaleString() + '/sf';
   }
-
-  document.querySelectorAll('#pm-period button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#pm-period button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      drawTimeline(parseInt(btn.dataset.range, 10));
-    });
-  });
 
   // ───────── Live activity ─────────
   async function loadActivity() {
@@ -1195,5 +1071,6 @@
   }
 })();
 </script>
+  <script src="/assets/cm-psf-chart.js"></script>
 </body>
 </html>
