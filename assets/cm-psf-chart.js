@@ -19,15 +19,27 @@
 (function (global) {
   'use strict';
 
-  var SUPABASE_URL = global.__CM_SUPABASE_URL__ || 'https://kfqphwerygccpzntbbif.supabase.co';
-  var SUPABASE_ANON = global.__CM_SUPABASE_ANON__ || '';
+  var DEFAULT_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+
+  // Credentials are resolved per call, not captured at load time. The host
+  // pages assign window.__CM_SUPABASE_ANON__ inside their own boot sequence,
+  // which runs after this file executes — reading it once at load produced an
+  // empty apikey and a 401 on every request.
+  function creds() {
+    return {
+      url: global.__CM_SUPABASE_URL__ || DEFAULT_URL,
+      key: global.__CM_SUPABASE_ANON__ || ''
+    };
+  }
 
   function rpc(name, body) {
-    return fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
+    var c = creds();
+    if (!c.key) return Promise.reject(new Error('rpc ' + name + ' — no Supabase anon key on window.__CM_SUPABASE_ANON__'));
+    return fetch(c.url + '/rest/v1/rpc/' + name, {
       method: 'POST',
       headers: {
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'apikey': c.key,
+        'Authorization': 'Bearer ' + c.key,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       },
@@ -108,7 +120,7 @@
     injectStyles();
     return rpc('market_neighborhood_options', { p_market_slug: this.market })
       .then(function (rows) { self.hoods = rows || []; })
-      .catch(function () { self.hoods = []; })
+      .catch(function (err) { console.warn('[cm-psf-chart] neighborhood options failed:', err && err.message); self.hoods = []; })
       .then(function () {
         if (self.controlsHost) self.renderControls();
         return self.load();
