@@ -46,6 +46,71 @@ function chromeFor(mk, kind) {
   };
 }
 
+/* ------------------------- rotating share cards --------------------------
+ * Four cards for the How It Works pages. Selection is a hash of pathname +
+ * query, so:
+ *   - each distinct URL gets a stable card (no flapping between crawls)
+ *   - /how-it-works/?v=2 picks a different card AND forces a fresh scrape
+ *
+ * NOTE ON CACHING: social platforms crawl a URL once and cache the resulting
+ * card (X for roughly a week). A given URL therefore locks to whichever card
+ * was served at first crawl - randomising per request would not change that.
+ * Variety comes from distinct URLs and from cache expiry, not per-share.
+ * ------------------------------------------------------------------------ */
+const OG_CARDS = ['og-sf-1.png', 'og-sf-2.png', 'og-sf-3.png', 'og-sf-4.png'];
+
+// Explicit pairing beats hashing here: with three pages and four cards a hash
+// collided (two pages on card 3, card 2 never used). Each page now gets the
+// card whose argument matches its own.
+//   1  12,000+ Condos For Sale, Listed Or Not
+//   2  12,000+ Off Market Units
+//   3  List Without Moving Out, $0 To Test The Market
+//   4  Every Unit In San Francisco Is For Sale, For The Right Price
+const OG_BY_PATH = {
+  '/how-it-works':                  'og-sf-3.png',  // page is about the cost of finding out
+  '/how-it-works/sell-with-tenants': 'og-sf-2.png',  // tenants in place -> off-market angle
+  '/how-it-works/1031-exchange':     'og-sf-4.png',  // investors buying specific units
+};
+
+function ogCardFor(url, mk) {
+  if (!mk || mk.tag !== 'sf') return null;
+  const path = url.pathname.replace(/\/+$/, '') || '/how-it-works';
+  if (!/^\/how-it-works(\/|$)/i.test(url.pathname)) return null;
+
+  // ?v=1..4 forces a specific card and, being a distinct URL, also guarantees
+  // the platform re-crawls instead of serving its cached card.
+  const v = parseInt(url.searchParams.get('v') || '', 10);
+  if (v >= 1 && v <= OG_CARDS.length) {
+    return 'https://www.' + mk.domain + '/' + OG_CARDS[v - 1];
+  }
+
+  const named = OG_BY_PATH[path.toLowerCase()];
+  if (named) return 'https://www.' + mk.domain + '/' + named;
+
+  let h = 2166136261;
+  for (let i = 0; i < path.length; i++) { h ^= path.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return 'https://www.' + mk.domain + '/' + OG_CARDS[(h >>> 0) % OG_CARDS.length];
+}
+
+function applyOgRotation(html, url, mk) {
+  const img = ogCardFor(url, mk);
+  if (!img) return html;
+  const esc = String(img).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  if (/<meta\s+property="og:image"[^>]*>/i.test(html)) {
+    html = html.replace(/<meta\s+property="og:image"[^>]*>/i,
+      '<meta property="og:image" content="' + esc + '">');
+  } else {
+    html = html.replace(/<head>/i, '<head>\n<meta property="og:image" content="' + esc + '">');
+  }
+  if (/<meta\s+name="twitter:image"[^>]*>/i.test(html)) {
+    html = html.replace(/<meta\s+name="twitter:image"[^>]*>/i,
+      '<meta name="twitter:image" content="' + esc + '">');
+  } else {
+    html = html.replace(/<head>/i, '<head>\n<meta name="twitter:image" content="' + esc + '">');
+  }
+  return html;
+}
+
 function applyMarketSwaps(s, mk) {
   if (!mk || !s) return s;
   if (mk.accent) {
@@ -165,6 +230,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
   let body;
   try { body = await resp.text(); } catch (e) { return resp; }
   body = applyMarketSwaps(body, mk);
+  body = applyOgRotation(body, new URL(request.url), mk);
   const headers = new Headers(resp.headers);
   headers.delete('content-length');
   return new Response(body, { status: resp.status, statusText: resp.statusText, headers });
