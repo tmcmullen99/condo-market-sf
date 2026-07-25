@@ -160,6 +160,7 @@
   .drawer-bldg { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-top: 6px; }
   .drawer-close { width: 36px; height: 36px; border-radius: 50%; background: var(--cm-navy-deep); border: 1px solid var(--cm-rule); color: var(--cm-ivory); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .drawer-body { padding: 24px 28px; }
+  .drawer-single-note { font-family: var(--ff-mono); font-size: 11px; letter-spacing: .04em; color: var(--cm-ivory-dim); padding: 10px 12px; margin-bottom: 18px; background: var(--cm-navy-deep); border-left: 2px solid var(--cm-rule); border-radius: 4px; }
   .drawer-mini-canvas { height: 180px; margin-bottom: 24px; }
   .drawer-history-table { width: 100%; border-collapse: collapse; font-family: var(--ff-body); font-size: 13px; }
   .drawer-history-table th { text-align: left; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-dim); padding: 10px 0; border-bottom: 1px solid var(--cm-rule); font-weight: 500; }
@@ -793,14 +794,9 @@
         const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
         const bldg = bldgBySlug.get(r.building_slug);
         const bldgName = bldg ? bldg.name : r.building_slug;
-        return `<a class="wb-ticker-item" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}"><span class="wb-ti-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="wb-ti-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span><span class="wb-ti-price">${fmtMoneyShort(r.sale_price)}</span><span class="wb-ti-meta">${escapeHtml(bldgName)}${psf ? ' \u00b7 $' + psf.toLocaleString() + '/sf' : ''} \u00b7 ${fmtDateShort(r.sale_date)}</span></a>`;
+        return `<a class="wb-ticker-item" href="/building/${encodeURIComponent(r.building_slug)}" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}"><span class="wb-ti-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="wb-ti-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span><span class="wb-ti-price">${fmtMoneyShort(r.sale_price)}</span><span class="wb-ti-meta">${escapeHtml(bldgName)}${psf ? ' \u00b7 $' + psf.toLocaleString() + '/sf' : ''} \u00b7 ${fmtDateShort(r.sale_date)}</span></a>`;
       }).join('');
       track.innerHTML = itemsHtml + itemsHtml;
-      track.addEventListener('click', (e) => {
-        const item = e.target.closest('.wb-ticker-item');
-        if (!item) return;
-        openDrawer(item.dataset.address, item.dataset.label, item.dataset.bldg, buildings);
-      });
     } catch (e) { console.warn('activity load failed', e); }
   }
 
@@ -879,7 +875,8 @@
       const tableRows = [...rows].sort((a,b) => new Date(b.sale_date) - new Date(a.sale_date));
 
       $drawerBody.innerHTML = `
-        <div class="drawer-mini-canvas"><canvas id="drawer-chart"></canvas></div>
+        ${sorted.length > 1 ? '<div class="drawer-mini-canvas"><canvas id="drawer-chart"></canvas></div>' : ''}
+        ${sorted.length === 1 ? '<div class="drawer-single-note">One recorded sale for this unit. No price trend to chart yet.</div>' : ''}
         <table class="drawer-history-table">
           <thead><tr><th>Date</th><th>Price</th><th>$/sf</th></tr></thead>
           <tbody>
@@ -894,7 +891,7 @@
           </tbody>
         </table>
         ${sorted[0].sqft ? `<div style="margin-top:18px;font-family:var(--ff-mono);font-size:12px;color:var(--cm-ivory-dim);">${sorted[0].sqft.toLocaleString()} sqft${sorted[0].beds ? ` · ${sorted[0].beds} bed` : ''}${sorted[0].baths_total ? ` · ${sorted[0].baths_total} bath` : ''}</div>` : ''}
-        <a class="drawer-bldg-link" href="/buildings/">View ${escapeHtml(buildingName(slug, buildings))} →</a>
+        <a class="drawer-bldg-link" href="/building/${encodeURIComponent(slug)}">View ${escapeHtml(buildingName(slug, buildings))} →</a>
       `;
 
       if (sorted.length > 1) {
