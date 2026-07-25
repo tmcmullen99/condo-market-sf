@@ -111,6 +111,42 @@ function applyOgRotation(html, url, mk) {
   return html;
 }
 
+/* ------------------------------ favicon ---------------------------------
+ * 76 of 166 HTML pages shipped with no favicon link (admin, account,
+ * building unit-map pages, auth-callback and others), and dynamically rendered
+ * pages had none either. Injecting at the edge covers every route in one
+ * place, including any page added later, rather than patching 76 files that
+ * would drift apart again.
+ * ------------------------------------------------------------------------ */
+const FAVICON_TAGS =
+  '<link rel="icon" type="image/svg+xml" href="/favicon.svg">' +
+  '<link rel="alternate icon" href="/favicon.svg">' +
+  '<link rel="apple-touch-icon" href="/favicon.svg">';
+
+function ensureFavicon(html) {
+  if (typeof html !== 'string') return html;
+  if (/<link[^>]+rel=["']?(?:shortcut\s+)?icon["']?/i.test(html)) return html;  // already declared
+  if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + FAVICON_TAGS);
+  if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, '<html$1><head>' + FAVICON_TAGS + '</head>');
+  return html;
+}
+
+async function withFavicon(res) {
+  try {
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (!ct.includes('text/html')) return res;
+    if (!res.body) return res;
+    const body = await res.text();
+    const out = ensureFavicon(body);
+    if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
+    const headers = new Headers(res.headers);
+    headers.delete('content-length');
+    return new Response(out, { status: res.status, statusText: res.statusText, headers });
+  } catch (e) {
+    return res;   // never let favicon injection break a page
+  }
+}
+
 function applyMarketSwaps(s, mk) {
   if (!mk || !s) return s;
   if (mk.accent) {
@@ -238,6 +274,11 @@ async function wrapStaticWithSwaps(request, env, mk) {
 
 export default {
   async fetch(request, env) {
+    return withFavicon(await handleRequest(request, env));
+  },
+};
+
+async function handleRequest(request, env) {
     const url = new URL(request.url);
     const hostMk = resolveMarket(url.hostname);
 
@@ -459,8 +500,7 @@ export default {
         'cache-control': 'public, max-age=120, s-maxage=300',
       },
     });
-  },
-};
+}
 
 /* ----------------------------- helpers ----------------------------------- */
 async function renderSitemap(mk) {
