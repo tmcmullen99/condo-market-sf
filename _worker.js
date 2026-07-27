@@ -121,7 +121,11 @@ function applyOgRotation(html, url, mk) {
 // First-moment intent capture. Injected at the edge so it reaches static pages,
 // edge-rendered building pages, and anything added later - the same reason the
 // favicon is handled here rather than in 166 files.
-const INTENT_TAG = '<script src="/assets/cm-intent.js" defer></script>';
+// Bump INTENT_VER on every cm-intent.js change. Cloudflare Pages caches
+// /assets/* at the edge, so a redeploy alone can keep serving the previous file
+// - fixes then appear not to land even though the repo is correct.
+const INTENT_VER = '5';
+const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 
 function ensureIntent(html) {
   if (typeof html !== 'string') return html;
@@ -2682,7 +2686,6 @@ function renderBuilding(p) {
     '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
     '<script type="module" src="/assets/cm-dossier.js"></script>\n' +
     '<script type="module" src="/assets/cm-market.js"></script>\n' +
-    '<script type="module" src="/assets/offer.js"></script>\n' +
     '</body>\n</html>';
 }
 
