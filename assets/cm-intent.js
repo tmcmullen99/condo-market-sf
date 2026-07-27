@@ -81,6 +81,44 @@
     n = Number(n);
     return isFinite(n) ? '$' + Math.round(n).toLocaleString('en-US') : '—';
   }
+  /* --------------------------- answer rendering --------------------------
+   * The model replies in markdown. Rendering it raw leaked "**bold**" into the
+   * UI, and a list of sales was a wall of text with nothing to click.
+   *
+   * Escape first, then apply a deliberately small subset - bold, bullets,
+   * paragraphs - and finally linkify building names against the `refs` the
+   * server returned. Linking from server-side refs rather than parsing prose
+   * means a link only ever appears for a building whose page actually renders.
+   */
+  function renderReply(text, refs) {
+    var html = esc(String(text || ''));
+
+    // building names -> links, longest first so "The Beacon" wins over "Beacon"
+    (refs || []).slice()
+      .sort(function (a, b) { return (b.name || '').length - (a.name || '').length; })
+      .forEach(function (r) {
+        if (!r || !r.name || !r.slug) return;
+        var needle = esc(r.name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        html = html.replace(new RegExp('(?<!building\\/)\\b' + needle + '\\b', 'g'),
+          '<a class="cmi-ref" href="/building/' + encodeURIComponent(r.slug) + '" ' +
+          'data-cta="chat-ref">' + esc(r.name) + '</a>');
+      });
+
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    // bullets become record rows; everything else stays a paragraph
+    var out = [], list = [];
+    html.split('\n').forEach(function (raw) {
+      var line = raw.trim();
+      var m = line.match(/^[-\u2022]\s+(.*)$/);
+      if (m) { list.push('<li>' + m[1] + '</li>'); return; }
+      if (list.length) { out.push('<ul class="cmi-rows">' + list.join('') + '</ul>'); list = []; }
+      if (line) out.push('<p>' + line + '</p>');
+    });
+    if (list.length) out.push('<ul class="cmi-rows">' + list.join('') + '</ul>');
+    return out.join('');
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -114,6 +152,12 @@
       '.cmi-stat i{font-style:normal;color:#6c655c}',
       '.cmi-note{font-size:12px;color:#8a837a;line-height:1.5;margin:10px 0 0}',
       '.cmi-field{display:flex;gap:8px;margin:4px 0 10px}',
+      '.cmi-msg p{margin:0 0 9px}.cmi-msg p:last-child{margin-bottom:0}',
+      '.cmi-msg strong{font-weight:650;color:#171c2a}',
+      '.cmi-rows{list-style:none;margin:10px 0;padding:0;border-top:1px solid #efeae1}',
+      '.cmi-rows li{padding:9px 2px;border-bottom:1px solid #efeae1;font-size:14px;line-height:1.45}',
+      '.cmi-ref{color:#b2431a;text-decoration:none;border-bottom:1px solid rgba(178,67,26,.32);font-weight:600}',
+      '.cmi-ref:hover{border-bottom-color:#b2431a;background:rgba(178,67,26,.06)}',
       '.cmi-form{margin:0}',
       /* DOCK - after the email is in, the modal becomes a panel so the page is
          usable while the conversation continues. */
@@ -328,7 +372,9 @@
     boxEl.classList.toggle('cmi-min', !!minimised);
 
     var msgs = thread.map(function (m) {
-      return '<div class="cmi-msg' + (m.role === 'user' ? ' cmi-you' : '') + '">' + esc(m.content) + '</div>';
+      return m.role === 'user'
+        ? '<div class="cmi-msg cmi-you">' + esc(m.content) + '</div>'
+        : '<div class="cmi-msg">' + renderReply(m.content, m.refs) + '</div>';
     }).join('');
 
     boxEl.innerHTML =
@@ -449,8 +495,8 @@
         return;
       }
       thread.push({ role: 'user', content: q });
-      thread.push({ role: 'assistant', content: res.reply || '' });
-      t.insertAdjacentHTML('beforeend', '<div class="cmi-msg">' + esc(res.reply || '') + '</div>');
+      thread.push({ role: 'assistant', content: res.reply || '', refs: res.refs || [] });
+      t.insertAdjacentHTML('beforeend', '<div class="cmi-msg">' + renderReply(res.reply, res.refs) + '</div>');
       if (docked) { saveDock(false); scrollThread(); }
       if (res.navigate && res.navigate.path) {
         t.insertAdjacentHTML('beforeend',
