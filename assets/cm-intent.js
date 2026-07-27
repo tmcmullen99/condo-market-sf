@@ -25,8 +25,14 @@
 (function () {
   'use strict';
 
-  var SB_URL  = window.__CM_SUPABASE_URL__  || 'https://kfqphwerygccpzntbbif.supabase.co';
-  var SB_KEY  = window.__CM_SUPABASE_ANON__ || '';
+  var DEFAULT_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+  var DEFAULT_KEY = 'sb_publishable_cR53l68E0KtOpANRKiVi7Q_Vx57yQb0';
+  function creds() {
+    return {
+      url: (window.__CM_SUPABASE_URL__ || DEFAULT_URL),
+      key: (window.__CM_SUPABASE_ANON__ || DEFAULT_KEY)
+    };
+  }
   var SEEN_KEY = 'cm_intent_v1';
 
   // Shared with cm-auth.js, which reads cm_known_email to prefill the sign-up
@@ -38,13 +44,19 @@
     try { return (localStorage.getItem('cm_known_email') || '').trim(); } catch (e) { return ''; }
   }
 
-  function track(ev, meta) { try { if (window.cmTrack) window.cmTrack(ev, meta || null); } catch (e) {} }
+  // Event names must be added in TWO places or they are silently dropped:
+  //   1. the track_event allowlist        2. the site_events CHECK constraint
+  // Both rejected every intent_* event for a day while the popup appeared fine.
+  function track(ev, meta) {
+    try { if (window.cmTrack) window.cmTrack(ev, meta || null); } catch (e) {}
+  }
 
   function rpc(fn, body) {
-    return fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+    var c = creds();
+    return fetch(c.url + '/rest/v1/rpc/' + fn, {
       method: 'POST',
       headers: {
-        'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+        'apikey': c.key, 'Authorization': 'Bearer ' + c.key,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body || {})
@@ -54,7 +66,7 @@
   // The answer layer. Tool use runs 8-20s, so callers must show a thinking
   // state rather than blocking on a spinner that looks like a hang.
   function askAI(question, history) {
-    return fetch(SB_URL + '/functions/v1/market-ai', {
+    return fetch(creds().url + '/functions/v1/market-ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: question, messages: history || [], market_slug: 'san-francisco-condo-market' })
@@ -631,16 +643,16 @@
     injectCss();
     if (restoreDock()) return;   // a conversation in progress outranks the popup
     try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) {}
-    if (SB_KEY.indexOf('ey') !== 0 && SB_KEY.indexOf('sb_') !== 0) return;  // no creds, stay silent
+    // no credential gate here - the key has a default, and an early return
+    // was silently disabling the popup on every page that did not publish one
     slug = buildingSlug();
 
-    // Trigger: the visitor has scrolled more than once and stayed a few seconds.
-    // Two earlier designs were rejected - counting "scroll bursts" with a
-    // cooldown proved unreliable, and measuring scroll DISTANCE depends on
-    // layout, which makes it untestable outside a real browser. Counting scroll
-    // events plus a dwell floor has neither problem: a single flick fires many
-    // scroll events, so the dwell is what separates a bounce from a reader.
-    var fired = false, scrolls = 0, firstScrollAt = 0;
+    // Trigger. Earlier versions were too strict: six scroll events AND 2.5s
+    // meant a visitor who flicked once and stopped never saw it, on a site where
+    // 92% view a single page. Now: three scroll events past a short debounce, or
+    // eight seconds after any scroll at all. Still not an on-arrival modal - it
+    // waits for a deliberate second gesture - but it actually fires.
+    var fired = false, gestures = 0, lastAt = 0, firstAt = 0;
 
     function fire(why) {
       if (fired) return;
@@ -650,15 +662,16 @@
     }
     function onScroll() {
       if (fired) return;
-      scrolls++;
-      if (!firstScrollAt) firstScrollAt = Date.now();
-      // enough movement to be reading, and enough time to be deliberate
-      if (scrolls >= 6 && Date.now() - firstScrollAt >= 2500) fire('scroll');
+      var now = Date.now();
+      if (!firstAt) firstAt = now;
+      // debounce: a single flick emits dozens of events, so count gestures
+      if (now - lastAt > 250) { gestures++; lastAt = now; }
+      if (gestures >= 3 && now - firstAt >= 1200) fire('scroll');
     }
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Backstop: a reader who scrolled at all and stayed 12s gets the same offer.
-    setTimeout(function () { if (scrolls > 0) fire('dwell'); }, 12000);
+    // Backstop: scrolled at all and still here after 8s.
+    setTimeout(function () { if (gestures > 0) fire('dwell'); }, 8000);
 
     // Manual opener, for verifying in a real browser without waiting.
     window.cmIntentOpen = function () { fire('manual'); };
