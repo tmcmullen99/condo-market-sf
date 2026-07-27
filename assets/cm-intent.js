@@ -190,56 +190,74 @@
    * already refuse to speak when the sample is too thin.
    */
   function renderAnswer() {
-    paint('<p class="cmi-eyebrow">Reading the record</p><h2 class="cmi-h">One moment…</h2>');
+    paint('<p class="cmi-eyebrow">One moment</p><h2 class="cmi-h">Opening the record\u2026</h2>');
 
-    if (!slug) { renderGate(null); return; }
+    // Without a building slug (the index, tools, how-it-works - most of the
+    // site) an earlier version dropped straight to a bare email form having
+    // shown nothing at all. Now the chat carries the second fold either way;
+    // building stats are a bonus when we happen to be on a building page.
+    if (!slug) { renderAsk(null, null); return; }
 
-    rpc('building_dossier', { p_slug: slug }).then(function (d) {
-      d = d || {};
-      var name  = d.name || 'this building';
-      var units = d.units_with_data || 0;
-      var sales = d.units_with_sales || 0;
-      var p50   = d.psf_p50, p05 = d.psf_p05, p95 = d.psf_p95;
+    rpc('building_dossier', { p_slug: slug })
+      .then(function (d) { renderAsk((d && d.name) || null, d || null); })
+      .catch(function () { renderAsk(null, null); });
+  }
 
-      var rows = '';
-      if (p50)   rows += stat('Median $/sq ft', psf(p50));
-      if (p05 && p95) rows += stat('Range across units', psf(p05) + ' \u2013 ' + psf(p95));
-      if (units) rows += stat(chosen === 'owner' ? 'Units on record here' : 'Units you could offer on', String(units));
-      if (!rows) { renderGate(name); return; }
+  function renderAsk(name, d) {
+    var owner = chosen === 'owner';
 
-      var lede = chosen === 'owner'
-        ? 'Ask anything about your building \u2014 or find your unit and see what it last sold for.'
-        : 'Ask anything about this building. Every unit here can receive a written offer, listed or not.';
+    // Value proposition, stated plainly. This is what an email is being asked
+    // for, so it has to be legible in one read.
+    var head = owner
+      ? 'Float your price without moving out.'
+      : 'Make an offer on any unit \u2014 not just the listed ones.';
 
-      var chips = chosen === 'owner'
-        ? ['What has this building done over the last five years?',
-           'How long do owners here typically hold?',
-           'What sold here most recently?']
-        : ['How does this building compare to the neighbourhood?',
-           'What sold here most recently?',
-           'Which units here have not traded in years?'];
+    var pitch = owner
+      ? 'Selling normally costs you $25,000 and three months before a single buyer sees it: move out, paint, stage, carry the mortgage. Here you can find what your building actually trades at, and receive a real written offer on the home you\u0027re still living in.'
+      : 'Zillow shows you what\u0027s listed. We index every unit in ' + (d && d.name ? esc(d.name) : '143 buildings') +
+        ' \u2014 and any of them can receive a written offer, whether or not it\u0027s for sale. Most owners have simply never been asked.';
 
-      paint(
-        '<p class="cmi-eyebrow">' + (chosen === 'owner' ? 'Your building' : 'This building') + '</p>' +
-        '<h2 class="cmi-h">' + esc(name) + '</h2>' +
-        '<div class="cmi-ans">' + rows + '</div>' +
-        '<p class="cmi-sub">' + lede + '</p>' +
-        '<div class="cmi-thread"></div>' +
-        '<div class="cmi-ask">' +
-          chips.map(function (c) { return '<button class="cmi-chip">' + esc(c) + '</button>'; }).join('') +
-          '<div class="cmi-field" style="margin-top:6px">' +
-            '<input type="text" class="cmi-q" placeholder="Ask about this building\u2026" aria-label="Ask a question">' +
-            '<button class="cmi-btn cmi-send">Ask</button>' +
-          '</div>' +
+    var rows = '';
+    if (d) {
+      if (d.psf_p50) rows += stat('Median $/sq ft', psf(d.psf_p50));
+      if (d.psf_p05 && d.psf_p95) rows += stat('Range across units', psf(d.psf_p05) + ' \u2013 ' + psf(d.psf_p95));
+      if (d.units_with_data) rows += stat(owner ? 'Units on record here' : 'Units you could offer on', String(d.units_with_data));
+    }
+
+    var chips = owner
+      ? (slug ? ['What has this building done over the last five years?',
+                 'What sold here most recently?',
+                 'How long do owners here typically hold?']
+              : ['Which SF buildings have gained the most since 2016?',
+                 'What did my building trade at last year?',
+                 'How long do owners typically hold in SF?'])
+      : (slug ? ['How does this building compare to its neighbourhood?',
+                 'Which units here haven\u0027t traded in years?',
+                 'What sold here most recently?']
+              : ['Which units in SF haven\u0027t traded in over a decade?',
+                 'Which neighbourhoods are cheapest per square foot?',
+                 'What sold in SF this week?']);
+
+    paint(
+      '<p class="cmi-eyebrow">' + (owner ? 'For owners' : 'For buyers') + '</p>' +
+      '<h2 class="cmi-h">' + head + '</h2>' +
+      '<p class="cmi-sub">' + pitch + '</p>' +
+      (rows ? '<div class="cmi-ans">' + rows + '</div>' : '') +
+      '<div class="cmi-thread"></div>' +
+      '<div class="cmi-ask">' +
+        '<p class="cmi-ans-q">Ask anything \u2014 answered from the recorded sales, free.</p>' +
+        chips.map(function (c) { return '<button class="cmi-chip">' + c + '</button>'; }).join('') +
+        '<div class="cmi-field" style="margin-top:6px">' +
+          '<input type="text" class="cmi-q" placeholder="' +
+            (owner ? 'e.g. what did 12B last sell for?' : 'e.g. what\u0027s cheapest in Mission Bay?') +
+            '" aria-label="Ask a question">' +
+          '<button class="cmi-btn cmi-send">Ask</button>' +
         '</div>' +
-        '<button class="cmi-alt" data-skip>Keep browsing</button>'
-      );
-      wireAsk(name);
-      track('intent_answered', { door: chosen, building: slug, had_stats: true });
-    }).catch(function () {
-      renderGate(null);
-      track('intent_answered', { door: chosen, building: slug, had_stats: false });
-    });
+      '</div>' +
+      '<button class="cmi-alt" data-skip>Keep browsing</button>'
+    );
+    wireAsk(name);
+    track('intent_answered', { door: chosen, building: slug, had_stats: !!rows });
   }
 
   /* ------------------------- the ask layer -------------------------------
@@ -306,7 +324,13 @@
       track('intent_ask_answered', { door: chosen, tools: (res.tools_used || []).join(',') });
       // the gate, offered now that it has been shown to work
       t.insertAdjacentHTML('beforeend',
-        '<p class="cmi-sub" style="margin:16px 0 8px">Ask as much as you like \u2014 pop your email in and keep going.</p>' +
+        '<div style="margin:18px 0 6px">' +
+          '<p class="cmi-ans-q" style="margin-bottom:6px">That was one question.</p>' +
+          '<p class="cmi-sub" style="margin:0 0 12px">Add your email and keep asking \u2014 on any building, any unit, anywhere on the site. ' +
+          (chosen === 'owner'
+            ? 'We\u0027ll also send your building\u0027s full recorded history.'
+            : 'We\u0027ll also send the list of units here that haven\u0027t traded in years.') +
+          '</p></div>' +
         gateForm('Keep asking'));
       wireGate(name);
     }).catch(function () {
