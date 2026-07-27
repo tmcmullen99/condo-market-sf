@@ -118,6 +118,18 @@ function applyOgRotation(html, url, mk) {
  * place, including any page added later, rather than patching 76 files that
  * would drift apart again.
  * ------------------------------------------------------------------------ */
+// First-moment intent capture. Injected at the edge so it reaches static pages,
+// edge-rendered building pages, and anything added later - the same reason the
+// favicon is handled here rather than in 166 files.
+const INTENT_TAG = '<script src="/assets/cm-intent.js" defer></script>';
+
+function ensureIntent(html) {
+  if (typeof html !== 'string') return html;
+  if (html.indexOf('cm-intent.js') > -1) return html;
+  if (!/<\/body>/i.test(html)) return html;
+  return html.replace(/<\/body>/i, INTENT_TAG + '</body>');
+}
+
 const FAVICON_TAGS =
   '<link rel="icon" type="image/svg+xml" href="/favicon.svg">' +
   '<link rel="alternate icon" href="/favicon.svg">' +
@@ -137,7 +149,7 @@ async function withFavicon(res) {
     if (!ct.includes('text/html')) return res;
     if (!res.body) return res;
     const body = await res.text();
-    const out = ensureFavicon(body);
+    const out = ensureIntent(ensureFavicon(body));
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
     headers.delete('content-length');
@@ -2311,6 +2323,25 @@ function renderBuilding(p) {
     ? '<img class="hero-img" src="' + esc(p.hero_url) + '" alt="' + name + '" loading="eager">'
     : '<div class="hero-img hero-img--ph" role="img" aria-label="' + name + '"></div>';
 
+  /* HERO ASK (T8)
+   * Every offer CTA on this page sat below the fold, and only ~15% of visitors
+   * scroll past 50% - so for most traffic the page never made an ask at all.
+   * Platform-wide that produced 5 CTA clicks from 5,269 humans.
+   * This ask is bound to the building being viewed and quotes its median $/sf
+   * where known, so the question is concrete rather than generic.
+   * data-cta drives cta_click tracking without touching the modal handler. */
+  const heroAskLine = (psf != null)
+    ? 'Units here trade around ' + money(psf) + '/sq ft. What would yours sell for?'
+    : 'Every unit here is open to an offer \u2014 listed or not.';
+  const heroCta =
+    '<div class="hero-ask">'
+    + '<p class="hero-ask-line">' + heroAskLine + '</p>'
+    + '<a class="hero-ask-btn" data-cm-offer-trigger data-building-slug="' + slug + '"'
+    +   ' data-cta="building-hero-offer" href="#offer">Make an offer on any unit \u2192</a>'
+    + '<a class="hero-ask-alt" data-cm-auth="signup" data-cta="building-hero-signup" href="#signup">'
+    +   'See every sale in this building \u2014 free</a>'
+    + '</div>';
+
   /* GALLERY */
   const imgs = Array.isArray(p.images) ? p.images.filter(function (i) { return i && i.url && i.role !== 'og'; }) : [];
   /* ACTIVE LISTINGS in this building (from building_page_payload: active_count, active_listings) */
@@ -2624,6 +2655,7 @@ function renderBuilding(p) {
     '<h1>' + name + '<em>.</em></h1>' +
     (addr ? '<div class="hero-addr">' + addr + '</div>' : '') +
     heroStats +
+    heroCta +
     '</div><div class="hero-img-wrap">' +
     (hood ? '<span class="hero-badge">' + hood + '</span>' : '') +
     heroMedia +
@@ -2727,6 +2759,13 @@ const CSS = `
   .hstat-label { font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cm-ivory-dim); margin-bottom: 6px; }
   .hstat-val { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 28px; color: var(--cm-ivory); line-height: 1; }
   .hstat-val .peri { color: var(--cm-peri); }
+  .hero-ask { margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(232,227,216,.14); }
+  .hero-ask-line { font-family: var(--cm-ff-serif, Georgia, serif); font-size: 17px; line-height: 1.45; color: var(--cm-ivory, #e8e3d8); margin: 0 0 14px; max-width: 42ch; }
+  .hero-ask-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--cm-bronze, #d4a574); color: var(--cm-navy, #1a1f2e); padding: 13px 26px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: transform 150ms ease; }
+  .hero-ask-btn:hover { transform: translateY(-1px); }
+  .hero-ask-alt { display: block; margin-top: 12px; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(232,227,216,.62); text-decoration: none; }
+  .hero-ask-alt:hover { color: var(--cm-bronze, #d4a574); }
+  @media (max-width: 720px) { .hero-ask-btn { width: 100%; justify-content: center; } }
   .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: var(--cm-navy); aspect-ratio: 3/2; max-height: 460px; }
   .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.04) contrast(1.02); }
   .hero-img-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 60px rgba(10,13,18,0.28); border-radius: 12px; z-index: 2; }
