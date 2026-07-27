@@ -121,10 +121,10 @@ function buildModalElement() {
       <p class="cm-auth-sub cm-auth-subtext">Save favorites, submit offers, and unlock insider market access.</p>
       <div class="cm-referrer-banner" style="display:none"></div>
 
-      <input class="cm-auth-field cm-name"  type="text"  placeholder="Full name" autocomplete="name">
-      <input class="cm-auth-field cm-email" type="email" placeholder="Email" autocomplete="email" required>
-      <input class="cm-auth-field cm-phone" type="tel"   placeholder="Phone (optional)" autocomplete="tel">
-      <input class="cm-auth-field cm-pass"  type="password" placeholder="Password (8+ characters)" autocomplete="new-password" required minlength="8">
+      <input class="cm-auth-field cm-name"  type="text"  name="name" placeholder="Full name" autocomplete="name">
+      <input class="cm-auth-field cm-email" type="email" name="email" placeholder="Email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+      <input class="cm-auth-field cm-phone" type="tel"   name="tel" placeholder="Phone (optional)" autocomplete="tel" inputmode="tel">
+      <input class="cm-auth-field cm-pass"  type="password" name="password" placeholder="Password (8+ characters)" autocomplete="new-password" required minlength="8">
 
       <label class="cm-auth-tos">
         <input type="checkbox" class="cm-tos-cb">
@@ -341,6 +341,15 @@ async function handleMagicLink() {
 
 // ---- Public API ----------------------------------------------------------
 
+// A visitor who already gave us their email in the intent popup should not be
+// asked for it again. cm-intent.js writes it to cm_known_email; we carry it in,
+// skip straight to the password field, and say so - starting from a blank form
+// after they have already identified themselves is the kind of friction that
+// loses an account.
+export function knownEmail() {
+  try { return (localStorage.getItem('cm_known_email') || '').trim(); } catch (e) { return ''; }
+}
+
 export function openAuthModal(mode = 'signup') {
   ensureStylesInjected();
   if (!modalEl) modalEl = buildModalElement();
@@ -348,15 +357,35 @@ export function openAuthModal(mode = 'signup') {
   applyMode();
   modalEl.classList.add('cm-open');
   refreshReferrerBanner();
-  if (window.cmTrack) window.cmTrack(currentMode === 'login' ? 'login_started' : 'signup_started', { stage: 'modal_open' });
-  setTimeout(() => modalEl.querySelector('.cm-email').focus(), 50);
+
+  const known = knownEmail();
+  const emailField = modalEl.querySelector('.cm-email');
+  const passField2 = modalEl.querySelector('.cm-pass');
+  if (known && emailField) {
+    emailField.value = known;
+    setMessage('info', 'Welcome back \u2014 just set a password and you\u0027re in.');
+  }
+
+  if (window.cmTrack) {
+    window.cmTrack(currentMode === 'login' ? 'login_started' : 'signup_started',
+      { stage: 'modal_open', prefilled: !!known });
+  }
+
+  // Focus the first field they still have to fill, not the one already done.
+  setTimeout(() => {
+    const target = (known && passField2) ? passField2 : emailField;
+    if (target) target.focus();
+  }, 50);
 }
 
 export function closeAuthModal() {
   if (!modalEl) return;
   modalEl.classList.remove('cm-open');
-  // Clear fields for next open
-  modalEl.querySelectorAll('.cm-auth-field').forEach(f => f.value = '');
+  // Clear credentials, but keep the email. Wiping it erased both the remembered
+  // address and anything the browser had autofilled.
+  modalEl.querySelectorAll('.cm-auth-field').forEach(f => {
+    if (!f.classList.contains('cm-email')) f.value = '';
+  });
   setMessage(null, '');
 }
 
