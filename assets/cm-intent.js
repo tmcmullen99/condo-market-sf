@@ -302,7 +302,7 @@
       ? (slug ? ['What has this building done over the last five years?',
                  'What sold here most recently?',
                  'How long do owners here typically hold?']
-              : ['Which SF buildings have gained the most since 2016?',
+              : ['Where have owners gained the most since they bought?',
                  'What sold in SF this week?',
                  'How long do owners typically hold in SF?'])
       : (slug ? ['How does this building compare to its neighbourhood?',
@@ -601,7 +601,7 @@
         // Seed the thread with a confirmation so the dock never opens empty.
         thread.push({ role: 'assistant', content:
           (chosen === 'owner'
-            ? 'You\u0027re in. Your building\u0027s full sale record is on its way. Ask me anything as you look around \u2014 and if you want a price for your specific unit, build a CMA and Tim will review it with you.'
+            ? 'You\u0027re in. Your building\u0027s full sale record is on its way. Ask me anything as you look around \u2014 and if you want a price for your specific unit, set your number and Tim will follow up.'
             : 'You\u0027re in. Ask me anything as you look around \u2014 any building, any unit. Remember every one of them can receive a written offer, listed or not.') });
         gated = false;
         renderDock(false);
