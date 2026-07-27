@@ -124,14 +124,18 @@ function applyOgRotation(html, url, mk) {
 // Bump INTENT_VER on every cm-intent.js change. Cloudflare Pages caches
 // /assets/* at the edge, so a redeploy alone can keep serving the previous file
 // - fixes then appear not to land even though the repo is correct.
-const INTENT_VER = '5';
+const INTENT_VER = '7';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 
 function ensureIntent(html) {
   if (typeof html !== 'string') return html;
-  if (html.indexOf('cm-intent.js') > -1) return html;
   if (!/<\/body>/i.test(html)) return html;
-  return html.replace(/<\/body>/i, INTENT_TAG + '</body>');
+  var add = '';
+  // cm-track.js was only injected by renderChrome, so static pages had no
+  // window.cmTrack at all - no pageviews, no scroll depth, no funnel.
+  if (html.indexOf('cm-track.js') === -1) add += '<script src="/assets/cm-track.js" defer></script>';
+  if (html.indexOf('cm-intent.js') === -1) add += INTENT_TAG;
+  return add ? html.replace(/<\/body>/i, add + '</body>') : html;
 }
 
 const FAVICON_TAGS =
