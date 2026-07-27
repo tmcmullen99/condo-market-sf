@@ -29,6 +29,15 @@
   var SB_KEY  = window.__CM_SUPABASE_ANON__ || '';
   var SEEN_KEY = 'cm_intent_v1';
 
+  // Shared with cm-auth.js, which reads cm_known_email to prefill the sign-up
+  // modal. One identity across the popup and the account flow.
+  function rememberEmail(v) {
+    try { localStorage.setItem('cm_known_email', String(v || '').trim().toLowerCase()); } catch (e) {}
+  }
+  function rememberedEmail() {
+    try { return (localStorage.getItem('cm_known_email') || '').trim(); } catch (e) { return ''; }
+  }
+
   function track(ev, meta) { try { if (window.cmTrack) window.cmTrack(ev, meta || null); } catch (e) {} }
 
   function rpc(fn, body) {
@@ -105,6 +114,7 @@
       '.cmi-stat i{font-style:normal;color:#6c655c}',
       '.cmi-note{font-size:12px;color:#8a837a;line-height:1.5;margin:10px 0 0}',
       '.cmi-field{display:flex;gap:8px;margin:4px 0 10px}',
+      '.cmi-form{margin:0}',
       '.cmi-field input{flex:1;min-width:0;padding:13px 14px;border:1px solid #ddd6ca;border-radius:9px;font:inherit;font-size:15px;background:#fff}',
       '.cmi-field input:focus{outline:2px solid rgba(178,67,26,.3);border-color:#b2431a}',
       '.cmi-btn{background:#b2431a;color:#fff;border:0;border-radius:9px;padding:13px 22px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}',
@@ -347,9 +357,22 @@
   }
 
   /* ------------------------------ step 3 -------------------------------- */
+  // AUTOFILL
+  // type + autocomplete alone are not enough. iOS Safari and most password
+  // managers will only offer to fill a field that (a) carries a name attribute
+  // and (b) sits inside a real <form>. The earlier version had neither, so on
+  // mobile - where typing an address is the whole friction - nothing was offered.
+  // autocapitalize/autocorrect off stops iOS mangling the address as it is typed.
   function gateForm(cta) {
-    return '<div class="cmi-field"><input type="email" placeholder="you@email.com" autocomplete="email" ' +
-           'inputmode="email" aria-label="Email address"><button class="cmi-btn">' + esc(cta) + '</button></div>' +
+    return '<form class="cmi-form" novalidate>' +
+             '<div class="cmi-field">' +
+               '<input type="email" name="email" id="cmi-email" class="cmi-email" ' +
+                 'placeholder="you@email.com" autocomplete="email" inputmode="email" ' +
+                 'autocapitalize="off" autocorrect="off" spellcheck="false" ' +
+                 'aria-label="Email address">' +
+               '<button type="submit" class="cmi-btn">' + esc(cta) + '</button>' +
+             '</div>' +
+           '</form>' +
            '<p class="cmi-err" hidden></p>' +
            '<p class="cmi-note">No password. We never sell your data, and you can stop the emails in one click.</p>';
   }
@@ -375,9 +398,15 @@
     if (skip) skip.addEventListener('click', function () { close('skip'); });
 
     var input = boxEl.querySelector('input[type=email]');
-    var btn   = boxEl.querySelector('.cmi-btn');
+    var form  = boxEl.querySelector('.cmi-form');
+    var btn   = form ? form.querySelector('.cmi-btn') : null;
     var err   = boxEl.querySelector('.cmi-err');
     if (!input || !btn) return;
+
+    // If they already told us who they are - here or at the auth modal - do not
+    // ask again. Prefilled and one tap from done.
+    var known = rememberedEmail();
+    if (known && !input.value) input.value = known;
 
     function submit() {
       var v = (input.value || '').trim();
@@ -387,6 +416,7 @@
       err.hidden = true; btn.disabled = true; btn.textContent = 'Sending…';
       track('intent_email_submitted', { door: chosen, building: slug });
 
+      rememberEmail(v);
       rpc('capture_intent_lead', {
         p_email: v, p_intent: chosen, p_building_slug: slug,
         p_path: location.pathname, p_session_id: (window.cmSessionId || null)
@@ -410,9 +440,14 @@
         track('intent_email_failed', { door: chosen, reason: String(e && e.message || 'unknown') });
       });
     }
-    btn.addEventListener('click', submit);
-    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
-    setTimeout(function () { try { input.focus(); } catch (e) {} }, 120);
+    if (form) form.addEventListener('submit', function (e) { e.preventDefault(); submit(); });
+    btn.addEventListener('click', function (e) { e.preventDefault(); submit(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+    // Don't steal focus on mobile when the value is already there - the keyboard
+    // popping up over a filled field reads as another thing to do.
+    setTimeout(function () {
+      try { if (!input.value) input.focus(); } catch (e) {}
+    }, 120);
   }
 
   /* ------------------------------ trigger -------------------------------
