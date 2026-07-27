@@ -1,4 +1,20 @@
-/* cm-intent.js — first-moment intent capture.
+/* cm-intent.js — first-moment intent capture + the permanent ask layer.
+ *
+ * v2 (7/27): the chat is now a PERMANENT feature of every page.
+ *   - A launcher pill sits fixed bottom-right at all times. Dismissing the
+ *     popup no longer kills access forever (it previously did — SEEN_KEY
+ *     removed the only entry point). SEEN_KEY now suppresses only the
+ *     automatic scroll trigger; the launcher always works.
+ *   - The launcher reopens a saved conversation if one exists, otherwise
+ *     opens the doors flow. It hides while the popup or dock is on screen.
+ *   - market_slug is read from window.__CM_MARKET__ (was hardcoded to SF,
+ *     which sent Silicon Valley visitors SF answers).
+ *   - Starter chips replaced: every chip is now backed by a live tool
+ *     (market_hold_stats, building_prices, site_knowledge, owner_economics,
+ *     long_held_units) — the old set included questions with no tool behind
+ *     them, which failed on camera in the first incognito test.
+ *   - Owner pitch reframed to the $15,000–$35,000 cost-to-test-the-market
+ *     number, answered in depth by the site_knowledge layer.
  *
  * WHY THIS EXISTS
  * 92.3% of human visitors view exactly one page and 5.1% ever return, so there
@@ -69,7 +85,8 @@
     return fetch(creds().url + '/functions/v1/market-ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: question, messages: history || [], market_slug: 'san-francisco-condo-market' })
+      body: JSON.stringify({ message: question, messages: history || [],
+        market_slug: (typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) || 'san-francisco-condo-market' })
     }).then(function (r) { return r.json(); });
   }
 
@@ -207,6 +224,13 @@
       '.cmi-dot:nth-child(2){animation-delay:.18s}.cmi-dot:nth-child(3){animation-delay:.36s}',
       '@keyframes cmiPulse{0%,80%,100%{opacity:.25}40%{opacity:1}}',
       '.cmi-go{display:inline-block;background:#b2431a;color:#fff;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:600;text-decoration:none;margin-top:4px}',
+      /* LAUNCHER - the permanent entry point. Always on the page; hides only
+         while the popup or dock is on screen. */
+      '.cmi-launch{position:fixed;right:20px;bottom:20px;z-index:9997;display:flex;align-items:center;gap:9px;background:#171c2a;color:#f1ede4;border:1px solid rgba(241,237,228,.14);border-radius:999px;padding:12px 18px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 10px 30px rgba(10,13,18,.35);transition:transform .15s,box-shadow .15s,opacity .2s}',
+      '.cmi-launch:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(10,13,18,.45)}',
+      '.cmi-launch .cmi-dock-live{background:#7aa87a}',
+      '.cmi-launch[hidden]{display:none}',
+      '@media(max-width:620px){.cmi-launch{right:14px;bottom:14px;padding:11px 16px}}',
       '@media(max-width:560px){.cmi-in{padding:26px 20px 22px}.cmi-h{font-size:22px}.cmi-field{flex-direction:column}.cmi-btn{width:100%}}'
     ].join('');
     document.head.appendChild(s);
@@ -214,6 +238,32 @@
 
   /* ------------------------------- shell -------------------------------- */
   var backEl, boxEl, slug = null, chosen = null;
+
+  /* ----------------------------- launcher --------------------------------
+   * The permanent entry point. The popup used to be the ONLY way in, and
+   * dismissing it set SEEN_KEY forever — a visitor who closed it once could
+   * never reach the chat again. The launcher is always present; SEEN_KEY now
+   * only stops the automatic trigger from firing twice.
+   */
+  var launchEl = null;
+
+  function ensureLauncher() {
+    if (launchEl) return;
+    injectCss();
+    launchEl = document.createElement('button');
+    launchEl.className = 'cmi-launch';
+    launchEl.setAttribute('aria-label', 'Ask the market');
+    launchEl.innerHTML = '<span class="cmi-dock-live"></span>Ask the market';
+    launchEl.addEventListener('click', function () {
+      track('intent_launcher_clicked', { path: location.pathname });
+      hideLauncher();
+      if (restoreDock()) return;          // an existing conversation reopens
+      open('launcher');                    // otherwise the doors flow
+    });
+    document.body.appendChild(launchEl);
+  }
+  function hideLauncher() { if (launchEl) launchEl.hidden = true; }
+  function showLauncher() { ensureLauncher(); launchEl.hidden = false; }
 
   function close(reason) {
     try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch (e) {}
@@ -224,11 +274,13 @@
       if (boxEl && boxEl.parentNode) boxEl.parentNode.removeChild(boxEl);
       if (backEl && backEl.parentNode) backEl.parentNode.removeChild(backEl);
       boxEl = backEl = null;
+      showLauncher();
     }, 240);
   }
 
   function open(why) {
     injectCss();
+    hideLauncher();
     backEl = document.createElement('div');
     backEl.className = 'cmi-back';
     backEl.addEventListener('click', function () { close('backdrop'); });
@@ -299,7 +351,7 @@
       : 'Make an offer on any unit \u2014 not just the listed ones.';
 
     var pitch = owner
-      ? 'Selling normally costs you $25,000 and three months before a single buyer sees it: move out, paint, stage, carry the mortgage. Here you can find what your building actually trades at, and receive a real written offer on the home you\u0027re still living in.'
+      ? 'Listing a unit can cost owners $15,000\u2013$35,000 just to test the market \u2014 moving out and renting elsewhere, painting, staging, carrying the mortgage \u2014 before a single buyer is found. Here you can find what your building actually trades at, and receive a real written offer on the home you\u0027re still living in.'
       : 'Zillow shows you what\u0027s listed. We index every unit in ' + (d && d.name ? esc(d.name) : '143 buildings') +
         ' \u2014 and any of them can receive a written offer, whether or not it\u0027s for sale. Most owners have simply never been asked.';
 
@@ -310,19 +362,23 @@
       if (d.units_with_data) rows += stat(owner ? 'Units on record here' : 'Units you could offer on', String(d.units_with_data));
     }
 
+    // Every chip must have a live tool behind it. The previous set included
+    // "Where have owners gained the most" (no cross-building ranking exists)
+    // and "cheapest neighbourhoods per sq ft" (trend tool takes ONE
+    // neighbourhood) — both failed on camera in the first incognito test.
     var chips = owner
-      ? (slug ? ['What has this building done over the last five years?',
+      ? (slug ? ['How have owners in this building done since they bought?',
                  'What sold here most recently?',
                  'How long do owners here typically hold?']
-              : ['Where have owners gained the most since they bought?',
-                 'What sold in SF this week?',
-                 'How long do owners typically hold in SF?'])
-      : (slug ? ['How does this building compare to its neighbourhood?',
+              : ['How much does staging cost for a 2-bedroom?',
+                 'What does it cost to list the traditional way?',
+                 'How long do owners typically hold here?'])
+      : (slug ? ['How do I write an offer on a unit that isn\u0027t listed?',
                  'Which units here haven\u0027t traded in years?',
                  'What sold here most recently?']
-              : ['Which units in SF haven\u0027t traded in over a decade?',
-                 'Which neighbourhoods are cheapest per square foot?',
-                 'What sold in SF this week?']);
+              : ['How do I write an offer on a unit that isn\u0027t listed?',
+                 'Which units haven\u0027t traded in over a decade?',
+                 'What sold this week?']);
 
     paint(
       '<p class="cmi-eyebrow">' + (owner ? 'For owners' : 'For buyers') + '</p>' +
@@ -371,6 +427,7 @@
   function renderDock(minimised) {
     docked = true;
     injectCss();
+    hideLauncher();
     if (!boxEl) {
       backEl = null;
       boxEl = document.createElement('div');
@@ -422,6 +479,7 @@
       if (boxEl && boxEl.parentNode) boxEl.parentNode.removeChild(boxEl);
       boxEl = null; docked = false;
       track('intent_dock_closed');
+      showLauncher();
     });
 
     var input = boxEl.querySelector('.cmi-q');
@@ -641,11 +699,14 @@
    */
   function init() {
     injectCss();
-    if (restoreDock()) return;   // a conversation in progress outranks the popup
+    if (restoreDock()) return;   // a conversation in progress outranks everything
+    showLauncher();              // the chat is permanent — always reachable
+    slug = buildingSlug();
+    // SEEN_KEY suppresses only the AUTOMATIC trigger. The launcher above is
+    // the permanent way back in; previously a single dismissal was terminal.
     try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) {}
     // no credential gate here - the key has a default, and an early return
     // was silently disabling the popup on every page that did not publish one
-    slug = buildingSlug();
 
     // Trigger. Earlier versions were too strict: six scroll events AND 2.5s
     // meant a visitor who flicked once and stopped never saw it, on a site where
