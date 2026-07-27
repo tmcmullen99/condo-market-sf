@@ -124,7 +124,7 @@ function applyOgRotation(html, url, mk) {
 // Bump INTENT_VER on every cm-intent.js change. Cloudflare Pages caches
 // /assets/* at the edge, so a redeploy alone can keep serving the previous file
 // - fixes then appear not to land even though the repo is correct.
-const INTENT_VER = '8';
+const INTENT_VER = '9';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 
 function ensureIntent(html) {
