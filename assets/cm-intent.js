@@ -82,12 +82,38 @@
   // The answer layer. Tool use runs 8-20s, so callers must show a thinking
   // state rather than blocking on a spinner that looks like a hang.
   function askAI(question, history) {
+    var ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
+    var timer = setTimeout(function () { try { ctrl && ctrl.abort(); } catch (e) {} }, 90000);
+    var started = Date.now();
+
     return fetch(creds().url + '/functions/v1/market-ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: ctrl ? ctrl.signal : undefined,
       body: JSON.stringify({ message: question, messages: history || [],
         market_slug: (typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) || 'san-francisco-condo-market' })
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) {
+      clearTimeout(timer);
+      return r.text().then(function (raw) {
+        var data = null;
+        try { data = JSON.parse(raw); } catch (e) {}
+        if (!r.ok) {
+          return { ok: false, error: 'http ' + r.status,
+                   detail: (data && (data.error || data.detail)) || raw.slice(0, 200),
+                   ms: Date.now() - started };
+        }
+        if (!data) return { ok: false, error: 'bad json', detail: raw.slice(0, 200), ms: Date.now() - started };
+        data.ms = Date.now() - started;
+        return data;
+      });
+    }).catch(function (e) {
+      clearTimeout(timer);
+      var aborted = e && (e.name === 'AbortError');
+      return { ok: false,
+               error: aborted ? 'timeout after 90s' : 'network',
+               detail: (e && e.message) ? String(e.message).slice(0, 200) : String(e),
+               ms: Date.now() - started };
+    });
   }
 
   function buildingSlug() {
@@ -550,16 +576,37 @@
     if (docked) scrollThread();
     t.insertAdjacentHTML('beforeend',
       '<div class="cmi-think" data-think><span class="cmi-dot"></span><span class="cmi-dot"></span>' +
-      '<span class="cmi-dot"></span> Reading the record\u2026</div>');
+      '<span class="cmi-dot"></span> <em data-think-label>Reading the record\u2026</em></div>');
+    // Some questions need several passes over the data and genuinely take
+    // 20-60s. Silence for that long reads as failure, so say what is happening.
+    var thinkTimers = [
+      setTimeout(function () { var l = boxEl && boxEl.querySelector('[data-think-label]');
+        if (l) l.textContent = 'Checking the sales history\u2026'; }, 6000),
+      setTimeout(function () { var l = boxEl && boxEl.querySelector('[data-think-label]');
+        if (l) l.textContent = 'Still working \u2014 this one needs a few passes\u2026'; }, 18000),
+      setTimeout(function () { var l = boxEl && boxEl.querySelector('[data-think-label]');
+        if (l) l.textContent = 'Almost there\u2026'; }, 40000)
+    ];
+    function clearThinkTimers() { thinkTimers.forEach(clearTimeout); }
     track('intent_ask', { door: chosen, building: slug, q: q.slice(0, 120) });
 
     askAI(q, thread).then(function (res) {
+      clearThinkTimers();
       var th = boxEl.querySelector('[data-think]');
       if (th) th.parentNode.removeChild(th);
       if (!res || !res.ok) {
-        t.insertAdjacentHTML('beforeend',
-          '<div class="cmi-msg">That one didn\u0027t come back \u2014 try asking it a different way.</div>');
-        track('intent_ask_failed', { door: chosen, reason: (res && res.error) || 'unknown' });
+        // Name the failure. A generic shrug made a working server look broken
+        // for hours; the user gets a plain sentence, the console gets specifics.
+        var why = (res && res.error) || 'unknown';
+        var human = why.indexOf('timeout') === 0
+          ? 'That took too long to come back. Shorter, more specific questions answer faster \u2014 try naming a building.'
+          : why.indexOf('http') === 0
+            ? 'Something went wrong reaching the record. Try again in a moment.'
+            : 'That one didn\u0027t come back \u2014 try asking it a different way.';
+        t.insertAdjacentHTML('beforeend', '<div class="cmi-msg">' + esc(human) + '</div>');
+        try { console.warn('[cm-intent] ask failed:', why, res && res.detail, (res && res.ms) + 'ms'); } catch (e) {}
+        track('intent_ask_failed', { door: chosen, reason: why,
+                                     detail: (res && res.detail) || null, ms: (res && res.ms) || null });
         if (ask) ask.style.display = '';
         asked = 0;   // a failure should not consume the free question
         return;
@@ -589,6 +636,7 @@
         gateForm('Keep asking'));
       wireGate(name);
     }).catch(function () {
+      clearThinkTimers();
       var th = boxEl.querySelector('[data-think]');
       if (th) th.parentNode.removeChild(th);
       if (ask) ask.style.display = '';
