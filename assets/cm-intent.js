@@ -115,6 +115,26 @@
       '.cmi-note{font-size:12px;color:#8a837a;line-height:1.5;margin:10px 0 0}',
       '.cmi-field{display:flex;gap:8px;margin:4px 0 10px}',
       '.cmi-form{margin:0}',
+      /* DOCK - after the email is in, the modal becomes a panel so the page is
+         usable while the conversation continues. */
+      '.cmi.cmi-docked{left:auto;right:20px;top:auto;bottom:20px;transform:none;width:380px;max-width:calc(100vw - 32px);max-height:min(560px,calc(100vh - 40px));display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(10,13,18,.28)}',
+      '.cmi.cmi-docked .cmi-in{padding:0;display:flex;flex-direction:column;min-height:0;flex:1}',
+      '.cmi-dock-bar{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid #ece6dc;background:#f4efe6;border-radius:16px 16px 0 0;cursor:pointer;flex:none}',
+      '.cmi-dock-bar b{font-size:13.5px;color:#171c2a;font-weight:600;flex:1}',
+      '.cmi-dock-live{width:7px;height:7px;border-radius:50%;background:#5d8a5d;flex:none}',
+      '.cmi-dock-min{border:0;background:transparent;font-size:17px;color:#8a837a;cursor:pointer;padding:2px 6px;line-height:1}',
+      '.cmi-dock-body{overflow-y:auto;padding:15px;flex:1;min-height:0}',
+      '.cmi-dock-foot{padding:11px 13px;border-top:1px solid #ece6dc;background:#fdfbf8;border-radius:0 0 16px 16px;flex:none}',
+      '.cmi.cmi-min{max-height:none;height:auto}',
+      '.cmi.cmi-min .cmi-dock-body,.cmi.cmi-min .cmi-dock-foot{display:none}',
+      '.cmi.cmi-min .cmi-dock-bar{border-bottom:0;border-radius:16px}',
+      '@media(max-width:620px){',
+      '  .cmi.cmi-docked{right:0;left:0;bottom:0;width:auto;max-width:none;border-radius:16px 16px 0 0;max-height:72vh}',
+      '  .cmi.cmi-docked .cmi-dock-bar{border-radius:16px 16px 0 0}',
+      '  .cmi.cmi-min .cmi-dock-bar{border-radius:16px 16px 0 0}',
+      '  .cmi.cmi-docked .cmi-field{flex-direction:row}',
+      '  .cmi.cmi-docked .cmi-btn{width:auto}',
+      '}',
       '.cmi-field input{flex:1;min-width:0;padding:13px 14px;border:1px solid #ddd6ca;border-radius:9px;font:inherit;font-size:15px;background:#fff}',
       '.cmi-field input:focus{outline:2px solid rgba(178,67,26,.3);border-color:#b2431a}',
       '.cmi-btn{background:#b2431a;color:#fff;border:0;border-radius:9px;padding:13px 22px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}',
@@ -239,7 +259,7 @@
                  'What sold here most recently?',
                  'How long do owners here typically hold?']
               : ['Which SF buildings have gained the most since 2016?',
-                 'What did my building trade at last year?',
+                 'What sold in SF this week?',
                  'How long do owners typically hold in SF?'])
       : (slug ? ['How does this building compare to its neighbourhood?',
                  'Which units here haven\u0027t traded in years?',
@@ -270,6 +290,108 @@
     track('intent_answered', { door: chosen, building: slug, had_stats: !!rows });
   }
 
+  /* ------------------------------- the dock -----------------------------
+   * Once the email is in, the modal becomes a panel in the corner. The whole
+   * premise is browsing while you ask, so a centred modal is exactly wrong at
+   * that point - and the thread has to survive page navigation or the promise
+   * of "anywhere on the site" is empty. State lives in sessionStorage.
+   */
+  var DOCK_KEY = 'cm_intent_dock';
+
+  function saveDock(min) {
+    try {
+      sessionStorage.setItem(DOCK_KEY, JSON.stringify({
+        thread: thread.slice(-16), door: chosen, slug: slug, min: !!min, name: dockName
+      }));
+    } catch (e) {}
+  }
+  function loadDock() {
+    try { return JSON.parse(sessionStorage.getItem(DOCK_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function clearDock() { try { sessionStorage.removeItem(DOCK_KEY); } catch (e) {} }
+
+  var dockName = null, docked = false;
+
+  function renderDock(minimised) {
+    docked = true;
+    injectCss();
+    if (!boxEl) {
+      backEl = null;
+      boxEl = document.createElement('div');
+      boxEl.className = 'cmi';
+      document.body.appendChild(boxEl);
+      requestAnimationFrame(function () { boxEl.classList.add('on'); });
+    }
+    // the backdrop goes away - the page must be usable
+    if (backEl && backEl.parentNode) { backEl.parentNode.removeChild(backEl); backEl = null; }
+    boxEl.classList.add('cmi-docked');
+    boxEl.classList.toggle('cmi-min', !!minimised);
+
+    var msgs = thread.map(function (m) {
+      return '<div class="cmi-msg' + (m.role === 'user' ? ' cmi-you' : '') + '">' + esc(m.content) + '</div>';
+    }).join('');
+
+    boxEl.innerHTML =
+      '<div class="cmi-in">' +
+        '<div class="cmi-dock-bar" data-toggle>' +
+          '<span class="cmi-dock-live"></span>' +
+          '<b>' + esc(dockName || 'Condo Market') + '</b>' +
+          '<button class="cmi-dock-min" aria-label="' + (minimised ? 'Expand' : 'Minimise') + '">' +
+            (minimised ? '\u25B4' : '\u25BE') + '</button>' +
+          '<button class="cmi-dock-min" data-dock-close aria-label="Close">&times;</button>' +
+        '</div>' +
+        '<div class="cmi-dock-body"><div class="cmi-thread">' + msgs + '</div></div>' +
+        '<div class="cmi-dock-foot">' +
+          '<div class="cmi-field">' +
+            '<input type="text" class="cmi-q" placeholder="Ask anything\u2026" aria-label="Ask a question">' +
+            '<button class="cmi-btn cmi-send">Ask</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var bar = boxEl.querySelector('[data-toggle]');
+    bar.addEventListener('click', function (e) {
+      if (e.target.hasAttribute('data-dock-close')) return;
+      var nowMin = !boxEl.classList.contains('cmi-min');
+      boxEl.classList.toggle('cmi-min', nowMin);
+      bar.querySelector('.cmi-dock-min').textContent = nowMin ? '\u25B4' : '\u25BE';
+      saveDock(nowMin);
+      track('intent_dock_toggle', { minimised: nowMin });
+    });
+    boxEl.querySelector('[data-dock-close]').addEventListener('click', function (e) {
+      e.stopPropagation();
+      clearDock();
+      if (boxEl && boxEl.parentNode) boxEl.parentNode.removeChild(boxEl);
+      boxEl = null; docked = false;
+      track('intent_dock_closed');
+    });
+
+    var input = boxEl.querySelector('.cmi-q');
+    var send1 = boxEl.querySelector('.cmi-send');
+    function go() { send(input.value, dockName); input.value = ''; }
+    send1.addEventListener('click', go);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+
+    scrollThread();
+    saveDock(minimised);
+  }
+
+  function scrollThread() {
+    var b = boxEl && boxEl.querySelector('.cmi-dock-body');
+    if (b) b.scrollTop = b.scrollHeight;
+  }
+
+  // Restore across navigation, so the conversation follows the visitor.
+  function restoreDock() {
+    var d = loadDock();
+    if (!d || !d.thread || !d.thread.length) return false;
+    thread = d.thread; chosen = d.door; dockName = d.name || null;
+    gated = false; asked = 1;
+    renderDock(!!d.min);
+    track('intent_dock_restored', { messages: thread.length });
+    return true;
+  }
+
   /* ------------------------- the ask layer -------------------------------
    * First question is free and unauthenticated. Demonstrated value converts
    * far better than described value, and the only durable advantage here is
@@ -298,15 +420,18 @@
   function send(q, name) {
     q = String(q || '').trim();
     if (!q) return;
-    if (gated) { renderGate(name, q); return; }
-    if (asked >= 1) { gated = true; renderGate(name, q); return; }
-    asked++;
+    if (!docked) {
+      if (gated) { renderGate(name, q); return; }
+      if (asked >= 1) { gated = true; renderGate(name, q); return; }
+      asked++;
+    }
 
     var t = threadEl();
     if (!t) return;
-    var ask = boxEl.querySelector('.cmi-ask');
+    var ask = docked ? null : boxEl.querySelector('.cmi-ask');
     if (ask) ask.style.display = 'none';
     t.insertAdjacentHTML('beforeend', '<div class="cmi-msg cmi-you">' + esc(q) + '</div>');
+    if (docked) scrollThread();
     t.insertAdjacentHTML('beforeend',
       '<div class="cmi-think" data-think><span class="cmi-dot"></span><span class="cmi-dot"></span>' +
       '<span class="cmi-dot"></span> Reading the record\u2026</div>');
@@ -326,13 +451,17 @@
       thread.push({ role: 'user', content: q });
       thread.push({ role: 'assistant', content: res.reply || '' });
       t.insertAdjacentHTML('beforeend', '<div class="cmi-msg">' + esc(res.reply || '') + '</div>');
+      if (docked) { saveDock(false); scrollThread(); }
       if (res.navigate && res.navigate.path) {
         t.insertAdjacentHTML('beforeend',
           '<a class="cmi-go" href="' + esc(res.navigate.path) + '" data-cta="intent-ai-nav">' +
           esc(res.navigate.label || 'Open') + ' \u2192</a>');
       }
       track('intent_ask_answered', { door: chosen, tools: (res.tools_used || []).join(',') });
-      // the gate, offered now that it has been shown to work
+      // The gate, offered now that it has been shown to work - but only before
+      // docking. Once docked the email is already in, and re-asking for it after
+      // every answer is both wrong and insulting.
+      if (docked) { saveDock(false); scrollThread(); return; }
       t.insertAdjacentHTML('beforeend',
         '<div style="margin:18px 0 6px">' +
           '<p class="cmi-ans-q" style="margin-bottom:6px">That was one question.</p>' +
@@ -422,17 +551,14 @@
         p_path: location.pathname, p_session_id: (window.cmSessionId || null)
       }).then(function () {
         track('intent_email_captured', { door: chosen, building: slug });
-        paint(
-          '<p class="cmi-eyebrow">Done</p>' +
-          '<h2 class="cmi-h">Check your inbox.</h2>' +
-          '<p class="cmi-sub">' + (chosen === 'owner'
-            ? 'Your building\'s full sale record is on its way. Want a price for your specific unit? Build your own comparative analysis — it takes about a minute, and Tim will review it with you after.'
-            : 'The full record is on its way. When you find a unit you want, you can send the owner a written offer whether or not it\'s listed.') + '</p>' +
-          '<div class="cmi-field"><a class="cmi-btn" style="text-decoration:none;text-align:center;display:block;width:100%" href="' +
-            (chosen === 'owner' ? '/tools/cma/?b=' + encodeURIComponent(slug || '') : '/buildings/') +
-            '" data-cta="intent-' + chosen + '-next">' +
-            (chosen === 'owner' ? 'Build my own CMA →' : 'Browse every building →') + '</a></div>'
-        );
+        dockName = name || (chosen === 'owner' ? 'Your building' : 'Condo Market');
+        // Seed the thread with a confirmation so the dock never opens empty.
+        thread.push({ role: 'assistant', content:
+          (chosen === 'owner'
+            ? 'You\u0027re in. Your building\u0027s full sale record is on its way. Ask me anything as you look around \u2014 and if you want a price for your specific unit, build a CMA and Tim will review it with you.'
+            : 'You\u0027re in. Ask me anything as you look around \u2014 any building, any unit. Remember every one of them can receive a written offer, listed or not.') });
+        gated = false;
+        renderDock(false);
       }).catch(function (e) {
         btn.disabled = false; btn.textContent = 'Try again';
         err.textContent = 'Something went wrong — ' + (e && e.message ? e.message : 'please retry.');
@@ -456,6 +582,8 @@
    * keep reading, which is the earliest honest signal of intent.
    */
   function init() {
+    injectCss();
+    if (restoreDock()) return;   // a conversation in progress outranks the popup
     try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) {}
     if (SB_KEY.indexOf('ey') !== 0 && SB_KEY.indexOf('sb_') !== 0) return;  // no creds, stay silent
     slug = buildingSlug();
