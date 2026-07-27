@@ -42,6 +42,16 @@
     }).then(function (r) { if (!r.ok) throw new Error(fn + ' ' + r.status); return r.json(); });
   }
 
+  // The answer layer. Tool use runs 8-20s, so callers must show a thinking
+  // state rather than blocking on a spinner that looks like a hang.
+  function askAI(question, history) {
+    return fetch(SB_URL + '/functions/v1/market-ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: question, messages: history || [], market_slug: 'san-francisco-condo-market' })
+    }).then(function (r) { return r.json(); });
+  }
+
   function buildingSlug() {
     var m = location.pathname.match(/^\/building\/([^\/]+)/i);
     if (m) return decodeURIComponent(m[1]);
@@ -101,6 +111,16 @@
       '.cmi-btn:disabled{opacity:.5;cursor:not-allowed}',
       '.cmi-alt{display:block;width:100%;background:transparent;border:0;color:#8a837a;font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:8px;margin-top:2px}',
       '.cmi-err{color:#9c2f16;font-size:13px;margin:2px 0 8px}',
+      '.cmi-ask{margin:14px 0 0}',
+      '.cmi-chip{display:inline-block;background:#fff;border:1px solid #e3ddd2;border-radius:999px;padding:9px 15px;margin:0 6px 8px 0;font-size:13px;color:#3d3830;cursor:pointer;text-align:left;line-height:1.35}',
+      '.cmi-chip:hover{border-color:#b2431a;color:#b2431a}',
+      '.cmi-msg{background:#fff;border:1px solid #e3ddd2;border-radius:12px;padding:15px 17px;margin:0 0 10px;font-size:14.5px;line-height:1.55;color:#2e2a24;white-space:pre-wrap}',
+      '.cmi-you{background:#efeae1;border:0;color:#4b453c;font-size:13.5px}',
+      '.cmi-think{display:flex;align-items:center;gap:9px;font-size:13.5px;color:#8a837a;padding:13px 2px}',
+      '.cmi-dot{width:7px;height:7px;border-radius:50%;background:#b2431a;animation:cmiPulse 1.15s infinite ease-in-out}',
+      '.cmi-dot:nth-child(2){animation-delay:.18s}.cmi-dot:nth-child(3){animation-delay:.36s}',
+      '@keyframes cmiPulse{0%,80%,100%{opacity:.25}40%{opacity:1}}',
+      '.cmi-go{display:inline-block;background:#b2431a;color:#fff;border-radius:9px;padding:11px 18px;font-size:14px;font-weight:600;text-decoration:none;margin-top:4px}',
       '@media(max-width:560px){.cmi-in{padding:26px 20px 22px}.cmi-h{font-size:22px}.cmi-field{flex-direction:column}.cmi-btn{width:100%}}'
     ].join('');
     document.head.appendChild(s);
@@ -187,29 +207,114 @@
       if (units) rows += stat(chosen === 'owner' ? 'Units on record here' : 'Units you could offer on', String(units));
       if (!rows) { renderGate(name); return; }
 
-      var q = chosen === 'owner'
-        ? 'What has ' + name + ' been trading at?'
-        : 'What would it take to buy in ' + name + '?';
-
       var lede = chosen === 'owner'
-        ? 'Every recorded sale in your building, free. Find your unit and you\'ll see what it last sold for and how the building has moved since.'
-        : 'Every one of these units can receive a written offer — listed or not. Most owners have never been asked.';
+        ? 'Ask anything about your building \u2014 or find your unit and see what it last sold for.'
+        : 'Ask anything about this building. Every unit here can receive a written offer, listed or not.';
+
+      var chips = chosen === 'owner'
+        ? ['What has this building done over the last five years?',
+           'How long do owners here typically hold?',
+           'What sold here most recently?']
+        : ['How does this building compare to the neighbourhood?',
+           'What sold here most recently?',
+           'Which units here have not traded in years?'];
 
       paint(
         '<p class="cmi-eyebrow">' + (chosen === 'owner' ? 'Your building' : 'This building') + '</p>' +
         '<h2 class="cmi-h">' + esc(name) + '</h2>' +
-        '<div class="cmi-ans"><p class="cmi-ans-q">' + esc(q) + '</p>' + rows + '</div>' +
+        '<div class="cmi-ans">' + rows + '</div>' +
         '<p class="cmi-sub">' + lede + '</p>' +
-        gateForm(chosen === 'owner'
-          ? 'Email me my unit\'s history'
-          : 'Email me this building\'s full record') +
+        '<div class="cmi-thread"></div>' +
+        '<div class="cmi-ask">' +
+          chips.map(function (c) { return '<button class="cmi-chip">' + esc(c) + '</button>'; }).join('') +
+          '<div class="cmi-field" style="margin-top:6px">' +
+            '<input type="text" class="cmi-q" placeholder="Ask about this building\u2026" aria-label="Ask a question">' +
+            '<button class="cmi-btn cmi-send">Ask</button>' +
+          '</div>' +
+        '</div>' +
         '<button class="cmi-alt" data-skip>Keep browsing</button>'
       );
-      wireGate(name);
+      wireAsk(name);
       track('intent_answered', { door: chosen, building: slug, had_stats: true });
     }).catch(function () {
       renderGate(null);
       track('intent_answered', { door: chosen, building: slug, had_stats: false });
+    });
+  }
+
+  /* ------------------------- the ask layer -------------------------------
+   * First question is free and unauthenticated. Demonstrated value converts
+   * far better than described value, and the only durable advantage here is
+   * that the answer is specific to the building already on screen.
+   * The gate lands on the SECOND question, once it has been shown to work.
+   */
+  var thread = [], asked = 0, gated = false;
+
+  function wireAsk(name) {
+    var skip = boxEl.querySelector('[data-skip]');
+    if (skip) skip.addEventListener('click', function () { close('skip'); });
+
+    Array.prototype.forEach.call(boxEl.querySelectorAll('.cmi-chip'), function (c) {
+      c.addEventListener('click', function () { send(c.textContent, name); });
+    });
+    var input = boxEl.querySelector('.cmi-q');
+    var send1 = boxEl.querySelector('.cmi-send');
+    if (send1) send1.addEventListener('click', function () { send(input.value, name); });
+    if (input) input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') send(input.value, name);
+    });
+  }
+
+  function threadEl() { return boxEl.querySelector('.cmi-thread'); }
+
+  function send(q, name) {
+    q = String(q || '').trim();
+    if (!q) return;
+    if (gated) { renderGate(name, q); return; }
+    if (asked >= 1) { gated = true; renderGate(name, q); return; }
+    asked++;
+
+    var t = threadEl();
+    if (!t) return;
+    var ask = boxEl.querySelector('.cmi-ask');
+    if (ask) ask.style.display = 'none';
+    t.insertAdjacentHTML('beforeend', '<div class="cmi-msg cmi-you">' + esc(q) + '</div>');
+    t.insertAdjacentHTML('beforeend',
+      '<div class="cmi-think" data-think><span class="cmi-dot"></span><span class="cmi-dot"></span>' +
+      '<span class="cmi-dot"></span> Reading the record\u2026</div>');
+    track('intent_ask', { door: chosen, building: slug, q: q.slice(0, 120) });
+
+    askAI(q, thread).then(function (res) {
+      var th = boxEl.querySelector('[data-think]');
+      if (th) th.parentNode.removeChild(th);
+      if (!res || !res.ok) {
+        t.insertAdjacentHTML('beforeend',
+          '<div class="cmi-msg">That one didn\u0027t come back \u2014 try asking it a different way.</div>');
+        track('intent_ask_failed', { door: chosen, reason: (res && res.error) || 'unknown' });
+        if (ask) ask.style.display = '';
+        asked = 0;   // a failure should not consume the free question
+        return;
+      }
+      thread.push({ role: 'user', content: q });
+      thread.push({ role: 'assistant', content: res.reply || '' });
+      t.insertAdjacentHTML('beforeend', '<div class="cmi-msg">' + esc(res.reply || '') + '</div>');
+      if (res.navigate && res.navigate.path) {
+        t.insertAdjacentHTML('beforeend',
+          '<a class="cmi-go" href="' + esc(res.navigate.path) + '" data-cta="intent-ai-nav">' +
+          esc(res.navigate.label || 'Open') + ' \u2192</a>');
+      }
+      track('intent_ask_answered', { door: chosen, tools: (res.tools_used || []).join(',') });
+      // the gate, offered now that it has been shown to work
+      t.insertAdjacentHTML('beforeend',
+        '<p class="cmi-sub" style="margin:16px 0 8px">Ask as much as you like \u2014 pop your email in and keep going.</p>' +
+        gateForm('Keep asking'));
+      wireGate(name);
+    }).catch(function () {
+      var th = boxEl.querySelector('[data-think]');
+      if (th) th.parentNode.removeChild(th);
+      if (ask) ask.style.display = '';
+      asked = 0;
+      track('intent_ask_failed', { door: chosen, reason: 'network' });
     });
   }
 
@@ -225,7 +330,7 @@
            '<p class="cmi-note">No password. We never sell your data, and you can stop the emails in one click.</p>';
   }
 
-  function renderGate(name) {
+  function renderGate(name, pendingQ) {
     paint(
       '<p class="cmi-eyebrow">Condo Market</p>' +
       '<h2 class="cmi-h">' + (chosen === 'owner'
@@ -234,7 +339,8 @@
       '<p class="cmi-sub">' + (chosen === 'owner'
         ? 'The complete recorded history of ' + esc(name || 'your building') + ' — every sale, every price, free.'
         : 'Not just what\'s listed. Any unit, any building — the owner receives a real written offer.') + '</p>' +
-      gateForm('Send it to me') +
+      (pendingQ ? '<div class="cmi-msg cmi-you">' + esc(pendingQ) + '</div>' : '') +
+      gateForm(pendingQ ? 'Answer this and keep going' : 'Send it to me') +
       '<button class="cmi-alt" data-skip>Keep browsing</button>'
     );
     wireGate(name);
