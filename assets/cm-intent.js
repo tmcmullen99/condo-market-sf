@@ -145,6 +145,20 @@
    * server returned. Linking from server-side refs rather than parsing prose
    * means a link only ever appears for a building whose page actually renders.
    */
+  // Only link domains we control. The model should only emit URLs that came from
+  // a tool result, but a hallucinated link rendered as clickable is a real risk
+  // on a page carrying a DRE number. Anything else stays plain text - visible
+  // and copyable, but not one tap from somewhere unknown.
+  var LINK_ALLOWED = ['sanfranciscocondomarket.com','siliconvalleycondomarket.com',
+                      'mcmullenresidential.com','mcmullen.properties','eichlermarket.com',
+                      'campbellrealestatemarket.com','losgatosrealestatemarket.com',
+                      'saratogarealestatemarket.com','penngroverealestatemarket.com'];
+  function allowedUrl(u) {
+    if (!/^https?:\/\//i.test(u)) return false;
+    var host = u.replace(/^https?:\/\//i, '').split(/[\/?#]/)[0].toLowerCase().replace(/^www\./, '');
+    return LINK_ALLOWED.some(function (d) { return host === d || host.slice(-(d.length + 1)) === '.' + d; });
+  }
+
   function renderReply(text, refs) {
     var html = esc(String(text || ''));
 
@@ -158,6 +172,33 @@
           '<a class="cmi-ref" href="/building/' + encodeURIComponent(r.slug) + '" ' +
           'data-cta="chat-ref">' + esc(r.name) + '</a>');
       });
+
+    // Links, in two passes with placeholders in between. Running the bare-URL
+    // pass over HTML the markdown pass had just produced rewrote the inside of
+    // its own href attribute, so the first link came out pointing at "<a class=".
+    // Markdown links are parked as tokens, bare URLs handled, then restored.
+    var parked = [];
+    function park(html_) { parked.push(html_); return '\u0000LINK' + (parked.length - 1) + '\u0000'; }
+
+    // [label](url) \u2014 any target, so javascript: and other schemes are caught
+    // and flattened rather than left as visible bracket syntax.
+    html = html.replace(/\[([^\]]{1,120})\]\(([^\s)]{1,300})\)/g, function (m, label, url) {
+      if (!allowedUrl(url)) return label;          // keep the words, drop the link
+      return park('<a class="cmi-ref" href="' + url + '" target="_blank" rel="noopener noreferrer" ' +
+                  'data-cta="chat-external">' + label + '</a>');
+    });
+
+    // Bare URLs
+    html = html.replace(/https?:\/\/[^\s<>"']+/g, function (u) {
+      var clean = u.replace(/[.,;:)\]]+$/, '');
+      var tail  = u.slice(clean.length);
+      if (!allowedUrl(clean)) return u;
+      var label = clean.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+      return park('<a class="cmi-ref" href="' + clean + '" target="_blank" rel="noopener noreferrer" ' +
+                  'data-cta="chat-external">' + label + '</a>') + tail;
+    });
+
+    html = html.replace(/\u0000LINK(\d+)\u0000/g, function (m, i) { return parked[Number(i)]; });
 
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
