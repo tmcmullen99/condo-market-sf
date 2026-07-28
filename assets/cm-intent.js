@@ -216,6 +216,8 @@
       '.cmi-agent{display:inline-flex;align-items:center;gap:8px;background:#171c2a;color:#f1ede4;border:0;border-radius:999px;padding:11px 18px;font:inherit;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;margin-top:10px}',
       '.cmi-agent:hover{background:#232a3c}',
       '.cmi-agent-ic{font-size:14px;opacity:.85}',
+      '.cmi-standing{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:9px;padding:8px;border-top:1px solid #ece6dc;color:#6c655c;font-size:12.5px;text-decoration:none;font-weight:500}',
+      '.cmi-standing:hover{color:#b2431a}',
       '.cmi-agent-box{margin-top:10px}',
       '.cmi-agent-alt{display:block;width:100%;margin-top:8px;background:transparent;border:0;color:#8a837a;font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:6px 0;text-align:left}',
       '.cmi-agent-alt[hidden]{display:none}',
@@ -493,6 +495,11 @@
             '<input type="text" class="cmi-q" placeholder="Ask anything\u2026" aria-label="Ask a question">' +
             '<button class="cmi-btn cmi-send">Ask</button>' +
           '</div>' +
+          // Always present, always one tap. The per-answer button carries the
+          // last question; this one is the standing offer.
+          '<a class="cmi-standing" href="' + esc(smsHref(lastQuestion())) + '" data-cta="text-agent-standing">' +
+            '<span class="cmi-agent-ic">\u2709</span>Text an expert local agent any time' +
+          '</a>' +
         '</div>' +
       '</div>';
 
@@ -522,6 +529,11 @@
 
     scrollThread();
     saveDock(minimised);
+  }
+
+  function refreshStandingLink() {
+    var el = boxEl && boxEl.querySelector('[data-cta="text-agent-standing"]');
+    if (el) el.setAttribute('href', smsHref(lastQuestion()));
   }
 
   function scrollThread() {
@@ -583,7 +595,7 @@
    * copy-to-clipboard there rather than leading somewhere dead.
    */
   var AGENT_PHONE = '+14156919272';
-  var AGENT_LABEL = 'Tim';
+  var AGENT_LABEL = 'an expert local agent';
 
   /* ---------------------------- text the agent ---------------------------
    * A real <a href="sms:"> on EVERY platform — one tap, native messaging app,
@@ -605,7 +617,7 @@
    */
   function smsBody(question) {
     var q = String(question || '').trim();
-    var lead = 'Hi ' + AGENT_LABEL + ', I was on SF Condo Market and had a question:';
+    var lead = 'Hi, I was on SF Condo Market and had a question:';
     return q ? (lead + ' ' + q) : (lead + ' ');
   }
 
@@ -624,8 +636,8 @@
     var q = lastQuestion();
     return '<div class="cmi-agent-box">' +
              '<a class="cmi-agent" href="' + esc(smsHref(q)) + '" data-cta="text-agent">' +
-               '<span class="cmi-agent-ic">\u2709</span>Text ' + AGENT_LABEL +
-               (q ? ' this question' : '') +
+               '<span class="cmi-agent-ic">\u2709</span>' +
+               (q ? 'Text an expert local agent this question' : 'Text an expert local agent') +
              '</a>' +
              '<button class="cmi-agent-alt" data-copy-sms hidden>' +
                'Messaging app didn\u0027t open \u2014 copy the message instead' +
@@ -637,6 +649,10 @@
     var root = scope || boxEl;
     if (!root) return;
     var link = root.querySelector('a[data-cta="text-agent"]');
+    var standing = root.querySelector('a[data-cta="text-agent-standing"]');
+    if (standing) standing.addEventListener('click', function () {
+      track('agent_text_clicked', { source: 'standing', had_question: !!lastQuestion() });
+    });
     var alt  = root.querySelector('[data-copy-sms]');
 
     if (link) {
@@ -746,7 +762,7 @@
           '<div class="cmi-agent-wrap"><p class="cmi-ans-q" style="margin:14px 0 2px">' +
           'Want a person instead?</p>' + agentButton() + '</div>');
         wireAgentButton(boxEl);
-        saveDock(false); scrollThread(); return;
+        saveDock(false); scrollThread(); refreshStandingLink(); return;
       }
       t.insertAdjacentHTML('beforeend',
         '<div style="margin:18px 0 6px">' +
@@ -844,7 +860,7 @@
         // Seed the thread with a confirmation so the dock never opens empty.
         thread.push({ role: 'assistant', content:
           (chosen === 'owner'
-            ? 'You\u0027re in. Your building\u0027s full sale record is on its way. Ask me anything as you look around \u2014 and if you want a price for your specific unit, set your number and Tim will follow up.'
+            ? 'You\u0027re in. Your building\u0027s full sale record is on its way. Ask me anything as you look around \u2014 and if you want a price for your specific unit, set your number and a local agent will follow up.'
             : 'You\u0027re in. Ask me anything as you look around \u2014 any building, any unit. Remember every one of them can receive a written offer, listed or not.') });
         gated = false;
         renderDock(false);
