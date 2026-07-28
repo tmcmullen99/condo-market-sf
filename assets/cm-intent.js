@@ -882,8 +882,13 @@
     q = String(q || '').trim();
     if (!q) return;
     if (!docked) {
-      if (gated) { renderGate(name, q); return; }
-      if (asked >= 1) { gated = true; renderGate(name, q); return; }
+      // Parity rule (7/28): a captured email skips the gate on every future
+      // visit. rememberedEmail() was being written but never consulted, so
+      // returning leads were re-gated and retyped their address each session.
+      if (!rememberedEmail()) {
+        if (gated) { renderGate(name, q); return; }
+        if (asked >= 1) { gated = true; renderGate(name, q); return; }
+      }
       asked++;
     }
 
