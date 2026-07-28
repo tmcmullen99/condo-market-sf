@@ -1,4 +1,4 @@
-  import { CM } from '/assets/cm-supabase.js';
+import { CM } from '/assets/cm-supabase.js';
   import { openListingWizard } from '/assets/cm-listing-wizard.js';
   import { openTosModal, hasAcceptedCurrentTos } from '/assets/cm-tos-modal.js';
   import { openCounterModal } from '/assets/cm-counter-modal.js';
@@ -34,7 +34,6 @@
     if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
     return '$' + Math.round(n);
   }
-  function fmtPct(n) { return (Math.round(n * 10) / 10).toFixed(1) + '%'; }
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -595,9 +594,7 @@
     document.getElementById('f-email').textContent = user.email || '—';
 
     let profile = null;
-    let credits = [];
     try { profile = await CM.getMyProfile(); } catch (e) {}
-    try { credits = await CM.listMyReferralCredits(); } catch (e) {}
 
     document.getElementById('f-name').textContent = profile?.full_name || user.user_metadata?.full_name || '—';
 
@@ -625,17 +622,12 @@
       howtoBtn.addEventListener('click', () => openTosModal({ mode: 'info' }));
     }
 
-    const referralCount = Math.min(credits.length, 5);
-    const creditPct = Math.min(referralCount * 0.2, 1.0);
-    document.getElementById('f-referrals').textContent = referralCount + ' of 5';
-    document.getElementById('f-credit').textContent = fmtPct(creditPct);
-
-    const code = profile?.referral_code || '—';
-    document.getElementById('f-refcode').textContent = code;
-    const refLink = code !== '—'
-      ? `${window.location.origin}/?ref=${code}`
-      : 'Generating your referral code…';
-    document.getElementById('f-reflink').textContent = refLink;
+    // Referral programme retired 2026-07-28. Condo Market cannot offer
+    // commission credit in exchange for referrals; the $10,000 is now a flat
+    // membership credit granted for creating an account and applied at close.
+    // The credit surface (sidebar, overview tile, credit view, settings row)
+    // is owned by /assets/cm-credit-panel.js, which runs on 'cm-dash-rendered'.
+    // Nothing referral-related is read or written here.
 
     // ─── Populate first-fold stats row ─────────────────────────────────────
     try {
@@ -655,22 +647,6 @@
         : (ownerOffers.length > 0 ? 'All resolved' : 'No offers yet');
     } catch (e) { /* stats are nice-to-have */ }
 
-    document.getElementById('stat-referrals').textContent = `${referralCount} / 5`;
-    document.getElementById('stat-referrals-meta').textContent = creditPct >= 1.0
-      ? '1% off — maxed!'
-      : `${fmtPct(creditPct)} off so far`;
-
-    // Mount calculator in progress mode
-    const calcEl = document.getElementById('cm-rc-dash');
-    if (calcEl && window.CMReferralCalc) {
-      calcEl.innerHTML = '';
-      calcEl.classList.remove('cm-rc');
-      calcEl.classList.remove('cm-rc-ivory');
-      calcEl.dataset.referralCount = String(referralCount);
-      calcEl.dataset.mode = 'progress';
-      window.CMReferralCalc.mount(calcEl);
-    }
-
     // Render MMM card
     await refreshMMM();
 
@@ -679,18 +655,6 @@
       renderBuyerOffers(),
       renderOwnerOffers(),
     ]);
-
-    // Wire copy button
-    document.getElementById('copy-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('copy-btn');
-      try {
-        await navigator.clipboard.writeText(refLink);
-        btn.textContent = 'Copied';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-      } catch (e) {
-        btn.textContent = 'Error';
-      }
-    }, { once: true });
 
     // v20: notify shell modules that render() has completed so they can sync sidebar + activity feed
     window.dispatchEvent(new CustomEvent('cm-dash-rendered'));
