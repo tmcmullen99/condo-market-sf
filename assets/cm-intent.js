@@ -213,6 +213,9 @@
       '.cmi-rows li{padding:9px 2px;border-bottom:1px solid #efeae1;font-size:14px;line-height:1.45}',
       '.cmi-ref{color:#b2431a;text-decoration:none;border-bottom:1px solid rgba(178,67,26,.32);font-weight:600}',
       '.cmi-ref:hover{border-bottom-color:#b2431a;background:rgba(178,67,26,.06)}',
+      '.cmi-agent{display:inline-flex;align-items:center;gap:8px;background:#171c2a;color:#f1ede4;border:0;border-radius:999px;padding:11px 18px;font:inherit;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;margin-top:10px}',
+      '.cmi-agent:hover{background:#232a3c}',
+      '.cmi-agent-ic{font-size:14px;opacity:.85}',
       '.cmi-form{margin:0}',
       /* DOCK - after the email is in, the modal becomes a panel so the page is
          usable while the conversation continues. */
@@ -565,6 +568,76 @@
     return thread.map(function (m) { return { role: m.role, content: m.content }; });
   }
 
+  /* ---------------------------- text the agent ---------------------------
+   * An sms: deep link opens the visitor's OWN messaging app with Tim's number
+   * and the body pre-filled. No provider, no server, no captured contact
+   * details - they text from their own phone, so Tim gets a real thread he can
+   * reply to normally.
+   *
+   * Platform quirk: iOS wants sms:NUMBER&body=..., Android wants
+   * sms:NUMBER?body=... The "?&" form is the one that works on both.
+   * Desktop generally has no sms: handler, so the button is swapped for
+   * copy-to-clipboard there rather than leading somewhere dead.
+   */
+  var AGENT_PHONE = '+14156919272';
+  var AGENT_LABEL = 'Tim';
+
+  function isMobile() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+  }
+
+  function smsBody(question) {
+    var q = String(question || '').trim();
+    var lead = 'Hi ' + AGENT_LABEL + ', I was on SF Condo Market and had a question:';
+    // No question yet - leave them the room to write their own.
+    return q ? (lead + ' ' + q) : (lead + ' ');
+  }
+
+  function smsHref(question) {
+    return 'sms:' + AGENT_PHONE + '?&body=' + encodeURIComponent(smsBody(question));
+  }
+
+  // The last thing they actually asked, so the text carries their own words.
+  function lastQuestion() {
+    for (var i = thread.length - 1; i >= 0; i--) {
+      if (thread[i].role === 'user') return thread[i].content;
+    }
+    return '';
+  }
+
+  function agentButton() {
+    var q = lastQuestion();
+    if (isMobile()) {
+      return '<a class="cmi-agent" href="' + esc(smsHref(q)) + '" data-cta="text-agent">' +
+             '<span class="cmi-agent-ic">\u2709</span>Text ' + AGENT_LABEL +
+             (q ? ' this question' : '') + '</a>';
+    }
+    return '<button class="cmi-agent" data-copy-sms data-cta="text-agent-desktop">' +
+           '<span class="cmi-agent-ic">\u2709</span>Text ' + AGENT_LABEL + ' \u2014 ' + AGENT_PHONE +
+           '</button>';
+  }
+
+  function wireAgentButton(scope) {
+    var el = (scope || boxEl).querySelector('[data-copy-sms]');
+    if (el) {
+      el.addEventListener('click', function () {
+        var text = smsBody(lastQuestion());
+        var done = function () {
+          el.innerHTML = '<span class="cmi-agent-ic">\u2713</span>Copied \u2014 text ' + AGENT_PHONE;
+        };
+        try {
+          if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done);
+          else done();
+        } catch (e) { done(); }
+        track('agent_text_clicked', { device: 'desktop', had_question: !!lastQuestion() });
+      });
+    }
+    var link = (scope || boxEl).querySelector('a[data-cta="text-agent"]');
+    if (link) link.addEventListener('click', function () {
+      track('agent_text_clicked', { device: 'mobile', had_question: !!lastQuestion() });
+    });
+  }
+
   function threadEl() { return boxEl.querySelector('.cmi-thread'); }
 
   function send(q, name) {
@@ -632,7 +705,16 @@
       // The gate, offered now that it has been shown to work - but only before
       // docking. Once docked the email is already in, and re-asking for it after
       // every answer is both wrong and insulting.
-      if (docked) { saveDock(false); scrollThread(); return; }
+      if (docked) {
+        // Offer the human straight after the answer, carrying their own words.
+        var prev = boxEl.querySelector('.cmi-agent-wrap');
+        if (prev && prev.parentNode) prev.parentNode.removeChild(prev);
+        t.insertAdjacentHTML('beforeend',
+          '<div class="cmi-agent-wrap"><p class="cmi-ans-q" style="margin:14px 0 2px">' +
+          'Want a person instead?</p>' + agentButton() + '</div>');
+        wireAgentButton(boxEl);
+        saveDock(false); scrollThread(); return;
+      }
       t.insertAdjacentHTML('beforeend',
         '<div style="margin:18px 0 6px">' +
           '<p class="cmi-ans-q" style="margin-bottom:6px">That was one question.</p>' +
@@ -641,8 +723,10 @@
             ? 'We\u0027ll also send your building\u0027s full recorded history.'
             : 'We\u0027ll also send the list of units here that haven\u0027t traded in years.') +
           '</p></div>' +
-        gateForm('Keep asking'));
+        gateForm('Keep asking') +
+        '<div class="cmi-agent-wrap" style="margin-top:14px">' + agentButton() + '</div>');
       wireGate(name);
+      wireAgentButton(boxEl);
     }).catch(function () {
       clearThinkTimers();
       var th = boxEl.querySelector('[data-think]');
