@@ -13,8 +13,21 @@
  *     (market_hold_stats, building_prices, site_knowledge, owner_economics,
  *     long_held_units) — the old set included questions with no tool behind
  *     them, which failed on camera in the first incognito test.
- *   - Owner pitch reframed to the $15,000–$35,000 cost-to-test-the-market
+ *   - Owner pitch reframed to the $15,000-$35,000 cost-to-test-the-market
  *     number, answered in depth by the site_knowledge layer.
+ *
+ * v3 (7/28): owner screen 2 is an itemised ledger, not a paragraph.
+ *   - REMOVED the $15,000-$35,000 claim. No knowledge_entries row supports it,
+ *     and neither "move out and rent elsewhere" nor "carrying the mortgage"
+ *     exists as sourced data. An unsourced cost range shown to an owner by a
+ *     licensed agent to induce a listing decision is the exact thing this file
+ *     says it will not do.
+ *   - The ledger renders ONLY rows backed by a knowledge entry, each carrying
+ *     its fact_type, and the total is summed from the rows present rather than
+ *     hard-coded. Add an entry and the row appears; there is nothing to edit
+ *     here.
+ *   - Closing line is fee-transaction, a policy we control, which is stronger
+ *     than an estimate we would have to defend.
  *
  * WHY THIS EXISTS
  * 92.3% of human visitors view exactly one page and 5.1% ever return, so there
@@ -319,6 +332,18 @@
       '.cmi-pick small{display:block;font-weight:400;font-size:10.5px;color:rgba(241,237,228,.55);margin-top:3px}',
       '.cmi-prompt-x{position:absolute;top:8px;right:10px;background:none;border:0;color:rgba(241,237,228,.4);font-size:17px;line-height:1;cursor:pointer;padding:2px 4px}',
       '.cmi-prompt-x:hover{color:#f1ede4}',
+      /* Owner cost ledger. Rows animate in so the total lands last. */
+      '.cmi-ledger{margin:16px 0 4px;border-top:1px solid rgba(23,28,42,.12)}',
+      '.cmi-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(23,28,42,.08);opacity:0;animation:cmiRowIn .42s cubic-bezier(.2,.8,.2,1) forwards}',
+      '@keyframes cmiRowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}',
+      '.cmi-lk{font-size:13.5px;line-height:1.4;color:#171c2a}',
+      '.cmi-lk em{display:block;font-style:normal;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(23,28,42,.42);margin-top:3px}',
+      '.cmi-lv{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;white-space:nowrap;color:#171c2a}',
+      '.cmi-ltot{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 0 4px;font-weight:700}',
+      '.cmi-ltot .cmi-lv{font-size:15px}',
+      '.cmi-lhere{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:9px 12px;margin-top:10px;background:rgba(193,84,40,.08);border:1px solid rgba(193,84,40,.22);border-radius:9px}',
+      '.cmi-lhere .cmi-lk{font-weight:700;color:#a8431f}',
+      '.cmi-lhere .cmi-lv{font-weight:700;color:#a8431f}',
       /* Mobile: same two buttons, bottom-right, narrower and tighter. */
       '@media(max-width:620px){.cmi-prompt{right:10px;left:10px;bottom:10px;width:auto;padding:13px 13px 12px;border-radius:14px}',
       '.cmi-prompt-sub{margin-bottom:9px}.cmi-pick{padding:11px 8px}}',
@@ -504,9 +529,53 @@
       : 'Make an offer on any unit \u2014 not just the listed ones.';
 
     var pitch = owner
-      ? 'Listing a unit can cost owners $15,000\u2013$35,000 just to test the market \u2014 moving out and renting elsewhere, painting, staging, carrying the mortgage \u2014 before a single buyer is found. Here you can find what your building actually trades at, and receive a real written offer on the home you\u0027re still living in.'
+      ? 'Testing the market the traditional way is paid for before a single buyer is found. Here is what that actually costs.'
       : 'Zillow shows you what\u0027s listed. We index every unit in ' + (d && d.name ? esc(d.name) : '143 buildings') +
         ' \u2014 and any of them can receive a written offer, whether or not it\u0027s for sale. Most owners have simply never been asked.';
+
+    /* ---------------------------- cost ledger ---------------------------
+     * Every row must trace to a knowledge_entries row. Rows without a source
+     * are omitted, not estimated, and the total is summed from what is
+     * actually present. If an entry is added for move-out or carrying cost,
+     * add it here with its slug and the total moves on its own.
+     *
+     * NOTE: two staging entries currently disagree (cost-staging-2bed says
+     * $8k-$15k for a 2-bed; prep-staging-cost says $3k-$10k across sizes).
+     * The narrower, size-explicit one is used until that is resolved.
+     */
+    var LEDGER = [
+      { k: 'Paint and repair',  sub: '2-bed, ~1,000 sq ft', lo: 4000,  hi: 6000,
+        tag: 'market estimate', src: 'prep-paint-cost' },
+      { k: 'Staging',           sub: '60-day contract',     lo: 3000,  hi: 10000,
+        tag: 'market estimate', src: 'prep-staging-cost' },
+      { k: 'Photography, floor plans, video', sub: 'paid by the agent', lo: 0, hi: 0,
+        tag: 'our terms',       src: 'prep-who-pays' }
+    ];
+
+    function money(n) { return '$' + Number(n).toLocaleString('en-US'); }
+    function band(lo, hi) {
+      if (!lo && !hi) return '$0';
+      return lo === hi ? money(lo) : money(lo) + ' \u2013 ' + money(hi);
+    }
+
+    function ledgerHtml() {
+      var lo = 0, hi = 0, out = '';
+      LEDGER.forEach(function (r, i) {
+        lo += r.lo; hi += r.hi;
+        out += '<div class="cmi-lrow" style="animation-delay:' + (i * 110) + 'ms">' +
+          '<span class="cmi-lk">' + esc(r.k) +
+            (r.sub ? '<em>' + esc(r.sub) + ' \u00b7 ' + esc(r.tag) + '</em>' : '') +
+          '</span><span class="cmi-lv">' + band(r.lo, r.hi) + '</span></div>';
+      });
+      var delay = LEDGER.length * 110;
+      out += '<div class="cmi-lrow cmi-ltot" style="animation-delay:' + delay + 'ms">' +
+        '<span class="cmi-lk">Before a buyer is found</span>' +
+        '<span class="cmi-lv">' + band(lo, hi) + '</span></div>';
+      out += '<div class="cmi-lrow cmi-lhere" style="animation-delay:' + (delay + 140) + 'ms">' +
+        '<span class="cmi-lk">Here</span>' +
+        '<span class="cmi-lv">$0 up front \u00b7 3% only if it closes</span></div>';
+      return '<div class="cmi-ledger">' + out + '</div>';
+    }
 
     var rows = '';
     if (d) {
@@ -537,6 +606,7 @@
       '<p class="cmi-eyebrow">' + (owner ? 'For owners' : 'For buyers') + '</p>' +
       '<h2 class="cmi-h">' + head + '</h2>' +
       '<p class="cmi-sub">' + pitch + '</p>' +
+      (owner ? ledgerHtml() : '') +
       (rows ? '<div class="cmi-ans">' + rows + '</div>' : '') +
       '<div class="cmi-thread"></div>' +
       '<div class="cmi-ask">' +
