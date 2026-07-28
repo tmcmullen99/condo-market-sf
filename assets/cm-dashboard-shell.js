@@ -1,4 +1,4 @@
-  // ─── v20 SHELL: sidebar + view router + activity feed + persona toggle ───
+// ─── v20 SHELL: sidebar + view router + activity feed + persona toggle ───
   // Listens for cm-dash-rendered (dispatched at end of render()) and re-syncs.
 
   import { CM } from '/assets/cm-supabase.js';
@@ -10,7 +10,7 @@
     overview:      'Overview',
     listings:      'My listings',
     offers:        'My offers',
-    referrals:     'Referrals',
+    referrals:     'Your credit',
     notifications: 'Notifications',
     settings:      'Settings',
   };
@@ -143,7 +143,7 @@
 
   // ─── Sidebar profile + progress sync ─────────────────────────────────────
   async function syncSidebar() {
-    let user = null, profile = null, credits = [];
+    let user = null, profile = null;
     try {
       const session = await CM.getSession();
       user = session?.user || null;
@@ -151,7 +151,6 @@
     if (!user) return;
 
     try { profile = await CM.getMyProfile(); } catch (e) {}
-    try { credits = await CM.listMyReferralCredits(); } catch (e) {}
 
     const name = profile?.full_name || user.user_metadata?.full_name || (user.email || '').split('@')[0] || '—';
     const email = user.email || '—';
@@ -162,15 +161,10 @@
     const notifEmail = document.getElementById('notif-email');
     if (notifEmail) notifEmail.textContent = email;
 
-    const refCount = Math.min((credits || []).length, 5);
-    const pct = Math.min(refCount * 0.2, 1.0);
-    const pctText = (Math.round(pct * 10) / 10).toFixed(1) + '%';
-    const lbl = document.getElementById('sb-ref-label');
-    const pctEl = document.getElementById('sb-ref-pct');
-    const fill = document.getElementById('sb-ref-fill');
-    if (lbl) lbl.textContent = refCount + ' of 5 referrals';
-    if (pctEl) pctEl.textContent = pctText;
-    if (fill) fill.style.width = (refCount / 5 * 100) + '%';
+    // Referral programme retired 2026-07-28 -- no commission credit is given in
+    // exchange for referrals. The sidebar credit block is written by
+    // /assets/cm-credit-panel.js, which renders the flat membership credit.
+    // Writing a placeholder here first would flash the old ladder on load.
 
     // Persona: respect explicit choice; otherwise auto-pick based on listings count.
     let persona = readPersona();
