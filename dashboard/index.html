@@ -490,6 +490,16 @@
     word-break: break-all; line-height: 1.3;
   }
 
+  /* Membership credit surface (see /assets/cm-credit-panel.js) */
+  .cmc-hero { background: var(--cm-card, #1a1f2e); border: 1px solid rgba(232,227,216,.14); border-radius: 14px; padding: 34px 32px; margin-top: 22px; text-align: center; }
+  .cmc-hero .amt { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(44px, 8vw, 72px); color: var(--cm-bronze, #d4a574); line-height: 1.05; }
+  .cmc-hero .cap { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--cm-bronze, #d4a574); margin-top: 14px; }
+  .cmc-hero .sub { color: rgba(232,227,216,.72); margin-top: 14px; font-size: 15px; max-width: 52ch; margin-left: auto; margin-right: auto; }
+  .cmc-points { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 20px; }
+  .cmc-pt { background: var(--cm-card, #1a1f2e); border: 1px solid rgba(232,227,216,.14); border-radius: 12px; padding: 20px 22px; }
+  .cmc-pt h4 { font-size: 14.5px; margin: 0 0 6px; color: #e8e3d8; }
+  .cmc-pt p { margin: 0; font-size: 14px; color: rgba(232,227,216,.68); line-height: 1.6; }
+
   /* Compact referral progress */
   .sidebar-progress { margin-bottom: 22px; }
   .progress-label {
@@ -735,7 +745,7 @@
 
     <div id="signed-out" class="gate" style="display:none;">
       <h2>Sign in to see your <em style="color:var(--cm-peri);">dashboard</em></h2>
-      <p>Your make-me-move price, offers, watchlist, commission credit, and referral link all live here.</p>
+      <p>Your make-me-move price, offers, watchlist, and commission credit all live here.</p>
       <a class="btn btn-s" href="#signin" data-cm-auth="login" style="background:var(--cm-peri);color:var(--cm-navy);border-color:var(--cm-peri);padding:13px 28px;">Sign in or create account</a>
     </div>
   </div>
@@ -762,7 +772,7 @@
 
     <div class="sidebar-progress">
       <div class="progress-label">
-        <span id="sb-ref-label">0 of 5 referrals</span>
+        <span id="sb-ref-label">$10,000 credit</span>
         <span id="sb-ref-pct">0.0%</span>
       </div>
       <div class="progress-track"><div class="progress-fill" id="sb-ref-fill"></div></div>
@@ -773,7 +783,7 @@
       <a href="#overview"      data-nav="overview"><span class="nav-icon">◐</span> Overview</a>
       <a href="#listings"      data-nav="listings"><span class="nav-icon">⌂</span> My Listings</a>
       <a href="#offers"        data-nav="offers"><span class="nav-icon">◇</span> My Offers <span class="nav-badge" id="sb-badge-offers"></span></a>
-      <a href="#referrals"     data-nav="referrals"><span class="nav-icon">↗</span> Referrals</a>
+      <a href="#referrals"     data-nav="referrals"><span class="nav-icon">↗</span> Your credit</a>
       <a href="#notifications" data-nav="notifications"><span class="nav-icon">●</span> Notifications</a>
       <a href="#settings"      data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
     </nav>
@@ -817,9 +827,9 @@
           <div class="stat-meta">SF condos · <a href="/buildings/" style="color:var(--cm-bronze);">browse →</a></div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Referrals</div>
-          <div class="stat-value" id="stat-referrals">0 / 5</div>
-          <div class="stat-meta" id="stat-referrals-meta">For 1% off commission</div>
+          <div class="stat-label">Your credit</div>
+          <div class="stat-value" id="stat-referrals">$10,000</div>
+          <div class="stat-meta" id="stat-referrals-meta">Applied at close</div>
         </div>
       </div>
 
@@ -1262,25 +1272,19 @@
 
     <!-- ─── View: REFERRALS ────────────────────────────────────────────── -->
     <section class="dash-view" data-view="referrals">
-      <h1 class="view-h1">Your <span class="accent">referrals</span></h1>
-      <p class="view-intro">Every neighbor who joins through your link earns you 0.2% off your eventual commission. Up to 1% across five referrals — credit lives forever in your account.</p>
+      <h1 class="view-h1">Your <span class="accent">credit</span></h1>
+      <p class="view-intro">Creating an account earns you $10,000 off commission, applied at close. It is yours from the moment you sign up — there is nothing to earn and nothing to unlock.</p>
 
-      <div class="calc-block">
-        <div data-cm-referral-calc
-             id="cm-rc-dash"
-             data-property-value="1500000"
-             data-cta-href="#share-link"
-             data-cta-label="Get your share link →"></div>
+      <div class="cmc-hero">
+        <div class="amt">$10,000</div>
+        <div class="cap">Commission credit &middot; applied at close</div>
+        <p class="sub">Held against your eventual transaction, buy side or sell side. It does not expire and it does not change.</p>
       </div>
 
-      <div class="card" id="share-link">
-        <h2>Your <em style="font-style:italic;color:var(--cm-peri);">share</em> link</h2>
-        <p class="card-intro">Send this to friends, neighbors, or anyone in your building. They get a soft landing onto Condo Market; you get credit toward your commission discount.</p>
-        <div class="kv"><span class="k">Code</span><span class="v ref-code" id="f-refcode">—</span></div>
-        <div class="ref-link-box">
-          <code id="f-reflink">—</code>
-          <button class="copy-btn" id="copy-btn">Copy</button>
-        </div>
+      <div class="cmc-points">
+        <div class="cmc-pt"><h4>Granted at sign-up</h4><p>The credit attaches to your account the day you create it. No conditions, no qualifying period.</p></div>
+        <div class="cmc-pt"><h4>Applied at close</h4><p>It comes off commission on your transaction, and appears on the closing statement.</p></div>
+        <div class="cmc-pt"><h4>A flat amount</h4><p>$10,000, not a percentage and not a running total. Condo Market does not operate a referral programme.</p></div>
       </div>
     </section>
 
@@ -1307,8 +1311,7 @@
           <h2>Account</h2>
           <div class="kv"><span class="k">Name</span><span class="v" id="f-name">—</span></div>
           <div class="kv"><span class="k">Email</span><span class="v" id="f-email">—</span></div>
-          <div class="kv"><span class="k">Referrals</span><span class="v" id="f-referrals">0 of 5</span></div>
-          <div class="kv"><span class="k">Commission credit</span><span class="v accent-v" id="f-credit">0.0%</span></div>
+          <div class="kv"><span class="k">Commission credit</span><span class="v accent-v" id="f-credit">$10,000</span></div>
           <div class="kv"><span class="k">Member since</span><span class="v" id="f-since">—</span></div>
         </div>
 
@@ -1324,9 +1327,6 @@
     </section>
   </div>
 </div>
-
-<!-- Calculator widget -->
-<script src="/assets/cm-referral-calc.js"></script>
 
 <script type="module">
   import { CM } from '/assets/cm-supabase.js';
@@ -2010,9 +2010,7 @@
     document.getElementById('f-email').textContent = user.email || '—';
 
     let profile = null;
-    let credits = [];
     try { profile = await CM.getMyProfile(); } catch (e) {}
-    try { credits = await CM.listMyReferralCredits(); } catch (e) {}
 
     document.getElementById('f-name').textContent = profile?.full_name || user.user_metadata?.full_name || '—';
 
@@ -2040,17 +2038,8 @@
       howtoBtn.addEventListener('click', () => openTosModal({ mode: 'info' }));
     }
 
-    const referralCount = Math.min(credits.length, 5);
-    const creditPct = Math.min(referralCount * 0.2, 1.0);
-    document.getElementById('f-referrals').textContent = referralCount + ' of 5';
-    document.getElementById('f-credit').textContent = fmtPct(creditPct);
-
-    const code = profile?.referral_code || '—';
-    document.getElementById('f-refcode').textContent = code;
-    const refLink = code !== '—'
-      ? `${window.location.origin}/?ref=${code}`
-      : 'Generating your referral code…';
-    document.getElementById('f-reflink').textContent = refLink;
+    // Referral programme retired 2026-07-28. The membership credit surface is
+    // owned by /assets/cm-credit-panel.js. Nothing referral-related here.
 
     // ─── Populate first-fold stats row ─────────────────────────────────────
     try {
@@ -2070,22 +2059,6 @@
         : (ownerOffers.length > 0 ? 'All resolved' : 'No offers yet');
     } catch (e) { /* stats are nice-to-have */ }
 
-    document.getElementById('stat-referrals').textContent = `${referralCount} / 5`;
-    document.getElementById('stat-referrals-meta').textContent = creditPct >= 1.0
-      ? '1% off — maxed!'
-      : `${fmtPct(creditPct)} off so far`;
-
-    // Mount calculator in progress mode
-    const calcEl = document.getElementById('cm-rc-dash');
-    if (calcEl && window.CMReferralCalc) {
-      calcEl.innerHTML = '';
-      calcEl.classList.remove('cm-rc');
-      calcEl.classList.remove('cm-rc-ivory');
-      calcEl.dataset.referralCount = String(referralCount);
-      calcEl.dataset.mode = 'progress';
-      window.CMReferralCalc.mount(calcEl);
-    }
-
     // Render MMM card
     await refreshMMM();
 
@@ -2094,18 +2067,6 @@
       renderBuyerOffers(),
       renderOwnerOffers(),
     ]);
-
-    // Wire copy button
-    document.getElementById('copy-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('copy-btn');
-      try {
-        await navigator.clipboard.writeText(refLink);
-        btn.textContent = 'Copied';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-      } catch (e) {
-        btn.textContent = 'Error';
-      }
-    }, { once: true });
 
     // v20: notify shell modules that render() has completed so they can sync sidebar + activity feed
     window.dispatchEvent(new CustomEvent('cm-dash-rendered'));
@@ -2127,7 +2088,7 @@
     overview:      'Overview',
     listings:      'My listings',
     offers:        'My offers',
-    referrals:     'Referrals',
+    referrals:     'Your credit',
     notifications: 'Notifications',
     settings:      'Settings',
   };
@@ -2260,7 +2221,7 @@
 
   // ─── Sidebar profile + progress sync ─────────────────────────────────────
   async function syncSidebar() {
-    let user = null, profile = null, credits = [];
+    let user = null, profile = null;
     try {
       const session = await CM.getSession();
       user = session?.user || null;
@@ -2268,7 +2229,6 @@
     if (!user) return;
 
     try { profile = await CM.getMyProfile(); } catch (e) {}
-    try { credits = await CM.listMyReferralCredits(); } catch (e) {}
 
     const name = profile?.full_name || user.user_metadata?.full_name || (user.email || '').split('@')[0] || '—';
     const email = user.email || '—';
@@ -2279,15 +2239,7 @@
     const notifEmail = document.getElementById('notif-email');
     if (notifEmail) notifEmail.textContent = email;
 
-    const refCount = Math.min((credits || []).length, 5);
-    const pct = Math.min(refCount * 0.2, 1.0);
-    const pctText = (Math.round(pct * 10) / 10).toFixed(1) + '%';
-    const lbl = document.getElementById('sb-ref-label');
-    const pctEl = document.getElementById('sb-ref-pct');
-    const fill = document.getElementById('sb-ref-fill');
-    if (lbl) lbl.textContent = refCount + ' of 5 referrals';
-    if (pctEl) pctEl.textContent = pctText;
-    if (fill) fill.style.width = (refCount / 5 * 100) + '%';
+    // Sidebar credit block is written by /assets/cm-credit-panel.js.
 
     // Persona: respect explicit choice; otherwise auto-pick based on listings count.
     let persona = readPersona();
@@ -2564,5 +2516,10 @@
     document.addEventListener('DOMContentLoaded', syncBodyShellClass);
   }
 </script>
+
+<!-- Membership credit surface. Must load AFTER the dashboard render + shell
+     modules above: it reacts to their 'cm-dash-rendered' event and owns the
+     sidebar credit block, overview tile, credit view and settings row. -->
+<script type="module" src="/assets/cm-credit-panel.js"></script>
 </body>
 </html>
