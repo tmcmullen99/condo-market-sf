@@ -338,7 +338,7 @@ a:hover{text-decoration:underline}
   </div>
   <div class="footer">McMullen Properties LLC · CA DRE #02016832 · operating under Real Broker</div>
 </main>
-
+<script src="/assets/cm-cma-sections.js"></script>
 <script>
 const SUPABASE_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
@@ -471,7 +471,7 @@ function render(cma){
  setupPeerBars(cma);
   setupInlineCalc(cma);
   setupTimeline(cma);
-
+if (window.CMASections) window.CMASections.mount(cma);
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main').style.display = 'block';
 }
