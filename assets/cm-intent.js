@@ -557,6 +557,14 @@
     });
   }
 
+  // The API rejects unknown fields on a message ("messages.N.refs: Extra inputs
+  // are not permitted"), so refs are kept locally for rendering links on a
+  // restored dock but stripped before the thread is sent upstream. Every first
+  // question worked and every follow-up 400'd until this.
+  function wireThread() {
+    return thread.map(function (m) { return { role: m.role, content: m.content }; });
+  }
+
   function threadEl() { return boxEl.querySelector('.cmi-thread'); }
 
   function send(q, name) {
@@ -590,7 +598,7 @@
     function clearThinkTimers() { thinkTimers.forEach(clearTimeout); }
     track('intent_ask', { door: chosen, building: slug, q: q.slice(0, 120) });
 
-    askAI(q, thread).then(function (res) {
+    askAI(q, wireThread()).then(function (res) {
       clearThinkTimers();
       var th = boxEl.querySelector('[data-think]');
       if (th) th.parentNode.removeChild(th);
