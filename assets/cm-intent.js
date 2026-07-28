@@ -306,6 +306,22 @@
       '.cmi-launch .cmi-dock-live{background:#7aa87a}',
       '.cmi-launch[hidden]{display:none}',
       '@media(max-width:620px){.cmi-launch{right:14px;bottom:14px;padding:11px 16px}}',
+      /* Persistent persona prompt. Present on 100% of sessions from first
+         paint - no scroll gesture, no dwell timer, no suppression key. */
+      '.cmi-prompt{position:fixed;right:20px;bottom:20px;z-index:9997;width:268px;background:#171c2a;color:#f1ede4;border:1px solid rgba(241,237,228,.16);border-radius:16px;padding:15px 15px 13px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 14px 40px rgba(10,13,18,.45);animation:cmiRise .4s cubic-bezier(.2,.8,.2,1) both}',
+      '@keyframes cmiRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
+      '.cmi-prompt[hidden]{display:none}',
+      '.cmi-prompt-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;letter-spacing:.01em;margin:0 0 3px}',
+      '.cmi-prompt-sub{font-size:11.5px;line-height:1.45;color:rgba(241,237,228,.6);margin:0 0 11px}',
+      '.cmi-prompt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
+      '.cmi-pick{appearance:none;background:rgba(241,237,228,.06);color:#f1ede4;border:1px solid rgba(241,237,228,.18);border-radius:10px;padding:10px 8px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}',
+      '.cmi-pick:hover{background:rgba(212,165,116,.16);border-color:#d4a574;transform:translateY(-1px)}',
+      '.cmi-pick small{display:block;font-weight:400;font-size:10.5px;color:rgba(241,237,228,.55);margin-top:3px}',
+      '.cmi-prompt-x{position:absolute;top:8px;right:10px;background:none;border:0;color:rgba(241,237,228,.4);font-size:17px;line-height:1;cursor:pointer;padding:2px 4px}',
+      '.cmi-prompt-x:hover{color:#f1ede4}',
+      /* Mobile: same two buttons, bottom-right, narrower and tighter. */
+      '@media(max-width:620px){.cmi-prompt{right:10px;left:10px;bottom:10px;width:auto;padding:13px 13px 12px;border-radius:14px}',
+      '.cmi-prompt-sub{margin-bottom:9px}.cmi-pick{padding:11px 8px}}',
       '@media(max-width:560px){.cmi-in{padding:26px 20px 22px}.cmi-h{font-size:22px}.cmi-field{flex-direction:column}.cmi-btn{width:100%}}'
     ].join('');
     document.head.appendChild(s);
@@ -321,6 +337,64 @@
    * only stops the automatic trigger from firing twice.
    */
   var launchEl = null;
+  var promptEl = null;
+  var PERSONA_KEY = 'cm_persona';
+
+  function storedPersona() {
+    try { return localStorage.getItem(PERSONA_KEY) || ''; } catch (e) { return ''; }
+  }
+  function storePersona(v) {
+    try { localStorage.setItem(PERSONA_KEY, v); } catch (e) {}
+  }
+
+  /* --------------------- persistent persona prompt -----------------------
+   * Replaces the scroll/dwell trigger. The old flow reached 3.7% of sessions
+   * because it required a scroll gesture AND survived a localStorage key with
+   * no expiry. This renders on first paint for every visitor, so the door
+   * question is asked once per person rather than once per lucky session.
+   *
+   * Choosing a door skips the doors step entirely and opens the modal at the
+   * answer, which is where the value is.
+   */
+  function ensurePrompt() {
+    if (promptEl) return;
+    injectCss();
+    promptEl = document.createElement('div');
+    promptEl.className = 'cmi-prompt';
+    promptEl.setAttribute('role', 'region');
+    promptEl.setAttribute('aria-label', 'Customise your experience');
+    promptEl.innerHTML =
+      '<button class="cmi-prompt-x" aria-label="Dismiss">&times;</button>' +
+      '<p class="cmi-prompt-h"><span class="cmi-dock-live" style="background:#7aa87a"></span>Customise your experience</p>' +
+      '<p class="cmi-prompt-sub">The numbers that matter depend on which side you are on.</p>' +
+      '<div class="cmi-prompt-row">' +
+        '<button class="cmi-pick" data-door="owner">Owner<small>I own here</small></button>' +
+        '<button class="cmi-pick" data-door="buyer">Buyer<small>I am looking</small></button>' +
+      '</div>';
+    document.body.appendChild(promptEl);
+
+    Array.prototype.forEach.call(promptEl.querySelectorAll('.cmi-pick'), function (b) {
+      b.addEventListener('click', function () {
+        chosen = b.getAttribute('data-door');
+        storePersona(chosen);
+        track('intent_chose', { door: chosen, building: slug, surface: 'persistent_prompt' });
+        hidePrompt();
+        open('persona_prompt', true);   // straight to the answer
+      });
+    });
+    promptEl.querySelector('.cmi-prompt-x').addEventListener('click', function () {
+      track('intent_dismissed', { step: 'persona_prompt', reason: 'x' });
+      hidePrompt();
+      showLauncher();                   // the chat stays reachable
+    });
+
+    track('intent_shown', {
+      path: location.pathname, building: slug,
+      trigger: 'persistent', surface: 'persona_prompt'
+    });
+  }
+  function hidePrompt() { if (promptEl) promptEl.hidden = true; }
+  function showPrompt() { ensurePrompt(); promptEl.hidden = false; }
 
   function ensureLauncher() {
     if (launchEl) return;
@@ -349,13 +423,14 @@
       if (boxEl && boxEl.parentNode) boxEl.parentNode.removeChild(boxEl);
       if (backEl && backEl.parentNode) backEl.parentNode.removeChild(backEl);
       boxEl = backEl = null;
-      showLauncher();
+      if (!chosen && !storedPersona()) { showPrompt(); } else { showLauncher(); }
     }, 240);
   }
 
-  function open(why) {
+  function open(why, skipDoors) {
     injectCss();
     hideLauncher();
+    hidePrompt();
     backEl = document.createElement('div');
     backEl.className = 'cmi-back';
     backEl.addEventListener('click', function () { close('backdrop'); });
@@ -369,8 +444,11 @@
     document.addEventListener('keydown', function onEsc(e) {
       if (e.key === 'Escape') { close('esc'); document.removeEventListener('keydown', onEsc); }
     });
-    renderDoors();
-    track('intent_shown', { path: location.pathname, building: slug, trigger: why || 'unknown' });
+    if (skipDoors && chosen) { renderAnswer(); } else { renderDoors(); }
+    track('intent_shown', {
+      path: location.pathname, building: slug,
+      trigger: why || 'unknown', surface: 'modal', door: chosen || null
+    });
   }
 
   function paint(html) {
@@ -923,49 +1001,35 @@
   }
 
   /* ------------------------------ trigger -------------------------------
-   * Second distinct scroll burst, not arrival. An on-arrival modal is
-   * dismissed reflexively; by the second scroll the visitor has chosen to
-   * keep reading, which is the earliest honest signal of intent.
+   * There is no longer a trigger. The old flow waited for three scroll
+   * gestures past 1.2s, or eight seconds AFTER a scroll had already happened,
+   * and was then suppressed permanently by a localStorage key with no expiry.
+   * Measured result: 16 impressions against 429 sessions.
+   *
+   * The persona prompt now renders on first paint for every visitor. A visitor
+   * who has already answered sees the launcher instead, so the question is
+   * asked once per person, not once per session.
    */
   function init() {
     injectCss();
     if (restoreDock()) return;   // a conversation in progress outranks everything
-    showLauncher();              // the chat is permanent — always reachable
     slug = buildingSlug();
-    // SEEN_KEY suppresses only the AUTOMATIC trigger. The launcher above is
-    // the permanent way back in; previously a single dismissal was terminal.
-    try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) {}
-    // no credential gate here - the key has a default, and an early return
-    // was silently disabling the popup on every page that did not publish one
 
-    // Trigger. Earlier versions were too strict: six scroll events AND 2.5s
-    // meant a visitor who flicked once and stopped never saw it, on a site where
-    // 92% view a single page. Now: three scroll events past a short debounce, or
-    // eight seconds after any scroll at all. Still not an on-arrival modal - it
-    // waits for a deliberate second gesture - but it actually fires.
-    var fired = false, gestures = 0, lastAt = 0, firstAt = 0;
-
-    function fire(why) {
-      if (fired) return;
-      fired = true;
-      window.removeEventListener('scroll', onScroll);
-      open(why);
+    var persona = storedPersona();
+    if (persona) {
+      chosen = persona;          // personalise without asking again
+      showLauncher();
+    } else {
+      showPrompt();              // 100% of sessions, no gesture required
     }
-    function onScroll() {
-      if (fired) return;
-      var now = Date.now();
-      if (!firstAt) firstAt = now;
-      // debounce: a single flick emits dozens of events, so count gestures
-      if (now - lastAt > 250) { gestures++; lastAt = now; }
-      if (gestures >= 3 && now - firstAt >= 1200) fire('scroll');
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Backstop: scrolled at all and still here after 8s.
-    setTimeout(function () { if (gestures > 0) fire('dwell'); }, 8000);
-
-    // Manual opener, for verifying in a real browser without waiting.
-    window.cmIntentOpen = function () { fire('manual'); };
+    // Manual opener, for verifying in a real browser.
+    window.cmIntentOpen = function () { hidePrompt(); open('manual'); };
+    // Escape hatch for testing the prompt after choosing.
+    window.cmIntentReset = function () {
+      try { localStorage.removeItem(PERSONA_KEY); localStorage.removeItem(SEEN_KEY); } catch (e) {}
+      chosen = null; hideLauncher(); if (promptEl) { promptEl.remove(); promptEl = null; } showPrompt();
+    };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
