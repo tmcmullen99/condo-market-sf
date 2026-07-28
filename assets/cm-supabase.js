@@ -734,5 +734,98 @@ export const CM = {
   },
 };
 
+// ---- Per-pageload request de-duplication (v22) ----------------------------
+//
+// The dashboard runs two independent inline modules (render + shell). Neither
+// knows the other exists, so a single page load was firing getSession twice,
+// getMyProfile twice, getMyListings up to five times and listOffersForMyListings
+// three times -- a dozen serialised round trips where four would do. That is
+// what produced the long "Loading your dashboard..." pause.
+//
+// This caches the IN-FLIGHT PROMISE, not the result. The first caller issues the
+// query; every later caller within the same pageload awaits the same promise.
+// There is no staleness window to reason about because the cache dies on
+// navigation, and any mutation clears it explicitly below.
+//
+// Call sites are unchanged -- every existing CM.x() keeps working exactly as
+// before, it just may resolve from a promise someone else started.
+
+const _cmInflight = new Map();
+
+/** Drop cached reads. Pass a prefix to clear a subset, or nothing to clear all. */
+function cmInvalidate(prefix) {
+  if (!prefix) { _cmInflight.clear(); return; }
+  for (const k of Array.from(_cmInflight.keys())) {
+    if (k.startsWith(prefix)) _cmInflight.delete(k);
+  }
+}
+
+function _cmMemoize(name) {
+  const orig = CM[name];
+  if (typeof orig !== 'function') return;
+  CM[name] = function (...args) {
+    let key;
+    try { key = name + ':' + JSON.stringify(args); } catch (e) { key = null; }
+    // Unserialisable args (rare) bypass the cache rather than collide.
+    if (key === null) return orig.apply(CM, args);
+    if (_cmInflight.has(key)) return _cmInflight.get(key);
+    const p = Promise.resolve()
+      .then(() => orig.apply(CM, args))
+      // A failed read must not be cached, or one blip poisons the whole pageload.
+      .catch((err) => { _cmInflight.delete(key); throw err; });
+    _cmInflight.set(key, p);
+    return p;
+  };
+}
+
+// Idempotent reads only. getUser is first so that getMyProfile's internal
+// this.getUser() call resolves against the memoised version.
+[
+  'getUser',
+  'getSession',
+  'getMyProfile',
+  'getMyListings',
+  'getMyUnitClaims',
+  'listMyOffers',
+  'listOffersForMyListings',
+].forEach(_cmMemoize);
+
+// Writes invalidate. Anything that changes listings, offers, profile or auth
+// state clears the cache so a subsequent read re-queries.
+function _cmInvalidateAfter(name, prefix) {
+  const orig = CM[name];
+  if (typeof orig !== 'function') return;
+  CM[name] = async function (...args) {
+    const out = await orig.apply(CM, args);
+    cmInvalidate(prefix);
+    return out;
+  };
+}
+
+[
+  ['setMakeMyMove',      null],
+  ['updateListing',      null],
+  ['pauseListing',       null],
+  ['resumeListing',      null],
+  ['removeListing',      null],
+  ['removeListingPhoto', null],
+  ['updateOfferStatus',  null],
+  ['withdrawOffer',      null],
+  ['acceptOffer',        null],
+  ['declineOffer',       null],
+  ['addToWatchlist',     null],
+  ['signIn',             null],
+  ['signOut',            null],
+  ['signUp',             null],
+].forEach(([n, p]) => _cmInvalidateAfter(n, p));
+
+// Exposed so a page can force a refetch after an out-of-band change.
+CM.invalidate = cmInvalidate;
+
+// Auth transitions must never serve a previous user's cached rows.
+try {
+  sb.auth.onAuthStateChange(() => { cmInvalidate(); });
+} catch (e) { /* non-fatal: cache still clears on navigation and on writes */ }
+
 // ---- Default export for convenience --------------------------------------
 export default CM;
