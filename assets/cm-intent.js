@@ -216,6 +216,9 @@
       '.cmi-agent{display:inline-flex;align-items:center;gap:8px;background:#171c2a;color:#f1ede4;border:0;border-radius:999px;padding:11px 18px;font:inherit;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;margin-top:10px}',
       '.cmi-agent:hover{background:#232a3c}',
       '.cmi-agent-ic{font-size:14px;opacity:.85}',
+      '.cmi-agent-box{margin-top:10px}',
+      '.cmi-agent-alt{display:block;width:100%;margin-top:8px;background:transparent;border:0;color:#8a837a;font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:6px 0;text-align:left}',
+      '.cmi-agent-alt[hidden]{display:none}',
       '.cmi-form{margin:0}',
       /* DOCK - after the email is in, the modal becomes a panel so the page is
          usable while the conversation continues. */
@@ -582,14 +585,27 @@
   var AGENT_PHONE = '+14156919272';
   var AGENT_LABEL = 'Tim';
 
-  function isMobile() {
-    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
-  }
-
+  /* ---------------------------- text the agent ---------------------------
+   * A real <a href="sms:"> on EVERY platform — one tap, native messaging app,
+   * their own number, body pre-filled. No provider, no server, no captured
+   * contact details.
+   *
+   * URL form: sms:NUMBER?&body=TEXT
+   *   iOS 8+   wants sms:NUMBER&body=...
+   *   Android  wants sms:NUMBER?body=...
+   *   macOS    Messages handles either
+   * The combined "?&" satisfies all three. An earlier version assumed desktop
+   * had no handler and shipped copy-to-clipboard instead, which is strictly
+   * worse on a Mac — where Messages opens the same as on a phone.
+   *
+   * Windows and Linux may genuinely have no sms: handler. Rather than detect
+   * the OS (unreliable, and Windows Phone Link does register one), we let the
+   * click happen and watch: if the page never loses focus, nothing opened, so
+   * a copy fallback is revealed. Detection by consequence, not by user agent.
+   */
   function smsBody(question) {
     var q = String(question || '').trim();
     var lead = 'Hi ' + AGENT_LABEL + ', I was on SF Condo Market and had a question:';
-    // No question yet - leave them the room to write their own.
     return q ? (lead + ' ' + q) : (lead + ' ');
   }
 
@@ -597,7 +613,6 @@
     return 'sms:' + AGENT_PHONE + '?&body=' + encodeURIComponent(smsBody(question));
   }
 
-  // The last thing they actually asked, so the text carries their own words.
   function lastQuestion() {
     for (var i = thread.length - 1; i >= 0; i--) {
       if (thread[i].role === 'user') return thread[i].content;
@@ -607,35 +622,53 @@
 
   function agentButton() {
     var q = lastQuestion();
-    if (isMobile()) {
-      return '<a class="cmi-agent" href="' + esc(smsHref(q)) + '" data-cta="text-agent">' +
-             '<span class="cmi-agent-ic">\u2709</span>Text ' + AGENT_LABEL +
-             (q ? ' this question' : '') + '</a>';
-    }
-    return '<button class="cmi-agent" data-copy-sms data-cta="text-agent-desktop">' +
-           '<span class="cmi-agent-ic">\u2709</span>Text ' + AGENT_LABEL + ' \u2014 ' + AGENT_PHONE +
-           '</button>';
+    return '<div class="cmi-agent-box">' +
+             '<a class="cmi-agent" href="' + esc(smsHref(q)) + '" data-cta="text-agent">' +
+               '<span class="cmi-agent-ic">\u2709</span>Text ' + AGENT_LABEL +
+               (q ? ' this question' : '') +
+             '</a>' +
+             '<button class="cmi-agent-alt" data-copy-sms hidden>' +
+               'Messaging app didn\u0027t open \u2014 copy the message instead' +
+             '</button>' +
+           '</div>';
   }
 
   function wireAgentButton(scope) {
-    var el = (scope || boxEl).querySelector('[data-copy-sms]');
-    if (el) {
-      el.addEventListener('click', function () {
+    var root = scope || boxEl;
+    if (!root) return;
+    var link = root.querySelector('a[data-cta="text-agent"]');
+    var alt  = root.querySelector('[data-copy-sms]');
+
+    if (link) {
+      link.addEventListener('click', function () {
+        track('agent_text_clicked', { had_question: !!lastQuestion() });
+        // If the OS handed off to a messaging app the page loses focus. Still
+        // visible a beat later means nothing opened — offer the fallback then,
+        // rather than cluttering the UI for the majority where it works.
+        var hiddenSince = false;
+        function onHide() { if (document.visibilityState === 'hidden') hiddenSince = true; }
+        document.addEventListener('visibilitychange', onHide);
+        setTimeout(function () {
+          document.removeEventListener('visibilitychange', onHide);
+          if (!hiddenSince && !document.hidden && alt) {
+            alt.hidden = false;
+            track('agent_text_no_handler', {});
+          }
+        }, 1400);
+      });
+    }
+
+    if (alt) {
+      alt.addEventListener('click', function () {
         var text = smsBody(lastQuestion());
-        var done = function () {
-          el.innerHTML = '<span class="cmi-agent-ic">\u2713</span>Copied \u2014 text ' + AGENT_PHONE;
-        };
+        function done() { alt.textContent = 'Copied \u2014 text ' + AGENT_PHONE; }
         try {
           if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done);
           else done();
         } catch (e) { done(); }
-        track('agent_text_clicked', { device: 'desktop', had_question: !!lastQuestion() });
+        track('agent_text_copied', {});
       });
     }
-    var link = (scope || boxEl).querySelector('a[data-cta="text-agent"]');
-    if (link) link.addEventListener('click', function () {
-      track('agent_text_clicked', { device: 'mobile', had_question: !!lastQuestion() });
-    });
   }
 
   function threadEl() { return boxEl.querySelector('.cmi-thread'); }
