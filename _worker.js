@@ -381,6 +381,67 @@ async function handleRequest(request, env) {
       return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
     }
 
+    // ── Legacy-site 301s ───────────────────────────────────────────────────
+    // 53 URLs from the previous site still crawled by Google and returning 404:
+    // 26 blog posts, 17 neighborhood pages, 10 misc. Each held age and links,
+    // and each has an exact successor here. 404ing them throws that away;
+    // 301 moves it onto the page we want ranking. Sourced from the Search
+    // Console "Not found (404)" export, 2026-07-31.
+    const LEGACY_BLOG = {
+      'the-knox-a-fusion-of-artistic-living-and-urban-convenience-in-san-franciscos-dogpatch': '/building/the-knox',
+      'the-rowan-industrial-elegance-in-san-franciscos-mission-district': '/building/the-rowan',
+      '733-front-the-epitome-of-sophisticated-living-in-jackson-square-ed128': '/building/733-front',
+      'the-allure-of-loft-living-embracing-space-and-style-at-200-brannan': '/building/200-brannan',
+      'the-residences-at-mira': '/building/mira',
+      '400-grove-modern-living-in-the-heart-of-hayes-valley': '/building/400-grove',
+      'the-hayes-the-essence-of-modern-living-in-hayes-valley': '/building/the-hayes',
+      'the-pacific-redefining-luxury-in-pacific-heights': '/building/the-pacific',
+      'arden-luxury-amenities-in-the-heart-of-the-city': '/building/arden',
+      'the-belvedere-redefining-luxury-living-in-cow-hollow': '/building/the-belvedere',
+      'maison-au-pont-a-fusion-of-modernity-and-french-elegance-in-san-franciscos-marina-district': '/building/maison-au-pont',
+      'maison-au-pont-modern-living-meets-french-elegance-in-san-franciscos-marina-district': '/building/maison-au-pont',
+      'park-terrace-the-perfect-fusion-of-urban-living-and-natural-splendor-in-mission-bay': '/building/park-terrace',
+      'the-tower-at-four-seasons-private-residences': '/building/four-seasons-private-residences',
+      'the-washingtonian-a-jewel-in-the-heart-of-pacific-heights-b217d': '/building/the-washingtonian',
+      'parc-telegraph-a-haven-of-modern-comfort-in-the-historic-telegraph-hill-4e17b': '/building/parc-telegraph',
+      'marina-chateau-where-historical-charm-meets-contemporary-living-in-cow-hollow': '/building/marina-chateau',
+      'unionsf-the-epitome-of-modern-living-in-san-franciscos-mission-district': '/building/unionsf',
+      'broderick-place-urban-comfort-and-convenience-in-nopa-51d0b': '/building/broderick-place',
+      'jackson-towers-a-blend-of-luxury-and-prime-location-in-san-francisco': '/building/jackson-towers',
+      'the-comstock-a-beacon-of-mid-century-modern-luxury-in-nob-hill': '/building/the-comstock',
+      '2100-green-where-historical-elegance-meets-modern-cow-hollow-living': '/building/2100-green',
+      '255-berry-the-epitome-of-urban-serenity-in-mission-bay': '/building/330-berry-st',
+    };
+    // Legacy pages with no exact successor go to the buildings directory rather
+    // than 404 — a relevant hub beats a dead end, and never a redirect loop.
+    const LEGACY_PATH = {
+      '/homes': '/buildings/', '/about': '/how-it-works/', '/contact': '/how-it-works/',
+      '/news': '/san-francisco-condo-market-stats', '/invest': '/san-francisco-condo-rankings',
+      '/affiliate': '/how-it-works/', '/mo': '/', '/condos-in-san-francisco': '/san-francisco-condos',
+    };
+    if (request.method === 'GET') {
+      const clean = url.pathname.replace(/\/+$/, '') || '/';
+      const blogM = clean.match(/^\/blog\/(.+)$/);
+      if (blogM) {
+        const t = LEGACY_BLOG[blogM[1]] || '/san-francisco-condos';
+        return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + hostMk.domain + t, 'Cache-Control': 'public, max-age=86400' } });
+      }
+      // Old plural /neighborhoods/<slug> → current singular /neighborhood/<slug>
+      const hoodM = clean.match(/^\/neighborhoods\/(.+)$/);
+      if (hoodM) {
+        const s = hoodM[1].replace(/-\d+$/, '').replace(/-[0-9a-f]{5}$/, '');
+        return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + hostMk.domain + '/neighborhood/' + s, 'Cache-Control': 'public, max-age=86400' } });
+      }
+      if (LEGACY_PATH[clean]) {
+        return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + hostMk.domain + LEGACY_PATH[clean], 'Cache-Control': 'public, max-age=86400' } });
+      }
+      // Old unit URL shape from the previous site.
+      const oldHome = clean.match(/^\/homes\/(.+)$/);
+      if (oldHome) {
+        return new Response(null, { status: 301, headers: { 'Location': 'https://www.' + hostMk.domain + '/buildings/', 'Cache-Control': 'public, max-age=86400' } });
+      }
+    }
+
     // Merged-building 301s. 250 King St + 260 King St were merged into one
     // 595-unit development, "The Beacon" (2026-07-01). Preserve inbound links,
     // saved references, and SEO by 301-ing the retired slugs to the canonical.
