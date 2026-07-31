@@ -304,7 +304,25 @@ async function handleRequest(request, env) {
 
     // robots.txt — per-host, points at this host's sitemap.
     if (url.pathname === '/robots.txt') {
-      const body = 'User-agent: *\nAllow: /\nSitemap: https://www.' + hostMk.domain + '/sitemap.xml\n';
+      // Open to AI training and answer engines by design — this is a public
+      // record of a city's condo market, and being quotable is the point.
+      // The Disallow lines are crawl-budget hygiene, not secrecy: parameterised
+      // URLs all canonicalise to the same three pages, and Google was spending
+      // 243 fetches a cycle on them while 42 real building pages sat
+      // discovered-but-never-crawled.
+      const aiAgents = [
+        'GPTBot', 'OAI-SearchBot', 'ChatGPT-User',
+        'ClaudeBot', 'Claude-User', 'Claude-SearchBot',
+        'Google-Extended', 'PerplexityBot', 'Perplexity-User',
+        'meta-externalagent', 'FacebookBot', 'Applebot', 'Applebot-Extended',
+        'Amazonbot', 'Bytespider', 'CCBot', 'Diffbot',
+        'cohere-ai', 'omgili', 'Timpibot', 'YouBot', 'AI2Bot'
+      ];
+      const body =
+        'User-agent: *\nAllow: /\n'
+        + 'Disallow: /*?auth=\nDisallow: /*?address=\nDisallow: /*?offer=\nDisallow: /*?ref=\nDisallow: /*?return=\n\n'
+        + aiAgents.map(a => 'User-agent: ' + a + '\nAllow: /\n').join('\n')
+        + '\nSitemap: https://www.' + hostMk.domain + '/sitemap.xml\n';
       return new Response(body, { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=3600' } });
     }
 
@@ -577,7 +595,11 @@ async function renderSitemap(mk) {
   }
   for (const r of (rows || [])) {
     const lm = r.updated_at ? String(r.updated_at).slice(0, 10) : today;
-    urlsXml.push('<url><loc>' + base + '/building/' + r.slug + '/</loc><lastmod>' + lm + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+    // No trailing slash: this must match the canonical the building page emits
+    // ('/building/<slug>'). Listing the slashed form made Google crawl both,
+    // file 91 pages as "alternate page with proper canonical", and split
+    // impressions across two URLs on the site's highest-volume query.
+    urlsXml.push('<url><loc>' + base + '/building/' + r.slug + '</loc><lastmod>' + lm + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
   }
   // Active listing detail pages (fresh — listings change often).
   for (const a of activeListings) {
