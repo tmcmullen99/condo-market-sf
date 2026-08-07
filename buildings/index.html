@@ -1893,6 +1893,35 @@ img { display: block; max-width: 100%; }
   .cm-hero-lede{display:none}   /* the h1 and the question carry the fold */
   .cm-hero-meta{margin-top:12px}
 }
+
+/* ── Mobile ──────────────────────────────────────────────────
+   The phone fold was carrying an eyebrow, a three-line headline, a four-line
+   lede, a stacked ask bar and wrapping chips — and the floating "Ask the
+   market" launcher sits on top of the bottom-right corner, so the chips ran
+   underneath it and the last one was unreadable. Two of those are the same
+   ask, so the weakest goes. */
+@media(max-width:640px){
+  /* The eyebrow repeats the headline and the ticker directly above it. */
+  .cm-eyebrow{display:none}
+  .cm-hero h1{font-size:clamp(30px,8.6vw,40px);line-height:1.06;margin:0 0 12px}
+  .cm-hero-lede{font-size:14.5px;line-height:1.45;margin:0 0 16px;max-width:none}
+  .cm-askbar{gap:8px;margin-top:0}
+  .cm-askbar input{padding:14px 15px;font-size:16px}  /* 16px stops iOS zooming on focus */
+  .cm-askbar button{padding:13px 0;font-size:.95rem}
+  .cm-askchips{margin-top:9px;gap:6px}
+  .cm-askchips button{font-size:.78rem;padding:7px 11px;width:100%;text-align:left}
+  /* Clear the floating launcher, which overlays the bottom-right corner. */
+  .cm-askalt{margin-top:12px;padding-right:150px}
+  .cm-hero-inner{padding-bottom:22px}
+  .cm-hero-meta{margin-top:14px;padding-top:12px;gap:20px}
+}
+/* Short phones: the lede is the first thing to go. The headline states the
+   proposition and the question box is the action; the paragraph between them
+   is the only part nothing depends on. */
+@media(max-width:640px) and (max-height:780px){
+  .cm-hero-lede{display:none}
+  .cm-askchips button:nth-child(3){display:none}
+}
 </style>
 <script>
 (function(){
