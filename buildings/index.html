@@ -1858,6 +1858,41 @@ img { display: block; max-width: 100%; }
 .cm-askalt a{color:rgba(255,255,255,.72);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:2px}
 .cm-askalt a:hover{color:#fff;border-color:#e0632b}
 @media(max-width:640px){.cm-askbar{flex-wrap:wrap}.cm-askbar button{width:100%;padding:14px 0}}
+
+/* Fit the first fold.
+   The hero is height:100dvh with align-items:end, so everything stacks up from
+   the bottom edge. Adding the ask bar and chips pushed the stats strip off
+   screen and left the CTAs sitting on the fold line. These rules come later in
+   the document at equal specificity, so they win without editing the original
+   block — the hero type scale is used elsewhere and is not mine to change. */
+.cm-hero h1{font-size:clamp(34px,5.2vw,58px);margin:8px 0 14px}
+.cm-hero-lede{font-size:clamp(14px,1.15vw,16px);line-height:1.5;max-width:530px;margin:0 0 18px}
+.cm-askbar{margin-top:0}
+.cm-askbar input{padding:14px 16px;font-size:.98rem}
+.cm-askbar button{padding:0 24px}
+.cm-askchips{margin-top:10px;gap:7px}
+.cm-askchips button{font-size:.78rem;padding:7px 12px}
+.cm-askalt{margin-top:14px;font-size:.86rem}
+.cm-hero-meta{margin-top:18px;padding-top:14px;gap:28px}
+.cm-hero-inner{padding-bottom:36px;gap:24px}
+@media(min-width:900px){.cm-hero-inner{padding-bottom:44px}}
+
+/* Short laptop viewports: the same content, one notch tighter, rather than a
+   scrollbar on the fold that is supposed to be self-sufficient. */
+@media(max-height:820px){
+  .cm-hero h1{font-size:clamp(30px,4.4vw,46px);margin:6px 0 10px}
+  .cm-hero-lede{font-size:14px;margin:0 0 14px;max-width:500px}
+  .cm-askbar input{padding:12px 15px}
+  .cm-askchips{margin-top:8px}
+  .cm-askchips button{font-size:.74rem;padding:6px 11px}
+  .cm-askalt{margin-top:11px}
+  .cm-hero-meta{margin-top:14px;padding-top:11px}
+  .cm-hero-inner{padding-bottom:26px}
+}
+@media(max-height:700px){
+  .cm-hero-lede{display:none}   /* the h1 and the question carry the fold */
+  .cm-hero-meta{margin-top:12px}
+}
 </style>
 <script>
 (function(){
