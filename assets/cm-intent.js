@@ -1100,6 +1100,44 @@
 
     // Manual opener, for verifying in a real browser.
     window.cmIntentOpen = function () { hidePrompt(); open('manual'); };
+
+    /* Seeded ask, for the hero bar. City Markets exposes window.mktChatAsk(q)
+       and its hero drives that; this is the same contract on this platform.
+
+       It drives the real composer rather than reaching into open()'s closure:
+       send() is declared inside open() and is not in scope here, and even if
+       it were, calling it before the panel has rendered would fail. Typing
+       into the input the user would have typed into and clicking the button
+       they would have clicked is both simpler and impossible to get subtly
+       out of step with the UI.
+
+       skipDoors: the visitor has already told us what they want by typing a
+       question. Asking "own or looking?" first would be asking them to
+       restate it. */
+    window.cmMarketAsk = function (q) {
+      q = String(q == null ? '' : q).trim();
+      if (!q) return;
+      hidePrompt();
+      open('hero_ask', true);
+      var tries = 0;
+      var t = setInterval(function () {
+        var input = document.querySelector('.cmi-q');
+        var btn = document.querySelector('.cmi-send');
+        if (input) {
+          clearInterval(t);
+          input.value = q;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          if (btn) btn.click();
+          else input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        } else if (++tries > 60) {
+          /* Surfacing a real reason: a silent no-op here would look exactly
+             like a dead Ask button, which is the failure this codebase keeps
+             producing. */
+          clearInterval(t);
+          if (window.console) console.warn('cmMarketAsk: composer did not appear');
+        }
+      }, 100);
+    };
     // Escape hatch for testing the prompt after choosing.
     window.cmIntentReset = function () {
       try { localStorage.removeItem(PERSONA_KEY); localStorage.removeItem(SEEN_KEY); } catch (e) {}
