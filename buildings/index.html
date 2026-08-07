@@ -1857,7 +1857,7 @@ img { display: block; max-width: 100%; }
 .cm-askalt{display:flex;gap:18px;flex-wrap:wrap;margin-top:20px;font-size:.9rem}
 .cm-askalt a{color:rgba(255,255,255,.72);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:2px}
 .cm-askalt a:hover{color:#fff;border-color:#e0632b}
-@media(max-width:640px){.cm-askbar{flex-wrap:wrap}.cm-askbar button{width:100%;padding:14px 0}}
+
 
 /* Fit the first fold.
    The hero is height:100dvh with align-items:end, so everything stacks up from
@@ -1895,32 +1895,42 @@ img { display: block; max-width: 100%; }
 }
 
 /* ── Mobile ──────────────────────────────────────────────────
-   The phone fold was carrying an eyebrow, a three-line headline, a four-line
-   lede, a stacked ask bar and wrapping chips — and the floating "Ask the
-   market" launcher sits on top of the bottom-right corner, so the chips ran
-   underneath it and the last one was unreadable. Two of those are the same
-   ask, so the weakest goes. */
+   The phone fold now carries the same three things the desktop one does:
+   headline, the sub-text under it, and the question box. What it drops is the
+   pair of text links — "Browse buildings" and "Name your price" both live in
+   the header nav and in the sections directly below, so on a screen this
+   narrow they were a third and fourth ask competing with the one that matters,
+   sitting under the floating launcher. */
 @media(max-width:640px){
-  /* The eyebrow repeats the headline and the ticker directly above it. */
+  /* The eyebrow repeated the headline and the ticker directly above it. */
   .cm-eyebrow{display:none}
   .cm-hero h1{font-size:clamp(30px,8.6vw,40px);line-height:1.06;margin:0 0 12px}
-  .cm-hero-lede{font-size:14.5px;line-height:1.45;margin:0 0 16px;max-width:none}
-  .cm-askbar{gap:8px;margin-top:0}
-  .cm-askbar input{padding:14px 15px;font-size:16px}  /* 16px stops iOS zooming on focus */
-  .cm-askbar button{padding:13px 0;font-size:.95rem}
+  /* Kept, per desktop parity: it states what the marketplace actually is. */
+  .cm-hero-lede{display:block;font-size:14.5px;line-height:1.45;margin:0 0 16px;max-width:none}
+
+  /* Input and Ask on one line. flex-wrap:wrap stacked them, which cost a whole
+     row and made the button look like a separate decision from the question. */
+  .cm-askbar{display:flex;flex-wrap:nowrap;gap:8px;margin-top:0}
+  .cm-askbar input{flex:1 1 auto;min-width:0;padding:13px 14px;font-size:16px}
+  .cm-askbar button{flex:0 0 auto;width:auto;padding:0 18px;font-size:.92rem}
+
   .cm-askchips{margin-top:9px;gap:6px}
   .cm-askchips button{font-size:.78rem;padding:7px 11px;width:100%;text-align:left}
-  /* Clear the floating launcher, which overlays the bottom-right corner. */
-  .cm-askalt{margin-top:12px;padding-right:150px}
+
+  /* Removed on phones: duplicated by the nav and the sections below, and they
+     sat underneath the floating "Ask the market" launcher. */
+  .cm-askalt{display:none}
+
   .cm-hero-inner{padding-bottom:22px}
   .cm-hero-meta{margin-top:14px;padding-top:12px;gap:20px}
 }
-/* Short phones: the lede is the first thing to go. The headline states the
-   proposition and the question box is the action; the paragraph between them
-   is the only part nothing depends on. */
-@media(max-width:640px) and (max-height:780px){
-  .cm-hero-lede{display:none}
+/* Short phones: the third chip is the first thing to go — the sub-text now
+   earns its place, and two chips still demonstrate the range of questions. */
+@media(max-width:640px) and (max-height:760px){
+  .cm-hero h1{font-size:clamp(28px,7.8vw,34px);margin:0 0 9px}
+  .cm-hero-lede{font-size:13.5px;margin:0 0 12px}
   .cm-askchips button:nth-child(3){display:none}
+  .cm-hero-inner{padding-bottom:16px}
 }
 </style>
 <script>
