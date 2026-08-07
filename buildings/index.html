@@ -975,9 +975,15 @@ img { display: block; max-width: 100%; }
       <p class="cm-eyebrow" id="hero-eyebrow">Off-market condos</p>
       <h1 id="cm-hero-heading">Every unit is<br>for sale, for the<br><em>right price.</em></h1>
       <p class="cm-hero-lede" id="hero-lede">A private marketplace for every condo in the region. No listings required. No public record. Just an account, a number, and a vetted buyer pool.</p>
-      <div class="cm-hero-ctas">
-        <a class="cm-btn-p" id="hero-browse" href="#atlas">Browse buildings →</a>
-        <a class="cm-btn-s" href="#signup" data-cm-auth="signup">Name your price</a>
+      <div class="cm-askbar">
+        <input id="cm-askq" type="text" aria-label="Ask anything about San Francisco condos"
+               placeholder="What are HOA dues actually paying for?">
+        <button id="cm-askgo" type="button">Ask</button>
+      </div>
+      <div class="cm-askchips" id="cm-askchips"></div>
+      <div class="cm-askalt">
+        <a id="hero-browse" href="#atlas">Browse buildings →</a>
+        <a href="#signup" data-cm-auth="signup">Name your price</a>
       </div>
       <div class="cm-hero-meta">
         <div class="cm-hero-meta-item"><span class="cm-hero-meta-v" id="hero-meta-buildings">—</span><span class="cm-hero-meta-l">Buildings</span></div>
@@ -1829,5 +1835,65 @@ img { display: block; max-width: 100%; }
 
 </script>
   <script src="/assets/cm-psf-chart.js"></script>
+
+<style>
+.cm-askbar{display:flex;gap:10px;margin-top:26px;max-width:620px}
+.cm-askbar input{flex:1;min-width:0;padding:16px 18px;border:1px solid rgba(255,255,255,.22);
+  border-radius:12px;background:rgba(255,255,255,.96);font:inherit;font-size:1.02rem;
+  color:#16110d;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.cm-askbar input::placeholder{color:#7b7269}
+.cm-askbar input:focus{outline:none;border-color:#e0632b;
+  box-shadow:0 6px 24px rgba(0,0,0,.3),0 0 0 3px rgba(224,99,43,.25)}
+.cm-askbar button{background:#e0632b;border:0;border-radius:12px;padding:0 28px;font:inherit;
+  font-weight:600;font-size:.95rem;color:#fff;cursor:pointer;white-space:nowrap}
+.cm-askbar button:hover{background:#c9541f}
+.cm-askchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;max-width:700px}
+.cm-askchips button{font:inherit;font-size:.83rem;background:rgba(255,255,255,.07);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;
+  color:rgba(255,255,255,.82);cursor:pointer;text-align:left;
+  transition:background .15s,border-color .15s,color .15s}
+.cm-askchips button:hover{background:rgba(255,255,255,.14);border-color:#e0632b;color:#fff}
+.cm-askalt{display:flex;gap:18px;flex-wrap:wrap;margin-top:20px;font-size:.9rem}
+.cm-askalt a{color:rgba(255,255,255,.72);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:2px}
+.cm-askalt a:hover{color:#fff;border-color:#e0632b}
+@media(max-width:640px){.cm-askbar{flex-wrap:wrap}.cm-askbar button{width:100%;padding:14px 0}}
+</style>
+<script>
+(function(){
+  /* Every chip maps to a knowledge_entries row on this platform, so none of
+     them can dead-end into "I don't have that". */
+  var CHIPS = [
+    'What should I look for in the HOA documents before buying?',
+    'Why would a lender refuse to finance a condo?',
+    'What is SB 326 and why does it matter?'
+  ];
+  function fire(q){
+    if (window.cmMarketAsk) { window.cmMarketAsk(q); return; }
+    var n=0, t=setInterval(function(){
+      if (window.cmMarketAsk){ clearInterval(t); window.cmMarketAsk(q); }
+      else if(++n>40){ clearInterval(t); }
+    },100);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    var wrap=document.getElementById('cm-askchips');
+    if (wrap) {
+      wrap.innerHTML = CHIPS.map(function(q){
+        return '<button type="button" data-q="'+q.replace(/"/g,'&quot;')+'">'+q+'</button>';
+      }).join('');
+      Array.prototype.forEach.call(wrap.querySelectorAll('button'), function(b){
+        b.addEventListener('click', function(){ fire(b.getAttribute('data-q')); });
+      });
+    }
+    var go=document.getElementById('cm-askgo'), inp=document.getElementById('cm-askq');
+    function submit(){
+      var v = inp && inp.value.trim();
+      fire(v || (inp && inp.placeholder) || '');
+    }
+    if (go) go.addEventListener('click', submit);
+    if (inp) inp.addEventListener('keydown', function(ev){ if(ev.key==='Enter') submit(); });
+  });
+})();
+</script>
 </body>
 </html>
