@@ -735,7 +735,10 @@
     var d = loadDock();
     if (!d || !d.thread || !d.thread.length) return false;
     thread = d.thread; chosen = d.door; dockName = d.name || null;
-    gated = false; asked = 1;
+    /* Restoring a docked conversation: the visitor already spent their free
+       run, so this must still mean "gate is next" rather than "two left".
+       Hard-coding 1 here was correct only while FREE_ANSWERS was 1. */
+    gated = false; asked = FREE_ANSWERS; saveAsked(FREE_ANSWERS);
     renderDock(!!d.min);
     track('intent_dock_restored', { messages: thread.length });
     return true;
@@ -747,7 +750,22 @@
    * that the answer is specific to the building already on screen.
    * The gate lands on the SECOND question, once it has been shown to work.
    */
-  var thread = [], asked = 0, gated = false;
+  /* Free answers before the email gate. Condo previously hard-coded 1 in the
+     send() branch; naming it makes the two platforms comparable and stops
+     the number drifting apart the next time one is tuned. */
+  var FREE_ANSWERS = 3;
+  var ASKED_KEY = 'cm_free_asked';
+  /* Persisted for the visit. `asked` was in memory only, so every page load
+     handed out a fresh allowance — tolerable at one free answer, three per
+     page view indefinitely is not. sessionStorage matches City: it survives
+     navigation within a visit and clears on a new one. */
+  function loadAsked() {
+    try { return parseInt(sessionStorage.getItem(ASKED_KEY), 10) || 0; } catch (e) { return 0; }
+  }
+  function saveAsked(n) {
+    try { sessionStorage.setItem(ASKED_KEY, String(n)); } catch (e) {}
+  }
+  var thread = [], asked = loadAsked(), gated = false;
 
   function wireAsk(name) {
     var skip = boxEl.querySelector('[data-skip]');
@@ -887,9 +905,9 @@
       // returning leads were re-gated and retyped their address each session.
       if (!rememberedEmail()) {
         if (gated) { renderGate(name, q); return; }
-        if (asked >= 1) { gated = true; renderGate(name, q); return; }
+        if (asked >= FREE_ANSWERS) { gated = true; renderGate(name, q); return; }
       }
-      asked++;
+      asked++; saveAsked(asked);
     }
 
     var t = threadEl();
@@ -932,7 +950,10 @@
         track('intent_ask_failed', { door: chosen, reason: why,
                                      detail: (res && res.detail) || null, ms: (res && res.ms) || null });
         if (ask) ask.style.display = '';
-        asked = 0;   // a failure should not consume the free question
+        /* Refund ONE, not all. `asked = 0` was identical to "refund one"
+           while the allowance was a single question; at three it would hand
+           back the whole run every time an answer failed. */
+        asked = Math.max(0, asked - 1); saveAsked(asked);
         return;
       }
       thread.push({ role: 'user', content: q });
@@ -975,7 +996,7 @@
       var th = boxEl.querySelector('[data-think]');
       if (th) th.parentNode.removeChild(th);
       if (ask) ask.style.display = '';
-      asked = 0;
+      asked = Math.max(0, asked - 1); saveAsked(asked);   // refund one, not all
       track('intent_ask_failed', { door: chosen, reason: 'network' });
     });
   }
