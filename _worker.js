@@ -1589,7 +1589,7 @@ function CM_FOOTER(footerData) {
     '<div class="cf-dir-head">Browse every building</div>' +
     '<div class="cf-dir">' + bldgCols + '</div>' +
     // Fine print
-    '<div class="cf-fine">\u00a9 2026 Condo Market SF \u00b7 Operated by McMullen Properties \u00b7 CA DRE #02016832 \u00b7 under Real Broker. ' +
+    '<div class="cf-fine">\u00a9 2026 Condo Market SF \u00b7 Platform operated by McMullen Properties LLC, which is not a real estate brokerage \u00b7 Real estate services provided by Tim McMullen, Broker, CA DRE #02016832. ' +
     'Condo Market SF is a marketing platform and is not a real estate brokerage. ' +
     '<a href="/methodology/">Methodology</a> \u00b7 <a href="/how-it-works/">How it works</a> \u00b7 <a href="tel:+14156919272">415-691-9272</a></div>' +
     '</div></footer>\n' +
