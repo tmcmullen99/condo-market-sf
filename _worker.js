@@ -2733,7 +2733,7 @@ function renderBuilding(p) {
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/history/">History</a><a href="/how-it-works/">How it works</a>' +
-    '<a href="/refer/">Refer</a>' +
+    '<a href="/save-10k/">Save $10k</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n' +
     '<div class="wrap"><div class="crumb">' +
