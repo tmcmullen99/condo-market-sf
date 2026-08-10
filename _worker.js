@@ -536,6 +536,15 @@ async function handleRequest(request, env) {
       return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
     }
 
+    // Investor Exchange — the tenant-occupied marketplace.
+    if (url.pathname === '/investor-exchange' || url.pathname === '/investor-exchange/') {
+      if (url.pathname === '/investor-exchange' && request.method === 'GET') {
+        return new Response(null, { status: 301, headers: { 'Location': '/investor-exchange/' + url.search, 'cache-control': 'public, max-age=3600' } });
+      }
+      const html = applyMarketSwaps(renderInvestorExchange(hostMk, await fetchFooterData(hostMk)), hostMk);
+      return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
+    }
+
     // Market-level buy / sell hubs.
     if (url.pathname === '/buy' || url.pathname === '/buy/' || url.pathname === '/sell' || url.pathname === '/sell/') {
       const intent = (url.pathname.indexOf('buy') !== -1) ? 'buy' : 'sell';
@@ -976,6 +985,176 @@ function renderCityPage(mk, data, intent, footerData) {
     '</div></main>\n\n' +
     CM_FOOTER(footerData) +
     '</body>\n</html>';
+}
+
+// Investor Exchange — the marketplace for tenant-occupied condos.
+// Region/brand/domain are written as San Francisco and swapped per market by
+// applyMarketSwaps(), which is how every other page here works. The market
+// slug is NOT swappable text, so it is interpolated from mk directly.
+function renderInvestorExchange(mk, footerData) {
+  const region = 'San Francisco';
+  const tag = 'sf';
+  const domain = 'sanfranciscocondomarket.com';
+  const brand = 'Condo Market SF';
+  const slug = (mk && mk.slug) || 'san-francisco-condo-market';
+
+  const title = 'Investor Exchange \u00b7 ' + region + ' Rental Condo Marketplace';
+  const metaDesc = esc('A marketplace to buy and sell tenant-occupied condos in ' + region +
+    '. Owners publish price, rent and lease terms; investors hold an account to browse. The tenancy transfers untouched.');
+  const canonical = 'https://www.' + domain + '/investor-exchange/';
+
+  const IX_CSS =
+    '.ix-wrap{padding:52px 0 12px}' +
+    '.ix-kick{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#9fb4d8;font-weight:700;margin:0 0 12px}' +
+    '.ix-h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(34px,6vw,54px);color:#fff;margin:0;letter-spacing:-.015em;line-height:1.04}' +
+    '.ix-tag{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-size:clamp(19px,3vw,28px);color:#9fb4d8;margin:10px 0 0}' +
+    '.ix-sub{max-width:60ch;color:#b9c4d6;margin:20px 0 0;font-size:16.5px;line-height:1.65}' +
+    '.ix-cta{display:flex;gap:12px;flex-wrap:wrap;margin:30px 0 0}' +
+    '.ix-btn{display:inline-block;background:#9fb4d8;color:#0b1220;border-radius:999px;padding:13px 24px;font-weight:700;text-decoration:none}' +
+    '.ix-btn.ghost{background:transparent;color:#dbe4f2;border:1px solid rgba(219,228,242,.28)}' +
+    '.ix-lock{display:grid;grid-template-columns:1fr 1.05fr;gap:36px;align-items:center;margin:46px 0 0;' +
+      'border:1px solid rgba(219,228,242,.14);border-radius:22px;padding:clamp(22px,4vw,40px);background:rgba(219,228,242,.035)}' +
+    '@media(max-width:900px){.ix-lock{grid-template-columns:1fr;gap:24px}}' +
+    '.ix-count{font-family:"Playfair Display",Georgia,serif;font-size:clamp(42px,8vw,68px);line-height:1;color:#9fb4d8;font-variant-numeric:tabular-nums;transition:opacity .18s}' +
+    '.ix-count.load{opacity:.35}' +
+    '.ix-cl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(219,228,242,.5);margin-top:9px;max-width:34ch;line-height:1.6}' +
+    '.ix-frow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}' +
+    '.ix-flab{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(219,228,242,.4);width:46px;flex:0 0 46px}' +
+    '.ix-pill{background:rgba(219,228,242,.06);border:1px solid rgba(219,228,242,.18);color:#dbe4f2;border-radius:999px;' +
+      'padding:6px 14px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}' +
+    '.ix-pill:hover{border-color:#9fb4d8}' +
+    '.ix-pill.on{background:#9fb4d8;border-color:#9fb4d8;color:#0b1220}' +
+    '.ix-mapf{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(219,228,242,.16);aspect-ratio:4/3;background:#141b28}' +
+    '@media(max-width:900px){.ix-mapf{aspect-ratio:1/1}}' +
+    '.ix-map{position:absolute;inset:0;transform:scale(1.03);filter:blur(2.6px) saturate(1.05) brightness(1.5) contrast(1.1)}' +
+    '.ix-veil{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(11,18,32,0) 0%,rgba(11,18,32,.18) 55%,rgba(11,18,32,.58) 92%)}' +
+    '.ix-mcta{position:absolute;left:0;right:0;bottom:16px;text-align:center;pointer-events:none;' +
+      'font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(219,228,242,.72)}' +
+    '.ix-note{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(219,228,242,.38);margin-top:10px;text-align:center}' +
+    '.ix-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin:44px 0 0}' +
+    '.ix-card{border:1px solid rgba(219,228,242,.14);border-radius:16px;padding:22px}' +
+    '.ix-card h3{font-family:"Playfair Display",Georgia,serif;font-size:21px;color:#fff;margin:8px 0 8px}' +
+    '.ix-card p{color:#b9c4d6;font-size:14.5px;line-height:1.6;margin:0}' +
+    '.ix-num{font-size:11px;letter-spacing:.18em;color:#9fb4d8;font-weight:700}' +
+    '.ix-terms{margin:44px 0 60px;border-top:1px solid rgba(219,228,242,.14);padding-top:26px}' +
+    '.ix-terms li{color:#b9c4d6;font-size:14.5px;line-height:1.75;margin-bottom:6px}';
+
+  const IX_JS =
+    '<script>(function(){' +
+    'var SB="https://kfqphwerygccpzntbbif.supabase.co";' +
+    'var KEY=' + JSON.stringify(SUPABASE_ANON_KEY) + ';' +
+    'var SLUG=' + JSON.stringify(slug) + ';' +
+    'var types=[],beds=null,map=null,layer=null,seq=0;' +
+    'var elC=document.getElementById("ixCount"),elN=document.getElementById("ixNote"),elM=document.getElementById("ixMap");' +
+    'if(!elC||!elM)return;' +
+    'function rpc(fn,body){return fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}' +
+    'function args(){return {p_market_slug:SLUG,p_property_types:types.length?types:null,p_min_beds:beds,p_max_price:null};}' +
+    'function leaflet(cb){if(!document.querySelector(\'link[href*="leaflet.min.css"]\')){var l=document.createElement("link");l.rel="stylesheet";l.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(l);}' +
+      'if(window.L&&window.L.map){cb();return;}var sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";sc.onload=cb;document.head.appendChild(sc);}' +
+    'function paint(cells){if(!window.L||!cells.length)return;' +
+      'if(!map){var lat=0,lng=0;cells.forEach(function(c){lat+=c[0];lng+=c[1];});' +
+      'map=window.L.map(elM,{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false}).setView([lat/cells.length,lng/cells.length],12.4);' +
+      'window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);}' +
+      'if(layer)map.removeLayer(layer);layer=window.L.layerGroup().addTo(map);' +
+      'var max=1;cells.forEach(function(c){if(c[2]>max)max=c[2];});' +
+      'cells.forEach(function(c){var w=c[2]/max;window.L.circleMarker([c[0],c[1]],{radius:4+Math.round(w*9),stroke:false,fillColor:"#9fb4d8",fillOpacity:0.44+w*0.44}).addTo(layer);});}' +
+    'function refresh(){var mine=++seq;elC.className="ix-count load";' +
+      'Promise.all([rpc("exchange_research_count",args()),rpc("exchange_research_density",args())]).then(function(r){' +
+      'if(mine!==seq)return;elC.className="ix-count";' +
+      'elC.textContent=(r[0]==null?"\\u2014":Number(r[0]).toLocaleString("en-US"));' +
+      'if(r[1]&&r[1].cells){leaflet(function(){paint(r[1].cells);});' +
+      'if(elN)elN.textContent=r[1].cells.length?("Density preview \\u00b7 "+r[1].cells.length+" clusters \\u00b7 addresses withheld"):"No matches in that shape";}' +
+      '}).catch(function(){elC.className="ix-count";});}' +
+    'Array.prototype.forEach.call(document.querySelectorAll(".ix-pill[data-type]"),function(b){b.addEventListener("click",function(){' +
+      'var v=b.getAttribute("data-type").split(","),on=b.className.indexOf("on")>-1;' +
+      'v.forEach(function(x){var i=types.indexOf(x);if(on){if(i>=0)types.splice(i,1);}else if(i<0){types.push(x);}});' +
+      'b.className="ix-pill"+(on?"":" on");refresh();});});' +
+    'Array.prototype.forEach.call(document.querySelectorAll(".ix-pill[data-beds]"),function(b){b.addEventListener("click",function(){' +
+      'Array.prototype.forEach.call(document.querySelectorAll(".ix-pill[data-beds]"),function(x){x.className="ix-pill";});' +
+      'b.className="ix-pill on";var v=b.getAttribute("data-beds");beds=v?parseInt(v,10):null;refresh();});});' +
+    'refresh();})();</script>';
+
+  const body =
+    '<main><div class="wrap">' +
+
+    '<div class="ix-wrap">' +
+      '<p class="ix-kick">Investor Exchange \u00b7 ' + region + '</p>' +
+      '<h1 class="ix-h1">Investor Exchange</h1>' +
+      '<p class="ix-tag">A marketplace to buy &amp; sell rental condos.</p>' +
+      '<p class="ix-sub">A tenant in place is an asset to the right buyer and an obstacle to everyone else. ' +
+        'The Exchange puts the two sides in one room: owners who would sell at the right number, and investors ' +
+        'who buy occupied property on purpose. <strong>No showings, no vacancy, no termination notice.</strong></p>' +
+      '<div class="ix-cta">' +
+        '<a class="ix-btn" href="#signin" data-cm-auth="login">List a rental you\u2019d sell \u2192</a>' +
+        '<a class="ix-btn ghost" href="#signin" data-cm-auth="login">Create an investor account</a>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="ix-lock">' +
+      '<div>' +
+        '<p class="ix-kick">Members only</p>' +
+        '<div class="ix-count" id="ixCount">&mdash;</div>' +
+        '<div class="ix-cl">' + region + ' condos matching \u00b7 public records suggest not owner-occupied</div>' +
+        '<div class="ix-frow"><span class="ix-flab">Type</span>' +
+          '<button class="ix-pill" data-type="Condominium,Townhouse">Condo</button>' +
+          '<button class="ix-pill" data-type="Single Family">House</button>' +
+          '<button class="ix-pill" data-type="Multi-family">Multi-family</button></div>' +
+        '<div class="ix-frow"><span class="ix-flab">Beds</span>' +
+          '<button class="ix-pill on" data-beds="">Any</button>' +
+          '<button class="ix-pill" data-beds="1">1+</button>' +
+          '<button class="ix-pill" data-beds="2">2+</button>' +
+          '<button class="ix-pill" data-beds="3">3+</button></div>' +
+        '<div class="ix-cta"><a class="ix-btn" href="#signin" data-cm-auth="login">Unlock the map \u2192</a></div>' +
+        '<p class="ix-sub" style="font-size:13px;margin-top:14px">Free account. The signal is an inference from ' +
+          'public records \u2014 it also catches second homes, trusts and estates. It is not a statement that any of ' +
+          'them is for sale, and owner names are never shown.</p>' +
+      '</div>' +
+      '<div>' +
+        '<div class="ix-mapf"><div id="ixMap" class="ix-map"></div><div class="ix-veil"></div>' +
+          '<div class="ix-mcta">\uD83D\uDD12 Members see exact addresses</div></div>' +
+        '<div class="ix-note" id="ixNote">Density preview \u00b7 addresses withheld</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="ix-cards">' +
+      '<div class="ix-card"><div class="ix-num">01</div><h3>You state the facts</h3>' +
+        '<p>Address, asking price, current rent, lease remaining, photos. Your figures, published as stated by you.</p></div>' +
+      '<div class="ix-card"><div class="ix-num">02</div><h3>Tim reviews it</h3>' +
+        '<p>He adds an opinion of value and positioning, signed in his own name and licence \u2014 never something the platform computes.</p></div>' +
+      '<div class="ix-card"><div class="ix-num">03</div><h3>It goes live</h3>' +
+        '<p>Only to account-holding investors in this market. You can withdraw at any point before a purchase agreement is signed.</p></div>' +
+      '<div class="ix-card"><div class="ix-num">04</div><h3>An investor writes</h3>' +
+        '<p>Offers reach you through Tim. If you\u2019re exchanging, he refers a qualified intermediary and an agent in the market you\u2019re buying into.</p></div>' +
+    '</div>' +
+
+    '<div class="ix-terms">' +
+      '<p class="ix-kick">Terms, stated plainly</p>' +
+      '<ul>' +
+        '<li>Listing on the Exchange is not a listing agreement. No fee to publish, no obligation to sell.</li>' +
+        '<li>If a pairing closes, a 3% transaction fee applies. Tim McMullen handles the transaction as agent of record.</li>' +
+        '<li>Exchanging into another property: he refers a qualified intermediary for the 1031 and a commercial agent in whatever market you\u2019re buying into.</li>' +
+        '<li>The 1031 material on this site is general education. Whether a specific exchange qualifies, and what a deadline means for your transaction, is a question for your intermediary and your CPA.</li>' +
+        '<li>A buyer takes title subject to the lease in place. Nothing here changes your tenant\u2019s rights.</li>' +
+      '</ul>' +
+    '</div>' +
+
+    '</div></main>';
+
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+    '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + esc(title) + '</title>\n<meta name="description" content="' + metaDesc + '">\n' +
+    '<link rel="canonical" href="' + canonical + '">\n' +
+    '<meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + metaDesc + '"><meta property="og:url" content="' + canonical + '">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
+    '<style>' + CSS + '</style>\n<style>' + EXTRA_CSS + '</style>\n<style>' + IX_CSS + '</style>\n' +
+    '</head>\n<body>\n' +
+    CM_MASTHEAD(tag) +
+    '<div class="wrap"><div class="crumb"><a href="/">Condo Market</a><span class="sep">/</span>Investor Exchange</div></div>\n' +
+    body +
+    CM_FOOTER(footerData) +
+    IX_JS +
+    '\n</body>\n</html>';
 }
 
 function renderBuySellHub(mk, cities, intent, footerData) {
@@ -1528,6 +1707,7 @@ function CM_MASTHEAD(tag) {
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/active-listings">Active Listings</a><a href="/buy">Buy</a><a href="/sell">Sell</a>' +
     '<a href="/how-it-works/">How it works</a>' +
+         '<a href="/investor-exchange/">Investor Exchange</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n';
 }
