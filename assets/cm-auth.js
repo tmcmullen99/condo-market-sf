@@ -147,7 +147,10 @@ function buildModalElement() {
 
   // Wire up events
   backdrop.querySelector('.cm-auth-close').addEventListener('click', closeAuthModal);
-  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeAuthModal(); });
+  // Deliberately NOT closing on backdrop click. The card is 440px wide inside a
+  // full-viewport backdrop, so a mis-aimed click landed outside it and wiped a
+  // half-typed signup. The close button and Escape are the ways out.
+  backdrop.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAuthModal(); });
   backdrop.querySelector('.cm-switch-link').addEventListener('click', toggleMode);
   backdrop.querySelector('.cm-auth-submit').addEventListener('click', handleSubmit);
   backdrop.querySelector('.cm-auth-magic').addEventListener('click', handleMagicLink);
@@ -286,11 +289,23 @@ async function handleSubmit() {
         });
       }
 
-      if (data?.user && !data?.session) {
-        setMessage('ok', 'Check your email for a confirmation link to finish signing up.');
+      if (data?.session) {
+        setMessage('ok', 'You\u2019re in. Enjoy the full record.');
+        window.dispatchEvent(new CustomEvent('cm-auth-changed', { detail: { signedIn: true } }));
+        setTimeout(closeAuthModal, 900);
       } else {
-        setMessage('ok', 'Account created! You are signed in.');
-        setTimeout(closeAuthModal, 1200);
+        // No session means the project still requires confirmation. Do not leave
+        // them at a dead end: sign them straight in with the password they just
+        // chose, which works the moment confirmation is turned off and fails
+        // softly while it is not.
+        const { data: si } = await CM.signIn({ email, password }).catch(() => ({}));
+        if (si?.session) {
+          setMessage('ok', 'You\u2019re in. Enjoy the full record.');
+          window.dispatchEvent(new CustomEvent('cm-auth-changed', { detail: { signedIn: true } }));
+          setTimeout(closeAuthModal, 900);
+        } else {
+          setMessage('ok', 'Account created \u2014 check your email for the confirmation link.');
+        }
       }
     } else {
       const { data, error } = await CM.signIn({ email, password });
@@ -378,6 +393,66 @@ export function openAuthModal(mode = 'signup') {
   }, 50);
 }
 
+/* ---------------------------------------------------------------------------
+ * requireVerifiedEmail() — the gate that used to sit on the front door.
+ *
+ * Call it immediately before an action that reaches a third party (claiming a
+ * unit, publishing a listing, sending an offer to an owner). Returns true when
+ * the visitor is verified, and otherwise shows them exactly what to do and
+ * offers to resend. It never blocks browsing.
+ * ------------------------------------------------------------------------- */
+export async function requireVerifiedEmail(actionLabel) {
+  const session = await CM.getSession();
+  if (!session) { openAuthModal('signup'); return false; }
+
+  let status = null;
+  try {
+    const { data } = await CM.client.rpc('auth_email_status');
+    status = data;
+  } catch (e) { /* if the check itself fails, do not strand them */ }
+
+  if (status && status.verified === true) return true;
+  if (!status) return true;   // unknown: let the database refuse rather than us
+
+  showVerifyPrompt(status.email, actionLabel);
+  return false;
+}
+
+function showVerifyPrompt(email, actionLabel) {
+  ensureStylesInjected();
+  if (!modalEl) modalEl = buildModalElement();
+  modalEl.classList.add('cm-open');
+  const card = modalEl.querySelector('.cm-auth-modal');
+  card.innerHTML =
+    '<button class="cm-auth-close" aria-label="Close">&times;</button>' +
+    '<h2 class="cm-auth-title">One quick check</h2>' +
+    '<p class="cm-auth-subtext">' +
+      (actionLabel ? escapeHtml(actionLabel) + ' goes to a real person, so we need an ' : 'This goes to a real person, so we need an ') +
+      'address that can reply. We sent a confirmation link to <strong>' + escapeHtml(email || 'your email') + '</strong>.</p>' +
+    '<div class="cm-auth-msg" style="display:none"></div>' +
+    '<button class="cm-auth-submit cm-verify-resend">Resend the link</button>' +
+    '<p class="cm-auth-subtext" style="margin-top:14px;font-size:13px">' +
+      'Everything else on the site stays open \u2014 you can keep looking around.</p>';
+  card.querySelector('.cm-auth-close').addEventListener('click', () => {
+    modalEl.classList.remove('cm-open');
+    modalEl.querySelector('.cm-auth-modal').innerHTML = '';
+    modalEl = null;              // rebuilt fresh next time
+  });
+  card.querySelector('.cm-verify-resend').addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    b.disabled = true; b.textContent = 'Sending\u2026';
+    try {
+      const { error } = await CM.sendMagicLink({ email });
+      setMessage(error ? 'err' : 'ok',
+        error ? (error.message || 'Could not resend just now.')
+              : 'Sent. The link in that email signs you in and confirms you at once.');
+    } finally {
+      b.disabled = false; b.textContent = 'Resend the link';
+    }
+  });
+  if (window.cmTrack) window.cmTrack('verify_required', { stage: 'action_gate', action: actionLabel || null });
+}
+
 export function closeAuthModal() {
   if (!modalEl) return;
   modalEl.classList.remove('cm-open');
@@ -405,4 +480,4 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-export default { openAuthModal, closeAuthModal };
+export default { openAuthModal, closeAuthModal, requireVerifiedEmail };
