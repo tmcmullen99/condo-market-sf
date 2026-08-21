@@ -1,5 +1,45 @@
 # Cloudflare Pages _redirects
 # Rules apply in order — keep the referral retirement ABOVE the catch-alls.
+#
+# These rules DO fire despite _worker.js being present: the worker handles the
+# routes it knows and calls env.ASSETS.fetch(request) for everything else, and
+# _redirects is applied on that asset request. Verified 2026-08-20 — the worker
+# carries no /refer or /dashboard route of its own.
+
+# ─── Member account moved to the app (2026-08-20) ─────────────────────────
+# The account layer moved to Platform A. /dashboard/ authenticates against
+# Platform B and is NOT being repaired — it is the page being replaced.
+#
+# 85 links across 73 static pages still point at /dashboard: 63 building pages,
+# the nav, /how-it-works/, /claim/, /petition.html, /welcome/, /buildings/,
+# /intelligence/, /history/. This rule catches every one of them, which is why
+# those hrefs are deliberately left alone rather than edited in 73 files.
+#
+# Unauthenticated arrivals land on the app's own sign-in. Do not add a
+# /dashboard rule to _worker.js as well — two owners of one route is how a
+# redirect loop starts.
+/dashboard                 https://app.sanfranciscocondomarket.com/           301
+/dashboard/                https://app.sanfranciscocondomarket.com/           301
+/dashboard/*               https://app.sanfranciscocondomarket.com/           301
+
+# ─── Account creation moved to the app (2026-08-20) ───────────────────────
+# /save-10k/ called signInWithOtp against Platform B, which auto-creates the
+# user. It was the ONLY member-facing account-creation surface left on B, and
+# it took five real signups in the eight days after the merge cut — each one an
+# account on the platform we are leaving, needing a manual migration and a
+# forced password reset. This rule is what stops that.
+#
+# The confirm rule MUST stay above the splat: magic links already sitting in
+# someone's inbox land on /save-10k/confirm/ and would otherwise be redirected
+# mid-flow into a sign-in they cannot complete.
+#
+# The $10,000 pitch is not lost — the app's sign-in carries it. If the pitch
+# page is wanted back as a page, the buildable version is to keep it and point
+# its button at the app instead of calling B's auth.
+/save-10k/confirm/*        /save-10k/confirm/index.html                       200
+/save-10k                  https://app.sanfranciscocondomarket.com/signin     301
+/save-10k/                 https://app.sanfranciscocondomarket.com/signin     301
+/save-10k/*                https://app.sanfranciscocondomarket.com/signin     301
 
 # ─── Referral programme retired (2026-07-28) ──────────────────────────────
 # Condo Market cannot offer commission credit in exchange for referrals. The
@@ -9,6 +49,10 @@
 # renders on every worker-rendered building page), and from historic emails.
 # refer/index.html has been deleted, so these rules are what stop those 67
 # inbound links 404ing. They must stay.
+#
+# These now chain: /refer/ -> /save-10k/ -> the app sign-in. Two hops is fine
+# and keeps this block's documented behaviour intact; do not "optimise" it by
+# repointing /refer/ at the app, or the retirement history stops being legible.
 /refer                     /save-10k/         301
 /refer/                    /save-10k/         301
 /refer/*                   /save-10k/         301
