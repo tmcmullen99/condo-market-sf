@@ -14,6 +14,25 @@
 const SUPABASE_URL      = 'https://kfqphwerygccpzntbbif.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
+/* ---------------- Platform A: building disclosure reviews ----------------
+ * The condo PUBLIC SITE stays on Platform B and is not being merged. But the
+ * disclosure reviews are produced by the campaign/account layer, which lives on
+ * Platform A. So the building page reads one anon RPC across projects.
+ *
+ * `building_disclosure_teaser` is deliberately the ONLY thing this page may
+ * call. It is SECURITY DEFINER and returns existence, dates and counts —
+ * never a finding, never a number out of the documents. The content sits
+ * behind `building_disclosure_detail`, which returns account_required to
+ * anyone not signed in. That split is what lets this page make the offer
+ * without giving the thing away, and what makes it safe to embed a public key.
+ *
+ * A building on B is a TRACT on A and the sync preserved slugs, so the same
+ * slug keys both sides. No translation table.
+ */
+const SB_A_URL = 'https://qinuukntpyulqjzndnho.supabase.co';
+const SB_A_KEY = 'sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2';
+const A_MARKET_ID_BY_TAG = { sf: 5, sv: 6 };
+
 /* --------------------- multi-market chrome (per-Host) -------------------- */
 const MARKET_BY_HOST = {
   'sanfranciscocondomarket.com':      'sf',
@@ -586,6 +605,33 @@ async function handleRequest(request, env) {
     if (!payload || payload.is_live !== true) {
       return wrapStaticWithSwaps(request, env, hostMk);
     }
+
+    /* Disclosure teaser from Platform A. Non-blocking by design: if A is slow or
+     * down the building page renders exactly as it does today, minus one CTA.
+     * A disclosure CTA is worth having; it is not worth a 500 on the page. */
+    let disclosure = null;
+    try {
+      const aMarketId = A_MARKET_ID_BY_TAG[hostMk.tag];
+      if (aMarketId) {
+        const dRes = await fetch(SB_A_URL + '/rest/v1/rpc/building_disclosure_teaser', {
+          method: 'POST',
+          headers: {
+            'apikey': SB_A_KEY,
+            'Authorization': 'Bearer ' + SB_A_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ p_market_id: aMarketId, p_tract_slug: slug }),
+        });
+        if (dRes.ok) {
+          const d = await dRes.json();
+          if (d && d.has_review === true) disclosure = d;
+        }
+      }
+    } catch (e) {
+      disclosure = null;
+    }
+    payload.disclosure = disclosure;
 
     // Cross-domain canonical enforcement: if this building belongs to a different
     // market than the host being requested, 301 to the correct domain. This is
@@ -2604,6 +2650,53 @@ function renderBuilding(p) {
   const heroAskLine = (psf != null)
     ? 'Units here trade around ' + money(psf) + '/sq ft. What would yours sell for?'
     : 'Every unit here is open to an offer \u2014 listed or not.';
+  /* DISCLOSURE CTA (T9)
+   * The strongest reason to open an account on a building page: we have read
+   * this association's HOA documents and written them up.
+   *
+   * Two rules hold this together.
+   *
+   * 1. NO REVIEW, NO CLAIM. `p.disclosure` is null unless Platform A returned
+   *    has_review, so the block cannot render a promise we cannot keep. There
+   *    is deliberately no "request a review" variant — inviting a signup for
+   *    documents nobody has read is the fabrication the platform forbids.
+   *
+   * 2. THE DATE IS ALWAYS SHOWN. Reviews never expire and are never hidden, so
+   *    an archival review is offered on the same terms as a current one, with
+   *    its age stated plainly. A member deciding whether a 2024 budget is
+   *    useful is better served than a member shown nothing at all.
+   */
+  let disclosureCta = '';
+  if (p.disclosure && p.disclosure.has_review) {
+    const d = p.disclosure;
+    const docs = Array.isArray(d.doc_types) ? d.doc_types.filter(Boolean) : [];
+    const asOf = d.latest_as_of
+      ? new Date(String(d.latest_as_of) + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+      : null;
+    const ageNote = (d.age_label === 'current')
+      ? 'The most recent documents we hold'
+      : (d.age_label === 'dated')
+        ? 'The most recent documents we hold \u2014 read them with their date in mind'
+        : 'An older record, kept because it is the last one anyone outside the board has seen';
+    const docLine = docs.length
+      ? 'Covering ' + esc(docs.slice(0, 4).join(', ')) + (docs.length > 4 ? ' and more' : '') + '.'
+      : '';
+    const heldLine = (Number(d.review_count) > 1)
+      ? '<p class="disc-cta-held">' + Number(d.review_count) + ' reviews on file for this building \u2014 the archive shows how the dues, the reserve and the litigation moved.</p>'
+      : '';
+    disclosureCta =
+      '<div class="disc-cta">'
+      + '<div class="disc-cta-kicker">HOA documents \u2014 reviewed</div>'
+      + '<p class="disc-cta-line">We have read this association\u2019s HOA documents and written up what is in them'
+      +   (asOf ? ', as of ' + esc(asOf) : '') + '. ' + docLine + '</p>'
+      + heldLine
+      + '<a class="disc-cta-btn" data-cm-auth="signup" data-cta="building-disclosure-signup" href="#signup">'
+      +   'Create a free account to read the review \u2192</a>'
+      + '<p class="disc-cta-note">' + esc(ageNote) + '. Prepared by a licensed agent from the disclosure package of a listing in this building. '
+      +   'It describes the association, not any one unit.</p>'
+      + '</div>';
+  }
+
   const heroCta =
     '<div class="hero-ask">'
     + '<p class="hero-ask-line">' + heroAskLine + '</p>'
@@ -2611,7 +2704,8 @@ function renderBuilding(p) {
     +   ' data-cta="building-hero-offer" href="#offer">Make an offer on any unit \u2192</a>'
     + '<a class="hero-ask-alt" data-cm-auth="signup" data-cta="building-hero-signup" href="#signup">'
     +   'See every sale in this building \u2014 free</a>'
-    + '</div>';
+    + '</div>'
+    + disclosureCta;
 
   /* GALLERY */
   const imgs = Array.isArray(p.images) ? p.images.filter(function (i) { return i && i.url && i.role !== 'og'; }) : [];
@@ -3036,6 +3130,18 @@ const CSS = `
   .hero-ask-alt { display: block; margin-top: 12px; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(232,227,216,.62); text-decoration: none; }
   .hero-ask-alt:hover { color: var(--cm-bronze, #d4a574); }
   @media (max-width: 720px) { .hero-ask-btn { width: 100%; justify-content: center; } }
+
+  /* Disclosure CTA. Sits inside the hero, below the offer ask, and is styled as
+     a distinct card rather than a third link: it is a different kind of offer
+     (read something we made) and should not read as another way to transact. */
+  .disc-cta { margin-top: 18px; padding: 18px 18px 16px; border: 1px solid rgba(212,165,116,.34); border-radius: 12px; background: rgba(212,165,116,.06); }
+  .disc-cta-kicker { font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--cm-bronze, #d4a574); margin-bottom: 8px; }
+  .disc-cta-line { margin: 0 0 10px; font-size: 15px; line-height: 1.5; color: rgba(232,227,216,.92); }
+  .disc-cta-held { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: rgba(232,227,216,.72); }
+  .disc-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--cm-bronze, #d4a574); color: var(--cm-navy, #1a1f2e); font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 999px; text-decoration: none; transition: transform 150ms ease; }
+  .disc-cta-btn:hover { transform: translateY(-1px); }
+  .disc-cta-note { margin: 12px 0 0; font-size: 11.5px; line-height: 1.55; color: rgba(232,227,216,.58); }
+  @media (max-width: 720px) { .disc-cta-btn { width: 100%; justify-content: center; } }
   .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: var(--cm-navy); aspect-ratio: 3/2; max-height: 460px; }
   .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.04) contrast(1.02); }
   .hero-img-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 60px rgba(10,13,18,0.28); border-radius: 12px; z-index: 2; }
