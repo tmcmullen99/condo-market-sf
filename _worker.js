@@ -321,6 +321,31 @@ async function handleRequest(request, env) {
     const url = new URL(request.url);
     const hostMk = resolveMarket(url.hostname);
 
+    // Expired-listing QR codes already in the post.
+    //
+    // Four expired letters were mailed carrying
+    // sanfranciscocondomarket.com/proposal/{page_token}/. This worker has never
+    // had a /proposal/ route, so all four scanned to a 404 — the only host of
+    // the fifty-six sent that was outright dead.
+    //
+    // Every expired page is now served from mcmullenresidential.com whatever
+    // market the property sits in, so this forwards rather than renders: there
+    // is one renderer for these pages and it is not here.
+    //
+    // A printed QR cannot be recalled. THIS ROUTE IS PERMANENT — it must
+    // outlive the campaign, the templates and anyone's memory of why it exists.
+    // 301 because /expired/{token} is where the page genuinely lives now.
+    {
+      const prop = url.pathname.match(/^\/proposal\/([^\/]+)\/?$/);
+      if (prop) {
+        const code = String(prop[1] || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (code) {
+          return Response.redirect(
+            'https://mcmullenresidential.com/expired/' + code, 301);
+        }
+      }
+    }
+
     // robots.txt — per-host, points at this host's sitemap.
     if (url.pathname === '/robots.txt') {
       // Open to AI training and answer engines by design — this is a public
