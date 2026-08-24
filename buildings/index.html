@@ -352,8 +352,14 @@ img { display: block; max-width: 100%; }
 /* ─── ATLAS (map + neighbourhood accordion) ──────────────── */
 .atlas-shell {
   display: grid; grid-template-columns: 42% 58%; gap: 40px;
-  align-items: flex-start;
+  align-items: flex-start; max-width: 100%;
 }
+/* A grid item defaults to min-width:auto, so its column cannot shrink below its
+   content's min-content width. The jump rail is a nowrap row of 19 chips — that
+   min-content is about 1,150px, and without this the column dragged the map and
+   every card out to three times the phone viewport. The rail scrolls; it must
+   never size its ancestors. */
+.atlas-shell > * { min-width: 0; }
 @media (max-width: 980px) {
   .atlas-shell { grid-template-columns: 1fr; gap: 18px; }
 }
@@ -387,7 +393,7 @@ img { display: block; max-width: 100%; }
   position: sticky; top: 64px; z-index: 20;
   display: flex; flex-wrap: wrap; gap: 6px;
   padding: 12px 0 12px; margin-bottom: 4px;
-  background: var(--surface);
+  max-width: 100%; background: var(--surface);
 }
 .hood-chip {
   font: inherit; font-size: 11.5px; font-weight: 600; line-height: 1;
@@ -403,15 +409,16 @@ img { display: block; max-width: 100%; }
   background: var(--peri); color: var(--navy); font-size: 9.5px; font-weight: 700;
 }
 @media (max-width: 980px) {
+  /* No negative-margin bleed. It bought an edge-to-edge look and cost another
+     40px of guaranteed overflow on a page that just shipped broken. */
   .hood-rail {
     flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    margin-left: -20px; margin-right: -20px; padding: 12px 20px;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
   }
   .hood-rail::-webkit-scrollbar { display: none; }
 }
 
-.hoods-col { display: block; }
+.hoods-col { display: block; min-width: 0; }
 .hoods-list { display: flex; flex-direction: column; gap: 10px; }
 .hood {
   background: #fff; border: 1px solid var(--border); border-radius: 4px;
@@ -422,7 +429,7 @@ img { display: block; max-width: 100%; }
 
 /* The whole header is the target. A 14px chevron is not a tap target on a phone. */
 .hood-toggle {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: 14px; min-width: 0;
   padding: 16px 20px; cursor: pointer; user-select: none;
 }
 .hood-toggle:focus-visible { outline: 2px solid var(--peri); outline-offset: 2px; }
@@ -1712,7 +1719,7 @@ img { display: block; max-width: 100%; }
               (h.is_hot ? '<span class="hood-hot">Hot</span>' : '') +
               (act ? '<span class="hood-live">' + act + ' active</span>' : '') +
             '</div>' +
-            '<div class="hood-stats"><span>' + h.buildings + ' buildings</span><span>' + nf(h.units) + ' units</span>' + (psfRange ? '<span>' + psfRange + '</span>' : '') + '</div>' +
+            '<div class="hood-stats"><span>' + h.buildings + ' building' + (Number(h.buildings) === 1 ? '' : 's') + '</span><span>' + nf(h.units) + ' unit' + (Number(h.units) === 1 ? '' : 's') + '</span>' + (psfRange ? '<span>' + psfRange + '</span>' : '') + '</div>' +
           '</div>' +
           '<span class="hood-chev">' + CHEVRON + '</span>' +
         '</header>' +
@@ -1806,6 +1813,16 @@ img { display: block; max-width: 100%; }
     var BOUNDS = [[Math.min.apply(null, lats) - 0.004, Math.min.apply(null, lngs) - 0.004], [Math.max.apply(null, lats) + 0.004, Math.max.apply(null, lngs) + 0.004]];
     var map = L.map('atlas-map', { zoomControl: false, scrollWheelZoom: false, dragging: window.innerWidth > 980, tap: false });
     map.fitBounds(BOUNDS, { padding: [30, 30] });
+    /* Leaflet measures its container once, at init. Anything that changes the
+       container afterwards — a late webfont, a rotation, a CSS fix landing —
+       leaves the map fitted to the wrong box. Re-measure and refit on the next
+       frame, then invalidate (but never refit) on resize so a hood focus is not
+       yanked back to the whole city. */
+    requestAnimationFrame(function () { map.invalidateSize(); map.fitBounds(BOUNDS, { padding: [30, 30] }); });
+    var rzT = null;
+    function onResize() { clearTimeout(rzT); rzT = setTimeout(function () { map.invalidateSize(); }, 180); }
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
