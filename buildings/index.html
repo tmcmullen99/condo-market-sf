@@ -43,6 +43,9 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* The header is sticky at 64px. Without this every in-page anchor lands
+   with its own heading hidden underneath it. */
+html { scroll-padding-top: 76px; }
 body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   color: var(--text);
@@ -346,22 +349,22 @@ img { display: block; max-width: 100%; }
 }
 .cm-section-dark .cm-section-head p { color: rgba(232,227,216,.65); }
 
-/* ─── ATLAS (scroll-locked) ──────────────────────────────── */
+/* ─── ATLAS (map + neighbourhood accordion) ──────────────── */
 .atlas-shell {
   display: grid; grid-template-columns: 42% 58%; gap: 40px;
   align-items: flex-start;
 }
 @media (max-width: 980px) {
-  .atlas-shell { grid-template-columns: 1fr; gap: 24px; }
+  .atlas-shell { grid-template-columns: 1fr; gap: 18px; }
 }
 .atlas-map-col { position: sticky; top: 88px; }
 @media (max-width: 980px) { .atlas-map-col { position: relative; top: 0; } }
 .atlas-map {
-  height: calc(100vh - 120px); max-height: 720px; min-height: 520px;
+  height: calc(100vh - 140px); max-height: 720px; min-height: 520px;
   background: var(--card); border: 1px solid var(--border); border-radius: 4px;
   overflow: hidden; position: relative;
 }
-@media (max-width: 980px) { .atlas-map { height: 420px; } }
+@media (max-width: 980px) { .atlas-map { height: 360px; min-height: 0; } }
 .atlas-map-overlay {
   position: absolute; bottom: 16px; left: 16px; z-index: 500;
   background: rgba(10,13,18,.88); color: var(--ivory);
@@ -378,41 +381,85 @@ img { display: block; max-width: 100%; }
 }
 .atlas-map-overlay .sub { font-size: 12px; color: rgba(232,227,216,.7); }
 
-.hoods-col { display: flex; flex-direction: column; gap: 16px; }
+/* Jump rail. 19 neighbourhoods is too many to reach by scrolling, so every one
+   is one tap away and the rail tracks whichever card the map is following. */
+.hood-rail {
+  position: sticky; top: 64px; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 12px 0 12px; margin-bottom: 4px;
+  background: var(--surface);
+}
+.hood-chip {
+  font: inherit; font-size: 11.5px; font-weight: 600; line-height: 1;
+  color: var(--text-mute); background: #fff;
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 11px; cursor: pointer; white-space: nowrap;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.hood-chip:hover { color: var(--navy); border-color: var(--peri); }
+.hood-chip.is-current { background: var(--navy); border-color: var(--navy); color: #fff; }
+.hood-chip .n {
+  display: inline-block; margin-left: 6px; padding: 1px 5px; border-radius: 999px;
+  background: var(--peri); color: var(--navy); font-size: 9.5px; font-weight: 700;
+}
+@media (max-width: 980px) {
+  .hood-rail {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -20px; margin-right: -20px; padding: 12px 20px;
+  }
+  .hood-rail::-webkit-scrollbar { display: none; }
+}
+
+.hoods-col { display: block; }
+.hoods-list { display: flex; flex-direction: column; gap: 10px; }
 .hood {
   background: #fff; border: 1px solid var(--border); border-radius: 4px;
-  padding: 26px 28px; transition: all .2s;
-  scroll-margin-top: 120px;
+  transition: border-color .2s, box-shadow .2s;
+  scroll-margin-top: 132px;
 }
 .hood.is-active { border-color: var(--peri); box-shadow: 0 0 0 3px var(--peri-soft); }
-.hood-head { margin-bottom: 10px; }
-.hood-title { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+
+/* The whole header is the target. A 14px chevron is not a tap target on a phone. */
+.hood-toggle {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; cursor: pointer; user-select: none;
+}
+.hood-toggle:focus-visible { outline: 2px solid var(--peri); outline-offset: 2px; }
+.hood-toggle-main { flex: 1; min-width: 0; }
+.hood-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 5px; }
 .hood-name {
-  font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 700;
+  font-family: 'Playfair Display', Georgia, serif; font-size: 21px; font-weight: 700;
   margin: 0; color: var(--navy); letter-spacing: -.01em;
 }
 .hood-hot {
   background: var(--hot); color: #fff; font-size: 9px; font-weight: 700;
   letter-spacing: .16em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px;
 }
-.hood-stats { display: flex; gap: 14px; font-size: 12px; color: var(--text-mute); font-weight: 500; }
+.hood-live {
+  background: var(--peri); color: var(--navy); font-size: 9.5px; font-weight: 700;
+  letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+.hood-stats { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text-mute); font-weight: 500; }
 .hood-stats span { white-space: nowrap; }
+.hood-chev { flex: none; display: flex; color: var(--peri); transition: transform .2s, color .2s; }
+.hood.is-open .hood-chev { transform: rotate(180deg); color: var(--navy); }
+
+/* display:grid on the panel would beat the UA [hidden] rule. Keep the panel a
+   plain block and state the hidden case, or every card renders open. */
+.hood-panel { padding: 0 20px 18px; }
+.hood-panel[hidden] { display: none; }
 .hood-blurb {
   font-family: 'Playfair Display', Georgia, serif; font-style: italic;
-  font-size: 15px; line-height: 1.55; margin: 10px 0 14px; color: var(--text-mute);
+  font-size: 14.5px; line-height: 1.55; margin: 0 0 4px; color: var(--text-mute);
 }
-.hood-expand {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--peri); padding: 6px 0; transition: color .15s;
+.hood-bldgs {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
 }
-.hood-expand svg { transition: transform .2s; }
-.hood-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
-.hood-expand:hover { color: var(--navy); }
-.hood-bldgs { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-@media (max-width: 600px) { .hood-bldgs { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .hood-bldgs { grid-template-columns: 1fr; } }
 .hood-bldg {
-  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 2px; padding: 9px 11px;
   border-radius: 3px; transition: background .15s;
 }
 .hood-bldg:hover { background: var(--card); }
@@ -425,6 +472,14 @@ img { display: block; max-width: 100%; }
   letter-spacing: .03em; color: var(--navy); background: var(--peri);
   padding: 1px 7px; border-radius: 999px; vertical-align: middle;
 }
+.hood-more {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+  font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--peri);
+  background: none; border: 0; padding: 6px 0; cursor: pointer;
+  transition: color .15s;
+}
+.hood-more:hover { color: var(--navy); }
 
 /* Leaflet marker overrides */
 .cm-marker {
@@ -1119,47 +1174,14 @@ img { display: block; max-width: 100%; }
     font-family: 'Playfair Display', Georgia, serif; font-size: 16px;
   }
 </style>
-<section class="cm-section cm-section-light" id="intel">
-  <div class="cm-container">
-    <div class="intel-v2-head">
-      <p class="cm-eyebrow">Market intelligence</p>
-      <h2 class="cm-h">Every condo. <em>Not just the listed ones.</em></h2>
-      <p class="intel-v2-lede" id="intel-lede">&nbsp;</p>
-    </div>
-    <div class="intel-v3-showcase">
-      <div class="intel-v3-card intel-v3-trajectory">
-        <div class="intel-v3-card-head">
-          <p class="intel-v2-eyebrow">$/sf trajectory</p>
-          <p class="intel-v3-card-sub" id="intel-v3-sub">Median $/sf</p>
-        </div>
-        <div id="intel-v3-controls"></div>
-        <div class="cmp-empty" id="intel-v3-empty" style="display:none"></div>
-        <div class="intel-v3-chart-wrap"><canvas id="intel-v3-chart"></canvas></div>
-        <div class="intel-v3-bookends"><span id="intel-v3-start">—</span><span id="intel-v3-end">—</span></div>
-      </div>
-      <div class="intel-v3-card intel-v3-activity">
-        <div class="intel-v3-card-head">
-          <p class="intel-v2-eyebrow">Live activity</p>
-          <p class="intel-v3-card-sub">Most recent recorded sales</p>
-        </div>
-        <div id="intel-v3-feed" class="intel-v3-feed"><div class="intel-v3-loading">Loading…</div></div>
-      </div>
-    </div>
-    <div class="intel-v2-grid" id="intel-grid"></div>
-    <div class="intel-v2-cta">
-      <a class="cm-btn-p" href="/intelligence/">See the data for your building &nbsp;→</a>
-    </div>
-  </div>
-</section>
-
 <!-- ═══ ATLAS ═══ -->
 
-<section class="cm-section cm-section-light" id="atlas" style="padding-top: 40px;">
+<section class="cm-section cm-section-light" id="atlas" style="padding-top: 72px;">
   <div class="cm-container">
     <div class="cm-section-head">
       <p class="cm-eyebrow">Neighborhood atlas</p>
       <h2 class="cm-h" id="atlas-h2">Neighborhoods &amp; <em>buildings.</em></h2>
-      <p>Scroll the right column. The map follows. Expand any neighborhood to see its buildings.</p>
+      <p>Tap any neighborhood to open its buildings. The map follows as you scroll, and highlighted buildings have listings you can view.</p>
     </div>
     <div class="atlas-shell">
       <div class="atlas-map-col">
@@ -1171,7 +1193,10 @@ img { display: block; max-width: 100%; }
           </div>
         </div>
       </div>
-      <div class="hoods-col" id="hoods-col"></div>
+      <div class="hoods-col">
+        <nav class="hood-rail" id="atlas-rail" aria-label="Jump to a neighborhood"></nav>
+        <div class="hoods-list" id="hoods-col"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1208,6 +1233,41 @@ img { display: block; max-width: 100%; }
     <div class="idx-empty" id="idx-empty" style="display:none;">
       <p>No buildings match <strong id="idx-empty-q"></strong>.</p>
       <button class="idx-empty-reset" id="idx-empty-reset">Clear search</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MARKET INTELLIGENCE ═══ -->
+
+<section class="cm-section cm-section-light" id="intel" style="padding-top: 40px;">
+  <div class="cm-container">
+    <div class="intel-v2-head">
+      <p class="cm-eyebrow">Market intelligence</p>
+      <h2 class="cm-h">Every condo. <em>Not just the listed ones.</em></h2>
+      <p class="intel-v2-lede" id="intel-lede">&nbsp;</p>
+    </div>
+    <div class="intel-v3-showcase">
+      <div class="intel-v3-card intel-v3-trajectory">
+        <div class="intel-v3-card-head">
+          <p class="intel-v2-eyebrow">$/sf trajectory</p>
+          <p class="intel-v3-card-sub" id="intel-v3-sub">Median $/sf</p>
+        </div>
+        <div id="intel-v3-controls"></div>
+        <div class="cmp-empty" id="intel-v3-empty" style="display:none"></div>
+        <div class="intel-v3-chart-wrap"><canvas id="intel-v3-chart"></canvas></div>
+        <div class="intel-v3-bookends"><span id="intel-v3-start">—</span><span id="intel-v3-end">—</span></div>
+      </div>
+      <div class="intel-v3-card intel-v3-activity">
+        <div class="intel-v3-card-head">
+          <p class="intel-v2-eyebrow">Live activity</p>
+          <p class="intel-v3-card-sub">Most recent recorded sales</p>
+        </div>
+        <div id="intel-v3-feed" class="intel-v3-feed"><div class="intel-v3-loading">Loading…</div></div>
+      </div>
+    </div>
+    <div class="intel-v2-grid" id="intel-grid"></div>
+    <div class="intel-v2-cta">
+      <a class="cm-btn-p" href="/intelligence/">See the data for your building &nbsp;→</a>
     </div>
   </div>
 </section>
@@ -1597,26 +1657,146 @@ img { display: block; max-width: 100%; }
   }
 
   // ─── ATLAS HOOD CARDS (returns HOODS array for the map) ──
+  /* Cards render CLOSED. Blurb and building list both live inside the panel, so
+     a collapsed neighbourhood is one short row — 19 of them fit in about a
+     screen and a half instead of the dozen it took when all 143 buildings
+     rendered expanded. */
+  var HOOD_CAP = 8;
+
+  function hoodActive(h) {
+    return (h.building_list || []).reduce(function (n, b) { return n + (Number(b.active_count) || 0); }, 0);
+  }
+
   function renderAtlas(hoods) {
-    var HOODS = [];
-    var html = hoods.map(function (h) {
+    var HOODS = [], cards = [], rail = [];
+
+    /* Order by what there is to open: live listings first, then size. Sort a
+       copy — the index pills below read the payload order and are not ours. */
+    var ordered = hoods.slice().sort(function (a, b) {
+      var aa = hoodActive(a), ba = hoodActive(b);
+      if (aa !== ba) return ba - aa;
+      return (Number(b.buildings) || 0) - (Number(a.buildings) || 0);
+    });
+
+    ordered.forEach(function (h) {
       HOODS.push({ name: h.name, sw: [h.bbox_sw_lat, h.bbox_sw_lng], ne: [h.bbox_ne_lat, h.bbox_ne_lng], count: h.buildings, units: h.units, psf_med: h.psf_median });
-      var psfRange = (h.psf_min != null && h.psf_max != null) ? '$' + nf(h.psf_min) + '–$' + nf(h.psf_max) + '/sf' : '';
-      var bldgs = (h.building_list || []).map(function (b) {
+
+      var act = hoodActive(h);
+      var psfRange = (h.psf_min != null && h.psf_max != null) ? '$' + nf(h.psf_min) + '\u2013$' + nf(h.psf_max) + '/sf' : '';
+
+      /* Buildings with something to view come first, so the cap never buries
+         the only reason to open the neighbourhood. */
+      var list = (h.building_list || []).slice().sort(function (a, b) {
+        var aa = Number(a.active_count) || 0, ba = Number(b.active_count) || 0;
+        if (aa !== ba) return ba - aa;
+        return (Number(b.units) || 0) - (Number(a.units) || 0);
+      });
+
+      var bldgs = list.slice(0, HOOD_CAP).map(function (b) {
         var bac = (b.active_count != null ? Number(b.active_count) : 0);
         var meta = esc(b.address || '') + (b.units != null ? ' &middot; ' + b.units + ' units' : '') + (b.psf != null ? ' &middot; $' + nf(b.psf) + '/sf' : '');
         var actTag = bac > 0 ? '<span class="hood-bldg-active">' + bac + ' active</span>' : '';
         return '<a class="hood-bldg' + (bac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + (bac > 0 ? '#active' : '') + '" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + actTag + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
       }).join('');
-      return '<article class="hood" data-hood="' + esc(h.name) + '">' +
-        '<header class="hood-head"><div class="hood-title"><h3 class="hood-name">' + esc(h.name) + '</h3>' + (h.is_hot ? '<span class="hood-hot">Hot</span>' : '') + '</div>' +
-        '<div class="hood-stats"><span>' + h.buildings + ' buildings</span><span>' + nf(h.units) + ' units</span>' + (psfRange ? '<span>' + psfRange + '</span>' : '') + '</div></header>' +
-        '<p class="hood-blurb">' + esc(h.blurb || '') + '</p>' +
-        '<button class="hood-expand" aria-expanded="false" aria-controls="bldgs-' + esc(h.slug) + '"><span class="hood-expand-label">See buildings</span>' + CHEVRON + '</button>' +
-        '<div class="hood-bldgs" id="bldgs-' + esc(h.slug) + '" hidden>' + bldgs + '</div></article>';
-    }).join('');
-    var col = $('#hoods-col'); if (col) col.innerHTML = html;
+
+      var more = list.length > HOOD_CAP
+        ? '<button type="button" class="hood-more" data-hood-filter="' + esc(h.name) + '">See all ' + list.length + ' buildings in ' + esc(h.name) + ' &rarr;</button>'
+        : '';
+
+      rail.push('<button type="button" class="hood-chip" data-hood-jump="' + esc(h.name) + '">' + esc(h.name) + (act ? '<span class="n">' + act + '</span>' : '') + '</button>');
+
+      cards.push('<article class="hood" data-hood="' + esc(h.name) + '">' +
+        '<header class="hood-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="bldgs-' + esc(h.slug) + '">' +
+          '<div class="hood-toggle-main">' +
+            '<div class="hood-title"><h3 class="hood-name">' + esc(h.name) + '</h3>' +
+              (h.is_hot ? '<span class="hood-hot">Hot</span>' : '') +
+              (act ? '<span class="hood-live">' + act + ' active</span>' : '') +
+            '</div>' +
+            '<div class="hood-stats"><span>' + h.buildings + ' buildings</span><span>' + nf(h.units) + ' units</span>' + (psfRange ? '<span>' + psfRange + '</span>' : '') + '</div>' +
+          '</div>' +
+          '<span class="hood-chev">' + CHEVRON + '</span>' +
+        '</header>' +
+        '<div class="hood-panel" id="bldgs-' + esc(h.slug) + '" hidden>' +
+          (h.blurb ? '<p class="hood-blurb">' + esc(h.blurb) + '</p>' : '') +
+          '<div class="hood-bldgs">' + bldgs + '</div>' + more +
+        '</div></article>');
+    });
+
+    var col = $('#hoods-col'); if (col) col.innerHTML = cards.join('');
+    var railEl = $('#atlas-rail'); if (railEl) railEl.innerHTML = rail.join('');
     return HOODS;
+  }
+
+  // ─── ATLAS INTERACTION ────────────────────────────────────
+  /* Deliberately NOT inside initMap(). initMap returns early when Leaflet is
+     missing or no building has coordinates, and that would take the accordion
+     and the rail down with the map, leaving a page of cards that do nothing. */
+  function openHood(card, open) {
+    var head = card.querySelector('.hood-toggle'), panel = card.querySelector('.hood-panel');
+    if (!head || !panel) return;
+    card.classList.toggle('is-open', open);
+    head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    panel.hidden = !open;
+  }
+
+  function wireAtlas() {
+    /* One at a time on a phone: two open accordions is the scrolling problem
+       again. On desktop the map sits sticky beside the column, so holding two
+       neighbourhoods open to compare them is useful and allowed. */
+    var oneAtATime = function () { return window.matchMedia('(max-width: 980px)').matches; };
+
+    $$('.hood').forEach(function (card) {
+      var head = card.querySelector('.hood-toggle'); if (!head) return;
+      var toggle = function (e) {
+        e.preventDefault();
+        var isOpen = card.classList.contains('is-open');
+        if (!isOpen && oneAtATime()) {
+          $$('.hood.is-open').forEach(function (c) { if (c !== card) openHood(c, false); });
+        }
+        openHood(card, !isOpen);
+        if (!isOpen && oneAtATime()) {
+          requestAnimationFrame(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+        }
+      };
+      head.addEventListener('click', toggle);
+      head.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') toggle(e); });
+    });
+
+    /* "See all 48 →" hands off to the building index below rather than growing
+       the card — that grid already has photos, search and a hood filter. */
+    $$('.hood-more').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var name = (btn.getAttribute('data-hood-filter') || '').replace(/"/g, '');
+        var pill = document.querySelector('#idx-pills .flt-pill[data-hood="' + name + '"]');
+        if (pill) pill.click();
+        var sec = $('#index'); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    $$('.hood-chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var name = (chip.getAttribute('data-hood-jump') || '').replace(/"/g, '');
+        var card = document.querySelector('.hood[data-hood="' + name + '"]');
+        if (!card) return;
+        if (!card.classList.contains('is-open')) {
+          var head = card.querySelector('.hood-toggle'); if (head) head.click();
+        }
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  }
+
+  function syncRail(name) {
+    $$('.hood-chip').forEach(function (c) {
+      var on = c.getAttribute('data-hood-jump') === name;
+      c.classList.toggle('is-current', on);
+      /* Only when the rail actually scrolls — on desktop it wraps, and
+         hijacking scroll there would fight the reader. */
+      if (on && c.parentNode && c.parentNode.scrollWidth > c.parentNode.clientWidth + 4) {
+        c.parentNode.scrollTo({ left: Math.max(0, c.offsetLeft - 20), behavior: 'smooth' });
+      }
+    });
   }
 
   // ─── ATLAS MAP ───────────────────────────────────────────
@@ -1639,7 +1819,7 @@ img { display: block; max-width: 100%; }
         .on('click', function () {
           if (hasActive) { window.location.href = '/building/' + b.slug + '/#active'; return; }
           var card = document.querySelector('.hood[data-hood="' + (b.hood || '').replace(/"/g, '') + '"]');
-          if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); var btn = card.querySelector('.hood-expand'); if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click(); }
+          if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); var btn = card.querySelector('.hood-toggle'); if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click(); }
         })
         .addTo(map);
       CM_MARKERS.push({ marker: mk, hasActive: hasActive });
@@ -1690,6 +1870,7 @@ img { display: block; max-width: 100%; }
       }
       $$('.cm-marker').forEach(function (el) { el.classList.remove('is-active', 'is-dimmed'); if (!name || name === 'All') return; if (el.getAttribute('data-hood') === name) el.classList.add('is-active'); else el.classList.add('is-dimmed'); });
       $$('.hood').forEach(function (c) { c.classList.toggle('is-active', c.getAttribute('data-hood') === name); });
+      syncRail(name);
     }
 
     var obs = new IntersectionObserver(function (entries) {
@@ -1700,14 +1881,6 @@ img { display: block; max-width: 100%; }
     }, { rootMargin: '-30% 0px -50% 0px', threshold: 0 });
     $$('.hood').forEach(function (c) { obs.observe(c); });
 
-    $$('.hood-expand').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var card = btn.closest('.hood'), panel = card.querySelector('.hood-bldgs'), open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
-        var lbl = btn.querySelector('.hood-expand-label'); if (lbl) lbl.textContent = open ? 'See buildings' : 'Hide';
-        panel.hidden = open;
-      });
-    });
   }
 
   // ─── BUILDING INDEX (cards + pills) ──────────────────────
@@ -1825,6 +1998,7 @@ img { display: block; max-width: 100%; }
     renderChrome(mk, st, fees);
     renderTicker(idx, st, fees, mk);
     var HOODS = renderAtlas(hoods);
+    wireAtlas();
     renderIndex(idx, hoods);
     var BLDGS = idx.filter(function (b) { return b.lat != null && b.lng != null; }).map(function (b) { return { name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng, slug: b.slug, psf: b.psf, active_count: (b.active_count != null ? Number(b.active_count) : 0) }; });
     initMap(BLDGS, HOODS);
