@@ -621,8 +621,28 @@ async function renderForm(modal, ctx) {
   } else if (unit_label) {
     subText = `${escapeHtml(unit_label)} · ${escapeHtml(buildingName)}`;
   } else {
-    subText = `Your number for any unit at ${escapeHtml(buildingName)}.`;
+    /* Opened from a building-level button with no unit chosen.
+
+       "Your number for any unit" is not an offer anybody can act on - an owner
+       cannot be shown a price for an unnamed apartment, and the agent drafting
+       the LOI has nothing to draft against. Ask which one, in the field below,
+       before the number means anything. */
+    subText = `Which unit at ${escapeHtml(buildingName)}?`;
   }
+
+  /* Required only when nothing upstream supplied a unit. Coming from the tower
+     or from a live listing, the unit is already known and asking again would
+     be friction for no gain. */
+  const needsUnit = !listing && !unit_label;
+  const unitFieldHtml = needsUnit
+    ? `
+      <div class="cm-om-field">
+        <label for="cm-om-unit"><span>Which unit</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Required</span></label>
+        <input class="cm-om-textarea" id="cm-om-unit" type="text" autocomplete="off"
+               style="min-height:0;height:auto;" placeholder="e.g. 51C, or PH2">
+        <div class="cm-om-calib">An offer has to name a unit &mdash; pick one on the tower above and it fills itself in.</div>
+      </div>`
+    : '';
 
   const buildingContextHtml = renderBuildingContext(brief);
 
@@ -658,6 +678,8 @@ async function renderForm(modal, ctx) {
                min="${SLIDER_MIN}" max="${SLIDER_MAX}" step="${SLIDER_STEP}" value="${defaultAmt}">
         <div class="cm-om-calib" id="cm-om-calib">${calibText(defaultAmt, brief)}</div>
       </div>
+
+      ${unitFieldHtml}
 
       <div class="cm-om-field">
         <label for="cm-om-message"><span>Note to your agent (optional)</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Optional</span></label>
@@ -702,9 +724,16 @@ async function renderForm(modal, ctx) {
   // Cert checkbox gates submit
   const certCb = modal.querySelector('#cm-om-cert-cb');
   const submitBtn = modal.querySelector('#cm-om-submit');
-  certCb.addEventListener('change', () => {
-    submitBtn.disabled = !certCb.checked;
-  });
+  /* Both gates, not either: the certification AND a named unit. Previously the
+     checkbox alone released an offer that identified no apartment. */
+  const unitInput = modal.querySelector('#cm-om-unit');
+  function gate() {
+    const certOk = modal.querySelector('#cm-om-cert-cb').checked;
+    const unitOk = !unitInput || (unitInput.value || '').trim().length > 0;
+    submitBtn.disabled = !(certOk && unitOk);
+  }
+  if (unitInput) unitInput.addEventListener('input', gate);
+  certCb.addEventListener('change', gate);
 
   // TOS modal link
   const tosLink = modal.querySelector('[data-cm-tos]');
@@ -724,14 +753,24 @@ async function renderForm(modal, ctx) {
   modal.querySelector('#cm-om-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!certCb.checked) return;
+    if (unitInput && !(unitInput.value || '').trim()) {
+      modal.querySelector('#cm-om-msg').innerHTML =
+        '<div class="cm-om-msg is-error">Please name the unit this offer is for.</div>';
+      unitInput.focus();
+      return;
+    }
     const msgEl = modal.querySelector('#cm-om-msg');
     const amount = parseInt(slider.value, 10);
     let message = modal.querySelector('#cm-om-message').value.trim();
 
     // v3.0 — preserve unit context in message body until cm-supabase.js is
     // updated to pass unit_label through to offers.unit_label
-    if (unit_label) {
-      message = (message ? `${unit_label} · ${message}` : unit_label);
+    /* Whichever way the unit was established - passed in from the tower, or
+       typed here - it is the same field on the way out. */
+    const typedUnit = unitInput ? (unitInput.value || '').trim() : '';
+    const finalUnit = unit_label || typedUnit || null;
+    if (finalUnit) {
+      message = (message ? `${finalUnit} · ${message}` : finalUnit);
     }
 
     msgEl.innerHTML = '';
@@ -756,7 +795,7 @@ async function renderForm(modal, ctx) {
       window.cmTrack('offer_submit', {
         building_slug: ctx.building_slug || null,
         offer_amount: amount,
-        unit_label: unit_label || null
+        unit_label: finalUnit
       });
     }
 
