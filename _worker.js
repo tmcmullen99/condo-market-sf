@@ -2730,6 +2730,29 @@ function renderBuilding(p) {
     + '<a class="hero-ask-alt" data-cm-auth="signup" data-cta="building-hero-signup" href="#signup">'
     +   'See every sale in this building \u2014 free</a>'
     + '</div>'
+    /* ── Watch this building ────────────────────────────────────────────
+       An email address, one press, no account.
+
+       The existing watchlist needs a user_id, which is why it holds one row
+       against 6,776 monthly building-page visitors. It is also the only
+       browsing signal honest enough to describe to an owner later: 6,758 of
+       those visitors never came back, so a page view is traffic, whereas
+       somebody who types an address to be notified has said so in writing.
+
+       Placed after the hero rather than in a popup. The intent popup was
+       shown to 6,033 visitors last month and 24 chose a door; interrupting
+       someone mid-read is not the moment to ask. */
+    + '<div class="watch-wrap" id="watchBox" data-slug="' + esc(slug) + '">'
+    +   '<div class="watch-head">Tell me when something happens here</div>'
+    +   '<p class="watch-sub">A unit lists, a sale records, the HOA figures change. '
+    +     'No account, and one click to stop.</p>'
+    +   '<div class="watch-row">'
+    +     '<input id="watchEmail" type="email" autocomplete="email" '
+    +       'placeholder="you@example.com" aria-label="Email address">'
+    +     '<button id="watchGo" type="button">Watch this building</button>'
+    +   '</div>'
+    +   '<p class="watch-msg" id="watchMsg" role="status"></p>'
+    + '</div>'
     + disclosureCta;
 
   /* GALLERY */
@@ -3067,6 +3090,9 @@ function renderBuilding(p) {
     '</main>\n\n' +
     CM_FOOTER(p.footerData) +
     '<script>' + MORT_CALC + '</script>\n' +
+    '<script>var SB_URL=' + JSON.stringify(SUPABASE_URL)
+      + ',SB_KEY=' + JSON.stringify(SUPABASE_ANON_KEY) + ';</script>\n' +
+    '<script>' + WATCH_JS + '</script>\n' +
     '<script type="module" src="/assets/cm-featured.js"></script>\n' +
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
     '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
@@ -3076,6 +3102,73 @@ function renderBuilding(p) {
 }
 
 /* additive styles */
+/* Watch this building — client half.
+
+   Anon RPC, no account, no confirmation step. Returns the live watcher count
+   so the press is rewarded immediately: "you and 4 others" is both the value
+   to the person and the thing that makes the next visitor more likely to
+   press it.
+
+   The visitor token is passed when cm-track.js has set one, which stitches
+   this action to everything else that visitor did — including the browsing
+   they had already done before deciding to watch. */
+const WATCH_JS = `
+(function () {
+  var box = document.getElementById('watchBox');
+  if (!box) return;
+  var input = document.getElementById('watchEmail');
+  var btn   = document.getElementById('watchGo');
+  var msg   = document.getElementById('watchMsg');
+  var slug  = box.getAttribute('data-slug') || (location.pathname.split('/')[2] || '');
+
+  function tok() {
+    try { return localStorage.getItem('cm_visitor_token') || null; } catch (e) { return null; }
+  }
+  function say(t, bad) {
+    msg.textContent = t;
+    msg.className = 'watch-msg' + (bad ? ' bad' : '');
+  }
+
+  async function go() {
+    var email = (input.value || '').trim();
+    if (!email || email.indexOf('@') < 1) { say('Please add an email address.', true); return; }
+    btn.disabled = true; say('Saving\u2026');
+    try {
+      var r = await fetch(SB_URL + '/rest/v1/rpc/watch_building', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SB_KEY,
+                   Authorization: 'Bearer ' + SB_KEY },
+        body: JSON.stringify({ p_building_slug: slug, p_email: email,
+                               p_visitor_token: tok(), p_source: 'building_page' })
+      });
+      var d = await r.json();
+      if (!d || d.ok !== true) {
+        say(d && d.error === 'email_invalid'
+              ? 'That address does not look right.'
+              : 'That did not save. Try again in a moment.', true);
+        btn.disabled = false;
+        return;
+      }
+      box.classList.add('done');
+      var n = Number(d.watchers || 0);
+      /* Never name the other people, and never imply anything about demand
+         below the point where the number means something. */
+      say(n > 1
+        ? 'Done. You and ' + (n - 1) + (n === 2 ? ' other person are' : ' others are')
+          + ' watching this building. Nothing else needed.'
+        : 'Done. You will hear from us when something happens here.');
+      if (window.cmTrack) window.cmTrack('watchlist_add', { building_slug: slug });
+    } catch (e) {
+      say('That did not save. Try again in a moment.', true);
+      btn.disabled = false;
+    }
+  }
+
+  btn.addEventListener('click', go);
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+})();
+`;
+
 const EXTRA_CSS =
   '.nb-meta{font-size:13px;color:var(--cm-ivory-dim);font-family:var(--ff-mono);}' +
   '.nb-row--self{background:rgba(159,180,216,0.07);padding-left:12px;padding-right:12px;}' +
@@ -3154,6 +3247,30 @@ const CSS = `
   .hero-ask-btn:hover { transform: translateY(-1px); }
   .hero-ask-alt { display: block; margin-top: 12px; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(232,227,216,.62); text-decoration: none; }
   .hero-ask-alt:hover { color: var(--cm-bronze, #d4a574); }
+
+  /* Watch this building. Sits in the page, not over it. */
+  .watch-wrap { margin: 26px auto 0; max-width: 620px; padding: 22px 24px;
+    border: 1px solid rgba(212,165,116,.34); border-radius: 14px;
+    background: rgba(212,165,116,.07); text-align: left; }
+  .watch-head { font-family: var(--cm-ff-serif, Georgia, serif); font-size: 19px;
+    color: var(--cm-ink, #e8e3d8); margin-bottom: 6px; }
+  .watch-sub { font-size: 13.5px; line-height: 1.55; color: rgba(232,227,216,.66); margin: 0 0 14px; }
+  .watch-row { display: flex; gap: 9px; flex-wrap: wrap; }
+  .watch-row input { flex: 1 1 240px; min-width: 0; padding: 12px 14px; font: inherit;
+    font-size: 15px; border-radius: 10px; border: 1px solid rgba(232,227,216,.24);
+    background: rgba(0,0,0,.22); color: var(--cm-ink, #e8e3d8); }
+  .watch-row input:focus { outline: none; border-color: var(--cm-bronze, #d4a574); }
+  .watch-row button { flex: 0 0 auto; padding: 12px 22px; font: inherit; font-size: 15px;
+    font-weight: 600; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--cm-bronze, #d4a574); color: #1a1408; }
+  .watch-row button:disabled { opacity: .55; cursor: default; }
+  .watch-msg { margin: 11px 0 0; font-size: 13.5px; line-height: 1.5; min-height: 1px;
+    color: rgba(232,227,216,.72); }
+  .watch-msg.bad { color: #e8a08f; }
+  .watch-wrap.done .watch-row { display: none; }
+  @media (max-width: 560px) {
+    .watch-row input, .watch-row button { flex: 1 1 100%; }
+  }
   @media (max-width: 720px) { .hero-ask-btn { width: 100%; justify-content: center; } }
 
   /* Disclosure CTA. Sits inside the hero, below the offer ask, and is styled as
