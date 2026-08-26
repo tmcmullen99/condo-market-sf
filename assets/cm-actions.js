@@ -176,11 +176,30 @@ async function init() {
   bar.setAttribute('aria-label', 'Building actions');
   bar.innerHTML = `
     <span class="cm-actions-eyebrow">at <b>${escapeHtml(buildingName)}</b></span>
+    <!-- Watch sits first because it is the smallest ask on the bar. Someone
+         who is not ready to name a price will still take a notification, and
+         it is the only one of the three that costs them nothing to accept. -->
+    <a href="#watchBox" class="cm-actions-ghost cm-actions-watch">Watch this building</a>
     <a href="#offer" class="cm-actions-ghost cm-actions-offer">Make an offer →</a>
     <a href="${escapeHtml(ownerSignupUrl)}" class="cm-actions-primary">Set your number →</a>
     <button class="cm-actions-dismiss" aria-label="Dismiss">×</button>
   `;
   document.body.appendChild(bar);
+
+  /* A bare #watchBox jump lands the box at the top of the viewport with the
+     input off-centre and unfocused, which reads as "nothing happened". Centre
+     it and take the cursor there so the next keystroke goes where it should. */
+  const watchLink = bar.querySelector('.cm-actions-watch');
+  if (watchLink) {
+    watchLink.addEventListener('click', (ev) => {
+      const box = document.getElementById('watchBox');
+      if (!box) return;                 // let the anchor fall through
+      ev.preventDefault();
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = document.getElementById('watchEmail');
+      if (input) setTimeout(() => input.focus({ preventScroll: true }), 420);
+    });
+  }
 
   // Show/hide based on scroll position. Hero is roughly 500-700px tall on
   // desktop; on mobile it can be shorter. 350px is a safe trigger that
