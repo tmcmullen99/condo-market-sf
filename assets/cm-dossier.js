@@ -218,11 +218,19 @@
       ? '<div class="cmd-mmm-banner">The owner has named a <b>Make-Me-Move</b> price of <b>' + money(u.mmm) + '</b>. Submit an offer at or above and we route it through a licensed agent.</div>'
       : '';
 
+    /* The unit label has to travel with the trigger.
+
+       cm-offer-modal already accepts data-unit-label and renders a
+       unit-specific header from it - but neither of these buttons was passing
+       one, so selecting 51C in the tower and pressing "Make an offer" still
+       opened "Your number for any unit at The Avery". The whole point of
+       clicking a unit was lost at the last step. */
+    var unitAttr = ' data-unit-label="' + esc(u.label || '') + '"';
     var cta = mmm
-      ? '<a class="cmd-cta-primary" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '" data-suggested-price="' + u.mmm + '">Make an offer \u2192</a>' +
+      ? '<a class="cmd-cta-primary" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '"' + unitAttr + ' data-suggested-price="' + u.mmm + '">Make an offer on ' + lab + ' \u2192</a>' +
         '<a class="cmd-cta-ghost" href="' + esc(ownerLink(addr, u.label)) + '">Is ' + lab + ' yours? \u2192</a>'
       : '<a class="cmd-cta-primary" href="' + esc(ownerLink(addr, u.label)) + '">Own ' + lab + '? Name your price \u2192</a>' +
-        '<a class="cmd-cta-ghost" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '">Make an offer \u2192</a>';
+        '<a class="cmd-cta-ghost" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '"' + unitAttr + '>Make an offer on ' + lab + ' \u2192</a>';
 
     var back = (backFloor != null) ? '<button class="cmd-p-back" data-cmd-backfloor>\u2039 Floor ' + backFloor + '</button>' : '';
     var kicker = (u.floor != null)
