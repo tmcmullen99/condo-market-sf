@@ -451,13 +451,20 @@ async function loadUnitOptions(slug) {
   try {
     const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/building_unit_options', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY,
-                 Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON,
+                 Authorization: 'Bearer ' + SUPABASE_ANON },
       body: JSON.stringify({ p_building_slug: slug })
     });
     const d = await r.json();
     return (d && d.ok && Array.isArray(d.units)) ? d.units : [];
-  } catch (e) { return []; }
+  } catch (e) {
+    /* An empty list is a legitimate answer - a three-unit building nobody has
+       sold in genuinely has none. So a thrown error must be visible, or a bug
+       here is indistinguishable from that and reads as "no units on file".
+       This exact catch hid a ReferenceError on a mistyped constant name. */
+    console.error('[cm-offer-modal] unit options failed:', e);
+    return [];
+  }
 }
 
 // Legacy fallback — buildings.json (kept for resilience if RPC fails)
