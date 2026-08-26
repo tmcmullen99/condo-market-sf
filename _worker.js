@@ -143,6 +143,10 @@ function applyOgRotation(html, url, mk) {
 // Bump INTENT_VER on every cm-intent.js change. Cloudflare Pages caches
 // /assets/* at the edge, so a redeploy alone can keep serving the previous file
 // - fixes then appear not to land even though the repo is correct.
+// Same edge-cache problem as INTENT_VER, and cm-track.js is now the file the
+// read-to-end prompt depends on. Bump on every cm-track.js or
+// cm-watch-prompt.js change.
+const TRACK_VER = '2';
 const INTENT_VER = '22';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 
@@ -152,7 +156,7 @@ function ensureIntent(html) {
   var add = '';
   // cm-track.js was only injected by renderChrome, so static pages had no
   // window.cmTrack at all - no pageviews, no scroll depth, no funnel.
-  if (html.indexOf('cm-track.js') === -1) add += '<script src="/assets/cm-track.js" defer></script>';
+  if (html.indexOf('cm-track.js') === -1) add += '<script src="/assets/cm-track.js?v=' + TRACK_VER + '" defer></script>';
   if (html.indexOf('cm-intent.js') === -1) add += INTENT_TAG;
   return add ? html.replace(/<\/body>/i, add + '</body>') : html;
 }
@@ -222,7 +226,7 @@ async function renderChrome(request, env, kind) {
 
   const inject =
     '\n<script>window.__CM_MARKET__=' + JSON.stringify(mk.slug) + ';</script>' +
-    '\n<script src="/assets/cm-track.js" defer></script>' +
+    '\n<script src="/assets/cm-track.js?v=' + TRACK_VER + '" defer></script>' +
     '\n<link rel="canonical" href="' + attr(c.url) + '">';
   html = html.replace('<head>', '<head>' + inject);
 
@@ -3034,7 +3038,8 @@ function renderBuilding(p) {
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
     '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
-    '<script src="/assets/cm-track.js" defer></script>\n' +
+    '<script src="/assets/cm-track.js?v=' + TRACK_VER + '" defer></script>\n' +
+    '<script src="/assets/cm-watch-prompt.js?v=' + TRACK_VER + '" defer></script>\n' +
     jsonLd + '\n' +
     '<style>' + CSS + '</style>\n' +
     '<style>' + EXTRA_CSS + '</style>\n' +
