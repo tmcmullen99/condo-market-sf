@@ -46,6 +46,19 @@ const STYLE_CSS = `
     opacity: 1;
     pointer-events: auto;
   }
+
+  /* The "Ask the market" launch pill is fixed at right:20px bottom:20px with
+     z-index 9997, so it sat on top of this bar's right-hand button and hid
+     "Set your number" entirely.
+
+     Fixed as a layout problem rather than a z-index fight: the bar stops short
+     of the pill's column on desktop, and on a phone the bar sits above it
+     instead of beside it. The pill has to stay reachable - it is the entry to
+     market-ai on every page - so neither is moved out of the way. */
+  .cm-actions-bar { padding-right: 200px; }
+  @media (max-width: 900px) {
+    .cm-actions-bar { padding-right: 16px; bottom: 76px; }
+  }
   .cm-actions-eyebrow {
     flex: 1; min-width: 0;
     font-family: var(--cm-ff-mono, 'JetBrains Mono', ui-monospace, monospace);
@@ -105,7 +118,8 @@ const STYLE_CSS = `
     background: rgba(232, 227, 216, 0.06);
   }
   @media (max-width: 600px) {
-    .cm-actions-bar { padding: 10px 12px; gap: 8px; left: 8px; right: 8px; bottom: 8px; }
+    /* Clears the launch pill, which sits at bottom:14px on small screens. */
+  .cm-actions-bar { padding: 10px 12px; gap: 8px; left: 8px; right: 8px; bottom: 76px; }
     .cm-actions-eyebrow { display: none; }
     .cm-actions-bar a { font-size: 12px; padding: 9px 14px; }
   }
