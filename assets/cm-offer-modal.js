@@ -440,6 +440,26 @@ async function fetchBuildingBrief(slug) {
   }
 }
 
+/* Real unit labels for the picker.
+
+   Unioned server-side from the sale dossier, active listings and the partial
+   roster. Coverage is good but never complete - 62 of 68 at 181 Fremont, 573
+   of 595 at The Beacon, and zero at a three-unit building nobody has sold in.
+   The caller must keep a "not listed" escape for that reason. */
+async function loadUnitOptions(slug) {
+  if (!slug) return [];
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/building_unit_options', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY,
+                 Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+      body: JSON.stringify({ p_building_slug: slug })
+    });
+    const d = await r.json();
+    return (d && d.ok && Array.isArray(d.units)) ? d.units : [];
+  } catch (e) { return []; }
+}
+
 // Legacy fallback — buildings.json (kept for resilience if RPC fails)
 let _buildingsCache = null;
 async function loadBuildings() {
@@ -634,13 +654,28 @@ async function renderForm(modal, ctx) {
      or from a live listing, the unit is already known and asking again would
      be friction for no gain. */
   const needsUnit = !listing && !unit_label;
+  /* A dropdown of real units, not a text box.
+
+     Typed unit numbers arrive as "51c", "#51 C", "Unit 51C" and occasionally
+     as a unit that does not exist in the building - and an offer on a
+     mistyped apartment is worse than no offer, because the agent has to go
+     back and ask. Selecting from the building's own list removes the class of
+     error entirely.
+
+     The list is populated after open() so the modal is never held up by a
+     network call; until it arrives the select shows a loading option and is
+     disabled, which also stops anyone submitting mid-load. */
   const unitFieldHtml = needsUnit
     ? `
       <div class="cm-om-field">
         <label for="cm-om-unit"><span>Which unit</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Required</span></label>
-        <input class="cm-om-textarea" id="cm-om-unit" type="text" autocomplete="off"
-               style="min-height:0;height:auto;" placeholder="e.g. 51C, or PH2">
-        <div class="cm-om-calib">An offer has to name a unit &mdash; pick one on the tower above and it fills itself in.</div>
+        <select class="cm-om-textarea" id="cm-om-unit" style="min-height:0;height:auto;" disabled>
+          <option value="">Loading units\u2026</option>
+        </select>
+        <input class="cm-om-textarea" id="cm-om-unit-other" type="text" autocomplete="off"
+               style="min-height:0;height:auto;margin-top:8px;display:none;"
+               placeholder="Type the unit number">
+        <div class="cm-om-calib" id="cm-om-unit-hint">Pick a unit on the tower above and this fills itself in.</div>
       </div>`
     : '';
 
@@ -726,13 +761,52 @@ async function renderForm(modal, ctx) {
   const submitBtn = modal.querySelector('#cm-om-submit');
   /* Both gates, not either: the certification AND a named unit. Previously the
      checkbox alone released an offer that identified no apartment. */
-  const unitInput = modal.querySelector('#cm-om-unit');
+  const unitSel   = modal.querySelector('#cm-om-unit');
+  const unitOther = modal.querySelector('#cm-om-unit-other');
+  const unitHint  = modal.querySelector('#cm-om-unit-hint');
+
+  /* One place decides what the chosen unit is, whichever control supplied it,
+     so the gate and the submit can never disagree about whether one exists. */
+  function chosenUnit() {
+    if (!unitSel) return '';
+    if (unitSel.value === '__other') return (unitOther.value || '').trim();
+    return (unitSel.value || '').trim();
+  }
   function gate() {
     const certOk = modal.querySelector('#cm-om-cert-cb').checked;
-    const unitOk = !unitInput || (unitInput.value || '').trim().length > 0;
+    const unitOk = !unitSel || chosenUnit().length > 0;
     submitBtn.disabled = !(certOk && unitOk);
   }
-  if (unitInput) unitInput.addEventListener('input', gate);
+  if (unitSel) {
+    unitSel.addEventListener('change', () => {
+      const other = unitSel.value === '__other';
+      unitOther.style.display = other ? '' : 'none';
+      if (other) unitOther.focus();
+      gate();
+    });
+    unitOther.addEventListener('input', gate);
+
+    loadUnitOptions(ctx.building_slug || '').then((units) => {
+      if (units.length) {
+        unitSel.innerHTML =
+          '<option value="">Select a unit\u2026</option>' +
+          units.map(u => `<option value="${escapeHtml(u.label)}">${escapeHtml(u.label)}` +
+                         `${u.floor != null ? ` \u00b7 floor ${u.floor}` : ''}</option>`).join('') +
+          '<option value="__other">My unit isn\u2019t listed\u2026</option>';
+        unitHint.textContent = `${units.length} units on file. Not seeing yours? Choose the last option.`;
+      } else {
+        /* Some buildings have no unit on file at all - a three-unit building
+           nobody has sold in returns an empty list. Falling back to typing is
+           the only honest option; a dropdown that cannot express your own
+           apartment is worse than a text box. */
+        unitSel.innerHTML = '<option value="__other" selected>Type the unit number</option>';
+        unitOther.style.display = '';
+        unitHint.textContent = 'No units on file for this building yet \u2014 type the number.';
+      }
+      unitSel.disabled = false;
+      gate();
+    });
+  }
   certCb.addEventListener('change', gate);
 
   // TOS modal link
@@ -753,10 +827,10 @@ async function renderForm(modal, ctx) {
   modal.querySelector('#cm-om-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!certCb.checked) return;
-    if (unitInput && !(unitInput.value || '').trim()) {
+    if (unitSel && !chosenUnit()) {
       modal.querySelector('#cm-om-msg').innerHTML =
-        '<div class="cm-om-msg is-error">Please name the unit this offer is for.</div>';
-      unitInput.focus();
+        '<div class="cm-om-msg is-error">Please choose the unit this offer is for.</div>';
+      (unitSel.value === '__other' ? unitOther : unitSel).focus();
       return;
     }
     const msgEl = modal.querySelector('#cm-om-msg');
@@ -767,8 +841,7 @@ async function renderForm(modal, ctx) {
     // updated to pass unit_label through to offers.unit_label
     /* Whichever way the unit was established - passed in from the tower, or
        typed here - it is the same field on the way out. */
-    const typedUnit = unitInput ? (unitInput.value || '').trim() : '';
-    const finalUnit = unit_label || typedUnit || null;
+    const finalUnit = unit_label || chosenUnit() || null;
     if (finalUnit) {
       message = (message ? `${finalUnit} · ${message}` : finalUnit);
     }
