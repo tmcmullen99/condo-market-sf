@@ -146,6 +146,15 @@ function applyOgRotation(html, url, mk) {
 // Same edge-cache problem as INTENT_VER, and cm-track.js is now the file the
 // read-to-end prompt depends on. Bump on every cm-track.js or
 // cm-watch-prompt.js change.
+/* CARTO now watermarks its raster basemaps unless a key is present, and is
+   retiring the raster service. The key is free to 5M tile requests a month and
+   lives in the Pages environment, not in this file - the tile URLs sit inside
+   module-scope template strings built before env exists, so it is stitched in
+   on the way out instead. Same variable name as the city worker: one key, both
+   platforms. No key set means watermarked tiles, never a broken map. */
+let CARTO_KEY = '';
+const CARTO_TOKEN = '__CARTO_KEY__';
+
 const TRACK_VER = '2';
 const INTENT_VER = '22';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
@@ -180,7 +189,10 @@ async function withFavicon(res) {
     if (!ct.includes('text/html')) return res;
     if (!res.body) return res;
     const body = await res.text();
-    const out = ensureIntent(ensureFavicon(body));
+    /* One seam, on the path every HTML response already takes - so a map
+       added later cannot miss the key. */
+    let out = ensureIntent(ensureFavicon(body));
+    if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
     headers.delete('content-length');
@@ -317,6 +329,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
 
 export default {
   async fetch(request, env) {
+    CARTO_KEY = (env && env.CARTO_KEY) ? String(env.CARTO_KEY) : '';
     return withFavicon(await handleRequest(request, env));
   },
 };
@@ -1129,7 +1142,7 @@ function renderInvestorExchange(mk, footerData) {
     'function paint(cells){if(!window.L||!cells.length)return;' +
       'if(!map){var lat=0,lng=0;cells.forEach(function(c){lat+=c[0];lng+=c[1];});' +
       'map=window.L.map(elM,{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false}).setView([lat/cells.length,lng/cells.length],12.4);' +
-      'window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);}' +
+      'window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__",{maxZoom:19}).addTo(map);}' +
       'if(layer)map.removeLayer(layer);layer=window.L.layerGroup().addTo(map);' +
       'var max=1;cells.forEach(function(c){if(c[2]>max)max=c[2];});' +
       'cells.forEach(function(c){var w=c[2]/max;window.L.circleMarker([c[0],c[1]],{radius:4+Math.round(w*9),stroke:false,fillColor:"#9fb4d8",fillOpacity:0.44+w*0.44}).addTo(layer);});}' +
@@ -2239,7 +2252,7 @@ function renderActiveListings(p, hostMk) {
     'js.onload=function(){' +
     'box.classList.add("is-on");' +
     'var map=L.map(box,{scrollWheelZoom:false}).setView([37.78,-122.41],12);' +
-    'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"\\u00a9 OpenStreetMap, \\u00a9 CARTO",maxZoom:19}).addTo(map);' +
+    'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__",{attribution:"\\u00a9 OpenStreetMap, \\u00a9 CARTO",maxZoom:19}).addTo(map);' +
     'var pts=[];' +
     'cards.forEach(function(c){var la=parseFloat(c.getAttribute("data-lat")),ln=parseFloat(c.getAttribute("data-lng"));if(isNaN(la)||isNaN(ln))return;' +
     'var pr=c.getAttribute("data-price"),href=c.getAttribute("href");' +
@@ -2479,7 +2492,7 @@ function renderListing(d, footerData) {
       'var css=document.createElement("link");css.rel="stylesheet";css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(css);' +
       'var js=document.createElement("script");js.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";' +
       'js.onload=function(){var map=L.map(box,{scrollWheelZoom:false,zoomControl:true}).setView([la,ln],15);' +
-      'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"\\u00a9 OpenStreetMap, \\u00a9 CARTO",maxZoom:19}).addTo(map);' +
+      'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__",{attribution:"\\u00a9 OpenStreetMap, \\u00a9 CARTO",maxZoom:19}).addTo(map);' +
       'L.circleMarker([la,ln],{radius:9,fillColor:"#9fb4d8",color:"#0a0d12",weight:2,fillOpacity:.95}).addTo(map);};document.head.appendChild(js);' +
       '})();</script>'
     : '';
