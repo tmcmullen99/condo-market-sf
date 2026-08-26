@@ -93,6 +93,12 @@
       utm_content: ATTR.utm_content || null,
       user_agent: navigator.userAgent,
       host: location.hostname,
+      /* dwell_seconds has its own column server-side and track_event reads it
+         from the TOP level of the payload (p->>'dwell_seconds'). It was only
+         ever being passed inside meta, so the column came back null on 91% of
+         dwell events and the best engagement signal on the site was silently
+         empty. Promote it; it stays in meta as well, harmlessly. */
+      dwell_seconds: (meta && meta.dwell_seconds != null) ? meta.dwell_seconds : null,
       meta: Object.assign({}, meta || {}, ATTR.aid ? { aid: ATTR.aid } : {})
     };
     // keepalive so events still send during page unload
@@ -118,9 +124,18 @@
 
   // dwell on unload (seconds on page)
   var start = Date.now();
+  var dwellSent = false;
   function sendDwell() {
+    /* `once` only guarded pagehide. visibilitychange fires every time the tab
+       is backgrounded, so switching apps four times sent four dwell events for
+       one visit, each with a larger cumulative figure - which inflates any
+       average built on them. One per page view. */
+    if (dwellSent) return;
     var secs = Math.round((Date.now() - start) / 1000);
-    if (secs > 0) track("dwell", { dwell_seconds: secs });
+    /* A 13-hour reading is a tab left open overnight, not attention. Cap it so
+       one abandoned tab cannot dominate a building's average. */
+    if (secs > 3600) secs = 3600;
+    if (secs > 0) { dwellSent = true; track("dwell", { dwell_seconds: secs }); }
   }
   window.addEventListener("pagehide", sendDwell, { once: true });
   document.addEventListener("visibilitychange", function () {
@@ -133,7 +148,16 @@
     var h = document.documentElement;
     var pct = (h.scrollTop + window.innerHeight) / h.scrollHeight * 100;
     if (pct >= 50 && !fired["50"]) { fired["50"] = 1; track("scroll_50"); }
-    if (pct >= 90 && !fired["90"]) { fired["90"] = 1; track("scroll_90"); }
+    if (pct >= 90 && !fired["90"]) {
+      fired["90"] = 1;
+      track("scroll_90");
+      /* Broadcast it. Reaching the bottom of a building page is the one
+         moment a visitor has demonstrably read the thing, and those visitors
+         act at 2.3x the rate of everyone else. Anything that wants to ask for
+         something should ask here, not on arrival. */
+      try { window.dispatchEvent(new CustomEvent("cm:read-to-end", {
+        detail: { building_slug: buildingSlug(), path: location.pathname } })); } catch (e) {}
+    }
   }, { passive: true });
 
   // CTA clicks: any element with data-cm-cta="Label" auto-fires cta_click
