@@ -326,6 +326,16 @@
     }
     function selectUnit(u) {
       if (!u) return;
+      /* The strongest signal on the site and it was never recorded. Somebody
+         opening 51C twice is either the owner of 51C or the person who wants
+         it - both worth knowing, and neither knowable from a page view. */
+      if (window.cmTrack) {
+        window.cmTrack('unit_click', {
+          unit: u.label || u.u || null,
+          floor: (u.floor != null) ? u.floor : null,
+          has_mmm: !!u.mmm
+        });
+      }
       panel.innerHTML = panelFor(u, addr, openFloor);
       host.querySelectorAll('.is-sel').forEach(function (el) { el.classList.remove('is-sel'); });
       host.querySelectorAll('[data-u="' + u.u + '"]').forEach(function (el) { el.classList.add('is-sel'); });
