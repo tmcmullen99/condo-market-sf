@@ -468,6 +468,31 @@ async function handleRequest(request, env) {
       }
 
       const base = 'https://' + url.host;
+
+      /* Put the reader's own building in the nav. That is the one link they
+         actually want: the page is about their building, and a click through
+         is the whole point of sending them here.
+         Only when the building is catalogued and its page really serves —
+         9 of the 29 SF pending addresses match one. A nav item that 404s is
+         worse than no nav item, and today has been a long argument for
+         checking rather than assuming. */
+      let bldgNav = '';
+      try {
+        const bRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/building_by_address', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                     'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ p_address: frag.address || '' }),
+        });
+        if (bRes.ok) {
+          const bj = await bRes.json();
+          if (bj && bj.ok === true && bj.slug) {
+            bldgNav = '<a href="' + base + '/building/' + encodeURIComponent(bj.slug)
+              + '/" style="color:#e8a33d">' + esc(bj.name || 'Your building') + '</a>';
+          }
+        }
+      } catch (e) { bldgNav = ''; }
+
       const html = nbChrome(
         frag.title || 'A unit in your building just accepted an offer',
         frag.desc || '',
@@ -479,7 +504,10 @@ async function handleRequest(request, env) {
         JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage',
           name: frag.title || '', url: base + '/pending/' + slug + '/' }),
         base,
-        (frag.css || '') + frag.body);
+        (frag.css || '') + frag.body)
+        /* nbChrome has a fixed nav, so the building link is spliced into it
+           rather than nbChrome growing a parameter every page would ignore. */
+        .replace('<nav class="nav">', '<nav class="nav">' + bldgNav);
 
       return new Response(html, { status: 200, headers: {
         'content-type': 'text/html;charset=utf-8',
