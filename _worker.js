@@ -447,18 +447,20 @@ async function handleRequest(request, env) {
         return new Response(null, { status: 301, headers: {
           'Location': url.pathname + '/' + url.search, 'Cache-Control': 'public, max-age=3600' } });
       }
-      const slug = decodeURIComponent(pendM[1]).trim().toLowerCase();
-      try {
-        const upstream = await fetch(
-          'https://campbellrealestatemarket.com/_ooa/pending/' + encodeURIComponent(slug),
-          { cf: { cacheTtl: 300 } });
-        if (upstream.ok) {
-          return new Response(upstream.body, { status: 200, headers: {
-            'content-type': 'text/html;charset=utf-8',
-            'cache-control': 'public, max-age=300, s-maxage=300',
-            'x-robots-tag': 'noindex, nofollow' } });
-        }
-      } catch (e) { /* fall through to the site shell rather than a bare error */ }
+      /* PROXY DISABLED — it served the wrong brand.
+         The city worker picks its market from the REQUEST HOST, and the proxy
+         call arrives on campbellrealestatemarket.com, so the page rendered with
+         Campbell's registry entry: "The Campbell Market 95008" nav, Campbell
+         links, Campbell ZIP — on sanfranciscocondomarket.com. That is the same
+         class of error as uploading the wrong worker, and worse than having no
+         page, because it is a licensed site asserting another market's identity.
+
+         The fix is not a registry entry here: the city worker's registry is
+         city-shaped (assetPrefix, priceBand, city nav) and the condo site has
+         its own brand and its own routes on Platform B. The correct split is
+         for /_ooa/pending/ to return the page BODY with no chrome, and for this
+         worker to wrap it in the condo shell. Until that is built, /pending/
+         falls through to the site rather than lying about which market it is. */
       return wrapStaticWithSwaps(request, env, hostMk);
     }
 
