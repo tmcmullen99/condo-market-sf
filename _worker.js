@@ -447,21 +447,44 @@ async function handleRequest(request, env) {
         return new Response(null, { status: 301, headers: {
           'Location': url.pathname + '/' + url.search, 'Cache-Control': 'public, max-age=3600' } });
       }
-      /* PROXY DISABLED — it served the wrong brand.
-         The city worker picks its market from the REQUEST HOST, and the proxy
-         call arrives on campbellrealestatemarket.com, so the page rendered with
-         Campbell's registry entry: "The Campbell Market 95008" nav, Campbell
-         links, Campbell ZIP — on sanfranciscocondomarket.com. That is the same
-         class of error as uploading the wrong worker, and worse than having no
-         page, because it is a licensed site asserting another market's identity.
+      /* CONTENT FROM THE CITY WORKER, CHROME FROM HERE.
+         Proxying the whole page rendered Campbell's registry entry — nav, name,
+         ZIP — onto this domain, because the city worker picks its market from
+         the request host and the proxy call arrives on a city host. So it now
+         returns a fragment (styles + body, no <html>, no nav) and this worker
+         wraps it in nbChrome, the same shell the neighbourhood pages use.
+         One renderer for the content, each site supplying its own frame. */
+      const slug = decodeURIComponent(pendM[1]).trim().toLowerCase();
+      let frag = null;
+      try {
+        const upstream = await fetch(
+          'https://campbellrealestatemarket.com/_ooa/pending/' + encodeURIComponent(slug),
+          { cf: { cacheTtl: 300 } });
+        if (upstream.ok) frag = await upstream.json();
+      } catch (e) { frag = null; }
 
-         The fix is not a registry entry here: the city worker's registry is
-         city-shaped (assetPrefix, priceBand, city nav) and the condo site has
-         its own brand and its own routes on Platform B. The correct split is
-         for /_ooa/pending/ to return the page BODY with no chrome, and for this
-         worker to wrap it in the condo shell. Until that is built, /pending/
-         falls through to the site rather than lying about which market it is. */
-      return wrapStaticWithSwaps(request, env, hostMk);
+      if (!frag || frag.ok !== true || !frag.body) {
+        return wrapStaticWithSwaps(request, env, hostMk);
+      }
+
+      const base = 'https://' + url.host;
+      const html = nbChrome(
+        frag.title || 'A unit in your building just accepted an offer',
+        frag.desc || '',
+        base + '/pending/' + slug + '/',
+        /* nbChrome injects this straight into a ld+json script tag, so null
+           would emit `<script type="application/ld+json">null</script>` —
+           invalid structured data on every page. A minimal WebPage object is
+           both valid and true; the page is noindex either way. */
+        JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage',
+          name: frag.title || '', url: base + '/pending/' + slug + '/' }),
+        base,
+        (frag.css || '') + frag.body);
+
+      return new Response(html, { status: 200, headers: {
+        'content-type': 'text/html;charset=utf-8',
+        'cache-control': 'private, no-store',
+        'x-robots-tag': 'noindex, nofollow' } });
     }
 
     // /building/<slug>/report → 301 to building page #market section.
