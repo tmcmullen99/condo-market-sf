@@ -433,126 +433,33 @@ async function handleRequest(request, env) {
       return renderNeighborhoodDetail(hostMk, decodeURIComponent(nbM[1]));
     }
 
-    /* /pending/<slug>/ — a unit in the reader's building has gone into contract.
-       The 29 SF pending pages have existed in the database for weeks and every
-       one 404'd, because this route was built on the city worker and never
-       here. The payload comes from Platform A (SB_A), where pending_events
-       lives for every market including this one.
-
-       Condo-specific: the page reports the BUILDING, not the street. 71 of the
-       73 units at 333 Beale carry a null street_name, so street stats there
-       read "6 homes, 0 sales" for a tower. The building block is suppressed
-       entirely below 8 units — a thin building has nothing honest to say, and
-       15 of the 29 are thin. */
+    /* /pending/<slug>/ — proxied, not rendered.
+       I first wrote a second pending page here. It was 5KB against the city
+       page's 130KB: no nav, no photographs, no seven-day terms, no commission
+       comparison. Two pages claiming to be the same thing, and the second one
+       would have rotted.
+       The city worker owns renderPendingPage and exposes it at /_ooa/pending/,
+       the same arrangement /_ooa/expired/ already uses. Every future
+       improvement to the pending page lands here for free. */
     const pendM = url.pathname.match(/^\/pending\/([a-z0-9][a-z0-9-]{2,120})\/?$/i);
     if (pendM && request.method === 'GET') {
-      let d = null;
+      if (!url.pathname.endsWith('/')) {
+        return new Response(null, { status: 301, headers: {
+          'Location': url.pathname + '/' + url.search, 'Cache-Control': 'public, max-age=3600' } });
+      }
+      const slug = decodeURIComponent(pendM[1]).trim().toLowerCase();
       try {
-        const r = await fetch(SB_A_URL + '/rest/v1/rpc/pending_page_payload', {
-          method: 'POST',
-          headers: { 'apikey': SB_A_KEY, 'Authorization': 'Bearer ' + SB_A_KEY,
-                     'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ p_slug: decodeURIComponent(pendM[1]).trim().toLowerCase() }),
-        });
-        if (r.ok) d = await r.json();
-      } catch (e) { d = null; }
-
-      if (!d || d.ok !== true) return wrapStaticWithSwaps(request, env, hostMk);
-
-      const b = d.building_stats || null;
-      const showB = b && Number(b.units_in_building) >= 8;
-      const showSales = showB && Number(b.sales_5y) >= 3 && b.median_sale_5y != null;
-      const days = d.pending_on
-        ? Math.max(0, Math.round((Date.now() - Date.parse(d.pending_on)) / 86400000)) : null;
-      const ag = d.agent || {};
-      const unit = (d.address || '').split('#')[1];
-      const bldg = (d.address || '').split('#')[0].replace(/,\s*$/, '').trim();
-
-      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>A unit at ${esc(bldg)} just went into contract</title>
-<meta name="robots" content="noindex, nofollow">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{--ink:#101828;--mute:#5b6474;--rule:#e4e7ec;--paper:#fbfbfd;--gold:#b0762a}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);
-  font:16px/1.6 Inter,system-ui,-apple-system,sans-serif}
-.w{max-width:720px;margin:0 auto;padding:56px 22px 96px}
-h1{font:500 clamp(30px,5vw,44px)/1.1 'Playfair Display',Georgia,serif;letter-spacing:-.02em;margin:0 0 14px}
-.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
-.lede{font-size:18px;color:var(--mute);margin:0 0 30px}
-.card{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:22px 24px;margin:0 0 18px}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--rule);
-  border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin:0 0 22px}
-.f{background:#fff;padding:15px 12px;text-align:center}
-.f b{display:block;font:500 22px 'Playfair Display',Georgia,serif;color:var(--gold)}
-.f span{display:block;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-top:6px}
-h2{font:500 22px 'Playfair Display',Georgia,serif;margin:30px 0 10px}
-ul{padding-left:20px;margin:0 0 14px}li{margin:0 0 8px}
-.note{font-size:13px;color:var(--mute);border-top:1px solid var(--rule);padding-top:14px;margin-top:26px}
-.cta{display:inline-block;background:var(--gold);color:#fff;text-decoration:none;font-weight:600;
-  padding:13px 24px;border-radius:999px;margin-top:8px}
-</style></head><body><div class="w">
-
-<p class="eyebrow">${esc(d.city || 'San Francisco')}${days != null ? ' &middot; ' + days + (days === 1 ? ' day ago' : ' days ago') : ''}</p>
-<h1>A unit in your building just went into contract.</h1>
-<p class="lede">${esc(bldg)}${unit ? ', unit ' + esc(unit.trim()) : ''} is in contract. I was not the listing agent. I am writing because of what happens next, and it is short.</p>
-
-<div class="facts">
-  ${d.beds != null ? `<div class="f"><b>${esc(d.beds)}</b><span>bed</span></div>` : ''}
-  ${d.baths != null ? `<div class="f"><b>${esc(d.baths)}</b><span>bath</span></div>` : ''}
-  ${d.sqft ? `<div class="f"><b>${intc(d.sqft)}</b><span>sq ft</span></div>` : ''}
-  ${d.list_price ? `<div class="f"><b>${money(d.list_price)}</b><span>asking</span></div>` : ''}
-</div>
-
-<div class="card">
-  <h2 style="margin-top:0">Every buyer who lost it is still looking this week</h2>
-  <p>Several people wanted that unit. One got it. The rest are still approved, still want this
-  building, and within five to seven days they have written on something else and are gone.</p>
-  <p>I know the listing agent. I ask who else wrote or came close, then work through those buyers
-  to find the ones who genuinely still want to own here. If your unit is the same layout, it is the
-  one they were comparing against.</p>
-</div>
-
-${showB ? `<div class="card">
-  <h2 style="margin-top:0">Your building</h2>
-  <div class="facts" style="margin:14px 0 0">
-    <div class="f"><b>${intc(b.units_in_building)}</b><span>units</span></div>
-    <div class="f"><b>${intc(b.like_kind_units)}</b><span>this size</span></div>
-    ${showSales ? `<div class="f"><b>${intc(b.sales_5y)}</b><span>sales, 5 yr</span></div>
-    <div class="f"><b>${money(b.median_sale_5y)}</b><span>median</span></div>` : ''}
-  </div>
-  ${showSales ? '' : '<p class="note" style="border:0;padding:0;margin-top:12px">Too few recorded sales in this building to state a median honestly.</p>'}
-</div>` : ''}
-
-<div class="card">
-  <h2 style="margin-top:0">Whose side I would be on</h2>
-  <p>I do not have a buyer. If I did, I would be working for them, and my job would be to get your
-  unit as cheaply as possible. Be wary of anyone who says otherwise.</p>
-  <p>I would represent you, and my duty would be to get you the most money &mdash; which is exactly
-  why I want several interested buyers rather than one.</p>
-  <p>You do not have to be selling. If there is a number at which you would move, tell me and I
-  will tell you honestly whether these buyers are near it. If they are not, I will say so.</p>
-  ${ag.email ? `<a class="cta" href="mailto:${esc(ag.email)}?subject=${
-    encodeURIComponent('About ' + bldg)}">Email ${esc(ag.first || ag.name || 'Tim')}</a>` : ''}
-  ${ag.phone ? `<p style="margin-top:14px">Or text ${esc(ag.phone)} &mdash; I answer myself.</p>` : ''}
-</div>
-
-<p class="note">${esc(d.disclosure || '')}<br><br>
-This page is not an offer, a valuation of your home, or a solicitation of any property listed for
-sale with another broker. A property is described as in contract because the MLS says so; the date
-shown is the day that status was first observed. Owned and operated by McMullen Properties LLC,
-which is not a real estate brokerage. Real estate services provided by ${esc(ag.name || 'Tim McMullen')},
-Broker &middot; CA DRE #${esc(ag.dre || '02016832')}.</p>
-
-</div></body></html>`;
-
-      return new Response(html, { status: 200, headers: {
-        'content-type': 'text/html;charset=utf-8',
-        'cache-control': 'private, no-store',
-        'x-robots-tag': 'noindex, nofollow',
-      } });
+        const upstream = await fetch(
+          'https://campbellrealestatemarket.com/_ooa/pending/' + encodeURIComponent(slug),
+          { cf: { cacheTtl: 300 } });
+        if (upstream.ok) {
+          return new Response(upstream.body, { status: 200, headers: {
+            'content-type': 'text/html;charset=utf-8',
+            'cache-control': 'public, max-age=300, s-maxage=300',
+            'x-robots-tag': 'noindex, nofollow' } });
+        }
+      } catch (e) { /* fall through to the site shell rather than a bare error */ }
+      return wrapStaticWithSwaps(request, env, hostMk);
     }
 
     // /building/<slug>/report → 301 to building page #market section.
