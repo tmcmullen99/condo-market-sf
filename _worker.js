@@ -476,7 +476,7 @@ async function handleRequest(request, env) {
          9 of the 29 SF pending addresses match one. A nav item that 404s is
          worse than no nav item, and today has been a long argument for
          checking rather than assuming. */
-      let bldgNav = '';
+      let bldgNav = '', bldg = null;
       try {
         const bRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/building_by_address', {
           method: 'POST',
@@ -487,11 +487,22 @@ async function handleRequest(request, env) {
         if (bRes.ok) {
           const bj = await bRes.json();
           if (bj && bj.ok === true && bj.slug) {
+            bldg = bj;
             bldgNav = '<a href="' + base + '/building/' + encodeURIComponent(bj.slug)
               + '/" style="color:#e8a33d">' + esc(bj.name || 'Your building') + '</a>';
           }
         }
-      } catch (e) { bldgNav = ''; }
+      } catch (e) { bldgNav = ''; bldg = null; }
+
+      /* NO BUILDING, NO PAGE.
+         This market is a catalogue of buildings. A pending unit in a building
+         that is not in the catalogue has nothing to stand on here: no building
+         page to click through to, no stack to compare against, and a reader
+         who arrives finds a page about somewhere the site does not cover.
+         It falls through to the site rather than publishing a page the market
+         cannot support. Cataloguing the building makes it appear, with no code
+         change. */
+      if (!bldg) return wrapStaticWithSwaps(request, env, hostMk);
 
       const html = nbChrome(
         frag.title || 'A unit in your building just accepted an offer',
