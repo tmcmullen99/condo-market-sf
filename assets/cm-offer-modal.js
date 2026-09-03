@@ -313,6 +313,28 @@ const STYLE_CSS = `
     border-radius: 8px;
     font-size: 13px; line-height: 1.5;
   }
+  /* The typed amount. Big enough to be the answer to the heading, and a real
+     text input so a phone keyboard opens on it instead of a drag gesture. */
+  .cm-om-amount-row {
+    display: flex; align-items: baseline; gap: 4px;
+    border-bottom: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.16));
+    padding-bottom: 8px; margin-bottom: 14px;
+  }
+  .cm-om-amount-cur {
+    font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
+    font-style: italic; font-size: 26px; color: var(--cm-bronze, #d4a574);
+  }
+  .cm-om-amount-input {
+    flex: 1; min-width: 0; width: 100%;
+    background: transparent; border: 0; padding: 0;
+    font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
+    font-style: italic; font-weight: 500; font-size: 34px; line-height: 1.1;
+    color: var(--cm-bronze, #d4a574);
+    -moz-appearance: textfield;
+  }
+  .cm-om-amount-input:focus { outline: none; }
+  .cm-om-amount-row:focus-within { border-bottom-color: var(--cm-bronze, #d4a574); }
+
   /* The sample line under each context number. */
   .cm-om-bctx-n {
     display: block; margin-top: 5px;
@@ -342,6 +364,8 @@ const STYLE_CSS = `
     .cm-om-bctx { padding: 14px 14px 12px; margin-bottom: 16px; }
     .cm-om-bctx-grid { gap: 14px; }
     .cm-om-bctx-val { font-size: 26px; }
+    .cm-om-amount-input { font-size: 30px; }
+    .cm-om-amount-cur { font-size: 23px; }
 
     /* Only the form scrolls, so the submit can sit still beneath it. */
     #cm-om-form {
@@ -625,7 +649,7 @@ function renderBuildingContext(brief) {
   return `
     <div class="cm-om-bctx">
       <div class="cm-om-bctx-head">
-        <span>${escapeHtml(brief.building_name)} · what it has sold for</span>
+        <span>What ${escapeHtml(brief.building_name)} has sold for</span>
       </div>
       <div class="cm-om-bctx-grid">${cells.join('')}</div>
     </div>
@@ -721,7 +745,7 @@ async function renderForm(modal, ctx) {
         <input class="cm-om-textarea" id="cm-om-unit-other" type="text" autocomplete="off"
                style="min-height:0;height:auto;margin-top:8px;display:none;"
                placeholder="Type the unit number">
-        <div class="cm-om-calib" id="cm-om-unit-hint">Or pick a unit on the tower and this fills itself in.</div>
+        <div class="cm-om-calib" id="cm-om-unit-hint">Or pick one on the tower above.</div>
       </div>`
     : '';
 
@@ -742,7 +766,7 @@ async function renderForm(modal, ctx) {
 
   modal.innerHTML = `
     <button class="cm-om-close" aria-label="Close">×</button>
-    <span class="cm-om-eyebrow">Express interest · ${escapeHtml(buildingName)}</span>
+    <span class="cm-om-eyebrow">Express interest</span>
     <h2 id="cm-om-title">What's your <em>number</em>?</h2>
     ${subText ? `<p class="cm-om-sub">${subText}</p>` : ''}
 
@@ -750,27 +774,43 @@ async function renderForm(modal, ctx) {
     ${anchorHtml}
 
     <form id="cm-om-form">
+      <!-- Unit first. The price only means something once the unit is known,
+           and the default the slider opens on is the building median whatever
+           unit you pick - so asking for a number before asking which apartment
+           it is for had the two steps in the wrong order. -->
+      ${unitFieldHtml}
+
       <div class="cm-om-field">
-        <label for="cm-om-amount">
-          <span>Your number</span>
-          <span class="cm-om-field-display" id="cm-om-amount-display">${fmtMoneyShort(defaultAmt)}</span>
-        </label>
+        <label for="cm-om-amount-input"><span>Your number</span></label>
+        <!-- A slider alone is a guess. Someone who already knows their number
+             had to drag $25k at a time toward it on a 360px screen; now they
+             type it, and the slider follows. Both write to the same hidden
+             range input the rest of the module already reads. -->
+        <div class="cm-om-amount-row">
+          <span class="cm-om-amount-cur">$</span>
+          <input type="text" inputmode="numeric" autocomplete="off"
+                 class="cm-om-amount-input" id="cm-om-amount-input"
+                 value="${defaultAmt.toLocaleString()}" aria-label="Your number in dollars">
+        </div>
         <input type="range" class="cm-om-slider" id="cm-om-amount"
                min="${SLIDER_MIN}" max="${SLIDER_MAX}" step="${SLIDER_STEP}" value="${defaultAmt}">
         <div class="cm-om-calib" id="cm-om-calib">${calibText(defaultAmt, brief)}</div>
       </div>
 
-      ${unitFieldHtml}
-
       <div class="cm-om-field">
-        <label for="cm-om-message"><span>Note to your agent (optional)</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Optional</span></label>
-        <textarea class="cm-om-textarea" id="cm-om-message" placeholder="Cash offer · 15-day close · pre-approved at $X · any context you want your agent to know"></textarea>
+        <label for="cm-om-message"><span>Note to your agent</span><span style="text-transform:none;font-size:11px;color:var(--cm-ivory-faint);">Optional</span></label>
+        <textarea class="cm-om-textarea" id="cm-om-message" placeholder="Cash · 15-day close · anything your agent should know"></textarea>
       </div>
 
       <label class="cm-om-cert-row">
         <input type="checkbox" id="cm-om-cert-cb">
         <span class="cm-om-cert-label">
-          <strong>I understand:</strong> This is an Expression of Interest — not a Letter of Intent. My assigned licensed agent (<strong>McMullen Properties, CA DRE #02016832</strong>) will draft the formal LOI and review it with me before delivery to the owner. I agree to the Platform's <a href="#tos" data-cm-tos>Terms of Service</a>, including Section 3 requiring me to use the Platform-designated agent for any resulting transaction.
+          <!-- Shortened, not weakened. Every term the long version carried is
+               still here: EOI is not an LOI, the named licensee and DRE, review
+               with me before it reaches the owner, and agreement to the ToS
+               including Section 3 by name. This is the sentence being ticked,
+               so it stays visible in full rather than going behind a toggle. -->
+          This is an <strong>Expression of Interest, not a Letter of Intent</strong>. My assigned agent (<strong>McMullen Properties, CA DRE #02016832</strong>) drafts the LOI and reviews it with me before it reaches the owner. I agree to the <a href="#tos" data-cm-tos>Terms of Service</a>, including Section 3 (use of the Platform-designated agent).
         </span>
       </label>
 
@@ -788,12 +828,30 @@ async function renderForm(modal, ctx) {
 
   // Slider live-update — amount display + calibration line
   const slider     = modal.querySelector('#cm-om-amount');
-  const display    = modal.querySelector('#cm-om-amount-display');
+  const amountIn   = modal.querySelector('#cm-om-amount-input');
   const calibEl    = modal.querySelector('#cm-om-calib');
-  slider.addEventListener('input', () => {
-    const amt = Number(slider.value);
-    display.textContent = fmtMoneyShort(amt);
+
+  /* One value, two controls. Everything downstream still reads slider.value,
+     so the typed field is a second way to write it rather than a second
+     source of truth - the recurring bug in this codebase is two places
+     holding one number. */
+  function setAmount(amt, fromTyping) {
+    amt = Math.min(SLIDER_MAX, Math.max(SLIDER_MIN, Math.round(amt / SLIDER_STEP) * SLIDER_STEP));
+    slider.value = amt;
+    if (!fromTyping) amountIn.value = amt.toLocaleString();
     calibEl.innerHTML = calibText(amt, brief);
+    return amt;
+  }
+  slider.addEventListener('input', () => setAmount(Number(slider.value), false));
+  amountIn.addEventListener('input', () => {
+    const digits = amountIn.value.replace(/[^0-9]/g, '');
+    if (!digits) return;                       // let them clear it to retype
+    setAmount(Number(digits), true);
+  });
+  /* Tidy the typed value only on blur. Reformatting mid-keystroke moves the
+     caret and makes the field feel like it is fighting you. */
+  amountIn.addEventListener('blur', () => {
+    amountIn.value = Number(slider.value).toLocaleString();
   });
 
   // Match make-me-move
@@ -846,7 +904,7 @@ async function renderForm(modal, ctx) {
         /* Was two sentences: the count, then the escape hatch. The count is
            not a decision the reader makes, and the escape hatch is visible in
            the dropdown itself as the last option. */
-        unitHint.textContent = 'Not listed? Choose the last option.';
+        unitHint.textContent = 'Not listed? Pick the last option.';
       } else {
         /* Some buildings have no unit on file at all - a three-unit building
            nobody has sold in returns an empty list. Falling back to typing is

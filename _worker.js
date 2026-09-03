@@ -195,9 +195,46 @@ const GLOBAL_TAGS =
   '<style id="cm-guard">html{overflow-x:clip}body{overflow-x:clip;max-width:100%}' +
   'img,svg,video,canvas,iframe{max-width:100%}</style>';
 
+/* Collapse the masthead nav behind a burger on phones.
+
+   Six links plus a sign-in pill wrapped onto three rows and ate ~230px before
+   the page began. Wrapping was the right fix for the horizontal overflow it
+   replaced; it is the wrong resting state.
+
+   Injected at the seam rather than written into the four render functions
+   that emit a .masthead-row, so there is one copy and a fifth masthead added
+   later inherits it. .nav-meta is worker-only markup - no static page uses the
+   class - so this cannot reach a page with its own drawer.
+
+   The links are hidden by CSS selector, not moved in the DOM, because the
+   Save button is injected into this nav after load: anything that arrives
+   late is collapsed by the same rule with no second registration step. */
+const NAV_SCRIPT =
+  '<script>(function(){' +
+  'if(!window.matchMedia||!window.matchMedia("(max-width: 720px)").matches)return;' +
+  'function go(){' +
+  'var row=document.querySelector(".masthead-row");' +
+  'if(!row||!row.querySelector(".nav-meta")||row.querySelector(".cm-burger"))return;' +
+  'var b=document.createElement("button");b.type="button";b.className="cm-burger";' +
+  'b.setAttribute("aria-label","Menu");b.setAttribute("aria-expanded","false");' +
+  'b.innerHTML="\u2630";row.appendChild(b);row.classList.add("cm-nav-collapsed");' +
+  'function shut(){row.classList.remove("is-open");b.setAttribute("aria-expanded","false");b.innerHTML="\u2630";}' +
+  'b.addEventListener("click",function(){' +
+  'var open=row.classList.toggle("is-open");' +
+  'b.setAttribute("aria-expanded",open?"true":"false");b.innerHTML=open?"\u00d7":"\u2630";});' +
+  'row.querySelector(".nav-meta").addEventListener("click",function(e){' +
+  'if(e.target&&e.target.closest&&e.target.closest("a"))shut();});' +
+  'document.addEventListener("keydown",function(e){if(e.key==="Escape")shut();});' +
+  '}' +
+  'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();' +
+  '})();<\/script>';
+
 function ensureGlobals(html) {
   if (typeof html !== 'string') return html;
   if (html.indexOf('id="cm-guard"') !== -1) return html;          // already present
+  if (/<\/body>/i.test(html) && html.indexOf('cm-nav-collapsed') === -1) {
+    html = html.replace(/<\/body>/i, NAV_SCRIPT + '</body>');
+  }
   if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + GLOBAL_TAGS);
   if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, '<html$1><head>' + GLOBAL_TAGS + '</head>');
   return html;
@@ -3391,7 +3428,8 @@ const CSS = `
   main { position: relative; z-index: 2; }
   a { color: inherit; text-decoration: none; }
   .wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter); }
-  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  .masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); position: relative; }
+  .cm-burger { display: none; }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
   .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
   .wordmark em { color: var(--cm-peri); }
@@ -3410,6 +3448,34 @@ const CSS = `
     .masthead-row { align-items: center; gap: 12px; }
     .wordmark { font-size: 19px; }
     .nav-meta { gap: 14px; row-gap: 10px; justify-content: flex-start; width: 100%; }
+
+    /* Collapsed: wordmark, the auth pill, and the burger. One row. */
+    .cm-burger {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; flex: 0 0 auto; padding: 0;
+      background: transparent; border: 1px solid var(--cm-rule); border-radius: 10px;
+      color: var(--cm-ivory); font-size: 16px; line-height: 1; cursor: pointer;
+    }
+    .masthead-row.cm-nav-collapsed { flex-wrap: nowrap; gap: 10px; }
+    .masthead-row.cm-nav-collapsed .wordmark {
+      flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    .masthead-row.cm-nav-collapsed .nav-meta {
+      flex: 0 0 auto; width: auto; gap: 10px; justify-content: flex-end;
+    }
+    /* Selector, not DOM surgery — the Save button is injected after load. */
+    .masthead-row.cm-nav-collapsed .nav-meta > *:not(.signin-btn) { display: none; }
+
+    .masthead-row.cm-nav-collapsed.is-open .nav-meta {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 80;
+      flex-direction: column; align-items: stretch; gap: 0; width: auto;
+      background: var(--cm-navy-deep); border-bottom: 1px solid var(--cm-rule);
+      box-shadow: 0 12px 28px rgba(10,13,18,.4);
+    }
+    .masthead-row.cm-nav-collapsed.is-open .nav-meta > * {
+      display: block; padding: 14px 20px; border-top: 1px solid var(--cm-rule);
+      border-radius: 0; text-align: left;
+    }
     .crumb { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
     .crumb::-webkit-scrollbar { display: none; }
   }
