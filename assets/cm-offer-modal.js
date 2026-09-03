@@ -141,16 +141,6 @@ const STYLE_CSS = `
     color: rgba(232, 227, 216, 0.55);
     margin-left: 4px;
   }
-  .cm-om-bctx-thin {
-    grid-column: 1 / -1;
-    border-top: 1px solid rgba(159, 180, 216, 0.16);
-    padding-top: 10px;
-    margin-top: 2px;
-    font-family: var(--cm-ff-mono, 'JetBrains Mono', ui-monospace, monospace);
-    font-size: 11px; color: rgba(232, 227, 216, 0.55);
-    line-height: 1.5;
-  }
-  .cm-om-bctx-thin b { color: var(--cm-ivory, #e8e3d8); font-weight: 500; }
   .cm-om-bctx-empty {
     font-size: 12px; line-height: 1.55;
     color: rgba(232, 227, 216, 0.45);
@@ -323,6 +313,53 @@ const STYLE_CSS = `
     border-radius: 8px;
     font-size: 13px; line-height: 1.5;
   }
+  /* The sample line under each context number. */
+  .cm-om-bctx-n {
+    display: block; margin-top: 5px;
+    font-family: var(--cm-ff-mono, 'JetBrains Mono', ui-monospace, monospace);
+    font-size: 10.5px; letter-spacing: 0.04em;
+    color: rgba(232, 227, 216, 0.42);
+  }
+
+  /* ── Phone ───────────────────────────────────────────────────────────────
+     This modal had no breakpoint at all — it was rendered desktop-shaped on
+     every device. On a phone that meant a 90vh box, 32px side padding, and a
+     submit button below eleven stacked blocks, so the action was always off
+     screen and the form read as longer than it is.
+
+     Full-height sheet, tighter rhythm, and the submit pinned to the bottom so
+     the thing the visitor came to do is never more than a thumb away. */
+  @media (max-width: 560px) {
+    .cm-om-backdrop { padding: 0; align-items: flex-end; }
+    .cm-om {
+      max-width: none; border-radius: 16px 16px 0 0;
+      max-height: 94svh; max-height: 94dvh;
+      padding: 26px 18px 0;
+      display: flex; flex-direction: column;
+    }
+    .cm-om-close { top: 12px; right: 12px; }
+    .cm-om h2 { font-size: 26px; }
+    .cm-om-bctx { padding: 14px 14px 12px; margin-bottom: 16px; }
+    .cm-om-bctx-grid { gap: 14px; }
+    .cm-om-bctx-val { font-size: 26px; }
+
+    /* Only the form scrolls, so the submit can sit still beneath it. */
+    #cm-om-form {
+      flex: 1; min-height: 0; overflow-y: auto;
+      display: flex; flex-direction: column;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -18px; padding: 0 18px;
+    }
+    .cm-om-cert-row { font-size: 11.5px; line-height: 1.5; }
+    .cm-om-submit {
+      position: sticky; bottom: 0; z-index: 2;
+      margin: 8px -18px 0; width: auto;
+      border-radius: 0; padding: 16px 24px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -10px 24px rgba(15, 19, 29, 0.85);
+    }
+  }
+
   .cm-om-msg.is-error {
     background: rgba(201, 120, 101, 0.1);
     border: 1px solid rgba(201, 120, 101, 0.3);
@@ -552,43 +589,45 @@ function renderBuildingContext(brief) {
       </div>
     `;
   }
+  /* Five numbers became two, and the sample moved to where it belongs.
+
+     The card used to carry median sale, median $/ft², the $/ft² range, the
+     sales count and the average unit size — then the calibration line under
+     the slider restated the median a second time, 200px lower. Nobody decides
+     an offer on average unit size; it is an input to the implied-$/ft² sum,
+     not a number a buyer weighs.
+
+     Dropping the separate "thin" line means the sales count has to travel
+     WITH the median rather than sitting in its own sentence, which is the
+     stricter reading of every-number-carries-its-sample: you can no longer
+     read $3.63M without reading "7 sales · 12 mo" directly beneath it. */
+  const sales = brief.sales_365d || 0;
+  const nNote = sales ? `${sales} sale${sales === 1 ? '' : 's'} · 12 mo` : '12 mo';
   const cells = [];
   if (hasMedian) {
     cells.push(`
       <div class="cm-om-bctx-cell">
-        <span class="cm-om-bctx-lab">Median sale (12mo)</span>
+        <span class="cm-om-bctx-lab">Median sale</span>
         <span class="cm-om-bctx-val">${fmtMoneyShort(brief.median_12mo)}</span>
+        <span class="cm-om-bctx-n">${nNote}</span>
       </div>
     `);
   }
   if (hasPpsf) {
     cells.push(`
       <div class="cm-om-bctx-cell">
-        <span class="cm-om-bctx-lab">Median $/ft² (12mo)</span>
+        <span class="cm-om-bctx-lab">Median $/ft²</span>
         <span class="cm-om-bctx-val">${fmtPpsf(brief.median_ppsf_12mo)}<span class="cm-om-bctx-val-sub">/ft²</span></span>
+        <span class="cm-om-bctx-n">${hasRange ? `${fmtPpsf(brief.ppsf_low_12mo)}–${fmtPpsf(brief.ppsf_high_12mo)}` : nNote}</span>
       </div>
     `);
-  }
-  let thin = '';
-  if (hasRange) {
-    const sales = brief.sales_365d || 0;
-    thin = `
-      <div class="cm-om-bctx-thin">
-        $/ft² range: <b>${fmtPpsf(brief.ppsf_low_12mo)} – ${fmtPpsf(brief.ppsf_high_12mo)}/ft²</b>
-        · <b>${sales}</b> sale${sales === 1 ? '' : 's'} in last 12 months${brief.avg_sqft_12mo ? ` · avg unit <b>${brief.avg_sqft_12mo.toLocaleString()} ft²</b>` : ''}
-      </div>
-    `;
   }
   return `
     <div class="cm-om-bctx">
       <div class="cm-om-bctx-head">
-        <span>${escapeHtml(brief.building_name)} · context</span>
-        <span class="cm-om-bctx-head-r">12-mo window</span>
+        <span>${escapeHtml(brief.building_name)} · what it has sold for</span>
       </div>
-      <div class="cm-om-bctx-grid">
-        ${cells.join('')}
-        ${thin}
-      </div>
+      <div class="cm-om-bctx-grid">${cells.join('')}</div>
     </div>
   `;
 }
@@ -598,21 +637,18 @@ function calibText(amount, brief) {
   if (!brief || brief.median_12mo == null) {
     return `<span class="cm-om-calib-empty">Slide to set your offer · no historical baseline available for this building yet.</span>`;
   }
+  /* Three lines became one. The old version opened by restating the number
+     the slider already displays, then restated the median printed in the card
+     immediately above, then gave the implied $/ft² and its delta. Only the
+     last part told the reader anything they could not already see. */
   const median = Number(brief.median_12mo);
-  const multiple = amount / median;
-  const multStr = fmtMult(multiple);
-  let line = `Your <b>${fmtMoneyShort(amount)}</b> is <b>${multStr}</b> the building's 12-mo median (${fmtMoneyShort(median)})`;
   if (brief.avg_sqft_12mo && brief.median_ppsf_12mo) {
     const implied = amount / brief.avg_sqft_12mo;
-    const delta   = (implied / brief.median_ppsf_12mo - 1) * 100;
-    const d = fmtPctDelta(delta);
-    line += ` · implies <b>${fmtPpsf(implied)}/ft²</b>`;
-    if (d) {
-      line += ` <span class="cm-om-calib-${d.dir}">(${d.sign}${d.mag}% vs median $/ft²)</span>`;
-    }
+    const d = fmtPctDelta((implied / brief.median_ppsf_12mo - 1) * 100);
+    return `\u2248 <b>${fmtPpsf(implied)}/ft²</b>` +
+           (d ? ` <span class="cm-om-calib-${d.dir}">${d.sign}${d.mag}% vs this building</span>` : '');
   }
-  line += '.';
-  return line;
+  return `<b>${fmtMult(amount / median)}</b> this building's median`;
 }
 
 async function renderForm(modal, ctx) {
@@ -654,7 +690,10 @@ async function renderForm(modal, ctx) {
        cannot be shown a price for an unnamed apartment, and the agent drafting
        the LOI has nothing to draft against. Ask which one, in the field below,
        before the number means anything. */
-    subText = `Which unit at ${escapeHtml(buildingName)}?`;
+    /* Was "Which unit at X?" — the same question the required Which unit
+       field asks 200px below, and the eyebrow already names the building. A
+       third header line that restates a field label is not orientation. */
+    subText = '';
   }
 
   /* Required only when nothing upstream supplied a unit. Coming from the tower
@@ -682,7 +721,7 @@ async function renderForm(modal, ctx) {
         <input class="cm-om-textarea" id="cm-om-unit-other" type="text" autocomplete="off"
                style="min-height:0;height:auto;margin-top:8px;display:none;"
                placeholder="Type the unit number">
-        <div class="cm-om-calib" id="cm-om-unit-hint">Pick a unit on the tower above and this fills itself in.</div>
+        <div class="cm-om-calib" id="cm-om-unit-hint">Or pick a unit on the tower and this fills itself in.</div>
       </div>`
     : '';
 
@@ -705,7 +744,7 @@ async function renderForm(modal, ctx) {
     <button class="cm-om-close" aria-label="Close">×</button>
     <span class="cm-om-eyebrow">Express interest · ${escapeHtml(buildingName)}</span>
     <h2 id="cm-om-title">What's your <em>number</em>?</h2>
-    <p class="cm-om-sub">${subText}</p>
+    ${subText ? `<p class="cm-om-sub">${subText}</p>` : ''}
 
     ${buildingContextHtml}
     ${anchorHtml}
@@ -736,7 +775,11 @@ async function renderForm(modal, ctx) {
       </label>
 
       <button type="submit" class="cm-om-submit" id="cm-om-submit" disabled>Send to agent →</button>
-      <p class="cm-om-fine">Your assigned agent will contact you within 24 hours to review and prepare the formal LOI before any document is delivered to the owner.</p>
+      <!-- The fine print that sat here said the agent reviews and prepares the
+           LOI before anything reaches the owner. The certification checkbox
+           immediately above says exactly that, and it is the sentence the
+           reader has to tick to proceed. Saying it twice made the shorter,
+           unbinding copy compete with the binding one. -->
       <div id="cm-om-msg"></div>
     </form>
   `;
@@ -800,7 +843,10 @@ async function renderForm(modal, ctx) {
           units.map(u => `<option value="${escapeHtml(u.label)}">${escapeHtml(u.label)}` +
                          `${u.floor != null ? ` \u00b7 floor ${u.floor}` : ''}</option>`).join('') +
           '<option value="__other">My unit isn\u2019t listed\u2026</option>';
-        unitHint.textContent = `${units.length} units on file. Not seeing yours? Choose the last option.`;
+        /* Was two sentences: the count, then the escape hatch. The count is
+           not a decision the reader makes, and the escape hatch is visible in
+           the dropdown itself as the last option. */
+        unitHint.textContent = 'Not listed? Choose the last option.';
       } else {
         /* Some buildings have no unit on file at all - a three-unit building
            nobody has sold in returns an empty list. Falling back to typing is
