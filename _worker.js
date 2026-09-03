@@ -2079,6 +2079,19 @@ function CM_FOOTER(footerData) {
 const CM_FOOTER_CSS =
   '<style>' +
   '.cf{background:#0a0d12;border-top:1px solid rgba(159,180,216,.12);padding:48px 0 32px;margin-top:0;color:rgba(232,227,216,.6)}' +
+  /* The footer ships its own container.
+
+     CM_FOOTER emits <div class="wrap">, and .wrap is defined only in the
+     worker's building-page stylesheet. Every STATIC page — /buildings/,
+     /intelligence/, /how-it-works/, /history/ — uses .cm-container and has no
+     .wrap rule at all, so on those pages the footer was an unstyled div: full
+     bleed, no max-width, no side padding. That is why the brand sat flush
+     against the window edge and the right-hand column ran off it.
+     A component that is injected into pages it does not control cannot depend
+     on a class those pages happen to define. Vars first so a building page
+     still matches its own gutter exactly; literals as the fallback. */
+  '.cf .wrap{max-width:var(--page-max,1280px);margin:0 auto;padding:0 var(--gutter,32px)}' +
+  '@media(max-width:720px){.cf .wrap{padding:0 var(--gutter,20px)}}' +
   '.cf .wordmark{color:#fff}.cf .wordmark em{color:#9fb4d8;font-style:italic}' +
   /* Was grid 1.4fr / 2fr. The second track took 58% of the footer whatever was
      in it, and grid items stretch by default — so a column holding one line of
