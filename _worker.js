@@ -162,7 +162,7 @@ const CARTO_TOKEN = '__CARTO_KEY__';
 const OG_VER = '3';
 
 const TRACK_VER = '2';
-const INTENT_VER = '22';
+const INTENT_VER = '23';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 
 function ensureIntent(html) {

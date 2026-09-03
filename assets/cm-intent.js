@@ -332,6 +332,12 @@
       '.cmi-pick small{display:block;font-weight:400;font-size:10.5px;color:rgba(241,237,228,.55);margin-top:3px}',
       '.cmi-prompt-x{position:absolute;top:8px;right:10px;background:none;border:0;color:rgba(241,237,228,.4);font-size:17px;line-height:1;cursor:pointer;padding:2px 4px}',
       '.cmi-prompt-x:hover{color:#f1ede4}',
+      /* Folding away rather than vanishing: the panel shrinks toward the
+         bottom-right corner the launcher occupies, so the launcher reads as
+         the same object made small, not as a new thing that appeared. */
+      '.cmi-prompt{transition:opacity .18s ease,transform .18s cubic-bezier(.4,0,1,1)}',
+      '.cmi-prompt-out{opacity:0;transform:translate(12px,10px) scale(.9);transform-origin:100% 100%;pointer-events:none}',
+      '@media(prefers-reduced-motion:reduce){.cmi-prompt,.cmi-prompt-out{transition:none;animation:none;transform:none}}',
       /* Owner cost ledger. Rows animate in so the total lands last. */
       '.cmi-ledger{margin:16px 0 4px;border-top:1px solid rgba(23,28,42,.12)}',
       '.cmi-lrow{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(23,28,42,.08);opacity:0;animation:cmiRowIn .42s cubic-bezier(.2,.8,.2,1) forwards}',
@@ -364,6 +370,39 @@
   var launchEl = null;
   var promptEl = null;
   var PERSONA_KEY = 'cm_persona';
+
+  /* --------------------- how often the prompt may ask ---------------------
+   * The bug: showPrompt() ran on every page load whenever no persona was
+   * stored, and the prompt's own X wrote nothing. PERSONA_KEY is only written
+   * when a door is CHOSEN, so dismissing achieved nothing and the panel came
+   * back on the next click-through, and the next. It asked once per pageview,
+   * not once per person.
+   *
+   * Two keys, deliberately different lifetimes:
+   *   session  - asked once per visit, whether answered, dismissed or ignored.
+   *              This is the fix for "it shows up on every new page".
+   *   snooze   - an explicit X means "not now" for 14 days. NOT forever: a
+   *              no-expiry suppression key is exactly what took the old flow
+   *              to 16 impressions across 429 sessions, and re-earning the
+   *              question in a fortnight is the honest read of a dismissal.
+   * The launcher is unaffected by both and is always reachable. */
+  var PROMPT_SESSION_KEY = 'cm_prompt_asked';
+  var PROMPT_SNOOZE_KEY  = 'cm_prompt_snooze';
+  var PROMPT_SNOOZE_MS   = 14 * 24 * 60 * 60 * 1000;
+
+  function promptSuppressedBy() {
+    if (storedPersona()) return 'persona';
+    try { if (sessionStorage.getItem(PROMPT_SESSION_KEY)) return 'session'; } catch (e) {}
+    try {
+      var until = parseInt(localStorage.getItem(PROMPT_SNOOZE_KEY) || '0', 10);
+      if (until && Date.now() < until) return 'snoozed';
+    } catch (e) {}
+    return '';
+  }
+  function markPromptAsked() { try { sessionStorage.setItem(PROMPT_SESSION_KEY, '1'); } catch (e) {} }
+  function snoozePrompt() {
+    try { localStorage.setItem(PROMPT_SNOOZE_KEY, String(Date.now() + PROMPT_SNOOZE_MS)); } catch (e) {}
+  }
 
   function storedPersona() {
     try { return localStorage.getItem(PERSONA_KEY) || ''; } catch (e) { return ''; }
@@ -409,9 +448,21 @@
     });
     promptEl.querySelector('.cmi-prompt-x').addEventListener('click', function () {
       track('intent_dismissed', { step: 'persona_prompt', reason: 'x' });
+      snoozePrompt();                   // "not now" now means something
       hidePrompt();
       showLauncher();                   // the chat stays reachable
     });
+
+    /* Collapse on scroll. A third of the viewport is a fair ask on the first
+       fold, where the visitor has not started reading yet; it is an
+       imposition once they have. Past 55% of a screen height the panel folds
+       into the launcher it would have become anyway.
+
+       Deliberately one-way: re-expanding on scroll-up is the behaviour that
+       makes a widget feel like it is chasing you. And it is tracked as
+       intent_collapsed, not intent_dismissed - scrolling is engagement, and
+       counting it as rejection would poison the funnel. */
+    watchScrollCollapse();
 
     track('intent_shown', {
       path: location.pathname, building: slug,
@@ -419,7 +470,34 @@
     });
   }
   function hidePrompt() { if (promptEl) promptEl.hidden = true; }
-  function showPrompt() { ensurePrompt(); promptEl.hidden = false; }
+  function showPrompt() { ensurePrompt(); promptEl.hidden = false; markPromptAsked(); }
+
+  var collapseWired = false;
+  function watchScrollCollapse() {
+    if (collapseWired) return;
+    collapseWired = true;
+    var fired = false;
+    var threshold = Math.max(220, Math.round((window.innerHeight || 700) * 0.55));
+    var onScroll = function () {
+      if (fired) return;
+      if ((window.pageYOffset || document.documentElement.scrollTop || 0) < threshold) return;
+      fired = true;
+      window.removeEventListener('scroll', onScroll);
+      if (!promptEl || promptEl.hidden) return;   // already answered or dismissed
+      track('intent_collapsed', { step: 'persona_prompt', reason: 'scroll', px: threshold });
+      promptEl.classList.add('cmi-prompt-out');
+      setTimeout(function () { hidePrompt(); showLauncher(); }, 180);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  function launcherLabel() {
+    if (!slug) return 'Ask the market';
+    var h1 = document.querySelector('main h1, h1');
+    var name = h1 ? (h1.textContent || '').replace(/[.\u00b7\s]+$/, '').trim() : '';
+    if (!name || name.length > 26) return 'Ask the market';
+    return 'Ask about ' + name;
+  }
 
   function ensureLauncher() {
     if (launchEl) return;
@@ -427,7 +505,10 @@
     launchEl = document.createElement('button');
     launchEl.className = 'cmi-launch';
     launchEl.setAttribute('aria-label', 'Ask the market');
-    launchEl.innerHTML = '<span class="cmi-dock-live"></span>Ask the market';
+    /* A launcher that names the page it is sitting on is answering the
+       question "can this thing help me with THIS?" before it is asked.
+       Falls back to the generic label everywhere else. */
+    launchEl.innerHTML = '<span class="cmi-dock-live"></span>' + launcherLabel();
     launchEl.addEventListener('click', function () {
       track('intent_launcher_clicked', { path: location.pathname });
       hideLauncher();
@@ -1112,11 +1193,18 @@
     slug = buildingSlug();
 
     var persona = storedPersona();
-    if (persona) {
-      chosen = persona;          // personalise without asking again
+    if (persona) chosen = persona;          // personalise without asking again
+
+    var blockedBy = promptSuppressedBy();
+    if (blockedBy) {
+      /* Emitted so the change is measurable rather than assumed: if the panel
+         stops appearing and nothing records why, we cannot tell a working
+         suppression from a broken script. */
+      if (blockedBy !== 'persona') track('intent_suppressed', { reason: blockedBy, path: location.pathname });
       showLauncher();
     } else {
-      showPrompt();              // 100% of sessions, no gesture required
+      showPrompt();              // first page of the visit only
+      watchScrollCollapse();
     }
 
     // Manual opener, for verifying in a real browser.
@@ -1161,7 +1249,12 @@
     };
     // Escape hatch for testing the prompt after choosing.
     window.cmIntentReset = function () {
-      try { localStorage.removeItem(PERSONA_KEY); localStorage.removeItem(SEEN_KEY); } catch (e) {}
+      try {
+        localStorage.removeItem(PERSONA_KEY);
+        localStorage.removeItem(SEEN_KEY);
+        localStorage.removeItem(PROMPT_SNOOZE_KEY);
+        sessionStorage.removeItem(PROMPT_SESSION_KEY);
+      } catch (e) {}
       chosen = null; hideLauncher(); if (promptEl) { promptEl.remove(); promptEl = null; } showPrompt();
     };
   }
