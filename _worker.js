@@ -2049,11 +2049,20 @@ function CM_FOOTER(footerData) {
     '<a href="/intelligence/">Intelligence</a><a href="/buy">Buy a condo</a>' +
     '<a href="/sell">Sell a condo</a><a href="/how-it-works/">How it works</a>' +
     '</div></div>' +
-    '<div class="cf-intent">' +
-    '<div class="cf-intent-col"><h5 class="cf-group-title">By city</h5><ul>' + cityLinks + '</ul></div>' +
-    '<div class="cf-intent-col"><h5 class="cf-group-title">Buy</h5><ul>' + buyLinks + '</ul></div>' +
-    '<div class="cf-intent-col"><h5 class="cf-group-title">Sell</h5><ul>' + sellLinks + '</ul></div>' +
-    '</div>' +
+    /* Three headed columns is the right shape for Silicon Valley, which has
+       several cities in each. San Francisco has exactly one — so BY CITY, BUY
+       and SELL each held a single link, all three about the same city, under
+       three separate headings. That is what reserved half the footer width for
+       about forty pixels of text. One city gets one column. */
+    (cities.length > 1
+      ? '<div class="cf-intent">' +
+        '<div class="cf-intent-col"><h5 class="cf-group-title">By city</h5><ul>' + cityLinks + '</ul></div>' +
+        '<div class="cf-intent-col"><h5 class="cf-group-title">Buy</h5><ul>' + buyLinks + '</ul></div>' +
+        '<div class="cf-intent-col"><h5 class="cf-group-title">Sell</h5><ul>' + sellLinks + '</ul></div>' +
+        '</div>'
+      : '<div class="cf-intent">' +
+        '<div class="cf-intent-col"><h5 class="cf-group-title">' + esc((cities[0] && cities[0].name) || 'This market') + '</h5><ul>' +
+        cityLinks + buyLinks + sellLinks + '</ul></div></div>') +
     '</div>' +
     // Building directory (comprehensive, grouped)
     '<div class="cf-dir-head">Browse every building</div>' +
@@ -2071,21 +2080,28 @@ const CM_FOOTER_CSS =
   '<style>' +
   '.cf{background:#0a0d12;border-top:1px solid rgba(159,180,216,.12);padding:48px 0 32px;margin-top:0;color:rgba(232,227,216,.6)}' +
   '.cf .wordmark{color:#fff}.cf .wordmark em{color:#9fb4d8;font-style:italic}' +
-  '.cf-top{display:grid;grid-template-columns:1.4fr 2fr;gap:48px;padding-bottom:40px;border-bottom:1px solid rgba(159,180,216,.1)}' +
-  '.cf-tag{font-size:13px;line-height:1.6;max-width:38ch;margin:0 0 18px}' +
+  /* Was grid 1.4fr / 2fr. The second track took 58% of the footer whatever was
+     in it, and grid items stretch by default — so a column holding one line of
+     links was drawn 200px tall and 700px wide, which is the empty band. Flex
+     with flex-start sizes both to their content and lets the gap do the work. */
+  '.cf-top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:32px 64px;padding-bottom:32px;border-bottom:1px solid rgba(159,180,216,.1)}' +
+  '.cf-brand{flex:1 1 420px;min-width:0;max-width:560px}' +
+  /* 38ch wrapped the blurb to three lines in a column with room for far more. */
+  '.cf-tag{font-size:13px;line-height:1.6;max-width:56ch;margin:0 0 16px}' +
   '.cf-primary{display:flex;flex-wrap:wrap;gap:8px 18px}' +
   '.cf-primary a{font-size:13px;color:#9fb4d8;text-decoration:none;font-weight:600}' +
   '.cf-primary a:hover{text-decoration:underline}' +
-  '.cf-intent{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}' +
+  '.cf-intent{display:flex;flex-wrap:wrap;gap:24px 56px;flex:0 1 auto}' +
+  '.cf-intent-col{min-width:132px}' +
   '.cf-intent-col ul{list-style:none;padding:0;margin:0}' +
   '.cf-intent-col li{margin-bottom:7px}' +
   '.cf-intent-col a{font-size:12.5px;color:rgba(232,227,216,.62);text-decoration:none}' +
   '.cf-intent-col a:hover{color:#9fb4d8}' +
   '.cf-group-title{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9fb4d8;margin:0 0 12px;font-weight:700}' +
-  '.cf-dir-head{font-family:"Playfair Display",Georgia,serif;font-size:18px;color:#fff;margin:36px 0 20px}' +
+  '.cf-dir-head{font-family:"Playfair Display",Georgia,serif;font-size:18px;color:#fff;margin:28px 0 18px}' +
   '.cf-dir{column-count:4;column-gap:32px}' +
-  '@media(max-width:980px){.cf-dir{column-count:2}.cf-top{grid-template-columns:1fr;gap:32px}}' +
-  '@media(max-width:560px){.cf-dir{column-count:1}.cf-intent{grid-template-columns:1fr}}' +
+  '@media(max-width:980px){.cf-dir{column-count:2}.cf-top{gap:28px 40px}.cf-brand{flex:1 1 100%}}' +
+  '@media(max-width:560px){.cf-dir{column-count:1}.cf-intent{gap:20px 32px}}' +
   '.cf-city-head{font-family:"Playfair Display",Georgia,serif;font-size:15px;color:#fff;margin:6px 0 12px;break-inside:avoid;border-bottom:1px solid rgba(159,180,216,.12);padding-bottom:6px}' +
   '.cf-group{break-inside:avoid;margin-bottom:20px}' +
   '.cf-group ul{list-style:none;padding:0;margin:0}' +
