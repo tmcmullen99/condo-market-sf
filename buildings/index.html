@@ -668,38 +668,44 @@ img { display: block; max-width: 100%; }
 /* Leaflet marker overrides */
 .cm-marker {
   /* Was #b7bdc7 at .72 — a grey dot that read as page furniture, so the only
-     buildings a visitor could see were the ones with listings. Now a light
-     tint of the market accent: legible on its own, and obviously the same
-     family as the solid pin rather than a different thing. The rgb() triple
-     is swapped per market by applyMarketSwaps, so this stays on-palette on
-     Silicon Valley too. rgba() first as the fallback for color-mix. */
-  width: 10px; height: 10px; border-radius: 50%;
-  background: rgba(159,180,216,.45);
-  background: color-mix(in srgb, rgb(159,180,216) 38%, #ffffff);
+     buildings a visitor could see were the ones with listings. Now a tint of
+     the market accent, and obviously the same family as the solid pin rather
+     than a different thing. The rgb() triple is swapped per market by
+     applyMarketSwaps, so this stays on-palette on Silicon Valley too. rgba()
+     first as the fallback for color-mix.
+
+     38% was still too pale against CARTO's light basemap — on a phone at full
+     bleed the buildings without listings all but disappeared. 68% is a clear
+     mid-orange that holds at small size. The hierarchy no longer rests on
+     light-vs-dark, which is what was failing; it rests on tint-vs-solid plus
+     the ring, which survives being bold. */
+  width: 11px; height: 11px; border-radius: 50%;
+  background: rgba(159,180,216,.8);
+  background: color-mix(in srgb, rgb(159,180,216) 68%, #ffffff);
   border: 1.5px solid #fff;
-  box-shadow: 0 1px 2px rgba(26,31,46,.16);
+  box-shadow: 0 1px 3px rgba(26,31,46,.3);
   opacity: 1;
   transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
 }
 .cm-marker:hover {
-  background: rgba(159,180,216,.85);
-  background: color-mix(in srgb, rgb(159,180,216) 75%, #ffffff);
+  background: rgba(159,180,216,.95);
+  background: color-mix(in srgb, rgb(159,180,216) 92%, #ffffff);
 }
 .cm-marker.is-active {
   background: var(--peri); width: 16px; height: 16px; opacity: 1;
   box-shadow: 0 0 0 4px var(--peri-soft), 0 0 16px rgba(159,180,216,.5);
   animation: pulse 1.6s ease-out infinite;
 }
-/* .25 made the old grey dots vanish; against a light tint it has to be higher. */
-.cm-marker.is-dimmed { opacity: .4; }
+/* .25 made the old grey dots vanish; against a tint it has to be higher. */
+.cm-marker.is-dimmed { opacity: .45; }
 /* Active listings. It no longer has to shout to be found, because the regular
    pins are now visible instead of grey — solid vs tint carries the difference.
    20px + a triple halo + an infinite pulse was three signals doing one job,
    and on a phone it was ~30 elements animating forever behind a scroll. */
 .cm-marker.has-active {
-  background: rgba(159,180,216,1); width: 14px; height: 14px;
-  border: 2px solid #fff; opacity: 1;
-  box-shadow: 0 0 0 3px rgba(159,180,216,.22), 0 1px 4px rgba(26,31,46,.3);
+  background: rgba(159,180,216,1); width: 15px; height: 15px;
+  border: 2.5px solid #fff; opacity: 1;
+  box-shadow: 0 0 0 3px rgba(159,180,216,.3), 0 1px 5px rgba(26,31,46,.35);
   cursor: pointer; z-index: 600; animation: none;
 }
 .cm-marker.has-active:hover {
