@@ -429,19 +429,25 @@ img { display: block; max-width: 100%; }
     display: flex; flex-direction: column;
     transform: translateY(72%);
     transition: transform .28s cubic-bezier(.32,.72,0,1);
-    touch-action: none;                /* the handle drives it, not the browser */
+    /* touch-action:none lived here and was the trap. It told the browser this
+       whole element handles its own gestures — so a swipe anywhere on the
+       sheet did nothing at all: it did not scroll the page, and only the
+       36px-tall header was wired to drag. That is what made it feel stuck up
+       and impossible to scroll past. It now sits on the grip alone. */
   }
   body.cm-stage.cm-sheet-dragging .hoods-col { transition: none; }
   body.cm-stage .hoods-col[data-snap="half"] { transform: translateY(42%); }
   body.cm-stage .hoods-col[data-snap="full"] { transform: translateY(4%); }
 
   body.cm-stage .cm-sheet-head {
-    flex: none; padding: 8px 18px 12px; cursor: grab;
+    flex: none; padding: 8px 18px 14px; cursor: grab;
     border-bottom: 1px solid var(--border);
+    touch-action: none;      /* the one element that drives the sheet */
   }
+  /* Bigger grab bar. 38x4px is a graphic, not a target. */
   body.cm-stage .cm-sheet-grip {
-    width: 38px; height: 4px; border-radius: 999px;
-    background: #cfd6e1; margin: 0 auto 10px;
+    width: 52px; height: 5px; border-radius: 999px;
+    background: #cfd6e1; margin: 2px auto 12px;
   }
   body.cm-stage .cm-sheet-head .atlas-map-overlay {
     display: flex; position: static; background: none; color: var(--text);
@@ -650,6 +656,21 @@ img { display: block; max-width: 100%; }
 .hood-bldg-name { font-size: 13px; font-weight: 600; color: var(--navy); }
 .hood-bldg-meta { font-size: 11px; color: var(--text-mute); }
 .hood-bldg.has-active { background: var(--peri-soft); box-shadow: inset 2px 0 0 var(--peri); }
+/* Tapping a pin has to answer "which building?" — the neighbourhood alone is
+   not an answer when the card lists eight of them. The row stays marked until
+   another pin is tapped, so the answer survives a scroll. */
+.hood-bldg.is-picked {
+  background: var(--peri-soft);
+  box-shadow: inset 3px 0 0 var(--peri), 0 0 0 1px var(--peri);
+  border-radius: 4px;
+}
+.hood-bldg.is-picked .hood-bldg-name { color: var(--navy); }
+@keyframes cmPick {
+  0%   { box-shadow: inset 3px 0 0 var(--peri), 0 0 0 1px var(--peri), 0 0 0 0 rgba(159,180,216,.55); }
+  100% { box-shadow: inset 3px 0 0 var(--peri), 0 0 0 1px var(--peri), 0 0 0 14px rgba(159,180,216,0); }
+}
+.hood-bldg.is-picked.is-flash { animation: cmPick .7s ease-out 2; }
+@media (prefers-reduced-motion: reduce) { .hood-bldg.is-picked.is-flash { animation: none; } }
 .hood-bldg.has-active:hover { background: rgba(159,180,216,.18); }
 .hood-bldg-active {
   display: inline-block; margin-left: 8px; font-size: 10px; font-weight: 700;
@@ -2034,22 +2055,50 @@ img { display: block; max-width: 100%; }
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
 
+    /* Tapping a pin used to open the neighbourhood card and stop there — which
+       answers "which neighbourhood?" when the question was "which building?",
+       and the card lists eight of them. Now the row itself is found, marked and
+       scrolled to inside the sheet.
+
+       Pins for buildings WITH listings used to navigate straight to the
+       building page instead. That is now the same as every other pin: mark the
+       row, and let the row — which is a link, and carries the "N active" badge
+       — be the thing that takes you there. One gesture, one meaning.
+
+       The fallback matters: each neighbourhood card lists at most HOOD_CAP
+       buildings, so a pin can point at a building that has no row. Rather than
+       silently doing nothing, that case navigates, which is what it did
+       before. */
+    function pickBuilding(b) {
+      var hood = (b.hood || '').replace(/"/g, '');
+      var card = hood ? document.querySelector('.hood[data-hood="' + hood + '"]') : null;
+      var row  = card ? card.querySelector('.hood-bldg[data-bldg-slug="' + String(b.slug).replace(/"/g, '') + '"]') : null;
+      if (!card || !row) { window.location.href = '/building/' + b.slug + '/'; return; }
+
+      var btn = card.querySelector('.hood-toggle');
+      if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click();
+
+      var sheet = document.querySelector('.hoods-col');
+      if (sheet && sheet._cmSetSnap && sheet.getAttribute('data-snap') === 'peek') sheet._cmSetSnap('half');
+
+      $$('.hood-bldg.is-picked').forEach(function (el) { el.classList.remove('is-picked', 'is-flash'); });
+      row.classList.add('is-picked', 'is-flash');
+      setTimeout(function () { row.classList.remove('is-flash'); }, 1600);
+
+      /* The panel is opened one frame earlier, so the row has no height yet if
+         we measure now. */
+      requestAnimationFrame(function () {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+
     var CM_MARKERS = [];
     BLDGS.forEach(function (b) {
       var hasActive = b.active_count > 0;
       var icon = L.divIcon({ html: '<div class="cm-marker' + (hasActive ? ' has-active' : '') + '" data-hood="' + esc(b.hood) + '"' + (hasActive ? ' data-slug="' + esc(b.slug) + '"' : '') + '></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
       var mk = L.marker([b.lat, b.lng], { icon: icon })
         .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : '') + (hasActive ? '<br><span style="color:var(--peri);font-weight:600;">' + b.active_count + ' active listing' + (b.active_count === 1 ? '' : 's') + ' →</span>' : ''), { direction: 'top', offset: [0, -8] })
-        .on('click', function () {
-          /* Was '/#active'. A hash on a click-through is an auto-scroll: the
-             visitor taps a pin and the page opens part-way down, past the
-             hero, the address and the photography. The active listings are two
-             taps away in the sticky nav for anyone who wants them; landing on
-             the building itself is the right first frame. */
-          if (hasActive) { window.location.href = '/building/' + b.slug + '/'; return; }
-          var card = document.querySelector('.hood[data-hood="' + (b.hood || '').replace(/"/g, '') + '"]');
-          if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); var btn = card.querySelector('.hood-toggle'); if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click(); }
-        })
+        .on('click', function () { pickBuilding(b); })
         .addTo(map);
       CM_MARKERS.push({ marker: mk, hasActive: hasActive });
     });
@@ -2213,6 +2262,42 @@ img { display: block; max-width: 100%; }
       }
       head.addEventListener('touchend', endDrag, { passive: true });
       head.addEventListener('touchcancel', endDrag, { passive: true });
+
+      /* Pull down from the list itself, once the list is already at its top.
+         Dragging only from a 36px header is what made the sheet feel stuck
+         up: at full height the header is near the top of the screen and it is
+         the only 36px of a full-screen panel that will let go. Every real
+         bottom sheet lets you keep pulling down when the content has nowhere
+         left to scroll, and that is what this does. Upward swipes are left
+         alone so the list still scrolls normally. */
+      var listStartY = 0;
+      list.addEventListener('touchstart', function (e) {
+        if (e.touches && e.touches.length) listStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      list.addEventListener('touchmove', function (e) {
+        if (!e.touches || !e.touches.length) return;
+        var y = e.touches[0].clientY;
+        if (!dragging) {
+          if (list.scrollTop > 0) return;          // still scrolling content
+          if (y - listStartY <= 10) return;        // only a deliberate pull down
+          dragging = true; startY = listStartY; startPct = currentPct();
+          document.body.classList.add('cm-sheet-dragging');
+        }
+        var pct = Math.min(86, Math.max(2, startPct + ((y - startY) / h()) * 100));
+        sheet.style.transform = 'translateY(' + pct + '%)';
+      }, { passive: true });
+
+      list.addEventListener('touchend', endDrag, { passive: true });
+      list.addEventListener('touchcancel', endDrag, { passive: true });
+
+      /* Tapping the map means "let me see the map". Leaflet fires this on the
+         container for a tap that is not on a marker, which is exactly the
+         gesture that should put the sheet away. */
+      map.on('click', function () { setSnap('peek'); });
+
+      /* Expose the snapper so the pin handler can raise the sheet. */
+      sheet._cmSetSnap = setSnap;
 
       // Tap the grip to step up; from full it returns to peek.
       head.addEventListener('click', function () {
