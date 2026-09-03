@@ -210,9 +210,11 @@ const GLOBAL_TAGS =
    Save button is injected into this nav after load: anything that arrives
    late is collapsed by the same rule with no second registration step. */
 const NAV_SCRIPT =
-  '<script>(function(){' +
-  'if(!window.matchMedia||!window.matchMedia("(max-width: 720px)").matches)return;' +
+  '<script id="cm-nav-boot">(function(){' +
+  'if(!window.matchMedia)return;' +
+  'var mq=window.matchMedia("(max-width: 720px)");' +
   'function go(){' +
+  'if(!mq.matches)return;' +
   'var row=document.querySelector(".masthead-row");' +
   'if(!row||!row.querySelector(".nav-meta")||row.querySelector(".cm-burger"))return;' +
   'var b=document.createElement("button");b.type="button";b.className="cm-burger";' +
@@ -227,12 +229,21 @@ const NAV_SCRIPT =
   'document.addEventListener("keydown",function(e){if(e.key==="Escape")shut();});' +
   '}' +
   'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();' +
+  '/* Rotating a phone into range, or resizing on desktop, has to arrive at the\n' +
+  '   same place a reload would. */' +
+  'if(mq.addEventListener)mq.addEventListener("change",go);' +
   '})();<\/script>';
 
 function ensureGlobals(html) {
   if (typeof html !== 'string') return html;
   if (html.indexOf('id="cm-guard"') !== -1) return html;          // already present
-  if (/<\/body>/i.test(html) && html.indexOf('cm-nav-collapsed') === -1) {
+  /* The idempotency guard has to be a token that appears ONLY in the injected
+     script. The first version tested for 'cm-nav-collapsed' — which is also
+     the class name in the stylesheet on every page that renders a masthead.
+     So the check was true before injection, and the script was skipped on
+     exactly the pages that needed it: the building pages. Match on the script
+     tag's own id instead, which nothing else can contain. */
+  if (/<\/body>/i.test(html) && html.indexOf('id="cm-nav-boot"') === -1) {
     html = html.replace(/<\/body>/i, NAV_SCRIPT + '</body>');
   }
   if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + GLOBAL_TAGS);
