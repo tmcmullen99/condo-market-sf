@@ -1824,8 +1824,8 @@ img { display: block; max-width: 100%; }
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     L.control.zoom({ position: 'topright' }).addTo(map);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
 
     var CM_MARKERS = [];
     BLDGS.forEach(function (b) {

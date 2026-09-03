@@ -214,7 +214,7 @@
     var lats = buildings.map(function (b) { return b.lat; }), lngs = buildings.map(function (b) { return b.lng; });
     map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true });
     map.fitBounds([[Math.min.apply(null, lats), Math.min.apply(null, lngs)], [Math.max.apply(null, lats), Math.max.apply(null, lngs)]], { padding: [28, 28] });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=__CARTO_KEY__', { subdomains: 'abcd', maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
 
     var st = payload.stats || {}, mk = payload.market || {};
     var ll = document.getElementById('live-line');

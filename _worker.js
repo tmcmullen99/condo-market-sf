@@ -41,8 +41,8 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { tag: 'sf', slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.png', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
-  sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', ogImage: 'https://www.siliconvalleycondomarket.com/og-sv.png', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
+  sf: { tag: 'sf', slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
+  sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', ogImage: 'https://www.siliconvalleycondomarket.com/og-sv.jpg', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
   return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
@@ -155,6 +155,12 @@ function applyOgRotation(html, url, mk) {
 let CARTO_KEY = '';
 const CARTO_TOKEN = '__CARTO_KEY__';
 
+/* Bump on every og card change. X caches a card per URL for about a week and
+   will not re-fetch an image at a URL it has already seen - the version query
+   is the only thing that forces it, so a replaced card file with the same name
+   stays invisible until the cache expires. */
+const OG_VER = '3';
+
 const TRACK_VER = '2';
 const INTENT_VER = '22';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
@@ -168,6 +174,33 @@ function ensureIntent(html) {
   if (html.indexOf('cm-track.js') === -1) add += '<script src="/assets/cm-track.js?v=' + TRACK_VER + '" defer></script>';
   if (html.indexOf('cm-intent.js') === -1) add += INTENT_TAG;
   return add ? html.replace(/<\/body>/i, add + '</body>') : html;
+}
+
+/* Two things every HTML response needs, injected at the same seam as the
+   favicon so a page added later cannot miss them.
+
+   carto-key: /assets/*.js is served as application/javascript, so the
+   __CARTO_KEY__ substitution below never reaches it. The meta carries the key
+   into the DOM instead, and cmCartoTiles() in cm-market.js / cm-report.js
+   reads it. No key set means an unkeyed tile URL - watermarked, never broken.
+
+   cm-guard: horizontal overflow on mobile. Any single element wider than the
+   viewport widens the document and makes the whole page scroll sideways. The
+   real fix is per-element (see .nav-meta below); this is the net that stops one
+   missed element taking the whole page with it. overflow-x:clip rather than
+   hidden - hidden creates a scroll container and silently breaks
+   position:sticky, which the building page header relies on. */
+const GLOBAL_TAGS =
+  '<meta name="carto-key" content="__CARTO_KEY__">' +
+  '<style id="cm-guard">html{overflow-x:clip}body{overflow-x:clip;max-width:100%}' +
+  'img,svg,video,canvas,iframe{max-width:100%}</style>';
+
+function ensureGlobals(html) {
+  if (typeof html !== 'string') return html;
+  if (html.indexOf('id="cm-guard"') !== -1) return html;          // already present
+  if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + GLOBAL_TAGS);
+  if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, '<html$1><head>' + GLOBAL_TAGS + '</head>');
+  return html;
 }
 
 const FAVICON_TAGS =
@@ -191,7 +224,7 @@ async function withFavicon(res) {
     const body = await res.text();
     /* One seam, on the path every HTML response already takes - so a map
        added later cannot miss the key. */
-    let out = ensureIntent(ensureFavicon(body));
+    let out = ensureGlobals(ensureIntent(ensureFavicon(body)));
     if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
@@ -250,7 +283,17 @@ async function renderChrome(request, env, kind) {
     .replace(/<meta\s+property="og:url"[^>]*>/i, '<meta property="og:url" content="' + attr(c.url) + '">');
 
   if (mk.ogImage) {
-    const ogImg = attr(mk.ogImage);
+    /* Serve the card from the host the crawler is actually on. og:image was
+       hardcoded to www.; a crawl that lands on the apex then has to follow a
+       redirect for the image, and X fetches a card image once and does not
+       follow. Same-origin removes the hop entirely. */
+    let ogAbs = mk.ogImage;
+    try {
+      const reqUrl = new URL(request.url);
+      ogAbs = reqUrl.origin + new URL(mk.ogImage).pathname;
+    } catch (e) { /* keep the registry value */ }
+    ogAbs += (ogAbs.indexOf('?') === -1 ? '?v=' : '&v=') + OG_VER;
+    const ogImg = attr(ogAbs);
     if (/<meta\s+property="og:image"[^>]*>/i.test(html)) {
       html = html.replace(/<meta\s+property="og:image"[^>]*>/i, '<meta property="og:image" content="' + ogImg + '">');
     } else {
@@ -260,6 +303,18 @@ async function renderChrome(request, env, kind) {
       html = html.replace(/<meta\s+name="twitter:image"[^>]*>/i, '<meta name="twitter:image" content="' + ogImg + '">');
     } else {
       html = html.replace('<head>', '<head>\n<meta name="twitter:image" content="' + ogImg + '">\n<meta name="twitter:card" content="summary_large_image">');
+    }
+    /* The tags a strict crawler looks for and this page never had. Declared
+       once, after the two replacements above, so they cannot be duplicated. */
+    if (html.indexOf('og:image:secure_url') === -1) {
+      html = html.replace('<head>',
+        '<head>\n<meta property="og:image:secure_url" content="' + ogImg + '">' +
+        '\n<meta property="og:image:type" content="' + (/\.png(\?|$)/i.test(ogAbs) ? 'image/png' : 'image/jpeg') + '">' +
+        '\n<meta property="og:image:alt" content="' + attr(mk.brand) + '">' +
+        '\n<meta name="twitter:image:alt" content="' + attr(mk.brand) + '">');
+    }
+    if (html.indexOf('twitter:card') === -1) {
+      html = html.replace('<head>', '<head>\n<meta name="twitter:card" content="summary_large_image">');
     }
   }
 
@@ -1489,7 +1544,9 @@ function nbChrome(title, desc, canonical, jsonld, base, body) {
 '.wrap{max-width:1040px;margin:0 auto;padding:0 24px}' +
 'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
 '.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
-'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:0 22px;min-width:0}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:0}.nav a:hover{color:var(--orange-bright)}' +
+'@media(max-width:720px){header.cm .wrap{height:auto;flex-wrap:wrap;gap:10px;padding-top:12px;padding-bottom:12px}.nav{gap:6px 14px;justify-content:flex-start;width:100%}}' +
 '.hero{padding:56px 0 28px;border-bottom:1px solid var(--line)}' +
 '.kick{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
 'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0 0 16px}' +
@@ -1721,7 +1778,9 @@ async function renderBuildingsDirectory(mk) {
 '.wrap{max-width:1080px;margin:0 auto;padding:0 24px}' +
 'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
 '.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
-'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:0 22px;min-width:0}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:0}.nav a:hover{color:var(--orange-bright)}' +
+'@media(max-width:720px){header.cm .wrap{height:auto;flex-wrap:wrap;gap:10px;padding-top:12px;padding-bottom:12px}.nav{gap:6px 14px;justify-content:flex-start;width:100%}}' +
 '.hero{padding:58px 0 28px;border-bottom:1px solid var(--line)}' +
 '.kick{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
 'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 16px}' +
@@ -1832,7 +1891,9 @@ async function renderStatsHub(mk) {
 '.wrap{max-width:1040px;margin:0 auto;padding:0 24px}' +
 'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
 '.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
-'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:0 22px;min-width:0}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:0}.nav a:hover{color:var(--orange-bright)}' +
+'@media(max-width:720px){header.cm .wrap{height:auto;flex-wrap:wrap;gap:10px;padding-top:12px;padding-bottom:12px}.nav{gap:6px 14px;justify-content:flex-start;width:100%}}' +
 '.hero{padding:60px 0 30px;border-bottom:1px solid var(--line)}' +
 '.kick{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
 'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.1;margin:0 0 16px}' +
@@ -2112,7 +2173,9 @@ async function renderRankingsHub(mk) {
 'header.cm{border-bottom:1px solid var(--line);background:rgba(10,13,18,.9)}' +
 'header.cm .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}' +
 '.wm{font-family:"Playfair Display",serif;font-style:italic;font-size:21px;color:var(--ivory);text-decoration:none}.wm b{color:var(--orange);font-style:normal;font-weight:700}' +
-'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:22px}.nav a:hover{color:var(--orange-bright)}' +
+'.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:0 22px;min-width:0}' +
+'.nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:0}.nav a:hover{color:var(--orange-bright)}' +
+'@media(max-width:720px){header.cm .wrap{height:auto;flex-wrap:wrap;gap:10px;padding-top:12px;padding-bottom:12px}.nav{gap:6px 14px;justify-content:flex-start;width:100%}}' +
 '.hero{padding:60px 0 30px;border-bottom:1px solid var(--line)}' +
 '.kick{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin:0 0 14px}' +
 'h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.1;margin:0 0 16px}' +
@@ -3332,11 +3395,24 @@ const CSS = `
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
   .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
   .wordmark em { color: var(--cm-peri); }
-  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
+  /* flex-wrap is the fix. Six items at 11px with 22px gaps measure ~520px;
+     a nowrap flex row cannot shrink below its content, so on a 380px phone it
+     pushed the document 140px wider than the viewport and the whole page
+     scrolled sideways. .masthead-row already wrapped - the nav inside it did
+     not, so wrapping the outer row achieved nothing. */
+  .nav-meta { font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; flex-wrap: wrap; gap: 22px; align-items: center; min-width: 0; justify-content: flex-end; }
   .nav-meta a { color: var(--cm-ivory-dim); text-decoration: none; transition: color 0.15s; }
   .nav-meta a:hover { color: var(--cm-ivory); }
   .signin-btn { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 7px 14px; border-radius: 999px; }
   .signin-btn:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
+  @media (max-width: 720px) {
+    .masthead { padding: 16px 0; }
+    .masthead-row { align-items: center; gap: 12px; }
+    .wordmark { font-size: 19px; }
+    .nav-meta { gap: 14px; row-gap: 10px; justify-content: flex-start; width: 100%; }
+    .crumb { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+    .crumb::-webkit-scrollbar { display: none; }
+  }
   .crumb { padding: 18px 0 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); }
   .crumb a { color: var(--cm-ivory-dim); }
   .crumb a:hover { color: var(--cm-peri); }

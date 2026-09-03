@@ -309,7 +309,7 @@ function mmmHTML(p, units) {
 function footerHTML(p) {
   return `<footer class="pf-foot"><div class="pf-wrap">
     <div class="nm">Tim McMullen</div>
-    <div>Condo Market SF · McMullen Properties LLC · under Real Broker · DRE #02016832</div>
+    <div>Condo Market SF · McMullen Properties LLC · Tim McMullen, Broker · DRE #02016832</div>
     <div style="margin-top:6px"><a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a> · 415-691-9272</div>
     <div class="pf-disc">This comparative market analysis is an opinion of value prepared by a licensed real estate agent to inform a selling decision. It is not an appraisal and is not a substitute for one. Sale prices, square footage, dues and dates are taken from MLS comparable-property exports, public records and Condo Market building sales history; they are deemed reliable but are not guaranteed. Projections apply a stated rate to recorded living area and make no adjustment for floor, outlook, condition or dues. Sample sizes are disclosed throughout and are small in places. Any credit shown is applied against commission at the close of escrow on a sale transacted through Condo Market and is subject to the terms of the offer as claimed on your account. Verify all figures independently before acting.</div>
   </div></footer>`;

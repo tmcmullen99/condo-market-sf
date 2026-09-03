@@ -1,3 +1,11 @@
+  /* CARTO watermarks unkeyed raster tiles. The worker injects
+     <meta name="carto-key"> into every HTML page; no key means an unkeyed
+     URL, which still renders - watermarked, never broken. */
+  function cmCartoTiles(style) {
+    var m = document.querySelector('meta[name="carto-key"]');
+    var k = (m && m.content && m.content.indexOf('__') !== 0) ? m.content : '';
+    return 'https://{s}.basemaps.cartocdn.com/' + style + '/{z}/{x}/{y}{r}.png' + (k ? '?key=' + encodeURIComponent(k) : '');
+  }
 /* =============================================================================
  * cm-report.js — Building Market Report renderer
  * Renders the full report from a single building_market_report RPC call.
@@ -294,10 +302,10 @@
       if (!L) return;
       var map = L.map(el, { zoomControl: true, scrollWheelZoom: false, attributionControl: false })
                 .setView([b.lat, b.lng], 15);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+      L.tileLayer(cmCartoTiles('dark_nolabels'), {
         subdomains: 'abcd', maxZoom: 19
       }).addTo(map);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+      L.tileLayer(cmCartoTiles('dark_only_labels'), {
         subdomains: 'abcd', maxZoom: 19
       }).addTo(map);
 
