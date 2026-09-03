@@ -1901,7 +1901,7 @@ img { display: block; max-width: 100%; }
         var bac = (b.active_count != null ? Number(b.active_count) : 0);
         var meta = esc(b.address || '') + (b.units != null ? ' &middot; ' + b.units + ' units' : '') + (b.psf != null ? ' &middot; $' + nf(b.psf) + '/sf' : '');
         var actTag = bac > 0 ? '<span class="hood-bldg-active">' + bac + ' active</span>' : '';
-        return '<a class="hood-bldg' + (bac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + (bac > 0 ? '#active' : '') + '" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + actTag + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
+        return '<a class="hood-bldg' + (bac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + '" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + actTag + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
       }).join('');
 
       var more = list.length > HOOD_CAP
@@ -2041,7 +2041,12 @@ img { display: block; max-width: 100%; }
       var mk = L.marker([b.lat, b.lng], { icon: icon })
         .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : '') + (hasActive ? '<br><span style="color:var(--peri);font-weight:600;">' + b.active_count + ' active listing' + (b.active_count === 1 ? '' : 's') + ' →</span>' : ''), { direction: 'top', offset: [0, -8] })
         .on('click', function () {
-          if (hasActive) { window.location.href = '/building/' + b.slug + '/#active'; return; }
+          /* Was '/#active'. A hash on a click-through is an auto-scroll: the
+             visitor taps a pin and the page opens part-way down, past the
+             hero, the address and the photography. The active listings are two
+             taps away in the sticky nav for anyone who wants them; landing on
+             the building itself is the right first frame. */
+          if (hasActive) { window.location.href = '/building/' + b.slug + '/'; return; }
           var card = document.querySelector('.hood[data-hood="' + (b.hood || '').replace(/"/g, '') + '"]');
           if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); var btn = card.querySelector('.hood-toggle'); if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click(); }
         })
@@ -2258,7 +2263,7 @@ img { display: block; max-width: 100%; }
       var activeBadge = ac > 0 ? '<span class="bldg-active-badge">' + ac + ' active</span>' : '';
       var stats = '<span><strong>' + (b.units != null ? nf(b.units) : '—') + '</strong> units</span>' + (b.psf != null ? '<span><strong>$' + nf(b.psf) + '</strong>/sf</span>' : '') + (b.year_built != null ? '<span>' + b.year_built + '</span>' : '');
       var search = esc(((b.name || '') + ' ' + (b.address || '') + ' ' + (b.neighborhood || '')).toLowerCase());
-      return '<a class="bldg-card' + (ac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + (ac > 0 ? '#active' : '') + '" data-hood="' + esc(b.neighborhood || '') + '" data-search="' + search + '">' +
+      return '<a class="bldg-card' + (ac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + '" data-hood="' + esc(b.neighborhood || '') + '" data-search="' + search + '">' +
         '<div class="bldg-img-wrap">' + img + activeBadge + '</div>' +
         '<div class="bldg-body"><h4 class="bldg-name">' + esc(b.name) + '</h4>' +
         '<p class="bldg-street">' + esc(b.address || '') + (b.neighborhood ? ' &middot; ' + esc(b.neighborhood) : '') + '</p>' +
