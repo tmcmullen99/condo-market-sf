@@ -653,6 +653,10 @@ img { display: block; max-width: 100%; }
   border-radius: 3px; transition: background .15s;
 }
 .hood-bldg:hover { background: var(--card); }
+/* Rendered but not shown. .hood-bldg is a flex row, so the reveal has to
+   restore flex — display:block would drop the two lines onto one. */
+.hood-bldg.is-over-cap { display: none; }
+.hood.is-showing-all .hood-bldg.is-over-cap { display: flex; }
 .hood-bldg-name { font-size: 13px; font-weight: 600; color: var(--navy); }
 .hood-bldg-meta { font-size: 11px; color: var(--text-mute); }
 .hood-bldg.has-active { background: var(--peri-soft); box-shadow: inset 2px 0 0 var(--peri); }
@@ -1918,11 +1922,19 @@ img { display: block; max-width: 100%; }
         return (Number(b.units) || 0) - (Number(a.units) || 0);
       });
 
-      var bldgs = list.slice(0, HOOD_CAP).map(function (b) {
+      /* Every building gets a row; the ones past the cap are hidden by CSS
+         rather than never rendered.
+
+         Slicing here is what broke the map. South Beach has 40 buildings and
+         renders 8, so 32 of its 40 pins pointed at a row that did not exist,
+         and the pin handler's fallback navigated instead of highlighting.
+         Rendering the overflow hidden keeps the collapsed card exactly as
+         short as it was while making every pin addressable. */
+      var bldgs = list.map(function (b, i) {
         var bac = (b.active_count != null ? Number(b.active_count) : 0);
         var meta = esc(b.address || '') + (b.units != null ? ' &middot; ' + b.units + ' units' : '') + (b.psf != null ? ' &middot; $' + nf(b.psf) + '/sf' : '');
         var actTag = bac > 0 ? '<span class="hood-bldg-active">' + bac + ' active</span>' : '';
-        return '<a class="hood-bldg' + (bac > 0 ? ' has-active' : '') + '" href="/building/' + esc(b.slug) + '/' + '" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + actTag + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
+        return '<a class="hood-bldg' + (bac > 0 ? ' has-active' : '') + (i >= HOOD_CAP ? ' is-over-cap' : '') + '" href="/building/' + esc(b.slug) + '/' + '" data-bldg-slug="' + esc(b.slug) + '"><span class="hood-bldg-name">' + esc(b.name) + actTag + '</span><span class="hood-bldg-meta">' + meta + '</span></a>';
       }).join('');
 
       var more = list.length > HOOD_CAP
@@ -2055,28 +2067,27 @@ img { display: block; max-width: 100%; }
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { subdomains: 'abcd', maxZoom: 19, pane: 'markerPane' }).addTo(map);
 
-    /* Tapping a pin used to open the neighbourhood card and stop there — which
-       answers "which neighbourhood?" when the question was "which building?",
-       and the card lists eight of them. Now the row itself is found, marked and
-       scrolled to inside the sheet.
+    /* One tap on a pin does one thing: show the building's card on the map and
+       mark that exact building in the list below. It never navigates.
 
-       Pins for buildings WITH listings used to navigate straight to the
-       building page instead. That is now the same as every other pin: mark the
-       row, and let the row — which is a link, and carries the "N active" badge
-       — be the thing that takes you there. One gesture, one meaning.
+       The previous version navigated whenever it could not find the row, and
+       because the card rendered only the first HOOD_CAP buildings that was the
+       common case, not the edge case — 32 of South Beach's 40 pins. Rows are
+       now all rendered (hidden past the cap), so the row is always there, and
+       the escape hatch is gone with it. Going to the building page is the
+       row's job: it is a link, and it carries the "N active" badge.
 
-       The fallback matters: each neighbourhood card lists at most HOOD_CAP
-       buildings, so a pin can point at a building that has no row. Rather than
-       silently doing nothing, that case navigates, which is what it did
-       before. */
+       If the row is one of the hidden ones, the whole card expands rather than
+       revealing a single orphan row in the middle of a truncated list. */
     function pickBuilding(b) {
       var hood = (b.hood || '').replace(/"/g, '');
       var card = hood ? document.querySelector('.hood[data-hood="' + hood + '"]') : null;
       var row  = card ? card.querySelector('.hood-bldg[data-bldg-slug="' + String(b.slug).replace(/"/g, '') + '"]') : null;
-      if (!card || !row) { window.location.href = '/building/' + b.slug + '/'; return; }
+      if (!card || !row) return;                 // nothing to point at; the tooltip still shows
 
       var btn = card.querySelector('.hood-toggle');
       if (btn && btn.getAttribute('aria-expanded') === 'false') btn.click();
+      if (row.classList.contains('is-over-cap')) card.classList.add('is-showing-all');
 
       var sheet = document.querySelector('.hoods-col');
       if (sheet && sheet._cmSetSnap && sheet.getAttribute('data-snap') === 'peek') sheet._cmSetSnap('half');
@@ -2097,7 +2108,11 @@ img { display: block; max-width: 100%; }
       var hasActive = b.active_count > 0;
       var icon = L.divIcon({ html: '<div class="cm-marker' + (hasActive ? ' has-active' : '') + '" data-hood="' + esc(b.hood) + '"' + (hasActive ? ' data-slug="' + esc(b.slug) + '"' : '') + '></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
       var mk = L.marker([b.lat, b.lng], { icon: icon })
-        .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : '') + (hasActive ? '<br><span style="color:var(--peri);font-weight:600;">' + b.active_count + ' active listing' + (b.active_count === 1 ? '' : 's') + ' →</span>' : ''), { direction: 'top', offset: [0, -8] })
+        /* This is the card a tap pulls up. It has to survive the tap that
+           opened it, so it is not tied to hover: Leaflet's default closes a
+           tooltip on the next touch anywhere, which on a phone is the same
+           gesture that opened it. */
+        .bindTooltip('<strong>' + esc(b.name) + '</strong><br>' + esc(b.hood || '') + (b.psf != null ? ' · $' + nf(b.psf) + '/sf' : '') + (hasActive ? '<br><span style="color:var(--peri);font-weight:600;">' + b.active_count + ' active listing' + (b.active_count === 1 ? '' : 's') + ' →</span>' : ''), { direction: 'top', offset: [0, -8], sticky: false })
         .on('click', function () { pickBuilding(b); })
         .addTo(map);
       CM_MARKERS.push({ marker: mk, hasActive: hasActive });
