@@ -466,6 +466,49 @@ async function handleRequest(request, env) {
       }
     }
 
+    // /r/<CODE> — printed letter QR codes.
+    //
+    // Letters for this market print https://sanfranciscocondomarket.com/r/<CODE>,
+    // and this worker never had the route, so every one of them was a 404. The
+    // codes live in the city database, which also decides where each goes and on
+    // which site (qr_resolve). This records the scan there and redirects. A
+    // printed code cannot be recalled: an unknown code still lands on the home
+    // page, never on a 404. THIS ROUTE IS PERMANENT.
+    {
+      const qrM = url.pathname.match(/^\/r\/([A-Za-z0-9]{4,12})\/?$/);
+      if (qrM) {
+        const code = qrM[1].toUpperCase();
+        const hint = url.searchParams.get('h') || null;
+        let host = url.host;
+        let target = '/';
+        try {
+          const K = 'sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2';
+          const r = await fetch('https://qinuukntpyulqjzndnho.supabase.co/rest/v1/rpc/record_qr_scan', {
+            method: 'POST',
+            headers: { 'apikey': K, 'Authorization': 'Bearer ' + K, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              p_code: code, p_recipient: hint,
+              p_visitor: url.searchParams.get('v') || null,
+              p_ua: request.headers.get('user-agent') || null,
+              p_ref: request.headers.get('referer') || null,
+            }),
+          });
+          if (r.ok) {
+            const j = await r.json();
+            if (j && j.ok && j.target) {
+              target = String(j.target);
+              if (j.domain && /^[a-z0-9.-]+$/i.test(j.domain)
+                  && j.domain.replace(/^www\./, '') !== url.host.replace(/^www\./, '')) host = j.domain;
+            }
+          }
+        } catch (e) { /* tracking must never break the redirect */ }
+        if (!target.startsWith('/')) target = '/';
+        const dest = 'https://' + host + target + (target.includes('?') ? '&' : '?')
+          + 'qr=' + code + (hint ? '&qh=' + encodeURIComponent(hint) : '');
+        return new Response(null, { status: 302, headers: { 'Location': dest, 'Cache-Control': 'no-store' } });
+      }
+    }
+
     // robots.txt — per-host, points at this host's sitemap.
     if (url.pathname === '/robots.txt') {
       // Open to AI training and answer engines by design — this is a public
