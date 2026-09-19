@@ -553,6 +553,16 @@ async function handleRequest(request, env) {
       return renderRankingsHub(hostMk);
     }
 
+    // Local news and monthly market reports. The articles live on the city
+    // platform (news_articles, market 5 = SF, 6 = SV); this site renders them.
+    if (request.method === 'GET' && (url.pathname === '/news' || url.pathname === '/news/')) {
+      return renderCondoNewsIndex(hostMk);
+    }
+    {
+      const nm = url.pathname.match(/^\/news\/([a-z0-9-]+)\/?$/);
+      if (request.method === 'GET' && nm) return renderCondoNewsArticle(hostMk, nm[1]);
+    }
+
     // Evergreen data hub: citywide market stats (trailing-12mo pulse + YoY).
     if (request.method === 'GET' &&
         (url.pathname === '/san-francisco-condo-market-stats' ||
@@ -716,7 +726,7 @@ async function handleRequest(request, env) {
     // than 404 — a relevant hub beats a dead end, and never a redirect loop.
     const LEGACY_PATH = {
       '/homes': '/buildings/', '/about': '/how-it-works/', '/contact': '/how-it-works/',
-      '/news': '/san-francisco-condo-market-stats', '/invest': '/san-francisco-condo-rankings',
+      '/invest': '/san-francisco-condo-rankings',
       '/affiliate': '/how-it-works/', '/mo': '/', '/condos-in-san-francisco': '/san-francisco-condos',
     };
     if (request.method === 'GET') {
@@ -981,6 +991,13 @@ async function renderSitemap(mk) {
 
   const today = new Date().toISOString().slice(0, 10);
   const urlsXml = [];
+  // News: the index plus every published article for this market.
+  const newsIdx = await aNewsRpc('get_news_index', { p_market_id: A_MARKET_ID_BY_TAG[mk.tag] || 5, p_limit: 50, p_offset: 0 });
+  const newsArts = (newsIdx && newsIdx.ok && Array.isArray(newsIdx.articles)) ? newsIdx.articles : [];
+  urlsXml.push('<url><loc>' + base + '/news/</loc><lastmod>' + (newsArts[0] && newsArts[0].published_at ? String(newsArts[0].published_at).slice(0, 10) : today) + '</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>');
+  for (const n of newsArts) {
+    urlsXml.push('<url><loc>' + base + '/news/' + n.slug + '/</loc><lastmod>' + String(n.published_at || today).slice(0, 10) + '</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>');
+  }
   for (const u of staticUrls) {
     urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
   }
@@ -1618,6 +1635,170 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
 }
 
+/* ---------------------------------------------------------------------------
+   LOCAL NEWS. Articles and monthly market reports are written and published on
+   the city platform's desk; this site only renders them. The markdown subset is
+   the city worker's newsInline/newsBlockHtml, carried over unchanged so an
+   article reads the same on every site that shows it.
+--------------------------------------------------------------------------- */
+const CM_NEWS_MEDIA = SB_A_URL + '/storage/v1/object/public/news/';
+const cmNewsMedia = p => /^https?:\/\//i.test(String(p || '')) ? String(p) : CM_NEWS_MEDIA + p;
+
+async function aNewsRpc(name, body) {
+  try {
+    const res = await fetch(SB_A_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: { 'apikey': SB_A_KEY, 'Authorization': 'Bearer ' + SB_A_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return await res.json();
+  } catch (e) { /* fall through */ }
+  return null;
+}
+function cmNewsInline(s) {
+  return esc(s)
+    .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" loading="lazy">')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" rel="nofollow noopener" target="_blank">$1</a>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+function cmNewsBlocks(md) {
+  return String(md || '').replace(/\r/g, '').split(/\n{2,}/).map(x => x.trim()).filter(Boolean);
+}
+function cmNewsBlockHtml(b) {
+  if (/^\|/.test(b)) {
+    const rows = b.split('\n').filter(r => r.trim() && !/^\|[\s:|-]+\|$/.test(r.trim()));
+    const cells = rows.map(r => r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
+    if (!cells.length) return '';
+    return '<div class="nw-tblw"><table><thead><tr>'
+      + cells[0].map(c => '<th>' + cmNewsInline(c) + '</th>').join('')
+      + '</tr></thead><tbody>'
+      + cells.slice(1).map(r => '<tr>' + r.map(c => '<td>' + cmNewsInline(c) + '</td>').join('') + '</tr>').join('')
+      + '</tbody></table></div>';
+  }
+  if (/^###\s/.test(b))   return '<h3>' + cmNewsInline(b.replace(/^###\s/, '')) + '</h3>';
+  if (/^##\s/.test(b))    return '<h2>' + cmNewsInline(b.replace(/^##\s/, '')) + '</h2>';
+  if (/^>\s?/.test(b))    return '<blockquote>' + cmNewsInline(b.replace(/^>\s?/gm, '')) + '</blockquote>';
+  if (/^[-*]\s/.test(b))  return '<ul>' + b.split('\n').map(l => '<li>' + cmNewsInline(l.replace(/^[-*]\s/, '')) + '</li>').join('') + '</ul>';
+  if (/^\d+\.\s/.test(b)) return '<ol>' + b.split('\n').map(l => '<li>' + cmNewsInline(l.replace(/^\d+\.\s+/, '')) + '</li>').join('') + '</ol>';
+  if (/^---+$/.test(b))   return '<hr>';
+  return '<p>' + cmNewsInline(b).replace(/\n/g, '<br>') + '</p>';
+}
+function cmNewsDate(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles' }); }
+  catch (e) { return String(iso).slice(0, 10); }
+}
+const CM_NEWS_CSS = '<style>' +
+'.nw-list{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;padding:26px 0 40px}@media(max-width:760px){.nw-list{grid-template-columns:1fr}}' +
+'.nw-card{display:block;border:1px solid var(--line);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--ivory);transition:border-color .15s}.nw-card:hover{border-color:var(--orange)}' +
+'.nw-card .ph img{display:block;width:100%;height:190px;object-fit:cover}.nw-card .bd{padding:16px 18px}' +
+'.nw-kind{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange)}' +
+'.nw-card h2{font-family:"Playfair Display",serif;font-size:20px;line-height:1.25;margin:6px 0 8px}.nw-card p{color:#c3ccd9;font-size:14.5px;margin:0}' +
+'.nw-meta{font-size:12.5px;color:var(--dim);margin-top:10px}' +
+'.nw-empty{border:1px solid var(--line);border-radius:12px;padding:22px;color:#c3ccd9;margin:28px 0 40px}' +
+'.nw-art{max-width:720px;margin:0 auto;padding:40px 0 60px}' +
+'.nw-crumb{font-size:13px;color:var(--dim);margin-bottom:14px}.nw-crumb a{color:var(--dim);text-decoration:none}.nw-crumb a:hover{color:var(--orange-bright)}' +
+'.nw-dek{font-size:18px;color:#c3ccd9;margin:0 0 14px}.nw-by{font-size:13px;color:var(--dim);margin-bottom:26px}' +
+'.nw-hero{margin:0 0 26px}.nw-hero img{width:100%;border-radius:12px;display:block}.nw-hero figcaption,.nw-fig figcaption{font-size:12.5px;color:var(--dim);margin-top:8px}' +
+'.nw-fig{margin:10px 0 24px}.nw-fig img{width:100%;border-radius:10px;display:block}' +
+'.nw-body{font-size:17px;line-height:1.7}.nw-body p{margin:0 0 18px}' +
+'.nw-body h2{font-family:"Playfair Display",serif;font-size:25px;margin:36px 0 12px}.nw-body h3{font-size:19px;margin:28px 0 10px}' +
+'.nw-body a{color:var(--orange-bright)}.nw-body ul,.nw-body ol{margin:0 0 18px 22px}.nw-body li{margin-bottom:6px}' +
+'.nw-body blockquote{border-left:3px solid var(--orange);padding-left:16px;margin:0 0 18px;color:#c3ccd9}' +
+'.nw-body hr{border:0;border-top:1px solid var(--line);margin:28px 0}' +
+'.nw-tblw{overflow-x:auto;margin:0 0 22px}.nw-body table{font-size:15px}.nw-body th{white-space:nowrap}' +
+'.nw-src{margin-top:30px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;font-size:14px;color:#c3ccd9}.nw-src b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}.nw-src a{color:var(--orange-bright)}' +
+'.nw-share{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}.nw-share a{font-size:13px;padding:8px 14px;border:1px solid var(--line);border-radius:99px;text-decoration:none;color:var(--ivory)}.nw-share a:hover{border-color:var(--orange)}' +
+'.nw-legal{font-size:12.5px;color:var(--dim);margin-top:30px}' +
+'</style>';
+
+async function renderCondoNewsIndex(mk) {
+  const marketId = A_MARKET_ID_BY_TAG[mk.tag] || 5;
+  const base = 'https://www.' + mk.domain;
+  const canonical = base + '/news/';
+  const data = await aNewsRpc('get_news_index', { p_market_id: marketId, p_limit: 30, p_offset: 0 });
+  const arts = (data && data.ok && Array.isArray(data.articles)) ? data.articles : [];
+  const title = mk.region + ' condo news & monthly market reports \u2014 ' + mk.brand;
+  const desc = 'What is moving the ' + mk.region + ' condo market: recorded sales, building by building, and a monthly report with the sample behind every number.';
+  const cards = arts.map(a => {
+    const img = a.hero_path ? '<div class="ph"><img src="' + attr(cmNewsMedia(a.hero_path)) + '" alt="' + attr(a.hero_alt || a.headline) + '" loading="lazy"></div>' : '';
+    return '<a class="nw-card" href="' + base + '/news/' + attr(a.slug) + '/">' + img + '<div class="bd">' +
+      '<div class="nw-kind">' + (a.kind === 'market_review' ? 'Monthly market report' : 'Local news') + '</div>' +
+      '<h2>' + esc(a.headline) + '</h2>' + (a.dek ? '<p>' + esc(a.dek) + '</p>' : '') +
+      '<div class="nw-meta">' + esc(cmNewsDate(a.published_at)) + (a.word_count ? ' \u00b7 ' + Math.max(1, Math.round(a.word_count / 220)) + ' min read' : '') + '</div>' +
+      '</div></a>';
+  }).join('');
+  const jsonld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, url: canonical, description: desc,
+    hasPart: arts.slice(0, 20).map(a => ({ '@type': 'NewsArticle', headline: a.headline, url: base + '/news/' + a.slug + '/', datePublished: a.published_at })) };
+  const body = CM_NEWS_CSS +
+    '<div class="hero"><div class="wrap"><p class="kick">' + esc(mk.region) + ' \u00b7 Local news</p>' +
+    '<h1>' + esc(mk.region) + ' condo news</h1>' +
+    '<p class="lede">What actually moved the market, from the recorded sales. A monthly report on the first of every month, and coverage of anything notable in between.</p></div></div>' +
+    '<div class="wrap">' + (cards ? '<div class="nw-list">' + cards + '</div>'
+      : '<div class="nw-empty">No articles are published here yet. The monthly report for the month just ended goes up in the first days of each month.</div>') + '</div>';
+  const html = nbChrome(title, desc, canonical, jsonld, base, body);
+  return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=900' } });
+}
+
+async function renderCondoNewsArticle(mk, slug) {
+  const marketId = A_MARKET_ID_BY_TAG[mk.tag] || 5;
+  const base = 'https://www.' + mk.domain;
+  const data = await aNewsRpc('get_news_article', { p_market_id: marketId, p_slug: slug });
+  if (!data || !data.ok || !data.article) {
+    const body = CM_NEWS_CSS + '<div class="wrap"><div class="nw-art"><p class="nw-crumb"><a href="' + base + '/news/">News</a></p>' +
+      '<h1>That article isn\u2019t here</h1><p class="nw-dek">It may have been moved or taken down. <a style="color:var(--orange-bright)" href="' + base + '/news/">See all ' + esc(mk.region) + ' news</a>.</p></div></div>';
+    return new Response(nbChrome('Not found \u2014 ' + mk.brand, 'Article not found.', base + '/news/', {}, base, body),
+      { status: 404, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=60' } });
+  }
+  const a = data.article;
+  const canonical = base + '/news/' + a.slug + '/';
+  const imgs = Array.isArray(data.images) ? data.images : [];
+  const blocks = cmNewsBlocks(a.body_md);
+  let bodyHtml = '';
+  blocks.forEach((b, i) => {
+    bodyHtml += cmNewsBlockHtml(b);
+    imgs.filter(im => Number(im.after_block) === i + 1).forEach(im => {
+      bodyHtml += '<figure class="nw-fig"><img src="' + attr(cmNewsMedia(im.storage_path)) + '" alt="' + attr(im.alt || im.caption || '') + '" loading="lazy">' +
+        (im.caption ? '<figcaption>' + esc(im.caption) + '</figcaption>' : '') + '</figure>';
+    });
+  });
+  imgs.filter(im => Number(im.after_block) > blocks.length).forEach(im => {
+    bodyHtml += '<figure class="nw-fig"><img src="' + attr(cmNewsMedia(im.storage_path)) + '" alt="' + attr(im.alt || im.caption || '') + '" loading="lazy">' +
+      (im.caption ? '<figcaption>' + esc(im.caption) + '</figcaption>' : '') + '</figure>';
+  });
+  const hero = a.hero_path ? '<figure class="nw-hero"><img src="' + attr(cmNewsMedia(a.hero_path)) + '" alt="' + attr(a.hero_alt || a.headline) + '">' +
+    (a.hero_caption ? '<figcaption>' + esc(a.hero_caption) + '</figcaption>' : '') + '</figure>' : '';
+  const au = a.author || {};
+  const sources = (a.sources || []).filter(x => x && x.url);
+  const src = sources.length ? '<div class="nw-src"><b>What this piece is reacting to</b><ul>' +
+    sources.map(x => '<li><a href="' + attr(x.url) + '" target="_blank" rel="nofollow noopener">' + esc(x.title || x.url) + '</a>' + (x.publisher ? ' \u00b7 ' + esc(x.publisher) : '') + '</li>').join('') + '</ul></div>' : '';
+  const shareText = a.share_text || a.headline;
+  const share = '<div class="nw-share">' +
+    '<a href="https://x.com/intent/post?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(canonical) + '" target="_blank" rel="noopener">Share on X</a>' +
+    '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(canonical) + '" target="_blank" rel="noopener">Facebook</a>' +
+    '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(canonical) + '" target="_blank" rel="noopener">LinkedIn</a></div>';
+  const title = a.meta_title || a.headline;
+  const desc = a.meta_description || a.dek || '';
+  const jsonld = { '@context': 'https://schema.org', '@type': 'NewsArticle', headline: a.headline, description: desc, url: canonical,
+    datePublished: a.published_at, dateModified: a.updated_at || a.published_at,
+    image: a.hero_path ? [cmNewsMedia(a.hero_path)] : undefined,
+    author: au.name ? { '@type': 'Person', name: au.name } : undefined,
+    publisher: { '@type': 'Organization', name: mk.brand } };
+  const body = CM_NEWS_CSS + '<div class="wrap"><article class="nw-art">' +
+    '<p class="nw-crumb"><a href="' + base + '/">' + esc(mk.brand) + '</a> \u203a <a href="' + base + '/news/">News</a></p>' +
+    '<h1>' + esc(a.headline) + '</h1>' + (a.dek ? '<p class="nw-dek">' + esc(a.dek) + '</p>' : '') +
+    '<div class="nw-by">' + (au.name ? 'By ' + esc(au.name) + ' \u00b7 ' : '') + esc(cmNewsDate(a.published_at)) + '</div>' +
+    hero + '<div class="nw-body">' + bodyHtml + '</div>' + src + share +
+    '<p class="nw-legal">' + (au.name ? esc(au.name) + (au.dre ? ', CA DRE #' + esc(au.dre) : '') + '. ' : '') +
+      (au.brokerage ? 'Real estate services provided by ' + esc(au.brokerage) + (au.brokerage_dre ? ', CA DRE #' + esc(au.brokerage_dre) : '') + '. ' : '') +
+      'Figures are from recorded sales; nothing here is an opinion of the value of any home.</p>' +
+    '</article></div>';
+  const html = nbChrome(title, desc, canonical, jsonld, base, body);
+  return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=900' } });
+}
+
 // shared chrome for neighborhood pages (header/nav/styles)
 function nbChrome(title, desc, canonical, jsonld, base, body) {
   return '<!doctype html><html lang="en"><head>' +
@@ -1659,7 +1840,7 @@ function nbChrome(title, desc, canonical, jsonld, base, body) {
 '.method{color:var(--dim);font-size:13px;max-width:760px;margin-top:26px}' +
 '</style></head><body>' +
 '<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
-'<nav class="nav"><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a></nav></div></header>' +
+'<nav class="nav"><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a href="' + base + '/news/">News</a></nav></div></header>' +
 body + '</body></html>';
 }
 
