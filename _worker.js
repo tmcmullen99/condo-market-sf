@@ -2265,6 +2265,7 @@ function CM_MASTHEAD(tag) {
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/active-listings">Active Listings</a><a href="/buy">Buy</a><a href="/sell">Sell</a>' +
     '<a href="/how-it-works/">How it works</a>' +
+    '<a href="/news/">Local News</a>' +
          '<a href="/investor-exchange/">Investor Exchange</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n';
@@ -2782,6 +2783,7 @@ function renderActiveListings(p, hostMk) {
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/active-listings">Active Listings</a><a href="/how-it-works/">How it works</a>' +
+    '<a href="/news/">Local News</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n' +
     '<div class="wrap"><div class="crumb">' +
@@ -3021,6 +3023,7 @@ function renderListing(d, footerData) {
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/active-listings">Active Listings</a><a href="/how-it-works/">How it works</a>' +
+    '<a href="/news/">Local News</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n' +
     '<div class="wrap"><div class="crumb">' +
