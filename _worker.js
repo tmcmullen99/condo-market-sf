@@ -1658,7 +1658,9 @@ async function aNewsRpc(name, body) {
 function cmNewsInline(s) {
   return esc(s)
     .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" loading="lazy">')
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" rel="nofollow noopener" target="_blank">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t, h) => /^\//.test(h)
+      ? '<a href="' + h + '">' + t + '</a>'
+      : '<a href="' + h + '" rel="nofollow noopener" target="_blank">' + t + '</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
     .replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -1666,7 +1668,38 @@ function cmNewsInline(s) {
 function cmNewsBlocks(md) {
   return String(md || '').replace(/\r/g, '').split(/\n{2,}/).map(x => x.trim()).filter(Boolean);
 }
+/* [[payment price=... rate=... asof=...]] becomes a payment calculator, the same
+   block the city platform renders, so one article body works on either site. */
+function cmPaymentCalcHtml(attrs) {
+  const n = k => { const m = attrs.match(new RegExp(k + '=([0-9.]+)')); return m ? Number(m[1]) : null; };
+  const price = n('price'), rate = n('rate') || 6.9, down = n('down') || 20;
+  if (!price) return '';
+  const asof = (attrs.match(/asof=([0-9-]+)/) || [])[1] || '';
+  const id = 'pc' + Math.random().toString(36).slice(2, 8);
+  return `<div class="nw-calc" id="${id}">
+    <div class="nw-calc-h">What it would cost a month</div>
+    <div class="nw-calc-grid">
+      <label>Price <input type="number" data-f="price" value="${price}" step="5000"></label>
+      <label>Down payment <span class="nw-dp"></span> <input type="range" data-f="down" min="0" max="50" step="5" value="${down}"></label>
+      <label>Rate % <input type="number" data-f="rate" value="${rate}" step="0.05"></label>
+      <label>Term <select data-f="term"><option value="30">30 years</option><option value="15">15 years</option></select></label>
+    </div>
+    <div class="nw-calc-out"><b class="nw-pay"></b><span class="nw-calc-sub"></span></div>
+    <p class="nw-calc-note">Principal and interest only, on the ${rate}% average 30-year rate${asof ? ' published ' + asof : ''} (Freddie Mac). Property taxes, insurance and homeowners' dues are on top, and your own rate will depend on your lender, credit and deposit.</p>
+  </div>
+  <script>(function(){var r=document.getElementById('${id}');if(!r)return;
+    var f=function(k){var e=r.querySelector('[data-f='+k+']');return e?Number(e.value):0};
+    var usd=function(v){return '$'+Math.round(v).toLocaleString('en-US')};
+    function calc(){var p=f('price'),d=f('down'),rt=f('rate')/100/12,t=f('term')*12,L=p*(1-d/100);
+      var m=rt>0?L*rt/(1-Math.pow(1+rt,-t)):L/t;
+      r.querySelector('.nw-dp').textContent=d+'% ('+usd(p*d/100)+')';
+      r.querySelector('.nw-pay').textContent=usd(m)+' a month';
+      r.querySelector('.nw-calc-sub').textContent=usd(L)+' borrowed over '+f('term')+' years';}
+    r.querySelectorAll('input,select').forEach(function(e){e.addEventListener('input',calc)});calc();})();</script>`;
+}
 function cmNewsBlockHtml(b) {
+  const pay = b.match(/^\[\[payment\s+([^\]]+)\]\]$/);
+  if (pay) return cmPaymentCalcHtml(pay[1]);
   if (/^\|/.test(b)) {
     const rows = b.split('\n').filter(r => r.trim() && !/^\|[\s:|-]+\|$/.test(r.trim()));
     const cells = rows.map(r => r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
@@ -1708,7 +1741,18 @@ const CM_NEWS_CSS = '<style>' +
 '.nw-body a{color:var(--orange-bright)}.nw-body ul,.nw-body ol{margin:0 0 18px 22px}.nw-body li{margin-bottom:6px}' +
 '.nw-body blockquote{border-left:3px solid var(--orange);padding-left:16px;margin:0 0 18px;color:#c3ccd9}' +
 '.nw-body hr{border:0;border-top:1px solid var(--line);margin:28px 0}' +
-'.nw-tblw{overflow-x:auto;margin:0 0 22px}.nw-body table{font-size:15px}.nw-body th{white-space:nowrap}' +
+'.nw-tblw{overflow-x:auto;margin:0 0 22px}
+.nw-calc{border:1px solid #e0e5ed;border-radius:12px;padding:18px 20px;margin:0 0 24px;background:#fff}
+.nw-calc-h{font:600 12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#7b8794;margin-bottom:12px}
+.nw-calc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 18px}
+.nw-calc-grid label{display:block;font-size:13px;font-weight:600}
+.nw-calc-grid input,.nw-calc-grid select{width:100%;margin-top:4px;padding:8px 10px;border:1px solid #e0e5ed;border-radius:7px;font:inherit;font-size:15px;background:#fff}
+.nw-calc-grid input[type=range]{padding:0}
+.nw-calc-out{margin-top:16px;padding-top:14px;border-top:1px solid #e0e5ed;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.nw-pay{font:700 26px/1.2 Georgia,'Times New Roman',serif}
+.nw-calc-sub{font-size:13px;color:#7b8794}
+.nw-calc-note{font-size:12.5px;line-height:1.6;color:#7b8794;margin:12px 0 0}
+@media(max-width:620px){.nw-calc-grid{grid-template-columns:1fr}}.nw-body table{font-size:15px}.nw-body th{white-space:nowrap}' +
 '.nw-src{margin-top:30px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;font-size:14px;color:#c3ccd9}.nw-src b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}.nw-src a{color:var(--orange-bright)}' +
 '.nw-share{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}.nw-share a{font-size:13px;padding:8px 14px;border:1px solid var(--line);border-radius:99px;text-decoration:none;color:var(--ivory)}.nw-share a:hover{border-color:var(--orange)}' +
 '.nw-legal{font-size:12.5px;color:var(--dim);margin-top:30px}' +
