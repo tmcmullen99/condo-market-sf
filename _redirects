@@ -64,12 +64,8 @@
 # Pretty-URL routing for building-scoped pages. The 200 status keeps the
 # original URL in the address bar while serving the static HTML — pages
 # themselves extract the slug from window.location.pathname.
-# The homepage IS the buildings page. It used to 302 to /buildings/, so the
-# domain root was never the homepage — a visitor to sanfranciscocondomarket.com
-# was bounced to a sub-path. A 200 rewrite serves the same file at "/" with the
-# root URL intact. /buildings/ still works for every existing link; the page
-# declares "/" as its canonical so the two do not compete in search.
-/                          /buildings/index.html  200
+# The homepage is served at "/" by _worker.js (see handleRequest); _redirects
+# rules are not applied to a site routed through _worker.js.
 
 # HOA pitch deck — board-facing
 /building/*/hoa-pitch/     /hoa-pitch.html    200

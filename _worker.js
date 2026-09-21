@@ -441,6 +441,21 @@ async function handleRequest(request, env) {
     const url = new URL(request.url);
     const hostMk = resolveMarket(url.hostname);
 
+    // The homepage lives at the domain root. The page is buildings/index.html,
+    // and "/" used to bounce there (a 302, then a meta refresh in a stub), so
+    // the root was never the homepage. The root is answered as /buildings/ is —
+    // same page, same market swaps for every domain this worker serves — with
+    // the root URL kept. The page itself forwards magic-link tokens to
+    // /auth-callback.html, the job the old stub did. /buildings/ keeps working
+    // for every existing link; the page declares "/" as its canonical.
+    // (_redirects rules do not apply to a site routed through _worker.js,
+    // which is why a 200 rewrite there had no effect.)
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      const inner = new URL(request.url);
+      inner.pathname = '/buildings/';
+      return handleRequest(new Request(inner.toString(), request), env);
+    }
+
     // Expired-listing QR codes already in the post.
     //
     // Four expired letters were mailed carrying
