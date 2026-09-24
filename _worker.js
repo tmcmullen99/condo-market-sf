@@ -61,7 +61,10 @@ function chromeFor(mk, kind) {
   return {
     title: mk.brand + ' \u2014 Every unit is for sale, for the right price.',
     desc:  'A private marketplace for every condo in ' + mk.region + '. Browse buildings, ten years of sales, owner tenure, and live offer activity \u2014 no listing required.',
-    url:   www + '/buildings/',
+    /* The home page IS this page (/ is served by rewriting to /buildings/), so
+       both declare the root. It declared /buildings/, which told Google the home
+       page was a duplicate not worth indexing (24 Sep 2026). */
+    url:   www + '/',
   };
 }
 
@@ -548,6 +551,12 @@ async function handleRequest(request, env) {
       return new Response(body, { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=3600' } });
     }
 
+    // llms.txt — a plain-text map of the site for AI assistants, generated from
+    // the same catalogue the building pages read (24 Sep 2026). Public facts only.
+    if (url.pathname === '/llms.txt') {
+      return renderLlmsTxt(hostMk);
+    }
+
     // sitemap.xml — lists THIS market's live building pages + key static pages,
     // all on this host's domain, so each domain's Search Console owns its own URLs.
     if (url.pathname === '/sitemap.xml') {
@@ -980,7 +989,8 @@ async function renderSitemap(mk) {
     if (res.ok) rows = await res.json();
   } catch (e) { rows = []; }
 
-  const staticUrls = ['/', '/buildings/', '/intelligence/', '/how-it-works/', '/active-listings', '/buy', '/sell'];
+  // '/buildings/' is not listed: it is the home page, and declares '/' as its canonical.
+  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings', '/buy', '/sell'];
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-market-stats');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condos');
@@ -1016,8 +1026,10 @@ async function renderSitemap(mk) {
   for (const u of staticUrls) {
     urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
   }
-  // City pages (browse + buy + sell)
-  for (const c of cityList) {
+  // City pages (browse + buy + sell). Not for San Francisco: SF is served by
+  // /san-francisco-condos, /buy and /sell (listed above), and its city pages
+  // 404 or redirect — a sitemap must list only URLs that answer 200 (24 Sep 2026).
+  for (const c of (mk.tag === 'sf' ? [] : cityList)) {
     urlsXml.push('<url><loc>' + base + '/condos-in-' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
     urlsXml.push('<url><loc>' + base + '/buy-a-condo-in-' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>');
     urlsXml.push('<url><loc>' + base + '/sell-a-condo-in-' + c.slug + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>');
@@ -1032,10 +1044,11 @@ async function renderSitemap(mk) {
   }
   // Active listing detail pages (fresh — listings change often).
   for (const a of activeListings) {
-    if (a && a.mls) urlsXml.push('<url><loc>' + base + '/listing/' + a.mls + '</loc><lastmod>' + today + '</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>');
+    // No lastmod: stamping every URL with today's date teaches Google to ignore lastmod site-wide.
+    if (a && a.mls) urlsXml.push('<url><loc>' + base + '/listing/' + a.mls + '</loc><changefreq>daily</changefreq><priority>0.6</priority></url>');
   }
   for (const n of (nbRows || [])) {
-    urlsXml.push('<url><loc>' + base + '/neighborhood/' + hoodSlug(n.neighborhood) + '</loc><lastmod>' + today + '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>');
+    urlsXml.push('<url><loc>' + base + '/neighborhood/' + hoodSlug(n.neighborhood) + '</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>');
   }
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
@@ -2424,6 +2437,57 @@ async function fetchFooterData(hostMk) {
   } catch (e) { return { byCityHood: {}, cities: [] }; }
 }
 
+
+async function renderLlmsTxt(mk) {
+  const base = 'https://www.' + mk.domain;
+  let dir = null;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/llms_directory', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_market_tag: mk.tag }),
+    });
+    if (res.ok) dir = await res.json();
+  } catch (e) { dir = null; }
+  const bl = (dir && Array.isArray(dir.buildings)) ? dir.buildings : [];
+  const byHood = {};
+  bl.forEach(function (b) { const h = b.neighborhood || 'Other'; (byHood[h] = byHood[h] || []).push(b); });
+  const hoods = Object.keys(byHood).sort(function (x, y) { return x === 'Other' ? 1 : y === 'Other' ? -1 : x.localeCompare(y); });
+  const lines = [];
+  lines.push('# ' + mk.brand);
+  lines.push('');
+  lines.push('> A public record of the ' + mk.region + ' condominium market: ' + bl.length + ' buildings across ' + hoods.filter(function (h) { return h !== 'Other'; }).length +
+    ' neighborhoods, each with its recorded sales, price per square foot, owner tenure and current listings. Operated by a licensed California real estate agent.');
+  lines.push('');
+  lines.push('Every building page reports recorded sales and the sample behind each figure. The site does not estimate the value of individual homes; value questions are routed to the licensed agent.');
+  lines.push('');
+  lines.push('## Key pages');
+  lines.push('- [All buildings](' + base + '/): every condominium building, searchable');
+  lines.push('- [Neighborhoods](' + base + '/neighborhoods): buildings and market data by neighborhood');
+  lines.push('- [Active listings](' + base + '/active-listings): every condo currently for sale');
+  lines.push('- [Market intelligence](' + base + '/intelligence/): citywide price per square foot, sales and trends');
+  if (mk.tag === 'sf') {
+    lines.push('- [Condo rankings](' + base + '/san-francisco-condo-rankings): buildings ranked by price and activity');
+    lines.push('- [Market stats](' + base + '/san-francisco-condo-market-stats): the ' + mk.region + ' condo market in numbers');
+  }
+  lines.push('- [News](' + base + '/news/): daily and monthly market reports');
+  lines.push('- [How it works](' + base + '/how-it-works/)');
+  lines.push('');
+  lines.push('## Buildings by neighborhood');
+  hoods.forEach(function (h) {
+    lines.push('');
+    lines.push('### ' + (h === 'Other' ? 'Other' : '[' + h + '](' + base + '/neighborhood/' + hoodSlug(h) + ')'));
+    byHood[h].forEach(function (b) {
+      const facts = [];
+      if (b.address && b.address !== b.name) facts.push(b.address);
+      if (b.units != null) facts.push(b.units + ' units');
+      if (b.year != null) facts.push('built ' + b.year);
+      lines.push('- [' + (b.name || b.address) + '](' + base + '/building/' + b.slug + ')' + (facts.length ? ': ' + facts.join(', ') : ''));
+    });
+  });
+  lines.push('');
+  return new Response(lines.join('\n'), { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
+}
 
 async function callReportRpc(name, body) {
   try {
