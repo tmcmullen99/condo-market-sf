@@ -2647,6 +2647,15 @@ async function fetchActiveListingsView(hostMk) {
     const vRes = await fetch(SUPABASE_URL + '/rest/v1/v_active_listings_display?select=*&building_slug=in.' + encodeURIComponent(inList) + '&order=first_listed_at.desc&limit=1000', { headers: H });
     if (!vRes.ok) return { count: 0, listings: [] };
     const rows = await vRes.json();
+    /* Listings in buildings we hold no page for (2-4 unit buildings, or buildings
+       awaiting a page) are shown too, so the grid is every active listing in
+       the market (Tim, 24 Sep 2026). A failure here never empties the grid. */
+    try {
+      if (hostMk && hostMk.domain) {
+        const nRes = await fetch(SUPABASE_URL + '/rest/v1/v_buildingless_listings_display?select=*&market_domain=eq.' + encodeURIComponent(hostMk.domain) + '&order=first_listed_at.desc&limit=1000', { headers: H });
+        if (nRes.ok) { const extra = await nRes.json(); if (Array.isArray(extra)) extra.forEach(function (r) { rows.push(r); }); }
+      }
+    } catch (e) { /* building rows still render */ }
     return { count: (rows || []).length, listings: rows || [] };
   } catch (e) { return { count: 0, listings: [] }; }
 }
@@ -2870,7 +2879,7 @@ function renderListing(d, footerData) {
 
   // Facts block.
   const facts = [];
-  facts.push(['Building', '<a href="' + buildingUrl + '" style="color:inherit;text-decoration:underline;">' + bName + '</a>']);
+  if (bSlug) facts.push(['Building', '<a href="' + buildingUrl + '" style="color:inherit;text-decoration:underline;">' + bName + '</a>']);
   if (hood)      facts.push(['Neighborhood', hood]);
   if (unitLabel) facts.push(['Unit', unitLabel]);
   facts.push(['Address', unitAddr]);
@@ -2944,7 +2953,7 @@ function renderListing(d, footerData) {
     '<section class="section" id="attribution"><div class="wrap">' +
     '<p class="mls-attribution">Listing data deemed reliable but not guaranteed. ' +
     'Active-listing information is displayed as a courtesy; the listing agent and brokerage of record represent the seller. ' +
-    bName + ' \u00b7 ' + mls + '.</p>' +
+    (bSlug ? bName + ' \u00b7 ' : '') + mls + '.</p>' +
     '</div></section>';
 
   // JSON-LD.
@@ -2967,7 +2976,7 @@ function renderListing(d, footerData) {
     (beds != null ? ' \u2014 ' + beds + ' bed' : '') +
     (baths != null ? ', ' + baths + ' bath' : '') +
     (sqft != null ? ', ' + intc(sqft) + ' sq ft' : '') +
-    ' in ' + bName + (hood ? ', ' + hood : '') + ', ' + region + '.'
+    (bSlug ? ' in ' + bName + (hood ? ', ' + hood : '') : (hood ? ' in ' + hood : '')) + ', ' + region + '.'
   );
   const canonical = 'https://www.' + domain + '/listing/' + mls;
 
@@ -3033,7 +3042,7 @@ function renderListing(d, footerData) {
     '<div class="wrap"><div class="crumb">' +
     '<a href="/">Condo Market</a><span class="sep">/</span>' +
     '<a href="/active-listings">Active Listings</a><span class="sep">/</span>' +
-    '<a href="' + buildingUrl + '">' + bName + '</a><span class="sep">/</span>' + (unitLabel || mls) +
+    (bSlug ? '<a href="' + buildingUrl + '">' + bName + '</a><span class="sep">/</span>' : '') + (unitLabel || mls) +
     '</div></div>\n\n' +
     '<main>\n' +
     '<section class="hero"><div class="wrap"><div class="hero-head"><div>' +
