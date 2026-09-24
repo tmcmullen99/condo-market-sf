@@ -2960,7 +2960,7 @@ function renderListing(d, footerData) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
-    'name': (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : ''),
+    'name': (unitAddr || bName) + (unitLabel && unitAddr.indexOf('#') === -1 ? ' #' + unitLabel : ''),
     'url': 'https://www.' + domain + '/listing/' + mls,
     'description': d.descriptor || undefined,
     'address': { '@type': 'PostalAddress', 'streetAddress': unitAddr, 'addressLocality': city, 'postalCode': zip, 'addressRegion': 'CA', 'addressCountry': 'US' },
@@ -2969,7 +2969,7 @@ function renderListing(d, footerData) {
   };
   const jsonLdScript = '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>';
 
-  const title = (unitAddr || bName) + (unitLabel ? ' #' + unitLabel : '') + ' \u00b7 For Sale \u00b7 ' + mlsBrand;
+  const title = (unitAddr || bName) + (unitLabel && unitAddr.indexOf('#') === -1 ? ' #' + unitLabel : '') + ' \u00b7 For Sale \u00b7 ' + mlsBrand;
   const metaDesc = esc(
     (unitAddr || bName) + ' is for sale' +
     (priceNum != null ? ' at ' + money(priceNum) : '') +
