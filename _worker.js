@@ -921,14 +921,21 @@ async function handleRequest(request, env) {
       return wrapStaticWithSwaps(request, env, hostMk);
     }
 
-    /* Disclosure teaser from Platform A. Non-blocking by design: if A is slow or
-     * down the building page renders exactly as it does today, minus one CTA.
-     * A disclosure CTA is worth having; it is not worth a 500 on the page. */
+    /* Disclosure teaser and Exchange teaser from Platform A, in parallel.
+     * Non-blocking by design: if A is slow or down the building page renders
+     * exactly as it does today, minus the blocks A feeds. Both are worth having;
+     * neither is worth a 500 on the page.
+     *
+     * building_exchange_teaser says that a unit here is on the Investor Exchange
+     * and never which one: no unit address, no listing slug, no member link come
+     * back, only size and the cover photo. What the page blurs is placeholder
+     * text, so nothing hidden is ever in the HTML. */
     let disclosure = null;
-    try {
-      const aMarketId = A_MARKET_ID_BY_TAG[hostMk.tag];
-      if (aMarketId) {
-        const dRes = await fetch(SB_A_URL + '/rest/v1/rpc/building_disclosure_teaser', {
+    let exchange = null;
+    const aMarketId = A_MARKET_ID_BY_TAG[hostMk.tag];
+    if (aMarketId) {
+      const aRpc = function (fn, body) {
+        return fetch(SB_A_URL + '/rest/v1/rpc/' + fn, {
           method: 'POST',
           headers: {
             'apikey': SB_A_KEY,
@@ -936,17 +943,18 @@ async function handleRequest(request, env) {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: JSON.stringify({ p_market_id: aMarketId, p_tract_slug: slug }),
-        });
-        if (dRes.ok) {
-          const d = await dRes.json();
-          if (d && d.has_review === true) disclosure = d;
-        }
-      }
-    } catch (e) {
-      disclosure = null;
+          body: JSON.stringify(body),
+        }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+      };
+      const both = await Promise.all([
+        aRpc('building_disclosure_teaser', { p_market_id: aMarketId, p_tract_slug: slug }),
+        aRpc('building_exchange_teaser', { p_market_id: aMarketId, p_slug: slug }),
+      ]);
+      if (both[0] && both[0].has_review === true) disclosure = both[0];
+      if (both[1] && Array.isArray(both[1].listings) && both[1].listings.length) exchange = both[1];
     }
     payload.disclosure = disclosure;
+    payload.exchange = exchange;
 
     // Cross-domain canonical enforcement: if this building belongs to a different
     // market than the host being requested, 301 to the correct domain. This is
@@ -3320,6 +3328,52 @@ function renderBuilding(p) {
       + '</div>';
   }
 
+
+  /* ON THE INVESTOR EXCHANGE. A unit in this building is for sale to investors.
+   * Shown: that it exists, its size, the cover photo. Held back behind a free
+   * account: which unit, the asking price, the rent and the cap rate. The
+   * blurred values are placeholders; the real ones are never sent to this page
+   * (building_exchange_teaser does not return them). */
+  let exchangeBand = '';
+  if (p.exchange && Array.isArray(p.exchange.listings) && p.exchange.listings.length) {
+    const xl = p.exchange.listings;
+    const xn = xl.length;
+    const xCta = esc(p.exchange.cta_url || '#signup');
+    const xCards = xl.map(function (l) {
+      const facts = [];
+      if (l.beds != null) facts.push(l.beds + (l.beds === 1 ? ' bed' : ' beds'));
+      if (l.baths) facts.push(l.baths + (Number(l.baths) === 1 ? ' bath' : ' baths'));
+      if (l.sqft) facts.push(intc(l.sqft) + ' sq ft');
+      if (l.photo_count) facts.push(l.photo_count + (l.photo_count === 1 ? ' photo' : ' photos'));
+      return '<div class="xb-card">'
+        + '<div class="xb-shot"' + (l.cover ? ' data-xb-cover="' + esc(l.cover) + '"' : '') + ' role="img" aria-label="Unit photograph"></div>'
+        + '<div class="xb-body">'
+        +   '<div class="xb-facts">' + facts.join(' \u00b7 ') + '</div>'
+        +   '<div class="xb-lock" role="group" aria-label="Unit number, asking price, rent and cap rate are shown to investor accounts">'
+        +     '<div><span>Unit</span><b aria-hidden="true">#0000</b></div>'
+        +     '<div><span>Asking</span><b aria-hidden="true">$000,000</b></div>'
+        +     '<div><span>Rent</span><b aria-hidden="true">$0,000</b></div>'
+        +     '<div><span>Cap rate</span><b aria-hidden="true">0.00%</b></div>'
+        +   '</div>'
+        +   '<a class="xb-btn" href="' + xCta + '" data-cta="building-exchange-signup">Create a free account to see this listing \u2192</a>'
+        + '</div></div>';
+    }).join('');
+    exchangeBand =
+      '<section class="section xb-section" id="exchange"><div class="wrap">'
+      + '<div class="xb-kicker">On the Investor Exchange</div>'
+      + '<h2 class="xb-title">' + (xn === 1 ? 'A unit' : xn + ' units') + ' in ' + name + ' ' + (xn === 1 ? 'is' : 'are') + ' for sale to investors.</h2>'
+      + '<p class="xb-line">Rentals offered by their owners, each with a licensed agent\u2019s signed opinion of value. '
+      + 'Which unit, the price, the rent and the cap rate open with a free investor account.</p>'
+      + '<div class="xb-grid">' + xCards + '</div>'
+      + '</div></section>\n'
+      + '<script>(function(){var U="' + SB_A_URL + '",K="' + SB_A_KEY + '";'
+      + 'document.querySelectorAll("[data-xb-cover]").forEach(function(el){'
+      + 'fetch(U+"/storage/v1/object/sign/exchange-photos/"+encodeURI(el.getAttribute("data-xb-cover")),{method:"POST",'
+      + 'headers:{"apikey":K,"Authorization":"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})})'
+      + '.then(function(r){return r.ok?r.json():null}).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")"})'
+      + '.catch(function(){})})})();</script>\n';
+  }
+
   const heroCta =
     '<div class="hero-ask">'
     + '<p class="hero-ask-line">' + heroAskLine + '</p>'
@@ -3672,6 +3726,7 @@ function renderBuilding(p) {
     (hood ? '<span class="hero-badge">' + hood + '</span>' : '') +
     heroMedia +
     '</div></div></div></section>\n' +
+    exchangeBand +
     '<section class="section" id="featured-mmm"><div class="wrap">' +
     '<div data-cm-featured data-building="' + slug + '"></div>' +
     '</div></section>\n' +
@@ -3924,6 +3979,22 @@ const CSS = `
   .disc-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--cm-bronze, #d4a574); color: var(--cm-navy, #1a1f2e); font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 999px; text-decoration: none; transition: transform 150ms ease; }
   .disc-cta-btn:hover { transform: translateY(-1px); }
   .disc-cta-note { margin: 12px 0 0; font-size: 11.5px; line-height: 1.55; color: rgba(232,227,216,.58); }
+.xb-section { padding-top: 28px; padding-bottom: 28px; border-top: 1px solid rgba(212,165,116,.22); border-bottom: 1px solid rgba(212,165,116,.22); background: rgba(212,165,116,.05); }
+.xb-kicker { font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--cm-bronze, #d4a574); margin-bottom: 8px; }
+.xb-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: clamp(22px, 3vw, 28px); line-height: 1.2; color: #e8e3d8; margin: 0 0 8px; }
+.xb-line { margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: rgba(232,227,216,.82); max-width: 68ch; }
+.xb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 16px; max-width: 880px; }
+.xb-card { display: grid; grid-template-columns: 220px minmax(0, 1fr); border: 1px solid rgba(212,165,116,.34); border-radius: 12px; overflow: hidden; background: rgba(15,19,29,.6); }
+.xb-shot { min-height: 200px; background: #1a1f2e center/cover no-repeat; }
+.xb-body { padding: 16px 18px 18px; display: flex; flex-direction: column; min-width: 0; }
+.xb-facts { font-size: 14px; color: #e8e3d8; font-weight: 600; }
+.xb-lock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 14px; padding: 10px 0; border-top: 1px solid rgba(212,165,116,.2); border-bottom: 1px solid rgba(212,165,116,.2); }
+.xb-lock span { display: block; white-space: nowrap; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(232,227,216,.6); }
+.xb-lock b { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; color: #e8e3d8; filter: blur(5px); user-select: none; -webkit-user-select: none; }
+.xb-btn { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; background: var(--cm-bronze, #d4a574); color: var(--cm-navy, #1a1f2e); font-weight: 600; font-size: 14px; padding: 11px 16px; border-radius: 999px; text-decoration: none; align-self: flex-start; max-width: 100%; }
+.xb-btn:hover { filter: brightness(1.06); }
+.xb-btn:focus-visible { outline: 2px solid #e8e3d8; outline-offset: 2px; }
+@media (max-width: 560px) { .xb-card { grid-template-columns: 1fr; } .xb-shot { min-height: 190px; } .xb-lock { grid-template-columns: repeat(2, 1fr); } .xb-btn { align-self: stretch; } }
   @media (max-width: 720px) { .disc-cta-btn { width: 100%; justify-content: center; } }
   .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: var(--cm-navy); aspect-ratio: 3/2; max-height: 460px; }
   .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.04) contrast(1.02); }
