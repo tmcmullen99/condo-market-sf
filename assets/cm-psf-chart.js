@@ -83,10 +83,10 @@
       '.cmp-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 18px}',
       '.cmp-controls select,.cmp-seg{font-family:var(--ff-mono,"JetBrains Mono",monospace);font-size:11px;letter-spacing:.06em;text-transform:uppercase}',
       '.cmp-hood{color:inherit;background:transparent;border:1px solid currentColor;border-radius:999px;padding:8px 16px;cursor:pointer;opacity:.85}',
-      '.cmp-seg{display:inline-flex;border:1px solid rgba(128,128,128,.28);border-radius:999px;overflow:hidden}',
+      '.cmp-seg{display:inline-flex;border:1px solid rgba(34,38,47,0.224);border-radius:999px;overflow:hidden}',
       '.cmp-seg button{font:inherit;letter-spacing:inherit;text-transform:inherit;background:transparent;color:inherit;border:0;padding:8px 14px;cursor:pointer;opacity:.6;transition:opacity .15s,background .15s}',
       '.cmp-seg button:hover:not(:disabled){opacity:.9}',
-      '.cmp-seg button.on{background:var(--cm-accent,#c2410c);color:#fff;opacity:1}',
+      '.cmp-seg button.on{background:#d4a574;color:#22262f;opacity:1}',
       '.cmp-seg button:disabled,.cmp-seg button.is-disabled{opacity:.25;cursor:not-allowed}',
       '.cmp-empty{font-family:var(--ff-mono,"JetBrains Mono",monospace);font-size:12px;opacity:.6;padding:32px 0;text-align:center}'
     ].join('');

@@ -115,26 +115,26 @@ async function resolveDisplayName(slug) {
 const STYLES = `
 .cm-mmm-section {
   background: linear-gradient(180deg, rgba(212,165,116,0.07) 0%, rgba(212,165,116,0.01) 100%);
-  border-top: 1px solid rgba(232,227,216,0.08);
-  border-bottom: 1px solid rgba(232,227,216,0.08);
+  border-top: 1px solid rgba(34,38,47,0.064);
+  border-bottom: 1px solid rgba(34,38,47,0.064);
   padding: 3.5rem 0;
   font-family: 'DM Sans', system-ui, sans-serif;
-  color: #e8e3d8;
+  color: #22262f;
 }
 .cm-mmm-container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
 .cm-mmm-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
-  color: #d4a574; margin-bottom: 0.85rem;
+  color: #8f5d1c; margin-bottom: 0.85rem;
 }
 .cm-mmm-heading {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic; font-weight: 500;
   font-size: clamp(1.6rem, 3.2vw, 2.25rem);
-  color: #e8e3d8; margin: 0 0 0.75rem; line-height: 1.2;
+  color: #22262f; margin: 0 0 0.75rem; line-height: 1.2;
 }
 .cm-mmm-lede {
-  color: rgba(232,227,216,0.68);
+  color: #5d6575;
   margin: 0 0 2rem; max-width: 44rem; line-height: 1.6;
   font-size: 1rem;
 }
@@ -144,7 +144,7 @@ const STYLES = `
   gap: 1.25rem;
 }
 .cm-mmm-card {
-  background: #1a1f2e;
+  background: #ffffff;
   border: 1px solid #d4a574;
   border-radius: 14px;
   padding: 1.85rem;
@@ -153,12 +153,12 @@ const STYLES = `
 .cm-mmm-card-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
-  color: rgba(232,227,216,0.45); margin-bottom: 0.85rem;
+  color: #5d6575; margin-bottom: 0.85rem;
 }
 .cm-mmm-card-price {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 2.4rem; font-weight: 500;
-  color: #d4a574; margin-bottom: 1.5rem; line-height: 1;
+  color: #8f5d1c; margin-bottom: 1.5rem; line-height: 1;
 }
 .cm-mmm-price-value {
   filter: blur(10px); user-select: none;
@@ -201,58 +201,58 @@ body.mmm-auth-verified .cm-mmm-btn-unlocked { display: inline-flex; }
 @keyframes cmMmmFade { from { opacity: 0; } to { opacity: 1; } }
 .cm-mmm-modal-backdrop {
   position: absolute; inset: 0;
-  background: rgba(15,19,29,0.88);
+  background: rgba(255,255,255,0.88);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   cursor: pointer;
 }
 .cm-mmm-modal-content {
   position: relative; max-width: 520px; width: 100%;
-  background: #1a1f2e; border: 1px solid #d4a574;
+  background: #ffffff; border: 1px solid #d4a574;
   border-radius: 16px; padding: 2.5rem 2rem;
   z-index: 1; max-height: 90vh; overflow-y: auto;
-  color: #e8e3d8;
+  color: #22262f;
 }
 .cm-mmm-modal-close {
   position: absolute; top: 0.75rem; right: 1rem;
   background: none; border: none;
-  color: rgba(232,227,216,0.45);
+  color: #5d6575;
   font-size: 1.85rem; cursor: pointer; line-height: 1;
   padding: 0.25rem 0.5rem; transition: color 0.15s;
 }
-.cm-mmm-modal-close:hover { color: #d4a574; }
+.cm-mmm-modal-close:hover { color: #8f5d1c; }
 .cm-mmm-modal-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
-  color: #d4a574; margin-bottom: 0.85rem;
+  color: #8f5d1c; margin-bottom: 0.85rem;
 }
 .cm-mmm-modal-headline {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.65rem; font-weight: 500; font-style: italic;
-  color: #e8e3d8; margin: 0 0 1.5rem; line-height: 1.2;
+  color: #22262f; margin: 0 0 1.5rem; line-height: 1.2;
 }
 .cm-mmm-modal-card {
-  background: #0f131d;
-  border: 1px solid rgba(232,227,216,0.18);
+  background: #f3eee4;
+  border: 1px solid rgba(34,38,47,0.144);
   border-radius: 12px; padding: 1.5rem 1rem;
   margin-bottom: 1.5rem; text-align: center;
 }
 .cm-mmm-modal-card-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(232,227,216,0.45); margin-bottom: 0.65rem;
+  color: #5d6575; margin-bottom: 0.65rem;
 }
 .cm-mmm-modal-card-price {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 2.5rem; font-weight: 500;
-  color: #d4a574; margin-bottom: 0.65rem; line-height: 1;
+  color: #8f5d1c; margin-bottom: 0.65rem; line-height: 1;
 }
 .cm-mmm-modal-card-note {
-  font-size: 0.85rem; color: rgba(232,227,216,0.45);
+  font-size: 0.85rem; color: #5d6575;
   font-style: italic;
 }
 .cm-mmm-modal-explainer {
-  color: rgba(232,227,216,0.68);
+  color: #5d6575;
   margin: 0 0 1.5rem; line-height: 1.55; font-size: 0.97rem;
 }
 .cm-mmm-modal-cta { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -266,10 +266,10 @@ body.mmm-auth-verified .cm-mmm-btn-unlocked { display: inline-flex; }
 .cm-mmm-modal-cta-primary { background: #d4a574; color: #0f131d; }
 .cm-mmm-modal-cta-primary:hover { opacity: 0.88; color: #0f131d; }
 .cm-mmm-modal-cta-secondary {
-  background: transparent; color: #d4a574;
+  background: transparent; color: #8f5d1c;
   border-color: #d4a574;
 }
-.cm-mmm-modal-cta-secondary:hover { background: rgba(212,165,116,0.08); color: #d4a574; }
+.cm-mmm-modal-cta-secondary:hover { background: rgba(212,165,116,0.08); color: #8f5d1c; }
 
 @media (max-width: 480px) {
   .cm-mmm-modal-content { padding: 2rem 1.25rem; }

@@ -9,14 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --dark: #0a0d12; --dark-soft: #0d111a; --navy: #1a1f2e;
-    --peri: #9fb4d8; --peri-soft: rgba(159,180,216,.12);
-    --ivory: #e8e3d8;
+    --dark: #faf8f3; --dark-soft: #f3eee4; --navy: #ffffff;
+    --peri: #C2410C; --peri-soft: #5d6575;
+    --ivory: #22262f;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
-    background: var(--dark); color: var(--ivory);
+    background: #faf8f3; color: #22262f;
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
   }
@@ -24,7 +24,7 @@
   .header {
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 16px; padding-bottom: 28px;
-    border-bottom: 1px solid rgba(159,180,216,.15);
+    border-bottom: 1px solid rgba(34,38,47,0.105);
     margin-bottom: 40px;
   }
   .header h1 {
@@ -33,20 +33,20 @@
     letter-spacing: -.01em;
   }
   .header h1 em {
-    font-style: italic; font-weight: 400; color: var(--peri);
+    font-style: italic; font-weight: 400; color: #C2410C;
   }
   .header p {
-    margin: 0; color: rgba(232,227,216,.6); font-size: 14px;
+    margin: 0; color: #5d6575; font-size: 14px;
     font-family: 'Playfair Display', Georgia, serif; font-style: italic;
   }
   .header .eyebrow {
     font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
-    color: var(--peri); font-weight: 700; margin: 0 0 10px;
+    color: #C2410C; font-weight: 700; margin: 0 0 10px;
   }
   .tag {
     font-family: 'JetBrains Mono', monospace; font-size: 10px;
-    letter-spacing: .14em; color: rgba(159,180,216,.7);
-    padding: 4px 10px; border: 1px solid rgba(159,180,216,.2);
+    letter-spacing: .14em; color: rgba(194,65,12,0.7);
+    padding: 4px 10px; border: 1px solid rgba(34,38,47,0.14);
     border-radius: 3px;
   }
   .grid {
@@ -55,8 +55,8 @@
     gap: 18px;
   }
   .tile {
-    background: var(--dark-soft);
-    border: 1px solid rgba(159,180,216,.15);
+    background: #f3eee4;
+    border: 1px solid rgba(34,38,47,0.105);
     border-radius: 4px;
     padding: 22px 24px 20px;
     text-decoration: none; color: inherit;
@@ -64,7 +64,7 @@
     transition: border-color .15s, transform .15s;
   }
   .tile:hover {
-    border-color: rgba(159,180,216,.5);
+    border-color: rgba(34,38,47,0.35);
     transform: translateY(-2px);
   }
   .tile[data-status="coming-soon"] {
@@ -79,16 +79,16 @@
     padding: 3px 8px; border-radius: 2px;
   }
   .tile-status.live {
-    background: rgba(93,126,105,.2); color: #a8c4b0;
-    border: 1px solid rgba(93,126,105,.4);
+    background: rgba(34,38,47,0.16); color: #5d6575;
+    border: 1px solid #e8e1d2;
   }
   .tile-status.coming {
-    background: rgba(159,180,216,.08); color: rgba(159,180,216,.6);
-    border: 1px solid rgba(159,180,216,.2);
+    background: rgba(34,38,47,0.048); color: #5d6575;
+    border: 1px solid rgba(34,38,47,0.14);
   }
   .tile-icon {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    color: var(--peri); letter-spacing: .12em;
+    color: #C2410C; letter-spacing: .12em;
   }
   .tile h2 {
     font-family: 'Playfair Display', Georgia, serif;
@@ -97,24 +97,24 @@
   }
   .tile p {
     margin: 0; font-size: 13px; line-height: 1.55;
-    color: rgba(232,227,216,.68);
+    color: #5d6575;
   }
   .tile-meta {
     margin-top: auto; padding-top: 12px;
     display: flex; justify-content: space-between; align-items: baseline;
     font-family: 'JetBrains Mono', monospace; font-size: 10px;
-    color: rgba(159,180,216,.55); letter-spacing: .08em;
+    color: #5d6575; letter-spacing: .08em;
   }
-  .tile-meta .arrow { color: var(--peri); font-size: 12px; }
+  .tile-meta .arrow { color: #C2410C; font-size: 12px; }
   .note {
-    background: rgba(159,180,216,.04);
-    border-left: 3px solid rgba(159,180,216,.4);
+    background: rgba(34,38,47,0.024);
+    border-left: 3px solid rgba(34,38,47,0.28);
     padding: 14px 20px; margin: 40px 0 0;
     border-radius: 0 3px 3px 0;
     font-size: 13px; line-height: 1.6;
-    color: rgba(232,227,216,.7);
+    color: #5d6575;
   }
-  .note strong { color: var(--peri); }
+  .note strong { color: #C2410C; }
   @media (max-width: 640px) {
     .wrap { padding: 40px 20px 60px; }
     .header { flex-direction: column; align-items: flex-start; }
@@ -218,7 +218,7 @@
   </div>
 
   <div class="note">
-    <strong>Note:</strong> This page is intentionally unindexed (<code style="background:rgba(10,13,18,.6);padding:1px 5px;border-radius:2px;font-family:monospace;font-size:11px;">noindex,nofollow</code>) and not linked from the public site. Bookmark <code style="background:rgba(10,13,18,.6);padding:1px 5px;border-radius:2px;font-family:monospace;font-size:11px;">/tools/</code> for direct access.
+    <strong>Note:</strong> This page is intentionally unindexed (<code style="background:rgba(255,255,255,0.6);padding:1px 5px;border-radius:2px;font-family:monospace;font-size:11px;">noindex,nofollow</code>) and not linked from the public site. Bookmark <code style="background:rgba(255,255,255,0.6);padding:1px 5px;border-radius:2px;font-family:monospace;font-size:11px;">/tools/</code> for direct access.
   </div>
 
 </div>

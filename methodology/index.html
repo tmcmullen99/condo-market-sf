@@ -12,40 +12,40 @@
 <script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
   :root {
-    --cm-navy: #1a1f2e; --cm-navy-deep: #0f131d; --cm-peri: #9fb4d8;
-    --cm-ivory: #e8e3d8; --cm-ivory-dim: rgba(232, 227, 216, 0.64);
-    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-navy: #ffffff; --cm-navy-deep: #faf8f3; --cm-peri: #C2410C;
+    --cm-ivory: #22262f; --cm-ivory-dim: rgba(34,38,47,.72);
+    --cm-rule: #e8e1d2;
     --cm-ff-display: 'Playfair Display', Georgia, serif;
     --cm-ff-body: 'DM Sans', -apple-system, sans-serif;
     --cm-ff-mono: 'JetBrains Mono', ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--cm-navy-deep); color: var(--cm-ivory);
+    background: #faf8f3; color: #22262f;
     font-family: var(--cm-ff-body); font-weight: 300;
     line-height: 1.65; min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
   .wrap-wide { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
-  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid rgba(232, 227, 216, 0.14); }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: var(--cm-ivory); text-decoration: none; }
-  .wordmark em { color: var(--cm-peri); }
-  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 20px; align-items: center; }
+  .wordmark { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 22px; color: #e8e3d8; text-decoration: none; }
+  .wordmark em { color: #e85d2a; }
+  .meta { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #5d6575; display: flex; gap: 20px; align-items: center; }
   main { padding: 72px 0 96px; }
-  .kicker { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); margin-bottom: 20px; }
+  .kicker { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #C2410C; margin-bottom: 20px; }
   h1 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: clamp(40px, 5.5vw, 64px); line-height: 1.05; margin-bottom: 32px; }
-  h1 .accent { color: var(--cm-peri); }
-  h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 28px; margin-top: 48px; margin-bottom: 16px; color: var(--cm-ivory); }
-  h2 em { color: var(--cm-peri); }
-  p { color: var(--cm-ivory); font-size: 17px; margin-bottom: 18px; }
-  p.lead { font-size: 20px; color: var(--cm-ivory-dim); margin-bottom: 32px; }
-  .rule { border-top: 1px solid var(--cm-rule); margin: 48px 0 16px; }
-  dl.sources dt { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cm-peri); margin-top: 24px; margin-bottom: 6px; }
-  dl.sources dd { color: var(--cm-ivory); font-size: 16px; padding-left: 0; }
-  footer { border-top: 1px solid var(--cm-rule); padding: 32px 0; margin-top: 96px; color: var(--cm-ivory-dim); font-size: 13px; text-align: center; }
-  footer a { color: var(--cm-peri); text-decoration: none; }
+  h1 .accent { color: #C2410C; }
+  h2 { font-family: var(--cm-ff-display); font-style: italic; font-weight: 500; font-size: 28px; margin-top: 48px; margin-bottom: 16px; color: #22262f; }
+  h2 em { color: #C2410C; }
+  p { color: #22262f; font-size: 17px; margin-bottom: 18px; }
+  p.lead { font-size: 20px; color: #5d6575; margin-bottom: 32px; }
+  .rule { border-top: 1px solid rgba(34,38,47,0.112); margin: 48px 0 16px; }
+  dl.sources dt { font-family: var(--cm-ff-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #C2410C; margin-top: 24px; margin-bottom: 6px; }
+  dl.sources dd { color: #22262f; font-size: 16px; padding-left: 0; }
+  footer { border-top: 1px solid rgba(232, 227, 216, 0.14); padding: 32px 0; margin-top: 96px; color: rgba(232, 227, 216, 0.64); font-size: 13px; text-align: center; }
+  footer a { color: #e85d2a; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -54,8 +54,8 @@
     <div class="masthead-row">
       <a href="/" class="wordmark">Condo <em>Market</em> · sf</a>
       <div class="meta">
-        <a href="/buildings/" style="color:var(--cm-ivory-dim);text-decoration:none;">← Home</a>
-        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:var(--cm-ivory);border:1px solid var(--cm-rule);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
+        <a href="/buildings/" style="color:rgba(232, 227, 216, 0.64);text-decoration:none;">← Home</a>
+        <a href="#signin" data-cm-auth="login" class="cm-signin-mini" style="color:#e8e3d8;border:1px solid rgba(232, 227, 216, 0.14);padding:7px 14px;border-radius:999px;text-decoration:none;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;">Sign in</a>
       </div>
     </div>
   </div>
@@ -108,7 +108,7 @@
 
     <div class="rule"></div>
 
-    <p style="color:var(--cm-ivory-dim);font-size:15px;">Questions about a specific figure? Email <a href="mailto:tim@mcmullen.properties" style="color:var(--cm-peri);">tim@mcmullen.properties</a>.</p>
+    <p style="color:#5d6575;font-size:15px;">Questions about a specific figure? Email <a href="mailto:tim@mcmullen.properties" style="color:#C2410C;">tim@mcmullen.properties</a>.</p>
   </div>
 </main>
 

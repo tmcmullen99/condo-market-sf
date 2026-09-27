@@ -47,8 +47,8 @@ const STYLE_CSS = `
 
   .cm-om {
     position: relative;
-    background: #eef1f6;
-    border: 1px solid var(--cm-rule, rgba(26,31,46,0.128));
+    background: #f3eee4;
+    border: 1px solid var(--cm-rule, rgba(34,38,47,0.128));
     border-radius: 16px;
     width: 100%; max-width: 560px;
     max-height: 90vh; overflow-y: auto;
@@ -69,8 +69,8 @@ const STYLE_CSS = `
     transition: color 150ms ease, background 150ms ease;
   }
   .cm-om-close:hover {
-    color: #1a1f2e;
-    background: rgba(26,31,46,0.048);
+    color: #22262f;
+    background: rgba(34,38,47,0.048);
   }
 
   .cm-om-eyebrow {
@@ -87,7 +87,7 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
     font-size: 28px;
-    color: #1a1f2e;
+    color: #22262f;
     line-height: 1.15;
     margin-bottom: 10px;
   }
@@ -100,8 +100,8 @@ const STYLE_CSS = `
 
   /* v3.0 — Building context card */
   .cm-om-bctx {
-    background: rgba(26,31,46,0.036);
-    border: 1px solid rgba(26,31,46,0.154);
+    background: rgba(34,38,47,0.036);
+    border: 1px solid rgba(34,38,47,0.154);
     border-radius: 10px;
     padding: 16px 18px;
     margin-bottom: 22px;
@@ -131,7 +131,7 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 600;
     font-size: 19px;
-    color: #1a1f2e;
+    color: #22262f;
     line-height: 1.1;
   }
   .cm-om-bctx-val-sub {
@@ -161,7 +161,7 @@ const STYLE_CSS = `
   .cm-om-anchor-thumb {
     flex-shrink: 0; width: 56px; height: 56px;
     border-radius: 8px; overflow: hidden;
-    background: rgba(26,31,46,0.048);
+    background: rgba(34,38,47,0.048);
   }
   .cm-om-anchor-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .cm-om-anchor-label {
@@ -207,7 +207,7 @@ const STYLE_CSS = `
   .cm-om-slider {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 4px;
-    background: var(--cm-rule, rgba(26,31,46,0.128));
+    background: var(--cm-rule, rgba(34,38,47,0.128));
     border-radius: 2px; outline: none; cursor: pointer;
     margin: 8px 0;
   }
@@ -216,13 +216,13 @@ const STYLE_CSS = `
     width: 22px; height: 22px;
     background: #d4a574;
     border-radius: 50%; cursor: grab;
-    border: 2px solid #e0e5ed;
+    border: 2px solid #e8e1d2;
   }
   .cm-om-slider::-moz-range-thumb {
     width: 22px; height: 22px;
     background: #d4a574;
     border-radius: 50%; cursor: grab;
-    border: 2px solid #e0e5ed;
+    border: 2px solid #e8e1d2;
   }
   /* v3.0 — Offer-in-context line below slider */
   .cm-om-calib {
@@ -231,25 +231,25 @@ const STYLE_CSS = `
     color: #5d6575;
     margin-top: 4px;
     padding: 8px 12px;
-    background: rgba(26,31,46,0.14);
+    background: rgba(34,38,47,0.14);
     border-left: 2px solid rgba(212, 165, 116, 0.5);
     border-radius: 0 6px 6px 0;
   }
   .cm-om-calib b { color: #8f5d1c; font-weight: 600; }
-  .cm-om-calib .cm-om-calib-up   { color: #9c4322; }
+  .cm-om-calib .cm-om-calib-up   { color: #b4532a; }
   .cm-om-calib .cm-om-calib-down { color: #2f6b40; }
   .cm-om-calib-empty {
     color: #5d6575; font-style: italic;
-    border-left-color: rgba(26,31,46,0.096);
+    border-left-color: rgba(34,38,47,0.096);
   }
 
   .cm-om-textarea {
     width: 100%;
     background: #ffffff;
-    border: 1px solid var(--cm-rule, rgba(26,31,46,0.128));
+    border: 1px solid var(--cm-rule, rgba(34,38,47,0.128));
     border-radius: 8px;
     padding: 12px 14px;
-    color: #1a1f2e;
+    color: #22262f;
     font-family: var(--cm-ff-body, 'DM Sans', -apple-system, sans-serif);
     font-size: 14px; line-height: 1.5;
     resize: vertical; min-height: 76px;
@@ -260,8 +260,8 @@ const STYLE_CSS = `
 
   .cm-om-cert-row {
     display: flex; gap: 11px; align-items: flex-start;
-    background: rgba(26,31,46,0.036);
-    border: 1px solid rgba(26,31,46,0.14);
+    background: rgba(34,38,47,0.036);
+    border: 1px solid rgba(34,38,47,0.14);
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 18px;
@@ -276,7 +276,7 @@ const STYLE_CSS = `
     font-size: 12.5px; line-height: 1.5;
     color: var(--cm-ivory-dim, #5d6575);
   }
-  .cm-om-cert-label strong { color: #1a1f2e; }
+  .cm-om-cert-label strong { color: #22262f; }
   .cm-om-cert-label a {
     color: #C2410C;
     text-decoration: underline; text-underline-offset: 2px;
@@ -317,7 +317,7 @@ const STYLE_CSS = `
      text input so a phone keyboard opens on it instead of a drag gesture. */
   .cm-om-amount-row {
     display: flex; align-items: baseline; gap: 4px;
-    border-bottom: 1px solid var(--cm-rule, rgba(26,31,46,0.128));
+    border-bottom: 1px solid var(--cm-rule, rgba(34,38,47,0.128));
     padding-bottom: 8px; margin-bottom: 14px;
   }
   .cm-om-amount-cur {
@@ -385,9 +385,9 @@ const STYLE_CSS = `
   }
 
   .cm-om-msg.is-error {
-    background: rgba(156,67,34,0.1);
-    border: 1px solid #9c4322;
-    color: #9c4322;
+    background: rgba(180,83,42,0.1);
+    border: 1px solid #b4532a;
+    color: #b4532a;
   }
 
   .cm-om-success { text-align: center; padding: 32px 0 12px; }
@@ -403,7 +403,7 @@ const STYLE_CSS = `
   .cm-om-success h3 {
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
-    font-size: 24px; color: #1a1f2e;
+    font-size: 24px; color: #22262f;
     margin-bottom: 10px;
   }
   .cm-om-success p {
@@ -415,19 +415,19 @@ const STYLE_CSS = `
     text-align: left;
     margin: 18px auto 0;
     max-width: 42ch;
-    background: rgba(26,31,46,0.024);
+    background: rgba(34,38,47,0.024);
     border-left: 3px solid #C2410C;
     padding: 14px 16px; border-radius: 6px;
     font-size: 13px; line-height: 1.55;
     color: var(--cm-ivory-dim, #5d6575);
   }
-  .cm-om-success-steps strong { color: #1a1f2e; }
+  .cm-om-success-steps strong { color: #22262f; }
 
   .cm-om-gate { text-align: center; padding: 12px 0; }
   .cm-om-gate h3 {
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
-    font-size: 24px; color: #1a1f2e;
+    font-size: 24px; color: #22262f;
     margin-bottom: 12px;
   }
   .cm-om-gate p {

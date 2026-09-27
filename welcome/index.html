@@ -14,25 +14,25 @@
 <script type="module" src="/assets/cm-auth-nav.js"></script>
 <style>
   :root {
-    --cm-navy: #1a1f2e;
-    --cm-navy-deep: #0f131d;
-    --cm-peri: #9fb4d8;
+    --cm-navy: #ffffff;
+    --cm-navy-deep: #faf8f3;
+    --cm-peri: #C2410C;
     --cm-bronze: #d4a574;
-    --cm-rust: #c95742;
-    --cm-gain: #8fb97a;
+    --cm-rust: #c2410c;
+    --cm-gain: #2f6b40;
     --cm-amber: #d9a44b;
-    --cm-ivory: #e8e3d8;
-    --cm-ivory-dim: rgba(232, 227, 216, 0.7);
-    --cm-ivory-faint: rgba(232, 227, 216, 0.42);
-    --cm-rule: rgba(232, 227, 216, 0.14);
+    --cm-ivory: #22262f;
+    --cm-ivory-dim: rgba(34,38,47,.72);
+    --cm-ivory-faint: rgba(34,38,47,.42);
+    --cm-rule: #e8e1d2;
     --ff-display: 'Playfair Display', Georgia, serif;
     --ff-body: 'DM Sans', -apple-system, sans-serif;
     --ff-mono: 'JetBrains Mono', ui-monospace, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--cm-navy-deep);
-    color: var(--cm-ivory);
+    background: #faf8f3;
+    color: #22262f;
     font-family: var(--ff-body);
     font-weight: 400;          /* was 300 — heavier weight reads larger at the same px */
     font-size: 17px;           /* was 16 — slight bump baseline */
@@ -42,21 +42,21 @@
   }
   .wrap { max-width: 880px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
 
-  header.masthead { padding: 22px 0; border-bottom: 1px solid var(--cm-rule); }
+  header.masthead { padding: 22px 0; border-bottom: 1px solid rgba(232, 227, 216, 0.14); }
   .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap; max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
-  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: var(--cm-ivory); text-decoration: none; }
-  .wordmark em { color: var(--cm-peri); }
-  .nav-meta { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cm-ivory-dim); display: flex; gap: 22px; align-items: center; }
-  .nav-meta a { color: var(--cm-ivory-dim); text-decoration: none; }
-  .nav-meta a:hover { color: var(--cm-ivory); }
-  .signin-pill { color: var(--cm-ivory) !important; border: 1px solid var(--cm-rule); padding: 8px 16px; border-radius: 999px; font-size: 12px; }
-  .signin-pill:hover { border-color: var(--cm-peri); color: var(--cm-peri) !important; }
+  .wordmark { font-family: var(--ff-display); font-style: italic; font-weight: 500; font-size: 24px; color: #e8e3d8; text-decoration: none; }
+  .wordmark em { color: #e85d2a; }
+  .nav-meta { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(232, 227, 216, 0.7); display: flex; gap: 22px; align-items: center; }
+  .nav-meta a { color: rgba(232, 227, 216, 0.7); text-decoration: none; }
+  .nav-meta a:hover { color: #e8e3d8; }
+  .signin-pill { color: #e8e3d8 !important; border: 1px solid rgba(232, 227, 216, 0.14); padding: 8px 16px; border-radius: 999px; font-size: 12px; }
+  .signin-pill:hover { border-color: #9fb4d8; color: #e85d2a !important; }
 
   main { padding: 80px 0 100px; }
 
   /* HERO — roman headline, italic kept only for the inline accent <em>. */
   .hero { margin-bottom: 96px; }
-  .eyebrow { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-bronze); display: block; margin-bottom: 20px; }
+  .eyebrow { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #8f5d1c; display: block; margin-bottom: 20px; }
   .hero h1 {
     font-family: var(--ff-display);
     font-style: normal;        /* was italic — roman body, italic accent only */
@@ -64,81 +64,81 @@
     font-size: clamp(40px, 6vw, 64px);
     line-height: 1.04;
     margin-bottom: 24px;
-    color: var(--cm-ivory);
+    color: #22262f;
     letter-spacing: -0.01em;
     max-width: 19ch;
   }
-  .hero h1 em { color: var(--cm-peri); font-style: italic; }
-  .hero-sub { font-size: clamp(18px, 1.6vw, 20px); color: var(--cm-ivory-dim); max-width: 60ch; line-height: 1.6; margin-bottom: 36px; }
+  .hero h1 em { color: #C2410C; font-style: italic; }
+  .hero-sub { font-size: clamp(18px, 1.6vw, 20px); color: #5d6575; max-width: 60ch; line-height: 1.6; margin-bottom: 36px; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 28px; border-radius: 10px; border: 1px solid; font-family: var(--ff-body); font-size: 16px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.15s ease; }
-  .btn-primary { background: var(--cm-bronze); color: var(--cm-navy); border-color: var(--cm-bronze); }
-  .btn-primary:hover { background: var(--cm-ivory); border-color: var(--cm-ivory); transform: translateY(-1px); }
-  .btn-ghost { background: transparent; color: var(--cm-peri); border-color: var(--cm-rule); }
-  .btn-ghost:hover { border-color: var(--cm-peri); }
+  .btn-primary { background: #d4a574; color: #1a1f2e; border-color: #d4a574; }
+  .btn-primary:hover { background: #e8e3d8; border-color: #e8e1d2; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: #C2410C; border-color: rgba(34,38,47,0.112); }
+  .btn-ghost:hover { border-color: #C2410C; }
 
   /* PILLARS */
   .pillars { margin-bottom: 96px; }
-  .section-eyebrow { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cm-peri); display: block; margin-bottom: 16px; }
+  .section-eyebrow { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #C2410C; display: block; margin-bottom: 16px; }
   .section-title {
     font-family: var(--ff-display);
     font-style: normal;        /* was italic */
     font-weight: 500;
     font-size: clamp(30px, 3.8vw, 40px);
     line-height: 1.12;
-    color: var(--cm-ivory);
+    color: #22262f;
     margin-bottom: 40px;
     letter-spacing: -0.005em;
     max-width: 22ch;
   }
-  .section-title em { font-style: italic; color: var(--cm-peri); }
+  .section-title em { font-style: italic; color: #C2410C; }
   .pillar-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
   @media (min-width: 720px) { .pillar-grid { grid-template-columns: repeat(3, 1fr); } }
-  .pillar { background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 14px; padding: 30px 28px; }
-  .pillar-num { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.14em; color: var(--cm-bronze); margin-bottom: 18px; }
+  .pillar { background: rgba(34,38,47,0.024); border: 1px solid rgba(34,38,47,0.112); border-radius: 14px; padding: 30px 28px; }
+  .pillar-num { font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.14em; color: #8f5d1c; margin-bottom: 18px; }
   .pillar h3 {
     font-family: var(--ff-display);
     font-style: normal;        /* was italic */
     font-weight: 500;
     font-size: 24px;
     line-height: 1.22;
-    color: var(--cm-ivory);
+    color: #22262f;
     margin-bottom: 14px;
   }
-  .pillar p { font-size: 15px; line-height: 1.65; color: var(--cm-ivory-dim); }
+  .pillar p { font-size: 15px; line-height: 1.65; color: #5d6575; }
 
   /* HOW */
   .how { margin-bottom: 96px; }
   .how-list { list-style: none; counter-reset: how; }
-  .how-list li { counter-increment: how; position: relative; padding: 24px 0 24px 68px; border-bottom: 1px solid var(--cm-rule); }
+  .how-list li { counter-increment: how; position: relative; padding: 24px 0 24px 68px; border-bottom: 1px solid rgba(34,38,47,0.112); }
   .how-list li:last-child { border-bottom: none; }
   .how-list li::before {
     content: counter(how, decimal-leading-zero);
     position: absolute; left: 0; top: 27px;
-    font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.1em; color: var(--cm-bronze);
+    font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.1em; color: #8f5d1c;
   }
-  .how-list h4 { font-family: var(--ff-body); font-weight: 500; font-size: 19px; color: var(--cm-ivory); margin-bottom: 8px; }
-  .how-list p { font-size: 15px; line-height: 1.6; color: var(--cm-ivory-dim); max-width: 58ch; }
+  .how-list h4 { font-family: var(--ff-body); font-weight: 500; font-size: 19px; color: #22262f; margin-bottom: 8px; }
+  .how-list p { font-size: 15px; line-height: 1.6; color: #5d6575; max-width: 58ch; }
 
   /* TRUST + FINAL CTA */
-  .trust { padding: 48px 36px; background: rgba(159, 180, 216, 0.04); border: 1px solid var(--cm-rule); border-radius: 14px; text-align: center; }
+  .trust { padding: 48px 36px; background: rgba(34,38,47,0.024); border: 1px solid rgba(34,38,47,0.112); border-radius: 14px; text-align: center; }
   .trust h2 {
     font-family: var(--ff-display);
     font-style: normal;        /* was italic */
     font-weight: 500;
     font-size: clamp(28px, 3.2vw, 34px);
     line-height: 1.18;
-    color: var(--cm-ivory);
+    color: #22262f;
     margin-bottom: 16px;
     max-width: 26ch;
     margin-left: auto;
     margin-right: auto;
   }
-  .trust p { color: var(--cm-ivory-dim); margin: 0 auto 32px; max-width: 50ch; font-size: 16px; line-height: 1.6; }
+  .trust p { color: #5d6575; margin: 0 auto 32px; max-width: 50ch; font-size: 16px; line-height: 1.6; }
   .trust .cta-row { justify-content: center; }
-  .trust-meta { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--cm-rule); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--cm-ivory-faint); line-height: 1.75; }
+  .trust-meta { margin-top: 36px; padding-top: 24px; border-top: 1px solid rgba(34,38,47,0.112); font-family: var(--ff-mono); font-size: 12px; letter-spacing: 0.06em; color: #5d6575; line-height: 1.75; }
 
-  footer { padding: 36px 0 30px; color: var(--cm-ivory-faint); font-size: 13px; text-align: center; border-top: 1px solid var(--cm-rule); margin-top: 60px; }
+  footer { padding: 36px 0 30px; color: #93a3b8; font-size: 13px; text-align: center; border-top: 1px solid rgba(232, 227, 216, 0.14); margin-top: 60px; }
 </style>
 </head>
 <body>

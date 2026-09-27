@@ -184,22 +184,22 @@
     var entPct = sig.entity_owned_pct || 16;
 
     var publicBullets = [
-      'Citywide median $/sf \u2014 <strong style="color:#e8e3d8;">$' + fmtInt(psf) + '</strong>',
+      'Citywide median $/sf \u2014 <strong style="color:#22262f;">$' + fmtInt(psf) + '</strong>',
       'Building $/sf rankings (top 10)',
       'Most-recent sales feed',
       bldCount + ' buildings \u00b7 ' + units + ' units tracked'
     ];
     var memberBullets = [
-      '<strong style="color:#e8e3d8;">Per-unit sale history</strong> \u2014 every closing, last 10 years',
-      '<strong style="color:#e8e3d8;">Owner tenure by unit</strong> \u2014 median ' + tenure + ' years citywide',
-      '<strong style="color:#e8e3d8;">Owner type per unit</strong> \u2014 ' + jointPct + '% joint \u00b7 ' + indPct + '% solo \u00b7 ' + entPct + '% entity',
-      '<strong style="color:#e8e3d8;">Make-Me-Move prices</strong> \u2014 real $ amounts per unit',
-      '<strong style="color:#e8e3d8;">Primary vs secondary residence</strong> \u2014 coming via ATTOM'
+      '<strong style="color:#22262f;">Per-unit sale history</strong> \u2014 every closing, last 10 years',
+      '<strong style="color:#22262f;">Owner tenure by unit</strong> \u2014 median ' + tenure + ' years citywide',
+      '<strong style="color:#22262f;">Owner type per unit</strong> \u2014 ' + jointPct + '% joint \u00b7 ' + indPct + '% solo \u00b7 ' + entPct + '% entity',
+      '<strong style="color:#22262f;">Make-Me-Move prices</strong> \u2014 real $ amounts per unit',
+      '<strong style="color:#22262f;">Primary vs secondary residence</strong> \u2014 coming via ATTOM'
     ];
 
     function bulletList(items, color) {
       return items.map(function (b) {
-        return '<li style="display:flex;gap:12px;align-items:flex-start;padding:0;margin:0;font-size:15px;line-height:1.55;color:rgba(232,227,216,0.78);">' +
+        return '<li style="display:flex;gap:12px;align-items:flex-start;padding:0;margin:0;font-size:15px;line-height:1.55;color:#5d6575;">' +
           '<span style="color:' + color + ';flex-shrink:0;line-height:1.55;font-weight:600;">\u2713</span>' +
           '<span>' + b + '</span>' +
           '</li>';
@@ -209,18 +209,18 @@
     panel.innerHTML = [
       '<div style="width:100%;max-width:1100px;margin:0 auto;">',
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">',
-          '<div style="padding:40px 36px;background:rgba(159,180,216,0.04);border:1px solid rgba(159,180,216,0.18);border-radius:14px;">',
-            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:rgba(232,227,216,0.5);margin-bottom:10px;">Public</div>',
-            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#e8e3d8;margin-bottom:6px;font-weight:500;font-style:italic;">Free, no account.</div>',
-            '<div style="font-size:13px;color:rgba(232,227,216,0.5);margin-bottom:28px;">Aggregates only.</div>',
+          '<div style="padding:40px 36px;background:rgba(34,38,47,0.024);border:1px solid rgba(34,38,47,0.126);border-radius:14px;">',
+            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#5d6575;margin-bottom:10px;">Public</div>',
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#22262f;margin-bottom:6px;font-weight:500;font-style:italic;">Free, no account.</div>',
+            '<div style="font-size:13px;color:#5d6575;margin-bottom:28px;">Aggregates only.</div>',
             '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:16px;">',
               bulletList(publicBullets, '#9fb4d8'),
             '</ul>',
           '</div>',
           '<div style="padding:40px 36px;background:linear-gradient(180deg, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 100%);border:1px solid rgba(212,165,116,0.4);border-radius:14px;box-shadow:0 0 0 1px rgba(212,165,116,0.06), 0 8px 32px rgba(212,165,116,0.04);">',
-            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#d4a574;margin-bottom:10px;">Members \u00b7 Free</div>',
-            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#e8e3d8;margin-bottom:6px;font-weight:500;font-style:italic;">Per-unit specifics.</div>',
-            '<div style="font-size:13px;color:rgba(232,227,216,0.55);margin-bottom:28px;">Everything in public, plus:</div>',
+            '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#8f5d1c;margin-bottom:10px;">Members \u00b7 Free</div>',
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#22262f;margin-bottom:6px;font-weight:500;font-style:italic;">Per-unit specifics.</div>',
+            '<div style="font-size:13px;color:#5d6575;margin-bottom:28px;">Everything in public, plus:</div>',
             '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:16px;">',
               bulletList(memberBullets, '#d4a574'),
             '</ul>',
@@ -228,7 +228,7 @@
         '</div>',
         '<div style="text-align:center;margin-top:40px;">',
           '<a href="' + SIGNUP_URL + '" style="display:inline-flex;align-items:center;gap:10px;padding:18px 36px;background:#d4a574;color:#0f131d;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px;letter-spacing:0.005em;box-shadow:0 4px 16px rgba(212,165,116,0.2);">Create a free account \u2192</a>',
-          '<div style="margin-top:14px;font-size:12px;color:rgba(232,227,216,0.4);font-family:\'JetBrains Mono\',ui-monospace,monospace;">No credit card \u00b7 No spam \u00b7 30 seconds</div>',
+          '<div style="margin-top:14px;font-size:12px;color:#5d6575;font-family:\'JetBrains Mono\',ui-monospace,monospace;">No credit card \u00b7 No spam \u00b7 30 seconds</div>',
         '</div>',
       '</div>'
     ].join('');

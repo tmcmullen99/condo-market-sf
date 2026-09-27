@@ -14,19 +14,19 @@ function injectStyles() {
   s.textContent = `
     .cm-save-btn {
       display:inline-flex; align-items:center; gap:6px;
-      background:transparent; color:var(--cm-ivory,#e8e3d8);
+      background:transparent; color:#e8e3d8;
       border:1px solid var(--cm-rule,rgba(232,227,216,0.14));
       padding:7px 14px; border-radius:999px;
       font-family:inherit; font-size:12px; font-weight:500;
       letter-spacing:0.04em; cursor:pointer; line-height:1; white-space:nowrap;
       transition:all 150ms ease;
     }
-    .cm-save-btn:hover { border-color:var(--cm-bronze,#d4a574); color:var(--cm-bronze,#d4a574); }
+    .cm-save-btn:hover { border-color:#d4a574; color:#d4a574; }
     .cm-save-btn.is-saved {
-      background:var(--cm-bronze,#d4a574); color:var(--cm-navy,#1a1f2e);
-      border-color:var(--cm-bronze,#d4a574);
+      background:#d4a574; color:#1a1f2e;
+      border-color:#d4a574;
     }
-    .cm-save-btn.is-saved:hover { background:var(--cm-ivory,#e8e3d8); border-color:var(--cm-ivory,#e8e3d8); }
+    .cm-save-btn.is-saved:hover { background:#e8e3d8; border-color:#e8e3d8; }
     .cm-save-btn[disabled] { opacity:0.55; cursor:not-allowed; }
   `;
   document.head.appendChild(s);

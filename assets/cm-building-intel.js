@@ -30,8 +30,8 @@ const STYLE_ID = 'cm-intel-styles';
 const STYLE_CSS = `
   .cm-intel-section {
     padding: 64px 0;
-    border-bottom: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
-    background: var(--cm-navy-deep, #0f131d);
+    border-bottom: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
+    background: #f3eee4;
     position: relative; z-index: 2;
   }
   .cm-intel-wrap {
@@ -48,21 +48,21 @@ const STYLE_CSS = `
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 11px; letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--cm-peri, #9fb4d8); margin-bottom: 14px;
+    color: #C2410C; margin-bottom: 14px;
   }
   .cm-intel-title {
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     font-weight: 500; font-size: clamp(32px, 4vw, 48px);
     line-height: 1.1; letter-spacing: -0.015em;
-    color: var(--cm-ivory, #e8e3d8);
+    color: #22262f;
   }
   .cm-intel-title em {
-    font-style: italic; color: var(--cm-peri, #9fb4d8);
+    font-style: italic; color: #C2410C;
   }
   .cm-intel-sub {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 11px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: rgba(232, 227, 216, 0.64);
+    text-transform: uppercase; color: #5d6575;
   }
   .cm-intel-grid {
     display: grid; grid-template-columns: 1fr; gap: 24px;
@@ -71,19 +71,19 @@ const STYLE_CSS = `
     .cm-intel-grid { grid-template-columns: 1fr 1.4fr; }
   }
   .cm-intel-card {
-    background: rgba(159, 180, 216, 0.04);
-    border: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
+    background: rgba(34,38,47,0.024);
+    border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     border-radius: 12px; padding: 28px 30px;
   }
   .cm-intel-card h3 {
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500; font-size: 20px;
-    color: var(--cm-ivory, #e8e3d8); margin-bottom: 6px;
+    color: #22262f; margin-bottom: 6px;
   }
   .cm-intel-card .cm-intel-card-sub {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 10px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: rgba(232, 227, 216, 0.64);
+    text-transform: uppercase; color: #5d6575;
     margin-bottom: 22px;
   }
 
@@ -94,59 +94,59 @@ const STYLE_CSS = `
   .cm-pos-psf {
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
-    font-size: 48px; line-height: 1; color: var(--cm-peri, #9fb4d8);
+    font-size: 48px; line-height: 1; color: #C2410C;
   }
   .cm-pos-psf-unit {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 12px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: rgba(232, 227, 216, 0.64);
+    text-transform: uppercase; color: #5d6575;
   }
   .cm-pos-rank {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
-    font-size: 12px; color: var(--cm-ivory, #e8e3d8);
-    background: rgba(159, 180, 216, 0.08);
+    font-size: 12px; color: #22262f;
+    background: rgba(34,38,47,0.048);
     padding: 6px 12px; border-radius: 999px;
-    border: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
+    border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
   }
   .cm-pos-compare-row {
     display: flex; justify-content: space-between; align-items: baseline;
     padding: 12px 0;
-    border-bottom: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
+    border-bottom: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 13px;
   }
   .cm-pos-compare-row:last-child { border-bottom: none; }
   .cm-pos-compare-label {
-    color: rgba(232, 227, 216, 0.64);
+    color: #5d6575;
     font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
   }
   .cm-pos-compare-val {
-    color: var(--cm-ivory, #e8e3d8);
+    color: #22262f;
   }
   .cm-pos-compare-delta {
     margin-left: 8px; font-size: 11px;
     padding: 2px 8px; border-radius: 999px;
-    background: rgba(159, 180, 216, 0.08);
+    background: rgba(34,38,47,0.048);
   }
-  .cm-pos-compare-delta.up { color: var(--cm-gain, #8fb97a); }
-  .cm-pos-compare-delta.dn { color: var(--cm-loss, #c97865); }
-  .cm-pos-compare-delta.neutral { color: rgba(232, 227, 216, 0.5); }
+  .cm-pos-compare-delta.up { color: #2f6b40; }
+  .cm-pos-compare-delta.dn { color: #b4532a; }
+  .cm-pos-compare-delta.neutral { color: #5d6575; }
 
   .cm-pos-stats {
     margin-top: 22px; padding-top: 22px;
-    border-top: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
+    border-top: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
   }
   .cm-pos-stat-label {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 10px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: rgba(232, 227, 216, 0.64);
+    text-transform: uppercase; color: #5d6575;
     margin-bottom: 6px;
   }
   .cm-pos-stat-val {
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
-    font-size: 22px; color: var(--cm-ivory, #e8e3d8); line-height: 1.1;
+    font-size: 22px; color: #22262f; line-height: 1.1;
   }
 
   /* Trajectory card */
@@ -156,17 +156,17 @@ const STYLE_CSS = `
   .cm-traj-bookends {
     display: flex; justify-content: space-between;
     padding-top: 14px;
-    border-top: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
+    border-top: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
-    font-size: 11px; color: rgba(232, 227, 216, 0.64);
+    font-size: 11px; color: #5d6575;
     letter-spacing: 0.08em; text-transform: uppercase;
   }
   .cm-traj-bookend-val {
-    color: var(--cm-peri, #9fb4d8); margin-left: 6px;
+    color: #C2410C; margin-left: 6px;
   }
   .cm-traj-empty {
     text-align: center; padding: 60px 20px;
-    color: rgba(232, 227, 216, 0.5);
+    color: #5d6575;
     font-style: italic;
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
   }
@@ -177,7 +177,7 @@ const STYLE_CSS = `
     display: inline-flex; align-items: center; gap: 8px;
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 11px; letter-spacing: 0.06em;
-    color: rgba(232, 227, 216, 0.7);
+    color: #5d6575;
   }
   .cm-traj-legend-swatch {
     width: 16px; height: 2px; border-radius: 2px;
@@ -192,41 +192,41 @@ const STYLE_CSS = `
     grid-template-columns: 1fr auto auto;
     gap: 16px; align-items: baseline;
     padding: 14px 0;
-    border-bottom: 1px solid var(--cm-rule, rgba(232, 227, 216, 0.14));
+    border-bottom: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
   }
   .cm-recent-item:last-child { border-bottom: none; }
   .cm-recent-addr {
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500; font-size: 16px;
-    color: var(--cm-ivory, #e8e3d8);
+    color: #22262f;
   }
-  .cm-recent-addr-unit { color: var(--cm-peri, #9fb4d8); margin-left: 4px; }
+  .cm-recent-addr-unit { color: #C2410C; margin-left: 4px; }
   .cm-recent-meta {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
     font-size: 11px;
-    color: rgba(232, 227, 216, 0.64);
+    color: #5d6575;
     letter-spacing: 0.06em;
     margin-top: 2px;
   }
   .cm-recent-price {
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     font-weight: 500; font-size: 16px;
-    color: var(--cm-peri, #9fb4d8);
+    color: #C2410C;
   }
   .cm-recent-date {
     font-family: var(--ff-mono, 'JetBrains Mono', monospace);
-    font-size: 11px; color: rgba(232, 227, 216, 0.5);
+    font-size: 11px; color: #5d6575;
     text-align: right; min-width: 60px;
   }
   .cm-recent-empty {
     text-align: center; padding: 40px 20px;
-    color: rgba(232, 227, 216, 0.5);
+    color: #5d6575;
     font-style: italic;
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
   }
 
   .cm-intel-loading {
-    color: rgba(232, 227, 216, 0.5);
+    color: #5d6575;
     font-style: italic;
     font-family: var(--ff-display, 'Playfair Display', Georgia, serif);
     text-align: center; padding: 30px 0;
@@ -427,8 +427,8 @@ function buildPanelHTML(ctx) {
           <div class="cm-intel-card-sub">$/sf by quarter, last 10 years</div>
           ${hasTrajectory ? `
             <div class="cm-traj-legend">
-              <span class="cm-traj-legend-item"><span class="cm-traj-legend-swatch" style="background:var(--cm-peri, #9fb4d8);"></span>${escapeHtml(bldg.name)}</span>
-              <span class="cm-traj-legend-item"><span class="cm-traj-legend-swatch" style="background:rgba(232,227,216,0.4);"></span>Citywide</span>
+              <span class="cm-traj-legend-item"><span class="cm-traj-legend-swatch" style="background:#9fb4d8;"></span>${escapeHtml(bldg.name)}</span>
+              <span class="cm-traj-legend-item"><span class="cm-traj-legend-swatch" style="background:rgba(34,38,47,0.32);"></span>Citywide</span>
             </div>
             <div class="cm-traj-canvas-wrap"><canvas id="cm-intel-chart"></canvas></div>
             <div class="cm-traj-bookends">
@@ -554,8 +554,8 @@ async function init() {
             {
               label: bldg.name,
               data: quarters.map(q => buildingByQuarter.get(q) || null),
-              borderColor: '#9fb4d8',
-              backgroundColor: 'rgba(159,180,216,0.10)',
+              borderColor: '#C2410C',
+              backgroundColor: 'rgba(34,38,47,0.06)',
               borderWidth: 2.5, tension: 0.32, fill: true,
               pointRadius: 0, pointHoverRadius: 5,
               pointHoverBackgroundColor: '#9fb4d8',
@@ -565,7 +565,7 @@ async function init() {
             {
               label: 'Citywide',
               data: quarters.map(q => cityByQuarter.get(q) || null),
-              borderColor: 'rgba(232,227,216,0.42)',
+              borderColor: '#e8e1d2',
               backgroundColor: 'transparent',
               borderWidth: 1.5, tension: 0.32, fill: false,
               borderDash: [4, 4],
@@ -594,7 +594,7 @@ async function init() {
           },
           scales: {
             x: {
-              grid: { color: 'rgba(232,227,216,0.05)' },
+              grid: { color: 'rgba(34,38,47,0.065)' },
               ticks: {
                 color: 'rgba(232,227,216,0.50)',
                 font: { family: 'JetBrains Mono', size: 10 },
@@ -602,7 +602,7 @@ async function init() {
               }
             },
             y: {
-              grid: { color: 'rgba(232,227,216,0.05)' },
+              grid: { color: 'rgba(34,38,47,0.065)' },
               ticks: {
                 color: 'rgba(232,227,216,0.50)',
                 font: { family: 'JetBrains Mono', size: 10 },

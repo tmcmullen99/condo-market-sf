@@ -17,130 +17,130 @@ import { CM } from '/assets/cm-supabase.js';
 
 const STYLE_ID = 'cm-wiz-styles';
 const STYLE_CSS = `
-  .cm-wiz { background: var(--cm-navy-deep, #0f131d); border: 1px solid var(--cm-rule, rgba(232,227,216,0.14)); border-radius: 12px; padding: clamp(20px, 3vw, 32px); }
-  .cm-wiz-eyebrow { display: inline-block; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cm-bronze, #d4a574); padding: 4px 11px; border: 1px solid rgba(212,165,116,0.34); border-radius: 999px; margin-bottom: 14px; }
-  .cm-wiz h2 { font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif); font-style: italic; font-weight: 500; font-size: clamp(24px, 3.4vw, 32px); color: var(--cm-ivory, #e8e3d8); line-height: 1.15; margin-bottom: 8px; }
-  .cm-wiz h2 em { color: var(--cm-peri, #9fb4d8); }
-  .cm-wiz-sub { color: var(--cm-ivory-dim, rgba(232,227,216,0.62)); font-size: 14px; line-height: 1.55; margin-bottom: 24px; }
+  .cm-wiz { background: #f3eee4; border: 1px solid var(--cm-rule, rgba(34,38,47,0.112)); border-radius: 12px; padding: clamp(20px, 3vw, 32px); }
+  .cm-wiz-eyebrow { display: inline-block; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8f5d1c; padding: 4px 11px; border: 1px solid rgba(212,165,116,0.34); border-radius: 999px; margin-bottom: 14px; }
+  .cm-wiz h2 { font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif); font-style: italic; font-weight: 500; font-size: clamp(24px, 3.4vw, 32px); color: #22262f; line-height: 1.15; margin-bottom: 8px; }
+  .cm-wiz h2 em { color: #C2410C; }
+  .cm-wiz-sub { color: var(--cm-ivory-dim, #5d6575); font-size: 14px; line-height: 1.55; margin-bottom: 24px; }
 
   .cm-wiz-progress { display: flex; gap: 6px; margin-bottom: 28px; flex-wrap: wrap; }
-  .cm-wiz-progress-step { flex: 1; min-width: 80px; padding: 8px 10px; border-radius: 6px; font-family: var(--cm-ff-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(232,227,216,0.04); color: var(--cm-ivory-faint, rgba(232,227,216,0.4)); border: 1px solid var(--cm-rule); transition: all 200ms ease; text-align: center; }
-  .cm-wiz-progress-step.is-active { background: rgba(159,180,216,0.1); border-color: var(--cm-peri); color: var(--cm-peri); }
-  .cm-wiz-progress-step.is-done { background: rgba(143,185,122,0.08); border-color: rgba(143,185,122,0.4); color: var(--cm-gain, #8fb97a); }
+  .cm-wiz-progress-step { flex: 1; min-width: 80px; padding: 8px 10px; border-radius: 6px; font-family: var(--cm-ff-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(34,38,47,0.032); color: var(--cm-ivory-faint, #5d6575); border: 1px solid rgba(34,38,47,0.112); transition: all 200ms ease; text-align: center; }
+  .cm-wiz-progress-step.is-active { background: rgba(34,38,47,0.06); border-color: #C2410C; color: #C2410C; }
+  .cm-wiz-progress-step.is-done { background: rgba(47,107,64,0.08); border-color: #2f6b40; color: #2f6b40; }
 
   .cm-wiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; margin-bottom: 22px; }
   .cm-wiz-grid.full { grid-template-columns: 1fr; }
   @media (max-width: 600px) { .cm-wiz-grid { grid-template-columns: 1fr; } }
   .cm-wiz-grid > .span-2 { grid-column: 1 / -1; }
   .cm-wiz-field { display: flex; flex-direction: column; gap: 6px; }
-  .cm-wiz-field label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri); }
+  .cm-wiz-field label { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #C2410C; }
   .cm-wiz-field input, .cm-wiz-field select, .cm-wiz-field textarea {
-    background: var(--cm-navy, #1a1f2e); border: 1px solid var(--cm-rule); border-radius: 6px;
-    padding: 11px 13px; color: var(--cm-ivory); font-family: var(--cm-ff-body, 'DM Sans', sans-serif); font-size: 14px;
+    background: #ffffff; border: 1px solid rgba(34,38,47,0.112); border-radius: 6px;
+    padding: 11px 13px; color: #22262f; font-family: var(--cm-ff-body, 'DM Sans', sans-serif); font-size: 14px;
     transition: border-color 150ms ease;
   }
-  .cm-wiz-field input:focus, .cm-wiz-field select:focus, .cm-wiz-field textarea:focus { outline: none; border-color: var(--cm-peri); }
-  .cm-wiz-field-hint { font-size: 11px; color: var(--cm-ivory-faint); margin-top: 2px; }
+  .cm-wiz-field input:focus, .cm-wiz-field select:focus, .cm-wiz-field textarea:focus { outline: none; border-color: #C2410C; }
+  .cm-wiz-field-hint { font-size: 11px; color: #5d6575; margin-top: 2px; }
 
   .cm-wiz-photo-zone { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-  .cm-wiz-photo-zone-label { display: flex; align-items: baseline; justify-content: space-between; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-peri); }
-  .cm-wiz-photo-zone-label .req { color: var(--cm-bronze); }
-  .cm-wiz-photo-zone-label .opt { color: var(--cm-ivory-faint); text-transform: none; letter-spacing: 0; font-size: 11px; }
+  .cm-wiz-photo-zone-label { display: flex; align-items: baseline; justify-content: space-between; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #C2410C; }
+  .cm-wiz-photo-zone-label .req { color: #8f5d1c; }
+  .cm-wiz-photo-zone-label .opt { color: #5d6575; text-transform: none; letter-spacing: 0; font-size: 11px; }
   .cm-wiz-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
   .cm-wiz-photo {
     aspect-ratio: 1; border-radius: 8px; overflow: hidden; position: relative;
-    background: rgba(232,227,216,0.04); border: 1px solid var(--cm-rule);
+    background: rgba(34,38,47,0.032); border: 1px solid rgba(34,38,47,0.112);
   }
   .cm-wiz-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .cm-wiz-photo.is-cover::before { content: 'Cover'; position: absolute; top: 6px; left: 6px; background: var(--cm-bronze); color: var(--cm-navy); font-family: var(--cm-ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; z-index: 2; }
-  .cm-wiz-photo-remove { position: absolute; top: 6px; right: 6px; background: rgba(15,19,29,0.86); color: var(--cm-loss, #c97865); width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 2; }
-  .cm-wiz-photo-remove:hover { background: var(--cm-loss); color: var(--cm-navy); }
-  .cm-wiz-photo.is-uploading::after { content: '…'; position: absolute; inset: 0; background: rgba(15,19,29,0.7); display: flex; align-items: center; justify-content: center; color: var(--cm-bronze); font-size: 22px; }
+  .cm-wiz-photo.is-cover::before { content: 'Cover'; position: absolute; top: 6px; left: 6px; background: #d4a574; color: #1a1f2e; font-family: var(--cm-ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; z-index: 2; }
+  .cm-wiz-photo-remove { position: absolute; top: 6px; right: 6px; background: rgba(255,255,255,0.86); color: #b4532a; width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 2; }
+  .cm-wiz-photo-remove:hover { background: #c97865; color: #1a1f2e; }
+  .cm-wiz-photo.is-uploading::after { content: '…'; position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; color: #8f5d1c; font-size: 22px; }
 
   .cm-wiz-photo-add {
     aspect-ratio: 1; border-radius: 8px; cursor: pointer;
-    background: rgba(232,227,216,0.02);
-    border: 1px dashed rgba(232,227,216,0.24);
+    background: rgba(34,38,47,0.02);
+    border: 1px dashed rgba(34,38,47,0.192);
     display: flex; align-items: center; justify-content: center;
     font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--cm-ivory-dim);
+    text-transform: uppercase; color: #5d6575;
     transition: all 150ms ease;
   }
-  .cm-wiz-photo-add:hover { border-color: var(--cm-bronze); background: rgba(212,165,116,0.04); color: var(--cm-bronze); }
+  .cm-wiz-photo-add:hover { border-color: #d4a574; background: rgba(212,165,116,0.04); color: #8f5d1c; }
 
   .cm-wiz-floorplan {
-    border: 1px dashed rgba(232,227,216,0.24); border-radius: 8px;
+    border: 1px dashed rgba(34,38,47,0.192); border-radius: 8px;
     padding: 14px 18px; cursor: pointer;
     display: flex; align-items: center; gap: 12px;
     transition: all 150ms ease;
   }
-  .cm-wiz-floorplan:hover { border-color: var(--cm-bronze); }
+  .cm-wiz-floorplan:hover { border-color: #d4a574; }
   .cm-wiz-floorplan.has-file { border-style: solid; cursor: default; }
-  .cm-wiz-floorplan-icon { font-size: 22px; color: var(--cm-bronze); }
-  .cm-wiz-floorplan-label { flex: 1; font-size: 14px; color: var(--cm-ivory); }
-  .cm-wiz-floorplan-sub { font-size: 11px; color: var(--cm-ivory-faint); margin-top: 2px; }
-  .cm-wiz-floorplan-remove { background: transparent; border: 1px solid rgba(201,120,101,0.4); color: var(--cm-loss); padding: 6px 12px; border-radius: 999px; cursor: pointer; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
-  .cm-wiz-floorplan-remove:hover { background: rgba(201,120,101,0.1); }
+  .cm-wiz-floorplan-icon { font-size: 22px; color: #8f5d1c; }
+  .cm-wiz-floorplan-label { flex: 1; font-size: 14px; color: #22262f; }
+  .cm-wiz-floorplan-sub { font-size: 11px; color: #5d6575; margin-top: 2px; }
+  .cm-wiz-floorplan-remove { background: transparent; border: 1px solid #b4532a; color: #b4532a; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .cm-wiz-floorplan-remove:hover { background: rgba(180,83,42,0.1); }
 
-  .cm-wiz-price-display { font-family: var(--cm-ff-display); font-style: italic; font-weight: 600; font-size: 36px; color: var(--cm-bronze); line-height: 1; margin-bottom: 6px; }
-  .cm-wiz-ppsqft { font-family: var(--cm-ff-mono); font-size: 12px; letter-spacing: 0.04em; color: var(--cm-ivory-dim); margin-bottom: 14px; }
-  .cm-wiz-ppsqft strong { color: var(--cm-ivory); font-weight: 500; }
-  .cm-wiz-ppsqft.is-empty { color: var(--cm-ivory-faint); font-style: italic; }
-  .cm-wiz-ppsqft.is-warn strong { color: var(--cm-loss, #c97865); }
-  .cm-wiz-ppsqft-flag { display: inline-block; margin-left: 8px; padding: 2px 8px; background: rgba(201, 120, 101, 0.12); border: 1px solid rgba(201, 120, 101, 0.4); border-radius: 4px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cm-loss); }
-  .cm-wiz-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: var(--cm-rule); border-radius: 2px; cursor: pointer; outline: none; }
-  .cm-wiz-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: var(--cm-bronze); border-radius: 50%; cursor: grab; border: 2px solid var(--cm-navy-deep); }
-  .cm-wiz-slider::-moz-range-thumb { width: 22px; height: 22px; background: var(--cm-bronze); border-radius: 50%; cursor: grab; border: 2px solid var(--cm-navy-deep); }
+  .cm-wiz-price-display { font-family: var(--cm-ff-display); font-style: italic; font-weight: 600; font-size: 36px; color: #8f5d1c; line-height: 1; margin-bottom: 6px; }
+  .cm-wiz-ppsqft { font-family: var(--cm-ff-mono); font-size: 12px; letter-spacing: 0.04em; color: #5d6575; margin-bottom: 14px; }
+  .cm-wiz-ppsqft strong { color: #22262f; font-weight: 500; }
+  .cm-wiz-ppsqft.is-empty { color: #5d6575; font-style: italic; }
+  .cm-wiz-ppsqft.is-warn strong { color: #b4532a; }
+  .cm-wiz-ppsqft-flag { display: inline-block; margin-left: 8px; padding: 2px 8px; background: rgba(180,83,42,0.12); border: 1px solid #b4532a; border-radius: 4px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #b4532a; }
+  .cm-wiz-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: rgba(34,38,47,0.112); border-radius: 2px; cursor: pointer; outline: none; }
+  .cm-wiz-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: #d4a574; border-radius: 50%; cursor: grab; border: 2px solid #e8e1d2; }
+  .cm-wiz-slider::-moz-range-thumb { width: 22px; height: 22px; background: #d4a574; border-radius: 50%; cursor: grab; border: 2px solid #e8e1d2; }
   .cm-wiz-slider-sm { height: 3px; }
   .cm-wiz-slider-sm::-webkit-slider-thumb { width: 16px; height: 16px; }
   .cm-wiz-slider-sm::-moz-range-thumb { width: 16px; height: 16px; }
-  .cm-wiz-slider-bounds { display:flex; justify-content:space-between; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--cm-ivory-faint); margin: 6px 0 22px; }
+  .cm-wiz-slider-bounds { display:flex; justify-content:space-between; font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.08em; color: #5d6575; margin: 6px 0 22px; }
 
   /* Mortgage breakdown card — step 3 */
   .cm-wiz-mortgage {
-    background: rgba(232, 227, 216, 0.03);
-    border: 1px solid var(--cm-rule);
+    background: rgba(34,38,47,0.024);
+    border: 1px solid rgba(34,38,47,0.112);
     border-radius: 10px;
     padding: 18px 20px;
     margin: 18px 0 0;
   }
   .cm-wiz-mortgage-label {
     font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--cm-bronze); margin-bottom: 14px;
+    text-transform: uppercase; color: #8f5d1c; margin-bottom: 14px;
   }
   .cm-wiz-mortgage-controls {
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
     margin-bottom: 16px; padding-bottom: 16px;
-    border-bottom: 1px solid var(--cm-rule);
+    border-bottom: 1px solid rgba(34,38,47,0.112);
   }
   @media (max-width: 600px) { .cm-wiz-mortgage-controls { grid-template-columns: 1fr; } }
   .cm-wiz-mortgage-control label {
     display: flex; justify-content: space-between; align-items: baseline;
     font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--cm-peri); margin-bottom: 8px;
+    text-transform: uppercase; color: #C2410C; margin-bottom: 8px;
   }
   .cm-wiz-mortgage-control label .val {
     font-family: var(--cm-ff-display); font-style: italic; font-weight: 500;
-    font-size: 16px; color: var(--cm-ivory); letter-spacing: 0; text-transform: none;
+    font-size: 16px; color: #22262f; letter-spacing: 0; text-transform: none;
   }
   .cm-wiz-mortgage-sub {
-    font-family: var(--cm-ff-mono); font-size: 10px; color: var(--cm-ivory-faint);
+    font-family: var(--cm-ff-mono); font-size: 10px; color: #5d6575;
     margin-top: 6px; letter-spacing: 0.04em;
   }
   .cm-wiz-hoa-input-wrap {
     position: relative; display: flex; align-items: center;
-    background: var(--cm-navy); border: 1px solid var(--cm-rule);
+    background: #ffffff; border: 1px solid rgba(34,38,47,0.112);
     border-radius: 6px; padding: 0 12px;
     transition: border-color 150ms ease;
   }
-  .cm-wiz-hoa-input-wrap:focus-within { border-color: var(--cm-peri); }
+  .cm-wiz-hoa-input-wrap:focus-within { border-color: #C2410C; }
   .cm-wiz-hoa-prefix {
-    color: var(--cm-ivory-faint); font-size: 14px;
+    color: #5d6575; font-size: 14px;
     margin-right: 4px;
   }
   .cm-wiz-hoa-input {
     flex: 1; background: transparent; border: none;
-    padding: 11px 0; color: var(--cm-ivory);
+    padding: 11px 0; color: #22262f;
     font-family: var(--cm-ff-body); font-size: 14px;
     outline: none;
   }
@@ -150,20 +150,20 @@ const STYLE_CSS = `
   }
   .cm-wiz-mortgage-table td {
     padding: 8px 0;
-    border-bottom: 1px solid rgba(232, 227, 216, 0.06);
+    border-bottom: 1px solid rgba(34,38,47,0.06);
     vertical-align: baseline;
   }
   .cm-wiz-mortgage-table tr:last-child td { border-bottom: none; }
-  .cm-wiz-mortgage-table td:first-child { color: var(--cm-ivory); }
+  .cm-wiz-mortgage-table td:first-child { color: #22262f; }
   .cm-wiz-mortgage-table td.amt {
     text-align: right;
     font-family: var(--cm-ff-mono); font-size: 13px;
-    color: var(--cm-ivory); white-space: nowrap; padding-left: 12px;
+    color: #22262f; white-space: nowrap; padding-left: 12px;
   }
   .cm-wiz-mortgage-table td.meta {
     text-align: right;
     font-family: var(--cm-ff-mono); font-size: 10px;
-    color: var(--cm-ivory-faint);
+    color: #5d6575;
     padding-left: 12px; letter-spacing: 0.04em;
     width: 1%; white-space: nowrap;
   }
@@ -171,37 +171,37 @@ const STYLE_CSS = `
     padding-top: 14px;
     border-top: 1px solid rgba(212, 165, 116, 0.3) !important;
   }
-  .cm-wiz-mortgage-total td:first-child { color: var(--cm-ivory); }
+  .cm-wiz-mortgage-total td:first-child { color: #22262f; }
   .cm-wiz-mortgage-total td.amt {
-    color: var(--cm-bronze); font-size: 16px;
+    color: #8f5d1c; font-size: 16px;
   }
   @media (max-width: 480px) {
     .cm-wiz-mortgage-table td.meta { display: none; }
   }
 
-  .cm-wiz-review-block { background: rgba(232,227,216,0.03); border: 1px solid var(--cm-rule); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
-  .cm-wiz-review-block h4 { font-family: var(--cm-ff-display); font-style: italic; font-size: 18px; color: var(--cm-ivory); margin-bottom: 12px; }
+  .cm-wiz-review-block { background: rgba(34,38,47,0.024); border: 1px solid rgba(34,38,47,0.112); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .cm-wiz-review-block h4 { font-family: var(--cm-ff-display); font-style: italic; font-size: 18px; color: #22262f; margin-bottom: 12px; }
   .cm-wiz-review-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 6px 0; font-size: 14px; }
-  .cm-wiz-review-row .k { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-ivory-faint); padding-top: 4px; }
-  .cm-wiz-review-row .v { color: var(--cm-ivory); }
+  .cm-wiz-review-row .k { font-family: var(--cm-ff-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5d6575; padding-top: 4px; }
+  .cm-wiz-review-row .v { color: #22262f; }
   .cm-wiz-review-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 8px; }
   .cm-wiz-review-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
 
-  .cm-wiz-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--cm-rule); }
+  .cm-wiz-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid rgba(34,38,47,0.112); }
   .cm-wiz-btn { padding: 12px 22px; border-radius: 999px; font-family: var(--cm-ff-body); font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid; transition: all 150ms ease; }
-  .cm-wiz-btn-primary { background: var(--cm-peri); color: var(--cm-navy); border-color: var(--cm-peri); }
-  .cm-wiz-btn-primary:hover:not(:disabled) { background: var(--cm-ivory); border-color: var(--cm-ivory); }
+  .cm-wiz-btn-primary { background: #9fb4d8; color: #ffffff; border-color: #C2410C; }
+  .cm-wiz-btn-primary:hover:not(:disabled) { background: #e8e3d8; border-color: #e8e1d2; }
   .cm-wiz-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .cm-wiz-btn-publish { background: var(--cm-bronze); color: var(--cm-navy); border-color: var(--cm-bronze); }
-  .cm-wiz-btn-publish:hover:not(:disabled) { background: var(--cm-ivory); border-color: var(--cm-ivory); }
-  .cm-wiz-btn-secondary { background: transparent; color: var(--cm-ivory); border-color: var(--cm-rule); }
-  .cm-wiz-btn-secondary:hover { border-color: var(--cm-ivory); }
-  .cm-wiz-btn-cancel { background: transparent; color: var(--cm-ivory-dim); border-color: transparent; margin-left: auto; }
-  .cm-wiz-btn-cancel:hover { color: var(--cm-loss); }
+  .cm-wiz-btn-publish { background: #d4a574; color: #1a1f2e; border-color: #d4a574; }
+  .cm-wiz-btn-publish:hover:not(:disabled) { background: #e8e3d8; border-color: #e8e1d2; }
+  .cm-wiz-btn-secondary { background: transparent; color: #22262f; border-color: rgba(34,38,47,0.112); }
+  .cm-wiz-btn-secondary:hover { border-color: #e8e1d2; }
+  .cm-wiz-btn-cancel { background: transparent; color: #5d6575; border-color: transparent; margin-left: auto; }
+  .cm-wiz-btn-cancel:hover { color: #b4532a; }
 
   .cm-wiz-msg { margin: 14px 0; padding: 10px 14px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
-  .cm-wiz-msg.is-error { background: rgba(201,120,101,0.1); border: 1px solid rgba(201,120,101,0.3); color: var(--cm-loss); }
-  .cm-wiz-msg.is-info { background: rgba(159,180,216,0.08); border: 1px solid rgba(159,180,216,0.24); color: var(--cm-peri); }
+  .cm-wiz-msg.is-error { background: rgba(180,83,42,0.1); border: 1px solid #b4532a; color: #b4532a; }
+  .cm-wiz-msg.is-info { background: rgba(34,38,47,0.048); border: 1px solid rgba(34,38,47,0.168); color: #C2410C; }
 `;
 
 const ORIENTATIONS = [
@@ -406,7 +406,7 @@ function renderStepPhotos(state) {
         <span class="cm-wiz-floorplan-icon">${isPdf ? '📄' : '🖼️'}</span>
         <div class="cm-wiz-floorplan-label">
           ${isPdf ? 'Floor plan PDF uploaded' : 'Floor plan image uploaded'}
-          <div class="cm-wiz-floorplan-sub"><a href="${escapeHtml(fpUrl || '')}" target="_blank" rel="noopener" style="color:var(--cm-peri);">Preview →</a></div>
+          <div class="cm-wiz-floorplan-sub"><a href="${escapeHtml(fpUrl || '')}" target="_blank" rel="noopener" style="color:#C2410C;">Preview →</a></div>
         </div>
         <button type="button" class="cm-wiz-floorplan-remove" data-action="remove-floorplan">Remove</button>
       </div>
@@ -572,13 +572,13 @@ function renderStepReview(state) {
     ${state.floorplan_path ? `
       <div class="cm-wiz-review-block">
         <h4>Floor plan</h4>
-        <a href="${escapeHtml(photoUrl(state.floorplan_path) || '')}" target="_blank" rel="noopener" style="color:var(--cm-peri);">Preview floor plan →</a>
+        <a href="${escapeHtml(photoUrl(state.floorplan_path) || '')}" target="_blank" rel="noopener" style="color:#C2410C;">Preview floor plan →</a>
       </div>
     ` : ''}
 
     <div class="cm-wiz-review-block" style="background:rgba(212,165,116,0.06);border-color:rgba(212,165,116,0.3);">
-      <h4 style="color:var(--cm-bronze);">Make-me-move price</h4>
-      <div style="font-family:var(--cm-ff-display);font-style:italic;font-weight:600;font-size:36px;color:var(--cm-bronze);line-height:1;">${fmtMoney(d.price)}</div>
+      <h4 style="color:#8f5d1c;">Make-me-move price</h4>
+      <div style="font-family:var(--cm-ff-display);font-style:italic;font-weight:600;font-size:36px;color:#8f5d1c;line-height:1;">${fmtMoney(d.price)}</div>
     </div>
   `;
 }

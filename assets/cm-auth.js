@@ -27,13 +27,13 @@ const CSS = `
   .cm-auth-backdrop.cm-open { display: flex; }
   .cm-auth-modal {
     background: #ffffff; border-radius: 14px; max-width: 440px; width: 100%;
-    padding: 32px 28px 28px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    padding: 32px 28px 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.087);
     position: relative; max-height: 92vh; overflow-y: auto;
   }
   .cm-auth-close {
     position: absolute; top: 14px; right: 14px;
     background: transparent; border: none; font-size: 24px; cursor: pointer;
-    color: #9a9a9a; padding: 4px 10px; line-height: 1; border-radius: 6px;
+    color: #5d6575; padding: 4px 10px; line-height: 1; border-radius: 6px;
   }
   .cm-auth-close:hover { background: #f4f4f4; color: #1a1f2e; }
   .cm-auth-modal h2 {
@@ -43,22 +43,22 @@ const CSS = `
   }
   .cm-auth-sub { color: #666; margin: 0 0 18px; font-size: 14px; line-height: 1.5; }
   .cm-referrer-banner {
-    background: #f0f4fa; border-left: 3px solid #9fb4d8;
+    background: #f3eee4; border-left: 3px solid #C2410C;
     padding: 10px 14px; border-radius: 6px; margin: 0 0 18px;
     font-size: 13px; color: #1a1f2e;
   }
   .cm-auth-field {
     display: block; width: 100%; padding: 10px 12px; margin-bottom: 12px;
-    border: 1px solid #d4d4d4; border-radius: 8px; font-size: 15px;
+    border: 1px solid #e8e1d2; border-radius: 8px; font-size: 15px;
     font-family: inherit; box-sizing: border-box; background: #fff;
     color: #1a1f2e;
   }
   .cm-auth-field:focus {
-    outline: none; border-color: #9fb4d8; box-shadow: 0 0 0 3px rgba(159, 180, 216, 0.2);
+    outline: none; border-color: #C2410C; box-shadow: 0 0 0 3px rgba(34,38,47,0.08);
   }
   .cm-auth-submit {
     display: block; width: 100%; padding: 12px; margin-top: 4px;
-    background: #1a1f2e; color: #fff; border: none; border-radius: 8px;
+    background: #ffffff; color: #22262f; border: none; border-radius: 8px;
     font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit;
     transition: background 0.15s;
   }
@@ -81,7 +81,7 @@ const CSS = `
     color: #1a1f2e; font-weight: 500; cursor: pointer; text-decoration: underline;
   }
   .cm-auth-divider {
-    text-align: center; margin: 16px 0; font-size: 12px; color: #999;
+    text-align: center; margin: 16px 0; font-size: 12px; color: #5d6575;
     position: relative;
   }
   .cm-auth-divider::before, .cm-auth-divider::after {
@@ -91,13 +91,13 @@ const CSS = `
   .cm-auth-divider::after { right: 0; }
   .cm-auth-magic {
     display: block; width: 100%; padding: 10px; margin-top: 4px;
-    background: #fff; color: #1a1f2e; border: 1px solid #1a1f2e; border-radius: 8px;
+    background: #fff; color: #1a1f2e; border: 1px solid #e8e1d2; border-radius: 8px;
     font-size: 14px; cursor: pointer; font-family: inherit;
   }
   .cm-auth-magic:hover:not(:disabled) { background: #f4f4f4; }
   .cm-auth-msg { font-size: 13px; margin-top: 12px; padding: 10px; border-radius: 6px; }
   .cm-auth-msg.err { background: #fdecea; color: #b91818; }
-  .cm-auth-msg.ok  { background: #eaf7ee; color: #1a7a3a; }
+  .cm-auth-msg.ok  { background: #f3eee4; color: #1a7a3a; }
 `;
 
 let modalEl = null;

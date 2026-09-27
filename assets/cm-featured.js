@@ -19,7 +19,7 @@ import { CM } from '/assets/cm-supabase.js';
 const STYLE_ID = 'cm-featured-styles';
 
 const STYLE_CSS = `
-  .cm-feat { background: rgba(212, 165, 116, 0.04); border: 1px solid var(--cm-rule, rgba(26,31,46,0.112)); border-radius: 16px; padding: clamp(28px, 4vw, 48px); }
+  .cm-feat { background: rgba(212, 165, 116, 0.04); border: 1px solid var(--cm-rule, rgba(34,38,47,0.112)); border-radius: 16px; padding: clamp(28px, 4vw, 48px); }
   .cm-feat-eyebrow {
     font-family: var(--cm-ff-mono, 'JetBrains Mono', ui-monospace, monospace);
     font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
@@ -31,7 +31,7 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
     font-size: clamp(28px, 3.6vw, 38px);
-    margin-bottom: 12px; color: #1a1f2e;
+    margin-bottom: 12px; color: #22262f;
     line-height: 1.15;
   }
   .cm-feat h2 em {
@@ -48,8 +48,8 @@ const STYLE_CSS = `
     gap: 18px;
   }
   .cm-feat-card {
-    background: #eef1f6;
-    border: 1px solid var(--cm-rule, rgba(26,31,46,0.112));
+    background: #f3eee4;
+    border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     border-radius: 14px;
     overflow: hidden;
     display: flex;
@@ -68,7 +68,7 @@ const STYLE_CSS = `
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    background: rgba(26,31,46,0.032);
+    background: rgba(34,38,47,0.032);
   }
   .cm-feat-card-photo img {
     width: 100%; height: 100%;
@@ -112,7 +112,7 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-body, 'DM Sans', -apple-system, sans-serif);
     font-weight: 500;
     font-size: 15px;
-    color: #1a1f2e;
+    color: #22262f;
     line-height: 1.3;
   }
   .cm-feat-card-addr-sub {
@@ -139,7 +139,7 @@ const STYLE_CSS = `
   .cm-feat-card-cta {
     margin-top: auto;
     padding-top: 14px;
-    border-top: 1px solid var(--cm-rule, rgba(26,31,46,0.08));
+    border-top: 1px solid var(--cm-rule, rgba(34,38,47,0.08));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -152,7 +152,7 @@ const STYLE_CSS = `
     font-weight: 500;
     transition: color 150ms ease;
   }
-  .cm-feat-card:hover .cm-feat-card-cta { color: #1a1f2e; }
+  .cm-feat-card:hover .cm-feat-card-cta { color: #22262f; }
   .cm-feat-card-cta-arrow {
     transition: transform 220ms ease;
   }
@@ -162,7 +162,7 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
     font-size: clamp(20px, 2.4vw, 24px);
-    color: #1a1f2e; margin-bottom: 12px;
+    color: #22262f; margin-bottom: 12px;
   }
   .cm-feat-gate p {
     max-width: 50ch; margin: 0 auto 22px;

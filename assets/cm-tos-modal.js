@@ -41,8 +41,8 @@ const STYLE_CSS = `
   }
   @keyframes cm-tos-fade-in { from { opacity: 0; } to { opacity: 1; } }
   .cm-tos-card {
-    background: var(--cm-navy-deep, #0f131d);
-    border: 1px solid var(--cm-rule, rgba(232,227,216,0.14));
+    background: #f3eee4;
+    border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     border-radius: 14px;
     max-width: 720px;
     width: 100%;
@@ -52,13 +52,13 @@ const STYLE_CSS = `
   }
   .cm-tos-head {
     padding: 28px 32px 20px;
-    border-bottom: 1px solid var(--cm-rule);
+    border-bottom: 1px solid rgba(34,38,47,0.112);
     flex-shrink: 0;
   }
   .cm-tos-eyebrow {
     display: inline-block; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace);
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--cm-bronze, #d4a574);
+    color: #8f5d1c;
     padding: 4px 11px; border: 1px solid rgba(212,165,116,0.34);
     border-radius: 999px; margin-bottom: 14px;
   }
@@ -66,18 +66,18 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-display, 'Playfair Display', Georgia, serif);
     font-style: italic; font-weight: 500;
     font-size: clamp(24px, 3.5vw, 32px); line-height: 1.15;
-    color: var(--cm-ivory, #e8e3d8); margin-bottom: 6px;
+    color: #22262f; margin-bottom: 6px;
   }
-  .cm-tos-card h2 em { color: var(--cm-peri, #9fb4d8); }
+  .cm-tos-card h2 em { color: #C2410C; }
   .cm-tos-sub {
-    color: var(--cm-ivory-dim, rgba(232,227,216,0.62));
+    color: var(--cm-ivory-dim, #5d6575);
     font-size: 13px; line-height: 1.55;
   }
   .cm-tos-body {
     padding: 24px 32px;
     overflow-y: auto;
     flex: 1;
-    color: var(--cm-ivory);
+    color: #22262f;
   }
   .cm-tos-section {
     margin-bottom: 28px;
@@ -86,7 +86,7 @@ const STYLE_CSS = `
     font-family: var(--cm-ff-display);
     font-style: italic;
     font-size: 20px;
-    color: var(--cm-ivory);
+    color: #22262f;
     margin-bottom: 8px;
   }
   .cm-tos-section h4 {
@@ -94,17 +94,17 @@ const STYLE_CSS = `
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--cm-peri);
+    color: #C2410C;
     margin: 14px 0 6px;
   }
   .cm-tos-section p,
   .cm-tos-section li {
     font-size: 14px; line-height: 1.65;
-    color: var(--cm-ivory-dim);
+    color: #5d6575;
     margin-bottom: 10px;
   }
-  .cm-tos-section strong { color: var(--cm-ivory); }
-  .cm-tos-section em { color: var(--cm-bronze); font-style: italic; }
+  .cm-tos-section strong { color: #22262f; }
+  .cm-tos-section em { color: #8f5d1c; font-style: italic; }
   .cm-tos-section ul { padding-left: 20px; margin-bottom: 12px; }
   .cm-tos-section li { margin-bottom: 4px; }
   .cm-tos-section .step-list {
@@ -121,41 +121,41 @@ const STYLE_CSS = `
     width: 24px; height: 24px;
     background: rgba(212, 165, 116, 0.12);
     border: 1px solid rgba(212, 165, 116, 0.4);
-    color: var(--cm-bronze);
+    color: #8f5d1c;
     border-radius: 50%;
     font-family: var(--cm-ff-mono); font-size: 11px;
     display: flex; align-items: center; justify-content: center;
   }
   .cm-tos-callout {
-    background: rgba(159, 180, 216, 0.06);
-    border-left: 3px solid var(--cm-peri);
+    background: rgba(34,38,47,0.036);
+    border-left: 3px solid #C2410C;
     padding: 14px 18px; border-radius: 6px;
     margin: 14px 0;
   }
   .cm-tos-callout-warn {
     background: rgba(212, 165, 116, 0.06);
-    border-left-color: var(--cm-bronze);
+    border-left-color: #d4a574;
   }
   .cm-tos-tos-content {
-    background: rgba(232, 227, 216, 0.03);
-    border: 1px solid var(--cm-rule);
+    background: rgba(34,38,47,0.024);
+    border: 1px solid rgba(34,38,47,0.112);
     border-radius: 8px;
     padding: 18px 22px;
     font-size: 13px; line-height: 1.6;
-    color: var(--cm-ivory-dim);
+    color: #5d6575;
   }
   .cm-tos-tos-content h3 {
     font-family: var(--cm-ff-display); font-style: italic;
-    font-size: 16px; margin: 14px 0 6px; color: var(--cm-ivory);
+    font-size: 16px; margin: 14px 0 6px; color: #22262f;
   }
   .cm-tos-tos-content h3:first-child { margin-top: 0; }
   .cm-tos-tos-content p { margin-bottom: 8px; }
 
   .cm-tos-foot {
     padding: 18px 32px 24px;
-    border-top: 1px solid var(--cm-rule);
+    border-top: 1px solid rgba(34,38,47,0.112);
     flex-shrink: 0;
-    background: rgba(232, 227, 216, 0.02);
+    background: rgba(34,38,47,0.02);
   }
   .cm-tos-checkbox-row {
     display: flex; gap: 12px; align-items: flex-start;
@@ -169,7 +169,7 @@ const STYLE_CSS = `
   }
   .cm-tos-checkbox-label {
     font-size: 13px; line-height: 1.5;
-    color: var(--cm-ivory);
+    color: #22262f;
   }
   .cm-tos-actions {
     display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
@@ -181,24 +181,24 @@ const STYLE_CSS = `
     border: 1px solid; transition: all 150ms ease;
   }
   .cm-tos-btn-primary {
-    background: var(--cm-peri); color: var(--cm-navy, #1a1f2e);
-    border-color: var(--cm-peri);
+    background: #9fb4d8; color: #ffffff;
+    border-color: #C2410C;
   }
   .cm-tos-btn-primary:hover:not(:disabled) {
-    background: var(--cm-ivory); border-color: var(--cm-ivory);
+    background: #e8e3d8; border-color: #e8e1d2;
   }
   .cm-tos-btn-primary:disabled {
     opacity: 0.4; cursor: not-allowed;
   }
   .cm-tos-btn-secondary {
-    background: transparent; color: var(--cm-ivory);
-    border-color: var(--cm-rule);
+    background: transparent; color: #22262f;
+    border-color: rgba(34,38,47,0.112);
   }
   .cm-tos-btn-secondary:hover {
-    border-color: var(--cm-ivory);
+    border-color: #e8e1d2;
   }
   .cm-tos-error {
-    color: var(--cm-loss, #c97865);
+    color: #b4532a;
     font-size: 13px; margin-top: 8px;
   }
 `;
@@ -311,7 +311,7 @@ const TOS_LEGAL_CONTENT = `
     <h3>12. Contact</h3>
     <p>Operator: McMullen Properties, CA DRE #02016832 · hello@sanfranciscocondomarket.com</p>
 
-    <p style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(232,227,216,0.1); font-size: 11px; color: rgba(232,227,216,0.4); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">Version ${TOS_VERSION} · Last updated ${TOS_LAST_UPDATED}</p>
+    <p style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(34,38,47,0.08); font-size: 11px; color: #5d6575; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;">Version ${TOS_VERSION} · Last updated ${TOS_LAST_UPDATED}</p>
   </div>
 `;
 
