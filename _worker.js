@@ -794,7 +794,7 @@ ${flags.length > near.length ? `<tr class="subtotal"><td colspan="2">All items</
     ? `<section class="rpt-sec"><h2>Confirm these <em>before you write</em></h2><ol class="rpt-q">${qs.map((q) => `<li>${esc(typeof q === 'string' ? q : ((q && (q.question || q.q)) || ''))}</li>`).join('')}</ol></section>` : '';
 
   const cross = d.cma_token
-    ? `<a class="rpt-cross" href="/cma/?token=${encodeURIComponent(d.cma_token)}">See the CMA — the recorded comps →</a>` : '';
+    ? `<a class="rpt-cross" href="/cma/?token=${encodeURIComponent(d.cma_token)}">See the Comp Report — the recorded comps →</a>` : '';
 
   const body = `<div class="rpt-page">
 <p class="rpt-eyebrow">Disclosure cheat sheet · ${esc(RPT_M.name)}</p>
@@ -832,8 +832,8 @@ async function renderCheatSheet(d) {
   const other = [...future, ...elective];
   const allLo = sum(buyer, 'low'), allHi = sum(buyer, 'high');
 
-  /* The CMA this sheet belongs to: its range and asking price, by the same
-     rule the CMA page uses. No CMA, or no range, and the price sections are
+  /* The Comp Report this sheet belongs to: its range and asking price, by the same
+     rule the Comp Report page uses. No Comp Report, or no range, and the price sections are
      simply absent — never estimated here. */
   let R = null, asking = null, sqft = null, cmaHref = null;
   if (d.cma_slug) {
@@ -848,7 +848,7 @@ async function renderCheatSheet(d) {
       cmaHref = '/cma/' + d.cma_slug + '/';
     }
   }
-  const rangeName = R ? (R.agent ? 'Range on the CMA' : 'Supported range') : '';
+  const rangeName = R ? (R.agent ? 'Range on the Comp Report' : 'Supported range') : '';
   const pct = (a, b) => (a && b) ? (a / b * 100).toFixed(1) + '%' : '\u2014';
   const score = Number.isFinite(Number(d.condition_score)) ? Math.max(0, Math.min(100, Number(d.condition_score))) : null;
   const pkg = S.package || {};
@@ -865,15 +865,15 @@ ${list.map((x) => `<tr><td>${esc(x.item)}${x.basis === 'bid' ? ' <span class="bi
 
   const work = Math.round((allLo + allHi) / 2 / 1000) * 1000;
   const offerRows = R ? [
-    [R.lo, 'Bottom of the ' + (R.agent ? 'range on the CMA' : 'supported range')],
+    [R.lo, 'Bottom of the ' + (R.agent ? 'range on the Comp Report' : 'supported range')],
     [Math.round((R.lo + R.hi) / 2000) * 1000, 'Midpoint'],
-    [R.hi, 'Top of the ' + (R.agent ? 'range on the CMA' : 'supported range')],
+    [R.hi, 'Top of the ' + (R.agent ? 'range on the Comp Report' : 'supported range')],
   ] : [];
 
   const body = `
 <div class="bar noprint"><div class="in">
   <span>${d.is_draft ? '<b class="draft">Draft \u2014 not published</b> \u00b7 only you can see this link' : 'Disclosure cheat sheet'}</span>
-  <span class="acts">${cmaHref ? `<a class="btn ghost" href="${cmaHref}">Back to the CMA</a>` : ''}<button class="btn" type="button" onclick="window.print()">Download PDF</button></span>
+  <span class="acts">${cmaHref ? `<a class="btn ghost" href="${cmaHref}">Back to the Comp Report</a>` : ''}<button class="btn" type="button" onclick="window.print()">Download PDF</button></span>
 </div></div>
 <main class="doc">
 <header class="mast">
@@ -900,7 +900,7 @@ ${buyer.length ? `<section class="money">
   <div><div class="k">To make it safe</div><div class="v">${m(sum(safety, 'low'))} \u2013 ${m(sum(safety, 'high'))}</div><p>${esc((S.money_notes || {}).safety || '')}</p></div>
   <div><div class="k">Everything else, over time</div><div class="v">${m(sum(other, 'low'))} \u2013 ${m(sum(other, 'high'))}</div><p>${esc((S.money_notes || {}).other || '')}</p></div>
   <div class="all"><div class="k">All open items</div><div class="v">${m(allLo)} \u2013 ${m(allHi)}</div><p>${R
-      ? 'About ' + Math.max(1, Math.round(allLo / R.hi * 100)) + '% to ' + Math.max(1, Math.round(allHi / R.lo * 100)) + '% of a purchase in the ' + (R.agent ? 'range on the CMA' : 'supported range')
+      ? 'About ' + Math.max(1, Math.round(allLo / R.hi * 100)) + '% to ' + Math.max(1, Math.round(allHi / R.lo * 100)) + '% of a purchase in the ' + (R.agent ? 'range on the Comp Report' : 'supported range')
       : buyer.length + ' open item' + (buyer.length === 1 ? '' : 's') + ' in the ledger'}</p></div>
 </section>` : ''}
 
@@ -938,7 +938,7 @@ ${R ? `<section class="offer"><h2>What this means for your offer</h2>
 <table><thead><tr><th>Offer</th><th class="n">Per sq ft</th>${asking ? '<th class="n">Of asking</th>' : ''}<th class="n">All-in with ${m(work)} of work</th><th>How to read it</th></tr></thead><tbody>
 ${offerRows.map(([o, lab]) => `<tr><td class="n b">${m(o)}</td><td class="n">${sqft ? m(o / sqft) : '\u2014'}</td>${asking ? `<td class="n">${pct(o, asking)}</td>` : ''}<td class="n">${m(o + work)}</td><td>${esc(lab)}</td></tr>`).join('')}
 </tbody></table>
-<p class="fine">${R.agent ? 'The range is the one set on the CMA for this home.' : `The range is what the ${R.n} recorded comparable sales on the CMA imply per square foot, applied to this home\u2019s recorded area.`} All-in adds the midpoint of the open-items budget. Arithmetic on the CMA and the ledger, not an appraisal.</p>
+<p class="fine">${R.agent ? 'The range is the one set on the Comp Report for this home.' : `The range is what the ${R.n} recorded comparable sales on the Comp Report imply per square foot, applied to this home\u2019s recorded area.`} All-in adds the midpoint of the open-items budget. Arithmetic on the Comp Report and the ledger, not an appraisal.</p>
 </section>` : ''}
 
 ${(S.questions || []).length ? `<section class="qs"><h2>${S.questions.length === 1 ? 'One thing' : ['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven'][S.questions.length] + ' things'} to ask in writing, before the offer date</h2>
@@ -1159,7 +1159,7 @@ function cmaRange(comps, sqft, agentLo, agentHi, implied) {
 
 /* ---------------------------------------------------------------------------
    LISTING REPORTS SECTION - the City Markets listing 'lead magnet', ported (Tim, 26 Sep 2026).
-   Every listing gets it: when a CMA / disclosure review is published for this unit (on the city
+   Every listing gets it: when a Comp Report / disclosure review is published for this unit (on the city
    platform, market 5, where the desk publishes), the preview + email gate that opens it and emails
    the links; otherwise the same section asks the buyer to request them.
    Only a listing WITH a unit is looked up: the city matcher treats a unit-less address as the
@@ -1185,10 +1185,10 @@ async function listingReportsSection(l) {
       hasD = real.some(x => x.kind === 'disclosure_review');
       hasC = real.some(x => x.kind === 'cma');
       reviewRisk = (real.find(x => x.kind === 'disclosure_review') || {}).risk_level || null;
-      const what = hasD && hasC ? 'the disclosure cheat sheet and the CMA'
+      const what = hasD && hasC ? 'the disclosure cheat sheet and the Comp Report'
                  : hasD ? 'the disclosure cheat sheet' : 'the comparative market analysis';
       const items = real.map(x =>
-        '<li><b>' + (x.kind === 'cma' ? 'Comparative Market Analysis' : 'Disclosure Cheat Sheet') + '</b>' +
+        '<li><b>' + (x.kind === 'cma' ? 'Comp Report' : 'Disclosure Cheat Sheet') + '</b>' +
         (x.headline ? ' — ' + esc(x.headline) : '') +
         (x.risk_level ? ' <span class="rpt-risk">' + esc(x.risk_level) + '</span>' : '') + '</li>').join('');
       /* THE LEAD MAGNET (Tim, 24 Sep 2026). Says exactly which reports are
@@ -1219,7 +1219,7 @@ async function listingReportsSection(l) {
       const bars = [34, 52, 41, 63, 47, 58, 38];
       const cmaPaper = cmaRow ? `
       <figure class="pp pp-cma" aria-hidden="true">
-        <div class="pp-head"><span class="pp-kind">Comparative Market Analysis</span><span class="pp-ok">\u2713 Completed</span></div>
+        <div class="pp-head"><span class="pp-kind">Comp Report</span><span class="pp-ok">\u2713 Completed</span></div>
         <div class="pp-addr">${pvAddr}</div>
         <div class="pp-by">${pvBy}</div>
         ${pvPhoto ? `<div class="pp-photo" style="background-image:url('${esc(pvPhoto)}')"></div>` : ''}
@@ -1243,10 +1243,10 @@ async function listingReportsSection(l) {
             `<div class="pp-led"><span class="pp-tag ${r[1]}">${r[0]}</span><i style="width:${r[2]}%"></i><b></b></div>`).join('')}
         </div>
       </figure>` : '';
-      const heading = both ? `A CMA and a disclosure review, <em>done for this home.</em>`
-        : cmaRow ? `An agent\u2019s CMA, <em>done for this home.</em>`
+      const heading = both ? `A Comp Report and a disclosure review, <em>done for this home.</em>`
+        : cmaRow ? `An agent\u2019s Comp Report, <em>done for this home.</em>`
         : `The disclosure package, <em>read for this home.</em>`;
-      const btnLabel = both ? 'Send me both' : cmaRow ? 'Send me the CMA' : 'Send me the review';
+      const btnLabel = both ? 'Send me both' : cmaRow ? 'Send me the Comp Report' : 'Send me the review';
       const inside = [
         ...(cmaRow ? ['Recorded sales near this home, chosen one by one by ' + esc(aFirst) + ' \u2014 not an automated estimate',
                       'The range those sales imply, beside the asking price, with every comparable on a map'] : []),
@@ -1263,7 +1263,7 @@ async function listingReportsSection(l) {
     <div class="lm-vis${both ? ' two' : ''}">
       ${dPaper}${cmaPaper}
       <div class="pp-lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
-        The full ${both ? 'documents unlock' : (cmaRow ? 'CMA unlocks' : 'review unlocks')} with your email</div>
+        The full ${both ? 'documents unlock' : (cmaRow ? 'Comp Report unlocks' : 'review unlocks')} with your email</div>
     </div>
     <div class="lm-side">
       <ul class="lm-inside">${inside.map(t => `<li>${t}</li>`).join('')}</ul>
@@ -1518,7 +1518,7 @@ async function listingReportsSection(l) {
         out.innerHTML='<div class="rpt-unlocked">'+j.reports.map(function(x,i){
           var isCma=x.kind==='cma';
           var href=x.url;
-          var eyebrow=isCma?'Comparative Market Analysis':'Disclosure Cheat Sheet';
+          var eyebrow=isCma?'Comp Report':'Disclosure Cheat Sheet';
           var badge=!isCma&&x.risk_level?'<span class="rpt-risk">'+eshtml(x.risk_level)+' risk</span>':'';
           var lead=isCma
             ? (x.n_comps?('<p>'+x.n_comps+' recorded sales, selected and adjusted to this exact home \u2014 beds, baths, and square footage accounted for.</p>'):'<p>Recorded comparable sales, selected and adjusted to this exact home.</p>')
@@ -1536,7 +1536,7 @@ async function listingReportsSection(l) {
         var docBtns=j.reports.map(function(x){
           var isCma=x.kind==='cma';
           var href=x.url;
-          var big=isCma?'Open the CMA':'Open the Disclosure Cheat Sheet';
+          var big=isCma?'Open the Comp Report':'Open the Disclosure Cheat Sheet';
           var small=isCma
             ? ((x.n_comps?x.n_comps+' recorded sales':'Recorded sales')+', adjusted to this exact home')
             : ((x.risk_level?x.risk_level.charAt(0).toUpperCase()+x.risk_level.slice(1)+' risk':'Sourced findings')+(x.score!=null?' \u00b7 condition score '+x.score+'/100':''));
@@ -1549,12 +1549,12 @@ async function listingReportsSection(l) {
           '<div class="rpt-m-btns">'+docBtns+'</div>'+
           '<div class="rpt-m-how"><div class="rpt-m-k" style="margin-bottom:8px">How these were made</div>'+
             '<ul>'+
-            /* Only what was delivered. A CMA alone is never described as a
-               disclosure review, and the CMA is described as what it is. */
+            /* Only what was delivered. A Comp Report alone is never described as a
+               disclosure review, and the Comp Report is described as what it is. */
             (hasDisc?'<li><b>The disclosure package, reviewed.</b> ${M.agent.first} reviewed the seller\u2019s disclosure package for this home \u2014 inspections, pest, permits and the seller\u2019s own statements.</li>'+
             '<li><b>Every finding names its source.</b> Each item on the cheat sheet cites the report and section it came from. Nothing unsourced gets published.</li>'+
             '<li><b>A condition score and a repair budget.</b> The 0\u2013100 score summarizes the package; the budget is grouped by what needs doing first and what can wait.</li>':'')+
-            (hasCma?'<li><b>A CMA from recorded sales.</b> Each comparable is a closed sale chosen for this home, with the arithmetic shown \u2014 not an automated estimate, and not an appraisal.</li>':'')+
+            (hasCma?'<li><b>A Comp Report from recorded sales.</b> Each comparable is a closed sale chosen for this home, with the arithmetic shown \u2014 not an automated estimate, and not an appraisal.</li>':'')+
             '</ul></div>'+
           '<p class="rpt-m-note">These links stay on this page too \u2014 come back to them anytime.</p>'+
         '</div>';
@@ -1602,7 +1602,7 @@ async function listingRequestSection(l) {
   const req = '<span class="pp-ok pp-req">On request</span>';
   const cmaPaper = `
       <figure class="pp pp-cma" aria-hidden="true">
-        <div class="pp-head"><span class="pp-kind">Comparative Market Analysis</span>${req}</div>
+        <div class="pp-head"><span class="pp-kind">Comp Report</span>${req}</div>
         <div class="pp-addr">${pvAddr}</div><div class="pp-by">${pvBy}</div>
         ${pvPhoto ? `<div class="pp-photo" style="background-image:url('${esc(pvPhoto)}')"></div>` : ''}
         <div class="pp-veil"><div class="pp-lbl">What the recorded sales imply</div><div class="pp-range"><i></i><b></b><i></i></div>
@@ -1626,7 +1626,7 @@ async function listingRequestSection(l) {
 <section class="lm lm--req" id="reviewed"><div class="wrap">
   <div class="lm-head">
     <span class="lm-eyebrow">For ${esc(l.address_raw || 'this home')} \u00b7 free</span>
-    <h2>A CMA and a disclosure review, <em>before you write.</em></h2>
+    <h2>A Comp Report and a disclosure review, <em>before you write.</em></h2>
     <p class="lm-sub">Two documents most buyers never get to see before they make an offer \u2014 prepared by a licensed agent for this address, not generated for every listing on the internet. Ask, and ${esc(aFirst)} prepares them for this home.</p>
   </div>
   <div class="lm-stage">
@@ -1637,7 +1637,7 @@ async function listingRequestSection(l) {
       <ul class="lm-inside">${inside.map(t => `<li>${t}</li>`).join('')}</ul>
       <div class="lm-gate" data-req>
         <div class="lm-gate-copy"><b>Request them, free.</b> Choose what you want and where to send it.</div>
-        <div class="lm-pick"><label><input type="checkbox" data-req-cma checked> The CMA</label><label><input type="checkbox" data-req-disc checked> The disclosure review</label></div>
+        <div class="lm-pick"><label><input type="checkbox" data-req-cma checked> The Comp Report</label><label><input type="checkbox" data-req-disc checked> The disclosure review</label></div>
         <input type="text" class="rpt-in lm-name" data-req-name placeholder="Your name" autocomplete="name" aria-label="Your name" required>
         <div class="rpt-form lm-form">
           <input type="email" class="rpt-in" data-req-email placeholder="you@email.com" autocomplete="email" aria-label="Your email">
@@ -1678,11 +1678,11 @@ async function listingRequestSection(l) {
       body:JSON.stringify(Object.assign({mode:'request',name:name,email:email,want_cma:c,want_disclosure:d},P))})
     .then(function(r){return r.json();}).then(function(j){
       if(j&&j.ok){
-        /* What happens next (Tim, 26 Sep 2026): the CMA within 24 hours; the disclosures requested now. */
+        /* What happens next (Tim, 26 Sep 2026): the Comp Report within 24 hours; the disclosures requested now. */
         var first=(name.split(' ')[0]||'').replace(/</g,'&lt;');
         box.innerHTML='<div class="lm-done"><div class="lm-done-k">Request received</div>'+
           '<p><b>Thanks'+(first?', '+first:'')+'.</b> Here is what happens next:</p>'+
-          (c?'<p class="lm-done-i"><span>\u2713</span><span><b>Your CMA will be delivered within 24 hours</b> to '+email.replace(/</g,'&lt;')+'.</span></p>':'')+
+          (c?'<p class="lm-done-i"><span>\u2713</span><span><b>Your Comp Report will be delivered within 24 hours</b> to '+email.replace(/</g,'&lt;')+'.</span></p>':'')+
           (d?'<p class="lm-done-i"><span>\u2713</span><span><b>The disclosure package has been requested</b> from the listing agent for review. The review follows as soon as it arrives.</span></p>':'')+
           '<p class="lm-done-n">A confirmation is in your inbox now.</p></div>';
       } else { btn.disabled=false; btn.textContent='Try again'; out.hidden=false; out.textContent='That did not go through ('+((j&&j.error)||'error')+'). Please try again.'; }
@@ -1886,11 +1886,11 @@ function renderListingCity(d, B, foot, reportsHtml) {
     '<h2>Get the edge <em>before you write.</em></h2><p class="sub">Two free tools that tell you what this home is really worth &mdash; and what the disclosures actually say.</p></div>' +
     '<div class="feat-grid">' +
     card(ICO_DOC, 'Disclosure review from Tim', 'Send Tim this listing and get a personal read within 24 hours &mdash; the fine print that matters, before you write.',
-      ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation', 'A detailed CMA &mdash; what it&rsquo;s really worth vs. the asking price', 'What a compelling, winning offer looks like here'],
+      ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation', 'A detailed Comp Report &mdash; what it&rsquo;s really worth vs. the asking price', 'What a compelling, winning offer looks like here'],
       'Request a disclosure review', app + '/tools/review', 'listing:request_review') +
-    card(ICO_CHART, 'Build your own CMA', 'Price it like an agent. Pull this home and the real comps around it for an instant value range &mdash; in two minutes.',
+    card(ICO_CHART, 'Build your own Comp Report', 'Price it like an agent. Pull this home and the real comps around it for an instant value range &mdash; in two minutes.',
       ['Search every recent San Francisco condo sale as a comp', 'An instant $/sf value range against the asking price', 'Free &mdash; save it, and Tim can sanity-check your number'],
-      'Build a CMA', app + '/tools/cma', 'listing:build_cma') +
+      'Build a Comp Report', app + '/tools/cma', 'listing:build_cma') +
     '</div></div></section>';
 
   const mortgage = price != null ? '<section class="pg"><div class="wrap"><div class="section-head"><span class="eyebrow">Run the numbers</span>' +
@@ -2034,15 +2034,15 @@ function renderActiveListingsCity(M, AL, foot) {
     if(l.price&&l.sqft)s.push('$'+num(Math.round(l.price/l.sqft))+'/sf');
     return s.join(' \u00b7 ');
   }
-  /* Two bubbles, one per report actually published: a CMA is never labelled
+  /* Two bubbles, one per report actually published: a Comp Report is never labelled
      a disclosure review. Either one lifts the home to the top of the list. */
   function rvBadges(rv){
     if(!rv) return '';
-    return '<span class="rv-stack">'+(rv.cma?'<span class="rv-badge rv-cma">\u2713 CMA</span>':'')+
+    return '<span class="rv-stack">'+(rv.cma?'<span class="rv-badge rv-cma">\u2713 Comp Report</span>':'')+
       (rv.sheet?'<span class="rv-badge">\u2713 Disclosures reviewed</span>':'')+'</span>';
   }
   function rvCta(rv){
-    return rv.cma&&rv.sheet ? 'Get the free CMA + disclosure review' : (rv.cma ? 'Get the free CMA' : 'Get the free disclosure review');
+    return rv.cma&&rv.sheet ? 'Get the free Comp Report + disclosure review' : (rv.cma ? 'Get the free Comp Report' : 'Get the free disclosure review');
   }
   function cardHtml(l,i){
     var img=photoOf(l,'640x400');
@@ -2792,7 +2792,7 @@ function renderActiveListingsCity(M, AL, foot) {
         <h4 style="margin-top:14px">Year built</h4>
         <div class="row"><input type="number" id="fMinYr" placeholder="Any" inputmode="numeric">
           <span>&ndash;</span><input type="number" id="fMaxYr" placeholder="Any" inputmode="numeric"></div>
-        <label class="al-check"><input type="checkbox" id="fReviewed"> With a CMA or disclosure review</label>
+        <label class="al-check"><input type="checkbox" id="fReviewed"> With a Comp Report or disclosure review</label>
         <label class="al-check"><input type="checkbox" id="fPhotos"> Has photographs</label>
         <label class="al-check"><input type="checkbox" id="fNoPending"> Hide pending</label>
         <button class="al-apply" data-apply>Apply</button>
@@ -2810,7 +2810,7 @@ function renderActiveListingsCity(M, AL, foot) {
       <div class="n" id="alResult"></div>
       <div class="al-sortrow">
         <select class="al-sort" id="alSort" aria-label="Sort listings">
-          <option value="reviewed_price">CMA &amp; disclosures first</option>
+          <option value="reviewed_price">Comp Report &amp; disclosures first</option>
           <option value="price_desc">Price &middot; high to low</option>
           <option value="price_asc">Price &middot; low to high</option>
           <option value="dom_asc">Newest on market</option>
@@ -2869,7 +2869,7 @@ function renderActiveListingsCity(M, AL, foot) {
         <p>Every number here comes with the sample behind it. Run them yourself before you talk to anyone.</p>
         <div class="al-tools">
           <a class="al-tool" href="https://app.${M.domain}/tools/cma" data-cta="forsale:tool_cma">
-            <b>Build a CMA</b><span>What the comparables actually say</span></a>
+            <b>Build a Comp Report</b><span>What the comparables actually say</span></a>
           <a class="al-tool" href="https://app.${M.domain}/tools/net-sheet" data-cta="forsale:tool_net">
             <b>Seller net sheet</b><span>What you keep after costs</span></a>
           <a class="al-tool" href="https://app.${M.domain}/tools/compare" data-cta="forsale:tool_compare">
@@ -2892,7 +2892,7 @@ function renderActiveListingsCity(M, AL, foot) {
       lead: `Weighing one of these? Get a complete disclosure review from ${M.agent.first} within 24 hours, and run the comps before you write.`,
       actions: [
         { label: "Request a disclosure review", href: `https://app.${M.domain}/tools/review` },
-        { label: "Build a CMA", href: `https://app.${M.domain}/tools/cma` }
+        { label: "Build a Comp Report", href: `https://app.${M.domain}/tools/cma` }
       ],
       note: `Reviewed personally by ${M.agent.first}, usually within 24 hours · free · no obligation.`
     })}

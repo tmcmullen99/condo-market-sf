@@ -164,7 +164,7 @@ a:hover{text-decoration:underline}
     <div><span class="brand">Condo Market SF</span><span class="brand-sub">Calculator</span></div>
     <div class="nav-links">
       <a href="/account/">My account</a>
-      <a href="/account/cmas/">My CMAs</a>
+      <a href="/account/cmas/">My Comp Reports</a>
     </div>
   </div>
 </nav>
@@ -574,7 +574,7 @@ async function init(){
   ).join('');
   state.selectedUnit = state.units[0];
 
-  // Default sale price from CMA recommended_list_price if available
+  // Default sale price from Comp Report recommended_list_price if available
   if (state.selectedUnit.recommended_list_price) {
     document.getElementById('sale-price').value = state.selectedUnit.recommended_list_price;
     state.inputs.salePrice = Number(state.selectedUnit.recommended_list_price);

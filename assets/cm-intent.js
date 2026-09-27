@@ -47,7 +47,7 @@
  * WHAT IT WILL NOT DO
  * It never states what a unit is worth. Backtesting put unit-level valuation at
  * 13.1% mean error with only 52% inside +/-10%, and price opinion is a licensed
- * activity in California. Owners asking about price are routed into the CMA
+ * activity in California. Owners asking about price are routed into the Comp Report
  * tool, which they drive themselves, and then to the agent for the opinion.
  * Every number shown carries the sale count behind it.
  */

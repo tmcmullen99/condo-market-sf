@@ -1,4 +1,4 @@
-/* cm-cma-portfolio.js — multi-unit CMA deliverable for /cma/?token=…
+/* cm-cma-portfolio.js — multi-unit Comp Report deliverable for /cma/?token=…
  * ---------------------------------------------------------------------------
  * A cma_portfolios row groups N cma_reports under ONE public token, so an owner
  * of several units gets a single link instead of one per unit.
@@ -123,7 +123,7 @@ function heroHTML(p) {
        </div>` : '';
   const name = [p.client_first_name, p.client_last_name].filter(Boolean).join(' ');
   return `<header class="pf-hero"><div class="pf-wrap">
-    <div class="pf-eyebrow">Comparative Market Analysis · ${esc(p.unit_count)} residences</div>
+    <div class="pf-eyebrow">Comp Report · ${esc(p.unit_count)} residences</div>
     <h1>${esc(p.title)}</h1>
     <div class="pf-sub">${esc(p.subtitle || '')}${name ? ' · prepared for ' + esc(name) : ''}</div>
     ${credit}
@@ -421,8 +421,8 @@ function mount(p, units) {
   });
 
   const sub = document.getElementById('nav-sub');
-  if (sub) sub.textContent = `CMA · ${p.unit_count} residences`;
-  document.title = `${p.title} · CMA · Condo Market SF`;
+  if (sub) sub.textContent = `Comp Report · ${p.unit_count} residences`;
+  document.title = `${p.title} · Comp Report · Condo Market SF`;
 
   const host = document.createElement('div');
   host.className = 'pf';
