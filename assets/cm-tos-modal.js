@@ -41,7 +41,7 @@ const STYLE_CSS = `
   }
   @keyframes cm-tos-fade-in { from { opacity: 0; } to { opacity: 1; } }
   .cm-tos-card {
-    background: #f3eee4;
+    background: #eef1f6;
     border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     border-radius: 14px;
     max-width: 720px;
@@ -185,7 +185,7 @@ const STYLE_CSS = `
     border-color: #C2410C;
   }
   .cm-tos-btn-primary:hover:not(:disabled) {
-    background: #e8e3d8; border-color: #e8e1d2;
+    background: #e8e3d8; border-color: #e0e5ed;
   }
   .cm-tos-btn-primary:disabled {
     opacity: 0.4; cursor: not-allowed;
@@ -195,7 +195,7 @@ const STYLE_CSS = `
     border-color: rgba(34,38,47,0.112);
   }
   .cm-tos-btn-secondary:hover {
-    border-color: #e8e1d2;
+    border-color: #e0e5ed;
   }
   .cm-tos-error {
     color: #b4532a;

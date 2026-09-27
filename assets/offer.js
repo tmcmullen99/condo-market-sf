@@ -126,7 +126,7 @@ function signupHref() { return '/?auth=signup&return=' + encodeURIComponent(loca
 function injectStyles() {
   if (document.getElementById('cmo-css')) return;
   const css = `
-  .cmo{--bg:#f3eee4;--card:#ffffff;--gold:#d4a574;--text:#22262f;--border:rgba(34,38,47,0.182);
+  .cmo{--bg:#eef1f6;--card:#ffffff;--gold:#d4a574;--text:#22262f;--border:rgba(34,38,47,0.182);
        font-family:'DM Sans',system-ui,sans-serif;color:#22262f;}
   .cmo-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;
     display:flex;align-items:center;gap:16px;max-width:calc(100vw - 24px);
@@ -176,7 +176,7 @@ function injectStyles() {
     color:#8f5d1c;line-height:1;margin:.2rem 0 1rem;}
   .cmo-sub{color:#5d6575;line-height:1.55;font-size:.97rem;margin:0 0 1.5rem;}
   .cmo-row{display:grid;grid-template-columns:1fr 1.3fr;gap:.6rem;margin-bottom:.6rem;}
-  .cmo-row input{width:100%;background:#f3eee4;border:1px solid rgba(34,38,47,0.112);border-radius:8px;
+  .cmo-row input{width:100%;background:#eef1f6;border:1px solid rgba(34,38,47,0.112);border-radius:8px;
     padding:.7rem .8rem;color:#22262f;font-family:inherit;font-size:.92rem;}
   .cmo-row input:focus{outline:none;border-color:#d4a574;}
   .cmo-btn{display:block;width:100%;text-align:center;background:#d4a574;color:#1a1f2e;

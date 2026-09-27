@@ -48,7 +48,7 @@ const STYLE_CSS = `
     gap: 18px;
   }
   .cm-feat-card {
-    background: #f3eee4;
+    background: #eef1f6;
     border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     border-radius: 14px;
     overflow: hidden;

@@ -232,7 +232,7 @@ body.mmm-auth-verified .cm-mmm-btn-unlocked { display: inline-flex; }
   color: #22262f; margin: 0 0 1.5rem; line-height: 1.2;
 }
 .cm-mmm-modal-card {
-  background: #f3eee4;
+  background: #eef1f6;
   border: 1px solid rgba(34,38,47,0.144);
   border-radius: 12px; padding: 1.5rem 1rem;
   margin-bottom: 1.5rem; text-align: center;

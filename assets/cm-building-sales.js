@@ -72,9 +72,9 @@ const median = (arr) => {
 // ─── Styles (injected once on init) ────────────────────────────────────────
 const CSS = `
 .cm-sales {
-  --cm-navy: #ffffff; --cm-navy-deep: #faf8f3; --cm-peri: #C2410C;
-  --cm-bronze: #d4a574; --cm-ivory: #22262f; --cm-ivory-dim: rgba(34,38,47,.72);
-  --cm-ivory-faint: rgba(34,38,47,.42); --cm-rule: #e8e1d2;
+  --cm-navy: #ffffff; --cm-navy-deep: #f5f7fa; --cm-peri: #C2410C;
+  --cm-bronze: #d4a574; --cm-ivory: #22262f; --cm-ivory-dim: #5d6575;
+  --cm-ivory-faint: rgba(26,31,46,.45); --cm-rule: #e0e5ed;
   --cm-rule-soft: rgba(34,38,47,0.091);
   --cm-gain: #2f6b40; --cm-loss: #b4532a;
   font-family: 'DM Sans', -apple-system, sans-serif; font-weight: 300;

@@ -47,7 +47,7 @@ const STYLE_CSS = `
 
   .cm-om {
     position: relative;
-    background: #f3eee4;
+    background: #eef1f6;
     border: 1px solid var(--cm-rule, rgba(34,38,47,0.128));
     border-radius: 16px;
     width: 100%; max-width: 560px;
@@ -216,13 +216,13 @@ const STYLE_CSS = `
     width: 22px; height: 22px;
     background: #d4a574;
     border-radius: 50%; cursor: grab;
-    border: 2px solid #e8e1d2;
+    border: 2px solid #e0e5ed;
   }
   .cm-om-slider::-moz-range-thumb {
     width: 22px; height: 22px;
     background: #d4a574;
     border-radius: 50%; cursor: grab;
-    border: 2px solid #e8e1d2;
+    border: 2px solid #e0e5ed;
   }
   /* v3.0 — Offer-in-context line below slider */
   .cm-om-calib {

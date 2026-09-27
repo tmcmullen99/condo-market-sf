@@ -58,7 +58,7 @@ function styles() {
   .cm-wp {
     position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 110%);
     width: min(560px, calc(100% - 24px)); z-index: 900;
-    background: #f3eee4; border: 1px solid rgba(212,165,116,.38);
+    background: #eef1f6; border: 1px solid rgba(212,165,116,.38);
     border-bottom: 0; border-radius: 16px 16px 0 0;
     padding: 20px 22px calc(20px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -18px 50px rgba(0,0,0,0.175);

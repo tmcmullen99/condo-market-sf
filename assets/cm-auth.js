@@ -43,13 +43,13 @@ const CSS = `
   }
   .cm-auth-sub { color: #666; margin: 0 0 18px; font-size: 14px; line-height: 1.5; }
   .cm-referrer-banner {
-    background: #f3eee4; border-left: 3px solid #C2410C;
+    background: #eef1f6; border-left: 3px solid #C2410C;
     padding: 10px 14px; border-radius: 6px; margin: 0 0 18px;
     font-size: 13px; color: #1a1f2e;
   }
   .cm-auth-field {
     display: block; width: 100%; padding: 10px 12px; margin-bottom: 12px;
-    border: 1px solid #e8e1d2; border-radius: 8px; font-size: 15px;
+    border: 1px solid #e0e5ed; border-radius: 8px; font-size: 15px;
     font-family: inherit; box-sizing: border-box; background: #fff;
     color: #1a1f2e;
   }
@@ -91,13 +91,13 @@ const CSS = `
   .cm-auth-divider::after { right: 0; }
   .cm-auth-magic {
     display: block; width: 100%; padding: 10px; margin-top: 4px;
-    background: #fff; color: #1a1f2e; border: 1px solid #e8e1d2; border-radius: 8px;
+    background: #fff; color: #1a1f2e; border: 1px solid #e0e5ed; border-radius: 8px;
     font-size: 14px; cursor: pointer; font-family: inherit;
   }
   .cm-auth-magic:hover:not(:disabled) { background: #f4f4f4; }
   .cm-auth-msg { font-size: 13px; margin-top: 12px; padding: 10px; border-radius: 6px; }
   .cm-auth-msg.err { background: #fdecea; color: #b91818; }
-  .cm-auth-msg.ok  { background: #f3eee4; color: #1a7a3a; }
+  .cm-auth-msg.ok  { background: #eef1f6; color: #1a7a3a; }
 `;
 
 let modalEl = null;

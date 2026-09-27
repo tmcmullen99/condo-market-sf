@@ -13,7 +13,7 @@
 <style>
   :root{
     --navy:#ffffff; --navy-2:#ffffff; --panel:#ffffff; --panel-2:#ffffff;
-    --ink:#22262f; --muted:#C2410C; --line:#e8e1d2; --line-2:#5d6575;
+    --ink:#22262f; --muted:#C2410C; --line:#e0e5ed; --line-2:#5d6575;
     --sf:#e12d39; --sv:#00a8b5; --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
     --accent:#C2410C;
     --radius:14px; --shadow:0 18px 48px -22px rgba(0,0,0,.7);
@@ -32,18 +32,18 @@
   .brand p{margin:6px 0 0;color:#e85d2a;font-size:13.5px;max-width:560px;}
   .cov{display:flex;gap:10px;align-items:center;font-size:13px;color:#C2410C;}
   .cov b{color:#22262f;font-weight:600}
-  .meter{width:170px;height:8px;border-radius:99px;background:#f3eee4;border:1px solid #e8e1d2;overflow:hidden}
+  .meter{width:170px;height:8px;border-radius:99px;background:#eef1f6;border:1px solid #e0e5ed;overflow:hidden}
   .meter > i{display:block;height:100%;background:linear-gradient(90deg,#00a8b5,#e12d39);width:0%}
 
   .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
-  .search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #e8e1d2;border-radius:12px;padding:9px 13px}
+  .search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #e0e5ed;border-radius:12px;padding:9px 13px}
   .search input{flex:1;background:none;border:0;outline:0;color:#22262f;font-size:15px;font-family:inherit}
-  .seg{display:flex;background:#ffffff;border:1px solid #e8e1d2;border-radius:12px;padding:3px}
+  .seg{display:flex;background:#ffffff;border:1px solid #e0e5ed;border-radius:12px;padding:3px}
   .seg button{border:0;background:none;color:#C2410C;font:600 13px "DM Sans";padding:7px 14px;border-radius:9px;cursor:pointer}
   .seg button.on{background:#ffffff;color:#22262f}
   .seg button.on[data-m="sf"]{color:#fff;background:#e12d39}
   .seg button.on[data-m="sv"]{color:#04222a;background:#00a8b5}
-  .chk{display:flex;align-items:center;gap:8px;color:#C2410C;font-size:13px;background:#ffffff;border:1px solid #e8e1d2;border-radius:12px;padding:9px 13px;cursor:pointer;user-select:none}
+  .chk{display:flex;align-items:center;gap:8px;color:#C2410C;font-size:13px;background:#ffffff;border:1px solid #e0e5ed;border-radius:12px;padding:9px 13px;cursor:pointer;user-select:none}
   .chk input{accent-color:var(--sv)}
 
   .grouphead{display:flex;align-items:center;gap:10px;margin:26px 0 12px;font:600 12.5px "DM Sans";letter-spacing:.16em;text-transform:uppercase;color:#C2410C}
@@ -51,10 +51,10 @@
   .grouphead .dot.sf{background:#e12d39} .grouphead .dot.sv{background:#00a8b5}
   .grouphead .ln{flex:1;height:1px;background:#2a3651}
 
-  .card{background:#ffffff;border:1px solid #e8e1d2;border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .15s}
-  .card:hover{border-color:#e8e1d2}
+  .card{background:#ffffff;border:1px solid #e0e5ed;border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .15s}
+  .card:hover{border-color:#e0e5ed}
   .crow{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
-  .crow .thumb0{width:48px;height:48px;border-radius:9px;flex:none;background:#f3eee4 center/cover no-repeat;border:1px solid #e8e1d2;display:flex;align-items:center;justify-content:center;color:#5d6575;font-size:18px}
+  .crow .thumb0{width:48px;height:48px;border-radius:9px;flex:none;background:#eef1f6 center/cover no-repeat;border:1px solid #e0e5ed;display:flex;align-items:center;justify-content:center;color:#5d6575;font-size:18px}
   .crow .meta{flex:1;min-width:0}
   .crow .nm{font-weight:600;font-size:15.5px;display:flex;align-items:center;gap:9px}
   .pill{font:600 10.5px "DM Sans";letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px}
@@ -67,14 +67,14 @@
   .chev{flex:none;color:#C2410C;transition:transform .18s}
   .card.open .chev{transform:rotate(90deg)}
 
-  .body{display:none;padding:4px 16px 18px;border-top:1px solid #e8e1d2}
+  .body{display:none;padding:4px 16px 18px;border-top:1px solid #e0e5ed}
   .card.open .body{display:block}
-  .dz{border:1.5px dashed #e8e1d2;border-radius:12px;padding:18px;text-align:center;color:#C2410C;background:#f3eee4;cursor:pointer;transition:.15s;font-size:13.5px}
+  .dz{border:1.5px dashed #e0e5ed;border-radius:12px;padding:18px;text-align:center;color:#C2410C;background:#eef1f6;cursor:pointer;transition:.15s;font-size:13.5px}
   .dz:hover{border-color:#C2410C;color:#22262f}
   .dz.drag{border-color:#00a8b5;background:rgba(0,168,181,.08);color:#22262f}
   .dz b{color:#22262f}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px;margin-top:14px}
-  .tile{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:1px solid #e8e1d2;background:#f3eee4 center/cover no-repeat;cursor:grab}
+  .tile{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:1px solid #e0e5ed;background:#eef1f6 center/cover no-repeat;cursor:grab}
   .tile.dragging{opacity:.4}
   .tile.over{outline:2px solid #00a8b5;outline-offset:-2px}
   .tile .x{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:6px;border:0;background:rgba(255,255,255,0.78);color:#22262f;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -84,27 +84,27 @@
   .tile .new{position:absolute;bottom:5px;right:5px;font:700 9px "DM Sans";background:#00a8b5;color:#04222a;padding:2px 5px;border-radius:5px}
   .acts{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
   .btn{border:0;border-radius:10px;padding:10px 18px;font:600 14px "DM Sans";cursor:pointer}
-  .btn.save{background:#f3eee4;color:#0b1018}
+  .btn.save{background:#eef1f6;color:#0b1018}
   .btn.save:disabled{opacity:.4;cursor:default}
-  .btn.ghost{background:transparent;border:1px solid #e8e1d2;color:#C2410C}
+  .btn.ghost{background:transparent;border:1px solid #e0e5ed;color:#C2410C}
   .hint{color:#C2410C;font-size:12.5px}
   .hint.ok{color:#34d399} .hint.bad{color:#f87171}
 
   /* auth + settings */
-  .gate{max-width:430px;margin:8vh auto;background:#ffffff;border:1px solid #e8e1d2;border-radius:16px;padding:26px;box-shadow:var(--shadow)}
+  .gate{max-width:430px;margin:8vh auto;background:#ffffff;border:1px solid #e0e5ed;border-radius:16px;padding:26px;box-shadow:var(--shadow)}
   .gate h2{font-family:"Playfair Display",serif;margin:0 0 4px;font-size:23px}
   .gate p{color:#C2410C;font-size:13.5px;margin:0 0 18px}
   .fld{margin-bottom:12px}
   .fld label{display:block;font-size:12px;color:#C2410C;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
-  .fld input{width:100%;background:#f3eee4;border:1px solid #e8e1d2;border-radius:10px;color:#22262f;padding:11px 13px;font-size:15px;font-family:inherit;outline:0}
+  .fld input{width:100%;background:#eef1f6;border:1px solid #e0e5ed;border-radius:10px;color:#22262f;padding:11px 13px;font-size:15px;font-family:inherit;outline:0}
   .fld input:focus{border-color:#C2410C}
-  .gear{background:transparent;border:1px solid #e8e1d2;color:#C2410C;border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:16px}
+  .gear{background:transparent;border:1px solid #e0e5ed;color:#C2410C;border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:16px}
   .who{font-size:12.5px;color:#C2410C}
   .who b{color:#22262f}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#f3eee4;border:1px solid #e8e1d2;color:#22262f;padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:50}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#eef1f6;border:1px solid #e0e5ed;color:#22262f;padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:50}
   .toast.show{opacity:1}
   .hidden{display:none!important}
-  .spin{display:inline-block;width:14px;height:14px;border:2px solid #e8e1d2;border-top-color:#e8e1d2;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #e0e5ed;border-top-color:#e0e5ed;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
   @keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>

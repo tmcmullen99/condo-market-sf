@@ -31,7 +31,7 @@ const STYLE_CSS = `
   .cm-intel-section {
     padding: 64px 0;
     border-bottom: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
-    background: #f3eee4;
+    background: #eef1f6;
     position: relative; z-index: 2;
   }
   .cm-intel-wrap {
@@ -565,7 +565,7 @@ async function init() {
             {
               label: 'Citywide',
               data: quarters.map(q => cityByQuarter.get(q) || null),
-              borderColor: '#e8e1d2',
+              borderColor: '#e0e5ed',
               backgroundColor: 'transparent',
               borderWidth: 1.5, tension: 0.32, fill: false,
               borderDash: [4, 4],

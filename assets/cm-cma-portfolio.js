@@ -97,7 +97,7 @@ function css() {
   .pf-mmm p{color:var(--cream-78,#5d6575);font-size:14.5px;max-width:70ch}
   .pf-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
   .pf-fld label{display:block;font-family:var(--mono,monospace);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-58,#5d6575);margin-bottom:7px}
-  .pf-fld input,.pf-fld select,.pf-fld textarea{width:100%;background:#f3eee4;border:1px solid var(--cream-14,rgba(34,38,47,0.112));border-radius:9px;color:#22262f;font-family:var(--sans,sans-serif);font-size:16px;padding:13px 15px}
+  .pf-fld input,.pf-fld select,.pf-fld textarea{width:100%;background:#eef1f6;border:1px solid var(--cream-14,rgba(34,38,47,0.112));border-radius:9px;color:#22262f;font-family:var(--sans,sans-serif);font-size:16px;padding:13px 15px}
   .pf-fld input:focus,.pf-fld select:focus,.pf-fld textarea:focus{outline:none;border-color:#d4a574}
   .pf-fld .hint{font-size:12px;color:var(--cream-38,#5d6575);margin-top:6px}
   .pf-btn{display:inline-block;padding:14px 26px;border-radius:10px;font-family:var(--sans,sans-serif);font-size:15px;font-weight:500;cursor:pointer;border:0;background:#d4a574;color:#1a1f2e}

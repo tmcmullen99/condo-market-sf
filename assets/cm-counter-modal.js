@@ -35,7 +35,7 @@ const STYLE_CSS = `
   }
   @keyframes cm-co-fade { from { opacity: 0; } to { opacity: 1; } }
   .cm-co-card {
-    background: #f3eee4;
+    background: #eef1f6;
     border: 1px solid var(--cm-rule, rgba(34,38,47,0.112));
     border-radius: 14px;
     max-width: 540px; width: 100%;
@@ -113,11 +113,11 @@ const STYLE_CSS = `
   .cm-co-slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
     width: 22px; height: 22px; background: #d4a574;
-    border-radius: 50%; cursor: grab; border: 2px solid #e8e1d2;
+    border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed;
   }
   .cm-co-slider::-moz-range-thumb {
     width: 22px; height: 22px; background: #d4a574;
-    border-radius: 50%; cursor: grab; border: 2px solid #e8e1d2;
+    border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed;
   }
   .cm-co-slider-bounds {
     display: flex; justify-content: space-between;
@@ -171,7 +171,7 @@ const STYLE_CSS = `
     border-color: #d4a574;
   }
   .cm-co-btn-primary:hover:not(:disabled) {
-    background: #e8e3d8; border-color: #e8e1d2;
+    background: #e8e3d8; border-color: #e0e5ed;
   }
   .cm-co-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
   .cm-co-btn-cancel {
