@@ -3254,6 +3254,49 @@ function renderListing(d, footerData) {
       '</div></section>\n';
   }
 
+
+  /* BEFORE YOU MAKE AN OFFER (City Markets UI, 26 Sep 2026). The same two tools the city
+     listing pages feature - Tim's disclosure review and the build-your-own CMA - on the same
+     app (app.{domain}); the city platform runs San Francisco as a market of its own. */
+  const EDGE_ICO_DOC = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
+  const EDGE_ICO_CHART = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l4-4 3 3 5-6"/></svg>';
+  const edgeCard = (ico, title, lead, list, label, href, cta) =>
+    '<div class="edge-card"><div class="edge-ico">' + ico + '</div><h3>' + title + '</h3><p>' + lead + '</p>' +
+    '<ul class="edge-list">' + list.map((t) => '<li>' + t + '</li>').join('') + '</ul>' +
+    '<a class="edge-btn" href="' + href + '" data-cta="' + cta + '">' + label + ' &rarr;</a></div>';
+  const appBase = 'https://app.' + domain;
+  const edgeSection =
+    '<section class="section edge" id="edge"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">Before you make an offer</div>' +
+    '<h2 class="section-title">Get the edge <em>before you write.</em></h2>' +
+    '<p class="section-sub">Two free tools that tell you what this home is really worth &mdash; and what the disclosures actually say.</p></div>' +
+    '<div class="edge-grid">' +
+    edgeCard(EDGE_ICO_DOC, 'Disclosure review from Tim',
+      'Send Tim this listing and get a personal read within 24 hours &mdash; the fine print that matters, before you write.',
+      ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation',
+       'A detailed CMA &mdash; what it&rsquo;s really worth vs. the asking price',
+       'What a compelling, winning offer looks like here'],
+      'Request a disclosure review', appBase + '/tools/review', 'listing:request_review') +
+    edgeCard(EDGE_ICO_CHART, 'Build your own CMA',
+      'Price it like an agent. Pull this home and the real comps around it for an instant value range &mdash; in two minutes.',
+      ['Search every recent ' + region + ' condo sale as a comp',
+       'An instant $/sf value range against the asking price',
+       'Free &mdash; save it, and Tim can sanity-check your number'],
+      'Build a CMA', appBase + '/tools/cma', 'listing:build_cma') +
+    '</div></div></section>' +
+    '<style>' +
+    '.edge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-top:8px}' +
+    '.edge-card{background:#ffffff;border:1px solid #e0e5ed;border-radius:18px;padding:30px 28px 28px;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(26,31,46,.04),0 10px 30px rgba(26,31,46,.06)}' +
+    '.edge-ico{width:46px;height:46px;border-radius:12px;background:rgba(194,65,12,.09);color:#C2410C;display:flex;align-items:center;justify-content:center;margin-bottom:18px}' +
+    '.edge-card h3{font-family:"Playfair Display",Georgia,serif;font-size:1.45rem;font-weight:500;color:#1a1f2e;margin:0 0 10px;line-height:1.2}' +
+    '.edge-card p{color:#5d6575;font-size:.98rem;line-height:1.6;margin:0 0 16px}' +
+    '.edge-list{list-style:none;padding:0;margin:0 0 24px;flex:1}' +
+    '.edge-list li{position:relative;padding:0 0 10px 26px;color:#1a1f2e;font-size:.95rem;line-height:1.5}' +
+    '.edge-list li:before{content:"";position:absolute;left:2px;top:6px;width:12px;height:7px;border-left:2px solid #C2410C;border-bottom:2px solid #C2410C;transform:rotate(-45deg)}' +
+    '.edge-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;background:#d4a574;color:#1a1f2e;font-weight:600;font-size:.95rem;padding:13px 24px;border-radius:999px;text-decoration:none;transition:filter .15s}' +
+    '.edge-btn:hover{filter:brightness(.95)}' +
+    '</style>';
+
   // Tools: Schedule Showing + Create Offer (hooks for the offer workflow).
   const toolsSection =
     '<section class="section" id="tools"><div class="wrap">' +
@@ -3301,25 +3344,25 @@ function renderListing(d, footerData) {
 
   const LISTING_CSS =
     '.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}' +
-    '.btn-primary{display:inline-block;background:#9fb4d8;color:#0a0d12;font-weight:600;font-size:14px;padding:14px 28px;border-radius:999px;text-decoration:none;transition:filter .15s}' +
+    '.btn-primary{display:inline-block;background:#9fb4d8;color:#ffffff;font-weight:600;font-size:14px;padding:14px 28px;border-radius:999px;text-decoration:none;transition:filter .15s}' +
     '.btn-primary:hover{filter:brightness(1.08)}' +
-    '.btn-ghost{display:inline-block;border:1px solid rgba(159,180,216,.4);color:#e8e3d8;font-weight:600;font-size:14px;padding:14px 28px;border-radius:999px;text-decoration:none;transition:border-color .15s}' +
-    '.btn-ghost:hover{border-color:#9fb4d8}' +
-    '.tools-fineprint{font-size:12px;color:rgba(232,227,216,.5);margin-top:16px}' +
-    '.mls-attribution{font-size:11px;line-height:1.6;color:rgba(232,227,216,.4)}' +
-    '.listing-price{font-family:"Playfair Display",Georgia,serif;font-size:34px;color:#fff;margin:8px 0 0}' +
+    '.btn-ghost{display:inline-block;border:1px solid rgba(26,31,46,0.28);color:#1a1f2e;font-weight:600;font-size:14px;padding:14px 28px;border-radius:999px;text-decoration:none;transition:border-color .15s}' +
+    '.btn-ghost:hover{border-color:#C2410C}' +
+    '.tools-fineprint{font-size:12px;color:#5d6575;margin-top:16px}' +
+    '.mls-attribution{font-size:11px;line-height:1.6;color:#5d6575}' +
+    '.listing-price{font-family:"Playfair Display",Georgia,serif;font-size:34px;color:#1a1f2e;margin:8px 0 0}' +
     '.lg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}' +
-    '.lg-item{border-radius:12px;overflow:hidden;background:rgba(159,180,216,.06);aspect-ratio:4/3}' +
+    '.lg-item{border-radius:12px;overflow:hidden;background:rgba(26,31,46,0.036);aspect-ratio:4/3}' +
     '.lg-item--lead{grid-column:1 / -1;aspect-ratio:16/9}' +
     '.lg-item img{width:100%;height:100%;object-fit:cover;display:block}' +
     '@media(min-width:760px){.lg-grid{grid-template-columns:repeat(3,1fr)}.lg-item--lead{grid-column:1 / -1;aspect-ratio:21/9}}' +
     '.bi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}' +
-    '.bi-tile{background:rgba(159,180,216,.06);border:1px solid rgba(159,180,216,.14);border-radius:14px;padding:22px 20px;text-align:center}' +
-    '.bi-val{font-family:"Playfair Display",Georgia,serif;font-size:30px;color:#fff;font-weight:700}' +
-    '.bi-lab{font-size:12px;color:rgba(232,227,216,.6);margin-top:6px;letter-spacing:.04em}' +
-    '.bi-link{display:inline-block;margin-top:20px;color:#9fb4d8;font-weight:600;font-size:14px;text-decoration:none}' +
+    '.bi-tile{background:rgba(26,31,46,0.036);border:1px solid rgba(26,31,46,0.098);border-radius:14px;padding:22px 20px;text-align:center}' +
+    '.bi-val{font-family:"Playfair Display",Georgia,serif;font-size:30px;color:#1a1f2e;font-weight:700}' +
+    '.bi-lab{font-size:12px;color:#5d6575;margin-top:6px;letter-spacing:.04em}' +
+    '.bi-link{display:inline-block;margin-top:20px;color:#C2410C;font-weight:600;font-size:14px;text-decoration:none}' +
     '.bi-link:hover{text-decoration:underline}' +
-    '#cm-listing-map{width:100%;height:340px;border-radius:16px;overflow:hidden;background:rgba(159,180,216,.06)}';
+    '#cm-listing-map{width:100%;height:340px;border-radius:16px;overflow:hidden;background:rgba(26,31,46,0.036)}';
 
   const mapScript = (lat != null && lng != null)
     ? '<script>(function(){var box=document.getElementById("cm-listing-map");if(!box)return;' +
@@ -3346,10 +3389,10 @@ function renderListing(d, footerData) {
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">\n' +
     jsonLdScript + '\n' +
-    '<style>' + CSS + '</style>\n' +
-    '<style>' + EXTRA_CSS + '</style>\n' +
+    '<style>' + BP_CSS + '</style>\n' +
+    '<style>' + BP_EXTRA_CSS + '</style>\n' +
     '<style>' + LISTING_CSS + '</style>\n' +
-    '</head>\n<body>\n' +
+    '</head>\n<body data-cm-light="1">\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
     '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + tag + '</a>' +
     '<nav class="nav-meta">' +
@@ -3382,6 +3425,7 @@ function renderListing(d, footerData) {
     '</div></section>\n' +
     intelSection +
     mapSection +
+    edgeSection +
     toolsSection +
     attribution +
     '</main>\n\n' +
