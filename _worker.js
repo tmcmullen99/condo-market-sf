@@ -438,6 +438,232 @@ async function wrapStaticWithSwaps(request, env, mk) {
   return new Response(body, { status: resp.status, statusText: resp.statusText, headers });
 }
 
+
+/* ============================================================================
+   CITY UI ON THE CONDO MARKET (26 Sep 2026)
+   The condo market takes the City Markets' UI and UX page by page. The design
+   system is the City Markets' own stylesheet, published as
+   /assets/cm-city-ui.css (the accent swapped to the condo orange). These are
+   its shared pieces - header, agent strip, footer - and the pages built on it.
+   ========================================================================== */
+const CITY_UI_VER = '1';
+
+function cityEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function citySlug(s) { return String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+function cityHead(title, desc, canonical, extra) {
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+    '<title>' + cityEsc(title) + '</title>\n<meta name="description" content="' + cityEsc(desc) + '">\n' +
+    '<link rel="canonical" href="' + canonical + '">\n' +
+    '<meta property="og:title" content="' + cityEsc(title) + '">\n<meta property="og:description" content="' + cityEsc(desc) + '">\n' +
+    '<meta property="og:url" content="' + canonical + '">\n<meta property="og:image" content="https://www.sanfranciscocondomarket.com/og-sf.jpg">\n' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+    '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
+    '<link rel="stylesheet" href="/assets/cm-city-ui.css?v=' + CITY_UI_VER + '">\n' + (extra || '') + '</head>\n';
+}
+
+function cityNav(active) {
+  const a = (href, label, key, extra) => '<a href="' + href + '"' + (active === key ? ' aria-current="page" class="on"' : '') + (extra || '') + '>' + label + '</a>';
+  return '<body>\n<nav class="nav">\n  <div class="nav-inner">\n' +
+    '    <a class="wordmark" href="/" style="--bs:1.00"><b>Condo</b> Market<span class="tag">SF</span></a>\n' +
+    '    <div class="nav-links">\n' +
+    '      ' + a('/active-listings/', '<span class="live-dot"></span>For sale', 'forsale') + '\n' +
+    '      ' + a('/off-market/', 'Off market', 'offmarket') + '\n' +
+    '      ' + a('/buildings/', 'Buildings', 'buildings') + '\n' +
+    '      ' + a('/intelligence/', 'Intelligence', 'intelligence') + '\n' +
+    '      ' + a('/how-it-works/', 'How it works', 'how') + '\n' +
+    '      ' + a('/save-10k/', 'Save $10K', 'save') + '\n' +
+    '    </div>\n' +
+    '    <div class="nav-right"><a class="nav-cta" href="#signin" data-cm-auth="login">Sign in</a></div>\n' +
+    '    <button class="burger" aria-label="Open menu" aria-expanded="false" id="burger"><span></span><span></span><span></span></button>\n' +
+    '  </div>\n</nav>\n';
+}
+
+function cityFooter(payload) {
+  const hoods = (payload.hoods || []).slice(0, 12);
+  const blds = (payload.buildings || []).slice(0, 12);
+  return '<section class="meet-agent"><div class="wrap"><div class="ma-card">\n' +
+    '  <div class="ma-text"><span class="ma-eyebrow">The agent behind Condo Market SF</span>\n' +
+    '    <p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls.</p></div>\n' +
+    '  <a class="ma-cta" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>\n' +
+    '</div></div></section>\n' +
+    '<footer>\n  <div class="wrap">\n    <div class="seo-foot" aria-label="Explore San Francisco condos">\n' +
+    '  <style>.seo-foot{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:26px 30px;padding:6px 0 30px;margin-bottom:26px;border-bottom:1px solid rgba(255,255,255,.08)}' +
+    '.seo-foot h4{font-family:\'JetBrains Mono\',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75;margin:0 0 10px}' +
+    '.seo-foot ul{list-style:none;margin:0;padding:0}.seo-foot li{margin:0 0 5px;line-height:1.35}' +
+    '.seo-foot a{color:inherit;opacity:.78;text-decoration:none;font-size:.82rem}.seo-foot a:hover{opacity:1;text-decoration:underline}' +
+    '.seo-foot .sf-more{display:inline-block;margin-top:6px;font-size:.78rem;opacity:.95}</style>\n' +
+    '  <div class="sf-col"><h4>Neighborhoods in San Francisco</h4><ul>' +
+    hoods.map((h) => '<li><a href="/neighborhood/' + citySlug(h.h) + '/">' + cityEsc(h.h) + '</a></li>').join('') +
+    '</ul><a class="sf-more" href="/neighborhoods/">All neighborhoods &rarr;</a></div>\n' +
+    '  <div class="sf-col"><h4>Condo buildings</h4><ul>' +
+    blds.map((b) => '<li><a href="/building/' + cityEsc(b.s) + '/">' + cityEsc(b.n) + '</a></li>').join('') +
+    '</ul><a class="sf-more" href="/buildings/">All buildings &rarr;</a></div>\n' +
+    '  <div class="sf-col"><h4>The condo markets</h4><ul>' +
+    '<li><a href="https://www.sanfranciscocondomarket.com/">San Francisco condos</a></li>' +
+    '<li><a href="https://www.siliconvalleycondomarket.com/">Silicon Valley condos</a></li>' +
+    '<li><a href="https://www.eichlermarket.com/">Eichler homes</a></li></ul></div>\n' +
+    '    </div>\n' +
+    '    <div class="foot-grid">\n' +
+    '      <div><a class="wordmark" href="/" style="--bs:1.00"><b>Condo</b> Market<span class="tag">SF</span></a>\n' +
+    '        <p style="color:var(--slate-dim);font-size:.84rem;margin-top:12px;max-width:36ch">The complete record of San Francisco condominiums.</p></div>\n' +
+    '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/buildings/">Buildings</a>' +
+    '<a href="/neighborhoods/">Neighborhoods</a><a href="/san-francisco-condo-market-stats/">Market stats</a><a href="/san-francisco-condo-rankings/">Rankings</a>' +
+    '<a href="/intelligence/">Intelligence</a><a href="/how-it-works/">How it works</a><a href="/investor-exchange/">Investor Exchange</a></div>\n' +
+    '      <div><h4>Contact</h4><a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a><a href="/methodology/">Methodology</a><a href="/save-10k/">Save $10K</a></div>\n' +
+    '    </div>\n' +
+    '    <p class="disclosure">&copy; 2026 Condo Market SF &middot; Platform operated by McMullen Properties LLC, which is not a real estate brokerage &middot; ' +
+    'Real estate services provided by Tim McMullen, Broker, CA DRE #02016832. Condo Market SF is a marketing platform and is not a real estate brokerage. ' +
+    'Building and sales information is compiled from public records and other sources; it is deemed reliable but not guaranteed and should be independently verified.</p>\n' +
+    '  </div>\n</footer>\n';
+}
+
+function cityTail(scripts) {
+  return (scripts || '') +
+    '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
+    '<script>(function(){var b=document.getElementById("burger"),n=document.querySelector(".nav");if(b&&n)b.addEventListener("click",function(){var o=n.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});' +
+    'var io="IntersectionObserver" in window?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px"}):null;' +
+    'document.querySelectorAll(".reveal").forEach(function(el){io?io.observe(el):el.classList.add("in");});})();</script>\n' +
+    '</body>\n</html>\n';
+}
+
+/* ---------------------------------------------------------------------------
+   /off-market/  - the City Markets' Off Market page, for condos.
+   COUNTS ONLY in the first fold: no address, no price, no owner. A Make Me
+   Move price is members-only; the page never carries one.
+   ------------------------------------------------------------------------- */
+function renderOffMarket(payload) {
+  const T = payload.totals || {};
+  const num = (n) => Number(n || 0).toLocaleString('en-US');
+  const mmm = Number(T.mmm_named || 0);
+  const title = 'Off-Market Condos in San Francisco — Owner Prices & Every Building | Condo Market SF';
+  const desc = 'The San Francisco condos that never reach a listing site: prices owners have named privately, and ' + num(T.homes) +
+    ' homes in ' + num(T.buildings) + ' buildings you can make an offer on — listed or not.';
+  const canonical = 'https://www.sanfranciscocondomarket.com/off-market/';
+  const leaflet = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">\n';
+  const ghosts = Math.max(6, Math.min(9, mmm || 6));
+
+  const offmarket = '<section id="offmarket" class="om-first" style="background:var(--chrome);color:var(--chrome-ink)">\n  <div class="wrap">\n' +
+    '    <div class="section-head reveal">\n' +
+    '      <span class="eyebrow" style="color:var(--accent-on-dark)">Off-market &middot; members only</span>\n' +
+    '      <h1 class="om-h1" style="color:var(--chrome-ink)">The prices you <em style="color:var(--accent-on-dark)">can&rsquo;t see yet.</em></h1>\n' +
+    '      <p class="sub" style="color:#c6cbd6">Two kinds of San Francisco condo never reach a listing site: the unit whose owner has quietly named a number, and the unit that simply has not traded in years. Both are here.</p>\n' +
+    '    </div>\n' +
+    '    <div class="om-doors reveal">\n' +
+    '      <div class="om-door"><div class="om-door-n">' + num(mmm) + '</div>' +
+    '<div class="om-door-l">' + (mmm === 1 ? 'Owner who named a private number' : 'Owners who named a private number') + '</div>' +
+    '<p class="om-door-b">No listing, no Zillow. A price they would sell at, held quietly until someone meets it.</p></div>\n' +
+    '      <div class="om-door"><div class="om-door-n">' + num(T.not_sold_10y) + '</div>' +
+    '<div class="om-door-l">Units with no recorded sale in ten years</div>' +
+    '<p class="om-door-b">Of ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings. Recorded sales are public; these units have not changed hands in a decade &mdash; and every one is still open to an offer.</p></div>\n' +
+    '    </div>\n' +
+    '    <div class="om-grid-head"><span class="om-gh-k">Prices owners have named</span>' +
+    '<span class="om-soon" id="omSoon"' + (mmm >= 6 ? ' hidden' : '') + '>Opening soon</span></div>\n' +
+    '    <div class="om-grid reveal" id="omGrid" data-ghost="1">' +
+    Array.from({ length: ghosts }, () => '<div class="om-card om-ghost"><div class="omg-b"></div><div class="omg-s"></div><div class="omg-s" style="width:60%"></div></div>').join('') +
+    '</div>\n' +
+    '    <div class="reveal" style="text-align:center;margin-top:30px">\n' +
+    '      <button class="btn btn-gold" data-cm-auth="signup" data-cta="offmarket:combined-signup">Create a free account to see the numbers &rarr;</button>\n' +
+    '      <p style="font-size:.78rem;color:var(--chrome-soft);margin-top:12px">Includes a <b style="color:var(--accent-on-dark)">$10,000 credit</b> off commission when you sell &middot; no obligation.</p>\n' +
+    '    </div>\n  </div>\n</section>\n';
+
+  const map = '<section class="map-section omap" id="map">\n  <div class="wrap">\n' +
+    '    <div class="omap-head reveal">\n      <div>\n' +
+    '        <span class="eyebrow">Every building &middot; one map</span>\n' +
+    '        <h2>Pick any San Francisco condo building. <em>Write an offer, or name your price.</em></h2>\n' +
+    '        <p class="sub">All <b>' + num(T.homes) + '</b> homes in ' + num(T.buildings) + ' buildings can trade &mdash; listed or not. Click a building, then choose: an offer on a unit in it, or, if a unit is yours, the number that would make you move.</p>\n' +
+    '      </div>\n' +
+    '      <div class="omap-legend"><span><i class="lg-h"></i>A building</span><span><i class="lg-m"></i>Units for sale now</span></div>\n' +
+    '    </div>\n' +
+    '    <div class="omap-frame reveal">\n    <div class="mact-grid">\n' +
+    '      <div class="mact-map"><div id="cbmap"></div>\n' +
+    '        <p class="map-note">Building locations from public records. Unit counts and sales are compiled from public records &mdash; see <a href="/methodology/">methodology</a>.</p></div>\n' +
+    '      <aside class="mact-side"><div class="mact-card">\n' +
+    '        <div data-mstate="pick">\n' +
+    '          <div class="act-k">Start here</div><h3 class="mact-h">Pick a building</h3>\n' +
+    '          <p class="mact-lede">Click any building on the map, or type its name or address.</p>\n' +
+    '          <div class="act-f act-f-wide" style="margin-top:18px"><label for="mactAddr">Not sure where it is? Type it</label>' +
+    '<input id="mactAddr" type="text" placeholder="e.g. Lumina or 338 Main St" autocomplete="off" list="mactList">' +
+    '<datalist id="mactList">' + (payload.buildings || []).map((b) => '<option value="' + cityEsc(b.n) + '">').join('') + '</datalist></div>\n' +
+    '          <button class="btn btn-line" id="mactUseAddr" style="margin-top:12px">Use this building &rarr;</button>\n' +
+    '          <p class="mact-lede" id="mactMiss" style="display:none;margin-top:10px">Not one of the buildings on file yet. <a href="/buildings/">Browse every building &rarr;</a></p>\n' +
+    '        </div>\n' +
+    '        <div data-mstate="chosen" style="display:none">\n' +
+    '          <div class="act-k">This building</div>\n' +
+    '          <div class="mact-prop"><div class="mp-addr" id="mactAddrOut"></div><div class="mp-sub" id="mactMetaOut"></div>' +
+    '<div class="mp-facts" id="mactFacts"></div><a class="mp-rec" id="mactRec" href="#">View the full building record &rarr;</a></div>\n' +
+    '          <p class="mact-lede" style="margin-top:16px">What would you like to do?</p>\n' +
+    '          <div class="mact-choose">\n' +
+    '            <a class="mact-choice" id="mactOffer" href="#" data-cta="offmarket:map-offer"><span class="mc-t">Write an offer</span><span class="mc-s">On any unit, listed or not &mdash; Tim drafts it with you</span></a>\n' +
+    '            <a class="mact-choice" id="mactClaim" href="#" data-cta="offmarket:map-mmm"><span class="mc-t">This is my home &mdash; set my price</span><span class="mc-s">Name what would make you move. No listing, no agreement</span></a>\n' +
+    '          </div>\n' +
+    '          <button class="mact-back" data-mback>&larr; Pick a different building</button>\n' +
+    '        </div>\n' +
+    '      </div></aside>\n' +
+    '    </div>\n    </div>\n  </div>\n</section>\n';
+
+  const cta = '<section class="omap-cta"><div class="wrap"><div class="omap-cta-in reveal">\n  <div>\n    <div class="omap-cta-k">Members only</div>\n' +
+    '    <h3>See the prices that never reach a listing site.</h3>\n' +
+    '    <p>Owners&rsquo; private numbers and every building&rsquo;s full sales history with a free account &mdash; plus a <b>$10,000 credit</b> off commission when you sell.</p>\n' +
+    '  </div>\n  <button class="btn btn-gold" data-cm-auth="signup" data-cta="offmarket:map-signup">Create a free account &rarr;</button>\n</div></div></section>\n';
+
+  const how = '<section class="om-how" id="how"><div class="wrap">\n' +
+    '  <div class="om-how-head reveal"><span class="eyebrow">How it works</span><h2>Two ways to trade <em>without a listing.</em></h2>\n' +
+    '    <p class="sub">Neither needs a sign, a listing, or an agreement. Neither costs anything until a sale closes.</p></div>\n' +
+    '  <div class="om-how-grid">\n' +
+    '    <div class="om-path reveal"><div class="om-path-k">For buyers</div><h3>Write an offer</h3>\n      <ol class="om-steps">\n' +
+    '        <li><b>Find the unit</b><p>Pick the building on the map above, or search any San Francisco condo &mdash; listed, off-market, or never on the market.</p></li>\n' +
+    '        <li><b>Read the record</b><p>Every recorded sale in the building, price per foot against the neighborhood, and the HOA figures, on every building&rsquo;s page.</p></li>\n' +
+    '        <li><b>Name your terms</b><p>Price, funding, closing and deposit. Tim drafts a non-binding Letter of Intent and reviews it with you.</p></li>\n' +
+    '        <li><b>The owner decides, privately</b><p>Tim presents it to the owner of record. Nothing reaches them until you have seen the draft.</p></li>\n' +
+    '      </ol>\n      <a class="btn btn-gold" href="#map" data-cta="offmarket:how-offer">Pick a building on the map &uarr;</a>\n    </div>\n' +
+    '    <div class="om-path reveal"><div class="om-path-k">For owners</div><h3>Make Me Move</h3>\n      <ol class="om-steps">\n' +
+    '        <li><b>Name your number</b><p>The price that would make you move. No sign, no listing, no agreement.</p></li>\n' +
+    '        <li><b>It stays private</b><p>Your price opens only to people with a free account here &mdash; never on Zillow, never on the MLS.</p></li>\n' +
+    '        <li><b>A buyer meets it</b><p>When an offer reaches your number, Tim brings it to you. Until then, nothing happens.</p></li>\n' +
+    '        <li><b>Change it any time</b><p>Adjust your number or withdraw it whenever you like, at no cost.</p></li>\n' +
+    '      </ol>\n      <a class="btn btn-line" href="/owner-signup/" data-cta="offmarket:how-mmm">Set my number &rarr;</a>\n    </div>\n' +
+    '  </div>\n  <p class="om-how-foot reveal">Questions? <a href="/how-it-works/">See how Condo Market SF works &rarr;</a></p>\n</div></section>\n';
+
+  const data = (payload.buildings || []).map((b) => [b.s, b.n, b.h, b.u, b.y, b.la, b.lo, b.m ? 1 : 0]);
+  const script = '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>\n' +
+    '<script>(function(){\n' +
+    'var B=' + JSON.stringify(data).replace(/</g, '\\u003c') + ';\n' +
+    'var el=document.getElementById("cbmap"); if(!el||!window.L) return;\n' +
+    'var map=L.map(el,{scrollWheelZoom:false,zoomControl:true}).setView([37.782,-122.415],13);\n' +
+    'var k=(document.querySelector(\'meta[name="carto-key"]\')||{}).content||"";\n' +
+    'L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"+(k&&k.indexOf("__")!==0?"?key="+encodeURIComponent(k):""),{attribution:"&copy; OpenStreetMap &copy; CARTO",subdomains:"abcd",maxZoom:19}).addTo(map);\n' +
+    'var side=document.querySelector(".mact-card"), pins={};\n' +
+    'function state(s){side.querySelectorAll("[data-mstate]").forEach(function(d){d.style.display=d.getAttribute("data-mstate")===s?"":"none";});}\n' +
+    'function fmt(n){return Number(n||0).toLocaleString("en-US");}\n' +
+    'function choose(b){ if(!b) return; state("chosen");\n' +
+    '  document.getElementById("mactAddrOut").textContent=b[1];\n' +
+    '  document.getElementById("mactMetaOut").textContent=(b[2]||"San Francisco")+", San Francisco";\n' +
+    '  function f(k,v){return "<div><div class=\\"mf-k\\">"+k+"</div><div class=\\"mf-v\\">"+v+"</div></div>";}\n' +
+    '  document.getElementById("mactFacts").innerHTML=(b[3]?f("Units",fmt(b[3])):"")+(b[4]?f("Built",b[4]):"")+f("For sale",b[7]?"Now":"None listed");\n' +
+    '  document.getElementById("mactRec").href="/building/"+b[0]+"/";\n' +
+    '  document.getElementById("mactOffer").href="/building/"+b[0]+"/#offer";\n' +
+    '  document.getElementById("mactClaim").href="/owner-signup/?address="+encodeURIComponent(b[1]);\n' +
+    '  Object.keys(pins).forEach(function(s){pins[s].setStyle({weight:s===b[0]?3:1});});\n' +
+    '  map.panTo([b[5],b[6]]);\n' +
+    '  if(window.cmTrack) try{window.cmTrack("cta_click",{cta:"offmarket:map-pick",building:b[0]});}catch(e){}\n' +
+    '}\n' +
+    'B.forEach(function(b){ var r=4+Math.min(10,Math.sqrt(b[3]||1)*0.55);\n' +
+    '  var m=L.circleMarker([b[5],b[6]],{radius:r,color:b[7]?"#9a3412":"#5d6575",weight:1,fillColor:b[7]?"#C2410C":"#8a93a3",fillOpacity:b[7]?0.85:0.55}).addTo(map);\n' +
+    '  m.bindTooltip(b[1]+" · "+fmt(b[3])+" units",{direction:"top"}); m.on("click",function(){choose(b);}); pins[b[0]]=m; });\n' +
+    'var inp=document.getElementById("mactAddr");\n' +
+    'function find(q){ q=(q||"").trim().toLowerCase(); if(!q) return null; var hit=null;\n' +
+    '  B.forEach(function(b){ if(!hit && b[1].toLowerCase()===q) hit=b; }); if(hit) return hit;\n' +
+    '  B.forEach(function(b){ if(!hit && (b[1].toLowerCase().indexOf(q)!==-1 || b[0].replace(/-/g," ").indexOf(q.replace(/[^a-z0-9 ]/g,""))!==-1)) hit=b; }); return hit; }\n' +
+    'document.getElementById("mactUseAddr").addEventListener("click",function(){ var b=find(inp.value); document.getElementById("mactMiss").style.display=b?"none":""; if(b){ choose(b); map.setView([b[5],b[6]],16); } });\n' +
+    'inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("mactUseAddr").click(); } });\n' +
+    'side.querySelector("[data-mback]").addEventListener("click",function(){ state("pick"); });\n' +
+    '})();</script>\n';
+
+  return cityHead(title, desc, canonical, leaflet) + cityNav('offmarket') + offmarket + map + cta + how + cityFooter(payload) + cityTail(script);
+}
+
 export default {
   async fetch(request, env) {
     CARTO_KEY = (env && env.CARTO_KEY) ? String(env.CARTO_KEY) : '';
@@ -799,6 +1025,22 @@ async function handleRequest(request, env) {
    ───────────────────────────────────────────────────────────────────────── */
 
     // /active-listings → server-rendered market grid + map enhancement.
+    /* Off Market (City Markets UI, 26 Sep 2026): members-only owner prices, every building on
+       one map, and the two ways to trade without a listing. Counts only - never a price. */
+    if (url.pathname === '/off-market' || url.pathname === '/off-market/') {
+      let payload = { buildings: [], totals: {}, hoods: [] };
+      try {
+        const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/offmarket_page_payload', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ p_market_domain: hostMk.domain }),
+        });
+        if (r.ok) payload = (await r.json()) || payload;
+      } catch (e) {}
+      const html = applyMarketSwaps(renderOffMarket(payload), hostMk);
+      return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
+    }
+
     if (url.pathname === '/active-listings' || url.pathname === '/active-listings/') {
       let payload = await fetchActiveListingsView(hostMk);
       if (!payload) payload = { count: 0, listings: [] };
@@ -1003,7 +1245,7 @@ async function renderSitemap(mk) {
   } catch (e) { rows = []; }
 
   // '/buildings/' is not listed: it is the home page, and declares '/' as its canonical.
-  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings', '/buy', '/sell'];
+  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings', '/off-market/', '/buy', '/sell'];
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-market-stats');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condos');
