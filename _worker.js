@@ -446,7 +446,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
    /assets/cm-city-ui.css (the accent swapped to the condo orange). These are
    its shared pieces - header, agent strip, footer - and the pages built on it.
    ========================================================================== */
-const CITY_UI_VER = '2';
+const CITY_UI_VER = '3';
 
 function cityEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function citySlug(s) { return String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
@@ -915,6 +915,950 @@ function renderListingCity(d, B, foot) {
     cityNav('forsale') + body + cityFooter(foot || {}) + cityTail(script);
 }
 
+/* ACTIVE LISTINGS - the City Markets page (campbell-market renderActiveListings), ported
+   26 Sep 2026. Fed the condo platform's own active listings inline (every card has a live
+   /listing/ page); each card names the building the unit is in. Recently sold reads the
+   condo recorded sales (sold_listings_map_condo) and links to the building. */
+function renderActiveListingsCity(M, AL, foot) {
+  const mktDerived = () => ({ homes: M.homes });
+  const title = `Homes For Sale in ${M.city}, CA ${M.zipsLabel} — Live | ${M.name}`;
+  const desc = `Every home for sale in ${M.city}, CA ${M.zipsLabel} right now — available and pending, live from the MLS, refreshed twice daily, filterable by status, type, price, and bedrooms, each linked to its full home record.`;
+  const clientJs = `
+(function(){
+  var SB='https://qinuukntpyulqjzndnho.supabase.co';
+  var KEY='sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2';
+  function num(n){return n==null?'':Number(n).toLocaleString('en-US');}
+  function money(n){if(n==null)return '';if(n>=1e6){var s=(n/1e6).toFixed(2).replace(/0+$/,'').replace(/[.]$/,'');return '$'+s+'M';}return '$'+Math.round(n/1000)+'K';}
+  function photoOf(l,size){
+    return l.rehosted_url||null;
+  }
+  var ALL=[], RV={}, MAP=null, LAYER=null, SOLDLAYER=null, PINS={}, ACTIVE=null;
+  var SOLD=[], SOLDON=false, SOLDMO=3;
+  /* Bounds filtering. FITTING guards the programmatic fitBounds so it cannot
+     trigger a moveend, re-filter, re-fit loop. */
+  var BOUNDS=null, FITTING=false, FITTED=false;
+  var F={type:'all',price:'all',beds:'all',stage:'all',minP:null,maxP:null,
+         minSf:null,maxSf:null,minYr:null,maxYr:null,maxHoa:null,
+         reviewedOnly:false,withPhotos:false,noPending:false};
+  var SORT='reviewed_price';
+  function isPend(l){ return l.status==='Pending'; }
+  // Days in contract is a fact about the listing, not an opinion about it.
+  function pendDays(l){
+    if(!l.pending_since) return null;
+    var d=Math.round((Date.now()-Date.parse(l.pending_since+'T00:00:00Z'))/86400000);
+    return (d>=0&&d<400)?d:null;
+  }
+  function specsOf(l){
+    var s=[];
+    if(l.beds)s.push(l.beds+' bd');
+    if(l.baths)s.push(l.baths+' ba');
+    if(l.sqft)s.push(num(l.sqft)+' sf');
+    if(l.year_built)s.push('built '+l.year_built);
+    if(l.price&&l.sqft)s.push('$'+num(Math.round(l.price/l.sqft))+'/sf');
+    return s.join(' \u00b7 ');
+  }
+  /* Two bubbles, one per report actually published: a CMA is never labelled
+     a disclosure review. Either one lifts the home to the top of the list. */
+  function rvBadges(rv){
+    if(!rv) return '';
+    return '<span class="rv-stack">'+(rv.cma?'<span class="rv-badge rv-cma">\u2713 CMA</span>':'')+
+      (rv.sheet?'<span class="rv-badge">\u2713 Disclosures reviewed</span>':'')+'</span>';
+  }
+  function rvCta(rv){
+    return rv.cma&&rv.sheet ? 'Get the free CMA + disclosure review' : (rv.cma ? 'Get the free CMA' : 'Get the free disclosure review');
+  }
+  function cardHtml(l,i){
+    var img=photoOf(l,'640x400');
+    var rv=RV[l.mls_number];
+    var pend=isPend(l), pd=pend?pendDays(l):null;
+    var domTxt = (l.dom==null) ? '' :
+      (l.dom<=1 ? 'New today' : (l.dom<=7 ? l.dom+' days on market' : l.dom+' days on market'));
+    var domBadge = (pend || !domTxt) ? ''
+      : ('<span class="al-dom'+(l.dom<=7?' fresh':'')+'">'+domTxt+'</span>');
+    var inner='<div class="ph al-cardphoto">'+domBadge+(img?('<img loading="lazy" onerror="this.parentNode.querySelector(\\'.price-chip\\')&&0;this.remove()" src="'+img+'" alt="'+l.address_raw+', ${M.city} CA">'):'')+
+      '<span class="price-chip'+(pend?' pending':'')+'"><span class="dot"></span>'+money(l.price)+'</span>'+
+      (pend?('<span class="pend-badge">Pending'+(pd!=null?(' \u00b7 '+pd+'d'):'')+'</span>'):'')+
+      rvBadges(rv)+'</div>'+
+      '<div class="bd"><div class="ad">'+l.address_raw+'</div>'+(l.building?'<div class="al-bldg">in '+l.building+'</div>':'')+
+      '<div class="sp">'+specsOf(l)+(pend?(' \u00b7 in contract'+(pd!=null?(' '+pd+'d'):'')):'')+'</div>'+
+      (rv?'<div class="tr rv-cta" data-cta="grid:reviewed_card">'+rvCta(rv)+' \u2192</div>':'<div class="tr">View listing \u2192</div>')+'</div>';
+    var href='/listing/'+l.mls_number+''+(rv?'#reviewed':'');
+    return '<a data-mls="'+l.mls_number+'" class="listing-card'+(rv?' listing-card--rv':'')+(pend?' listing-card--pend':'')+'" style="animation-delay:'+Math.min(i*60,420)+'ms" href="'+href+'">'+inner+'</a>';
+  }
+  function spotlightHtml(l){
+    var img=photoOf(l,'900x600');
+    var rv=RV[l.mls_number];
+    return '<a class="al-spot'+(rv?' listing-card--rv':'')+'" href="/listing/'+l.mls_number+''+(rv?'#reviewed':'')+'">'+
+      '<div class="ph">'+(img?('<img src="'+img+'" alt="'+l.address_raw+', ${M.city} CA">'):'')+
+      rvBadges(rv)+'</div>'+
+      '<div class="bd"><div class="fk">\u25cf Featured \u00b7 highest ask in ${M.city}</div>'+
+      '<div class="pr">'+money(l.price)+'</div>'+
+      '<div class="ad">'+l.address_raw+', ${M.city}</div>'+
+      '<div class="sp">'+specsOf(l)+'</div>'+
+      '<div class="ctas"><span class="btn btn-gold">View listing \u2192</span>'+
+      (rv?'<span class="btn rv-btn">'+rvCta(rv).replace('Get the free','Free')+' \u2192</span>':'')+'</div>'+
+      '</div></a>';
+  }
+  function current(){
+    var rows=ALL.filter(function(l){
+      if(F.type!=='all'){
+        var t=(l.prop_type||'').toLowerCase();
+        if(F.type==='house'   && t.indexOf('single')<0) return false;
+        if(F.type==='condo'   && t.indexOf('condo')<0) return false;
+        if(F.type==='town'    && t.indexOf('town')<0) return false;
+        if(F.type==='multi'   && t.indexOf('multi')<0) return false;
+      }
+      if(F.stage==='available' && isPend(l)) return false;
+      if(F.stage==='pending'  && !isPend(l)) return false;
+      if(F.noPending && isPend(l)) return false;
+      if(F.beds!=='all' && (l.beds||0) < Number(F.beds)) return false;
+      if(F.minP!=null && (l.price||0) < F.minP) return false;
+      if(F.maxP!=null && (l.price||0) > F.maxP) return false;
+      if(F.minSf!=null && (l.sqft||0) < F.minSf) return false;
+      if(F.maxSf!=null && (l.sqft||0) > F.maxSf) return false;
+      if(F.minYr!=null && (l.year_built||0) < F.minYr) return false;
+      if(F.maxYr!=null && (l.year_built||0) > F.maxYr) return false;
+      if(F.reviewedOnly && !(l.reviewed||l.has_cma)) return false;
+      if(F.withPhotos && !(l.photos>0||l.rehosted_url)) return false;
+      return true;
+    });
+    /* Only what is on the map, the way every search map behaves. Listings with
+       no coordinates cannot be in view and are excluded while a viewport is
+       set — the count line says how many those are. */
+    if(BOUNDS){
+      rows = rows.filter(function(l){
+        return l.lat!=null && l.lng!=null && BOUNDS.contains([l.lat,l.lng]);
+      });
+    }
+    rows.sort(function(a,b){
+      /* Default: disclosures reviewed first, then price high to low. The
+         reviewed ones are the whole point of the platform, so they lead. */
+      if(SORT==='reviewed_price'){
+        /* both reports lead, then either one, then price */
+        var ar=(a.reviewed?1:0)+(a.has_cma?1:0), br=(b.reviewed?1:0)+(b.has_cma?1:0);
+        if(ar!==br) return br-ar;
+        return (b.price||0)-(a.price||0);
+      }
+      if(SORT==='price_asc')  return (a.price||0)-(b.price||0);
+      if(SORT==='price_desc') return (b.price||0)-(a.price||0);
+      if(SORT==='dom_asc')    return (a.dom||0)-(b.dom||0);
+      if(SORT==='dom_desc')   return (b.dom||0)-(a.dom||0);
+      if(SORT==='sqft_desc')  return (b.sqft||0)-(a.sqft||0);
+      if(SORT==='ppsf_desc')  return ((b.price&&b.sqft)?b.price/b.sqft:0)-((a.price&&a.sqft)?a.price/a.sqft:0);
+      if(SORT==='ppsf_asc')   return ((a.price&&a.sqft)?a.price/a.sqft:1e9)-((b.price&&b.sqft)?b.price/b.sqft:1e9);
+      return (b.price||0)-(a.price||0);
+    });
+    return rows;
+  }
+
+  /* ---------- map ---------- */
+  function pinLabel(l){
+    if(l.price==null) return '\u2014';
+    if(l.price>=1e6){var v=(l.price/1e6).toFixed(2).replace(/0+$/,'').replace(/[.]$/,'');return '$'+v+'M';}
+    return '$'+Math.round(l.price/1000)+'K';
+  }
+  function ensureMap(cb){
+    if(window.L&&window.L.map){cb();return;}
+    if(!document.querySelector('link[href*="leaflet.min.css"]')){
+      var lk=document.createElement('link');lk.rel='stylesheet';
+      lk.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+      document.head.appendChild(lk);
+    }
+    var sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    sc.onload=cb;document.head.appendChild(sc);
+  }
+  function drawMap(rows){
+    var el=document.getElementById('alMap'); if(!el) return;
+    ensureMap(function(){
+      if(!MAP){
+        MAP=window.L.map(el,{zoomControl:true,scrollWheelZoom:true,preferCanvas:false})
+              .setView([${M.center[0]},${M.center[1]}],13.2);
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__',
+          {maxZoom:19,attribution:'\u00a9 OpenStreetMap \u00a9 CARTO'}).addTo(MAP);
+        /* Pan or zoom re-filters the feed. Guarded so our own fitBounds does
+           not bounce it. */
+        MAP.on('moveend zoomend', function(){
+          if(FITTING) return;
+          BOUNDS = MAP.getBounds();
+          render();
+        });
+      }
+      if(LAYER) MAP.removeLayer(LAYER);
+      LAYER=window.L.layerGroup().addTo(MAP); PINS={};
+      var pts=[];
+      rows.forEach(function(l){
+        if(l.lat==null||l.lng==null) return;
+        var cls='al-pin'+(l.reviewed||l.has_cma?' rv':'')+(isPend(l)?' pend':'');
+        var mk=window.L.marker([l.lat,l.lng],{icon:window.L.divIcon({
+          className:'al-pinwrap', html:'<span class="'+cls+'">'+pinLabel(l)+'</span>',
+          iconSize:null, iconAnchor:[26,13]})});
+        mk.on('click',function(){ focusCard(l.mls_number); });
+        mk.addTo(LAYER); PINS[l.mls_number]=mk; pts.push([l.lat,l.lng]);
+      });
+      /* Fit to what is actually shown, so filtering re-frames the map. */
+      if(pts.length && !FITTED){
+        FITTING=true; FITTED=true;
+        MAP.fitBounds(pts,{padding:[38,38],maxZoom:16});
+        setTimeout(function(){ FITTING=false; BOUNDS=MAP.getBounds(); render(); }, 260);
+      }
+      if(SOLDON) drawSold();
+      var miss=rows.length-pts.length;
+      var nm=document.getElementById('alNoMap');
+      if(nm) nm.textContent = miss ? (miss+' of '+rows.length+' not on the map \u00b7 no coordinates on record') : '';
+    });
+  }
+  function focusCard(mls){
+    var card=document.querySelector('[data-mls="'+mls+'"]');
+    if(card){ card.scrollIntoView({behavior:'smooth',block:'center'});
+      card.style.outline='2px solid var(--apricot)';
+      setTimeout(function(){card.style.outline='';},1600); }
+    highlight(mls);
+  }
+  function highlight(mls){
+    if(ACTIVE&&PINS[ACTIVE]){var p=PINS[ACTIVE].getElement();if(p){var q=p.querySelector('.al-pin');if(q)q.classList.remove('on');}}
+    ACTIVE=mls;
+    if(PINS[mls]){var e=PINS[mls].getElement();if(e){var t=e.querySelector('.al-pin');if(t)t.classList.add('on');}}
+  }
+
+
+  /* If a listing is live on the Exchange, show it blurred rather than a bare
+     CTA — a real property beats a promise. If none is, the CTA stands alone
+     and claims nothing that is not there. */
+  (function(){
+    var slot=document.getElementById('alIxSlot'); if(!slot) return;
+    fetch(SB+'/rest/v1/rpc/exchange_public_teaser',{method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_market_id:${M.id}})})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(d){
+        var rows=(d&&d.listings)||[];
+        if(!rows.length) return;
+        var l=rows[0];
+        var spec=[l.beds?l.beds+' bd':null,l.baths?l.baths+' ba':null,
+                  l.sqft?Number(l.sqft).toLocaleString('en-US')+' sf':null].filter(Boolean).join(' \u00b7 ');
+        var el=document.createElement('a');
+        el.className='al-ixcard'; el.style.display='block'; el.style.textDecoration='none';
+        el.href='/investor-exchange/';
+        el.setAttribute('data-cta','forsale:exchange_card');
+        el.innerHTML='<div class="al-ixshot ph"></div><div class="al-ixbody">'
+          +'<span class="al-ixtag">'+esc2(l.area||'')+' \u00b7 '+esc2(l.property_type||'')+'</span>'
+          +'<div class="al-ixaddr">'+esc2(l.address||'')+'</div>'
+          +'<div class="al-ixspec">'+spec+(l.hoa_fee_monthly?' \u00b7 HOA $'+Number(l.hoa_fee_monthly).toLocaleString('en-US')+'/mo':'')+'</div>'
+          +'<div class="al-ixlock"><span class="al-ixblur">$\u2588\u2588\u2588,\u2588\u2588\u2588</span>'
+          +'<span class="al-ixtag">\uD83D\uDD12 Members</span></div></div>';
+        slot.appendChild(el);
+        if(rows.length>1){
+          var more=document.createElement('div');
+          more.className='al-ixtag'; more.style.marginTop='10px';
+          more.textContent='and '+(rows.length-1)+' more available to investor accounts';
+          slot.appendChild(more);
+        }
+        /* Cover photos live in a private bucket; sign the one we show. */
+        if(l.cover){
+          fetch(SB+'/storage/v1/object/sign/exchange-photos/'+encodeURI(l.cover),{
+            method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+            body:JSON.stringify({expiresIn:3600})})
+            .then(function(r){return r.ok?r.json():null;}).then(function(x){
+              if(!x||!x.signedURL) return;
+              var sh=el.querySelector('.al-ixshot');
+              sh.style.backgroundImage='url('+SB+'/storage/v1'+x.signedURL+')';
+              sh.className='al-ixshot';
+            }).catch(function(){});
+        }
+      }).catch(function(){});
+  })();
+  function esc2(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+
+  /* Recent sales on the same map. A distinct pin — slate, dashed — because a
+     closed price and an asking price are different claims and must not read
+     alike. */
+  function drawSold(){
+    if(!MAP||!window.L) return;
+    if(SOLDLAYER){ MAP.removeLayer(SOLDLAYER); SOLDLAYER=null; }
+    var note=document.getElementById('alSoldNote');
+    if(!SOLDON){ if(note) note.textContent=''; return; }
+    SOLDLAYER=window.L.layerGroup().addTo(MAP);
+    var shown=0;
+    SOLD.forEach(function(x){
+      if(x.lat==null||x.lng==null) return;
+      var mk=window.L.marker([x.lat,x.lng],{icon:window.L.divIcon({
+        className:'al-pinwrap',
+        html:'<span class="al-pin sold">'+pinLabel(x)+'</span>',
+        iconSize:null, iconAnchor:[26,13]})});
+      mk.bindPopup('<b>'+String(x.addr||'').replace(/</g,'&lt;')+'</b><br>'
+        +'Sold '+pinLabel(x)+(x.psf?' \u00b7 $'+x.psf+'/sf':'')+'<br>'
+        +new Date(x.sold_on+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}));
+      mk.addTo(SOLDLAYER); shown++;
+    });
+    if(note) note.textContent = shown+' sold in the last '+SOLDMO+(SOLDMO===1?' month':' months')
+      + (SOLD.length>shown ? ' \u00b7 '+(SOLD.length-shown)+' without coordinates' : '');
+  }
+  function loadSold(){
+    var note=document.getElementById('alSoldNote');
+    if(note) note.textContent='Loading sales\u2026';
+    fetch('${SUPABASE_URL}/rest/v1/rpc/sold_listings_map_condo',{method:'POST',
+      headers:{'apikey':'${SUPABASE_ANON_KEY}','Authorization':'Bearer ${SUPABASE_ANON_KEY}','Content-Type':'application/json'},
+      body:JSON.stringify({p_market_domain:'${M.domain}',p_months:SOLDMO})})
+      .then(function(r){return r.ok?r.json():[];})
+      .then(function(rows){ SOLD=rows||[]; drawSold(); render(); })
+      .catch(function(){ SOLD=[]; if(note) note.textContent='Could not load recent sales.'; });
+  }
+
+
+  /* A sold card is a different object from a listing: the price is a closed
+     price, there is no days-on-market, and there is nothing to enquire about.
+     Rendering it through cardHtml would dress a sale up as an opportunity. */
+  function soldCardHtml(x){
+    var img = x.photo ? '<img src="'+x.photo+'" alt="" loading="lazy">' : '';
+    var when = new Date(x.sold_on+'T12:00:00')
+      .toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var facts = [x.beds?x.beds+' bd':null, x.baths?x.baths+' ba':null,
+                 x.sqft?Number(x.sqft).toLocaleString('en-US')+' sf':null,
+                 x.year?'built '+x.year:null,
+                 x.psf?'$'+Number(x.psf).toLocaleString('en-US')+'/sf':null]
+                .filter(Boolean).join(' \u00b7 ');
+    var href = x.slug ? '/building/'+x.slug+'/' : '#';
+    return '<a class="listing-card listing-card--sold" href="'+href+'" data-mls="'+(x.mls||'')+'">'
+      +'<div class="ph al-cardphoto">'
+        +'<span class="al-dom sold">Sold '+when+'</span>'+img
+        +'<span class="al-soldprice">'+money(x.price)+'</span>'
+      +'</div>'
+      +'<div class="bd"><h3>'+esc2(String(x.addr||'').split(',')[0])+'</h3>'
+      +'<p class="meta">'+facts+'</p>'
+      +'<span class="go">See the record \u2192</span></div></a>';
+  }
+
+
+  /* Price: commas as you type, and a two-handle slider bound to the same
+     values. 300000 and 3000000 are indistinguishable at a glance without them. */
+  function commafy(el){
+    var digits=(el.value||'').replace(/\D/g,'');
+    el.value = digits ? Number(digits).toLocaleString('en-US') : '';
+  }
+  function priceOf(id){
+    var el=document.getElementById(id); if(!el) return null;
+    var d=(el.value||'').replace(/\D/g,'');
+    return d ? Number(d) : null;
+  }
+  function wirePrice(){
+    var lo=document.getElementById('pLo'), hi=document.getElementById('pHi'),
+        fill=document.getElementById('pFill'),
+        minI=document.getElementById('fMinP'), maxI=document.getElementById('fMaxP');
+    if(!lo||!hi) return;
+    var LOW=Number(lo.min), HIGH=Number(lo.max), SPAN=HIGH-LOW;
+    function paint(){
+      var a=Number(lo.value), b=Number(hi.value);
+      fill.style.left=((a-LOW)/SPAN*100)+'%';
+      fill.style.width=((b-a)/SPAN*100)+'%';
+    }
+    function fromSlider(){
+      /* handles may not cross */
+      if(Number(lo.value) > Number(hi.value)-Number(lo.step)) lo.value=Number(hi.value)-Number(lo.step);
+      if(Number(hi.value) < Number(lo.value)+Number(lo.step)) hi.value=Number(lo.value)+Number(lo.step);
+      minI.value = Number(lo.value)===LOW ? '' : Number(lo.value).toLocaleString('en-US');
+      maxI.value = Number(hi.value)===HIGH ? '' : Number(hi.value).toLocaleString('en-US');
+      paint();
+    }
+    function fromInputs(){
+      var a=priceOf('fMinP'), b=priceOf('fMaxP');
+      lo.value = a==null ? LOW : Math.min(Math.max(a,LOW),HIGH);
+      hi.value = b==null ? HIGH : Math.max(Math.min(b,HIGH),LOW);
+      paint();
+    }
+    lo.addEventListener('input',fromSlider);
+    hi.addEventListener('input',fromSlider);
+    [minI,maxI].forEach(function(el){
+      el.addEventListener('input',function(){ commafy(el); fromInputs(); });
+    });
+    /* dragging is a filter change; applying on release keeps it responsive
+       without re-rendering on every pixel */
+    [lo,hi].forEach(function(el){
+      el.addEventListener('change',function(){ readPanels(); markActive(); render(); });
+    });
+    paint();
+  }
+
+  function render(){
+    var rows=current();
+    Array.prototype.forEach.call(document.querySelectorAll('.al-count'),function(n){n.textContent = SOLDON ? SOLD.length : rows.length;});
+    var np=0; for(var pi=0;pi<rows.length;pi++){ if(isPend(rows[pi])) np++; }
+    Array.prototype.forEach.call(document.querySelectorAll('.al-what'),function(w){
+      w.textContent = SOLDON ? 'recently sold in ' : 'homes for sale in ';
+    });
+    var offMap = BOUNDS ? ALL.filter(function(l){return l.lat==null||l.lng==null;}).length : 0;
+    var rc=document.getElementById('alResult');
+    if(rc)rc.innerHTML = SOLDON
+      ? ('<b>'+SOLD.length+'</b> recorded sales')
+      : ('<b>'+rows.length+'</b> of '+ALL.length+(BOUNDS?' in this view':' listings')
+         +(np?(' \u00b7 '+np+' pending'):'')
+         +(offMap?(' \u00b7 '+offMap+' unmapped'):''));
+    var spot=document.getElementById('alSpot');
+    var grid=document.getElementById('alGrid');
+    var noFilters=(F.type==='all'&&F.price==='all'&&F.beds==='all'&&SORT==='price_desc');
+    if(!rows.length){
+      spot.innerHTML='';
+      if(BOUNDS && ALL.length){
+        grid.innerHTML='<div class="filter-empty">Nothing in this part of the map. '
+          +'<button class="al-zoomout" id="alZoomOut">Zoom out to see more &rarr;</button></div>';
+        var zo=document.getElementById('alZoomOut');
+        if(zo) zo.addEventListener('click',function(){ if(MAP) MAP.zoomOut(2); });
+        drawMap(rows); return;
+      }
+      grid.innerHTML='<div class="filter-empty">No listings match those filters right now \u2014 which is exactly why Make Me Move exists. <a href="/make-me-move/" style="color:var(--apricot)" data-cta="owner:make_me_move">Name your number \u2192</a></div>';
+      return;
+    }
+    if(noFilters && rows.length>3){
+      var hero=null;
+      for(var si=0;si<rows.length;si++){ if(!isPend(rows[si])){ hero=rows[si]; break; } }
+      if(hero){
+        spot.innerHTML=spotlightHtml(hero);
+        grid.innerHTML=rows.filter(function(r){return r!==hero;}).map(cardHtml).join('');
+      } else {
+        spot.innerHTML='';
+        grid.innerHTML=rows.map(cardHtml).join('');
+      }
+    } else {
+      spot.innerHTML='';
+      grid.innerHTML=rows.map(cardHtml).join('');
+    }
+    /* Recently sold replaces the feed rather than appending to it — mixing
+       closed prices into a for-sale list is how a buyer misreads one for the
+       other. The map keeps both layers. */
+    if(SOLDON){
+      grid.innerHTML = SOLD.length
+        ? SOLD.map(soldCardHtml).join('')
+        : '<p class="al-empty">No recorded sales in that window.</p>';
+    }
+    drawMap(rows);
+    /* Hovering a card lights its pin, the way every search map behaves. */
+    Array.prototype.forEach.call(grid.querySelectorAll('[data-mls]'),function(c){
+      c.addEventListener('mouseenter',function(){highlight(c.getAttribute('data-mls'));});
+    });
+  }
+  function wireSeg(id,key){
+    var el=document.getElementById(id); if(!el) return;
+    el.addEventListener('click',function(e){
+      if(e.target.tagName!=='BUTTON') return;
+      Array.prototype.forEach.call(el.querySelectorAll('button'),function(b){b.classList.remove('on');});
+      e.target.classList.add('on');
+      F[key]=e.target.getAttribute('data-v');
+      markActive(); render();
+    });
+  }
+  function numOrNull(id){
+    /* The price fields carry thousands separators now, so Number('3,000,000')
+       would be NaN and the filter would silently do nothing. Strip first. */
+    var v=(document.getElementById(id)||{}).value;
+    if(v===''||v==null) return null;
+    var d=String(v).replace(/[^0-9.]/g,'');
+    if(d==='') return null;
+    var n=Number(d); return isFinite(n)?n:null;
+  }
+  function readPanels(){
+    F.minP=numOrNull('fMinP'); F.maxP=numOrNull('fMaxP');
+    F.minSf=numOrNull('fMinSf'); F.maxSf=numOrNull('fMaxSf');
+    F.minYr=numOrNull('fMinYr'); F.maxYr=numOrNull('fMaxYr');
+    F.reviewedOnly=!!(document.getElementById('fReviewed')||{}).checked;
+    F.withPhotos=!!(document.getElementById('fPhotos')||{}).checked;
+    F.noPending=!!(document.getElementById('fNoPending')||{}).checked;
+  }
+  /* A filter button that looks untouched while filtering is the silent-state
+     problem in miniature — mark the ones actually doing something. */
+  function markActive(){
+    function set(btn,on){var b=document.querySelector('[data-panel="'+btn+'"]'); if(b) b.classList.toggle('on',!!on);}
+    set('pType', F.type!=='all');
+    set('pPrice', F.minP!=null||F.maxP!=null);
+    set('pBeds', F.beds!=='all');
+    set('pStatus', F.stage!=='all');
+    set('pMore', F.minSf!=null||F.maxSf!=null||F.minYr!=null||F.maxYr!=null||
+                 F.reviewedOnly||F.withPhotos||F.noPending);
+  }
+  function closePanels(){
+    Array.prototype.forEach.call(document.querySelectorAll('.al-panel'),function(p){p.classList.remove('open');});
+  }
+  function wireDropdowns(){
+    Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'),function(b){
+      b.addEventListener('click',function(e){
+        e.stopPropagation();
+        var id=b.getAttribute('data-panel');
+        var p=document.getElementById(id);
+        var wasOpen=p.classList.contains('open');
+        closePanels();
+        if(!wasOpen) p.classList.add('open');
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.al-panel'),function(p){
+      p.addEventListener('click',function(e){ e.stopPropagation(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-apply]'),function(b){
+      b.addEventListener('click',function(){ readPanels(); markActive(); closePanels(); render(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-close]'),function(b){
+      b.addEventListener('click',closePanels);
+    });
+    document.addEventListener('click',closePanels);
+    var rs=document.getElementById('alReset');
+    if(rs) rs.addEventListener('click',function(){
+      F={type:'all',price:'all',beds:'all',stage:'all',minP:null,maxP:null,minSf:null,maxSf:null,
+         minYr:null,maxYr:null,maxHoa:null,reviewedOnly:false,withPhotos:false,noPending:false};
+      SORT='reviewed_price';
+      ['fMinP','fMaxP','fMinSf','fMaxSf','fMinYr','fMaxYr'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.value='';
+      });
+      ['fReviewed','fPhotos','fNoPending'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.checked=false;
+      });
+      ['fType','fBeds','fStage'].forEach(function(id){
+        var el=document.getElementById(id); if(!el) return;
+        Array.prototype.forEach.call(el.querySelectorAll('button'),function(b,ix){
+          b.classList.toggle('on', ix===0);
+        });
+      });
+      var lo=document.getElementById('pLo'), hi=document.getElementById('pHi');
+      if(lo) lo.value=lo.min; if(hi) hi.value=hi.max;
+      var fill=document.getElementById('pFill');
+      if(fill){ fill.style.left='0%'; fill.style.width='100%'; }
+      var so=document.getElementById('alSort'); if(so) so.value='reviewed_price';
+      markActive(); render();
+    });
+  }
+  wireSeg('fType','type'); wireSeg('fBeds','beds'); wireSeg('fStage','stage'); wireDropdowns(); wirePrice();
+  var sc=document.getElementById('alSold'), sm=document.getElementById('alSoldMo');
+  if(sc) sc.addEventListener('change',function(){
+    SOLDON=sc.checked;
+    if(sm) sm.disabled=!SOLDON;
+    if(SOLDON) loadSold(); else { drawSold(); render(); }
+  });
+  if(sm) sm.addEventListener('change',function(){ SOLDMO=Number(sm.value)||3; if(SOLDON) loadSold(); });
+  document.getElementById('alSort').addEventListener('change',function(e){ SORT=e.target.value; render(); });
+  Promise.resolve(window.__AL__||[])
+    .then(function(rows){
+      ALL=(rows||[]).map(function(x){
+        return {mls_number:x.mls, address_raw:x.addr, property_slug:x.slug,
+                price:x.price, beds:x.beds, baths:x.baths, sqft:x.sqft, lot_sqft:x.lot,
+                year_built:x.year, prop_type:x.type, status:x.status,
+                rehosted_url:x.photo, photos:x.photos,
+                lat:x.lat, lng:x.lng, dom:x.dom, pending_days:x.pending_days,
+                reviewed:!!x.reviewed, has_cma:!!x.has_cma, risk_level:x.risk,
+                building:x.bldg, building_slug:x.bslug};
+      });
+      ALL.forEach(function(l){ if(l.reviewed||l.has_cma) RV[l.mls_number]={risk_level:l.risk_level,sheet:l.reviewed,cma:l.has_cma}; });
+      render();
+    })
+})();
+`;
+  const body = `
+
+<style>
+.listing-card--sold{border-color:rgba(90,107,140,.4)}
+.listing-card--sold .go{color:#5a6b8c}
+.al-dom.sold{background:#5a6b8c;color:#fff}
+.al-soldprice{position:absolute;left:12px;bottom:12px;z-index:2;background:rgba(18,21,29,.9);
+  color:#fff;border-radius:999px;padding:7px 15px;font-family:'Playfair Display',serif;font-size:1.16rem}
+.al-empty{padding:34px 6px;color:var(--slate);font-size:.95rem}
+.al-soldwrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.al-soldtoggle{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600;cursor:pointer;
+  background:#fff;border:1px solid rgba(32,36,46,.2);border-radius:8px;padding:7px 13px}
+.al-soldtoggle:hover{border-color:var(--apricot)}
+.al-soldtoggle input{width:15px;height:15px;accent-color:#5a6b8c}
+.al-soldmo{border:1px solid rgba(32,36,46,.2);border-radius:8px;padding:7px 11px;font:inherit;
+  font-size:14px;background:#fff}
+.al-soldmo:disabled{opacity:.42}
+.al-pin.sold{background:#5a6b8c;color:#fff;border-style:dashed;border-color:rgba(255,255,255,.7)}
+.al-soldnote{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#5a6b8c;margin-top:6px}
+.al-sec{border-top:1px solid var(--line);position:relative;z-index:2;background:var(--bg)}
+.al-zoomout{background:none;border:0;color:var(--apricot);font:inherit;font-weight:600;
+  text-decoration:underline;cursor:pointer;padding:0}
+/* ---- mobile: map on top, card sheet below, as Zillow does ---- */
+@media(max-width:1000px){
+  .al-mapwrap{height:56vh}
+  .al-listpane{border-radius:18px 18px 0 0;margin-top:-18px;position:relative;z-index:4;
+    background:var(--bg);box-shadow:0 -8px 24px rgba(18,21,29,.12);padding-top:0}
+  .al-listpane:before{content:'';display:block;width:44px;height:5px;border-radius:3px;
+    background:rgba(32,36,46,.26);margin:10px auto 4px}
+  .al-listhead{padding-top:10px}
+  .al-listhead h2{font-size:1.18rem}
+  .al-sortrow{gap:8px}
+  .al-soldwrap{width:100%}
+  .al-sort{flex:1;min-width:0}
+}
+/* ---------- below the listings ---------- */
+.al-below{border-top:1px solid var(--line);margin-top:34px;padding-top:30px}
+.al-blk{border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:16px;background:#fff}
+.al-blk.dark{background:var(--chrome);color:var(--chrome-ink);border-color:rgba(236,231,219,.16)}
+.al-blk .eyebrow{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--apricot)}
+.al-blk.dark .eyebrow{color:var(--apricot-soft)}
+.al-blk h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin:8px 0 8px;line-height:1.2}
+.al-blk p{font-size:.94rem;line-height:1.7;margin:0;max-width:60ch;color:var(--slate)}
+.al-blk.dark p{color:#b9c4d6}
+.al-btn{display:inline-block;margin-top:18px;background:var(--apricot);color:#12151d;
+  border-radius:999px;padding:11px 22px;font-weight:700;text-decoration:none;font-size:.92rem}
+.al-btn.ghost{background:transparent;border:1px solid rgba(236,231,219,.4);color:var(--chrome-ink)}
+.al-ixwhy{margin:16px 0 0;padding:0}
+.al-ixwhy li{list-style:none;position:relative;padding-left:19px;margin-bottom:9px;
+  font-size:.92rem;line-height:1.65;color:#b9c4d6;max-width:60ch}
+.al-ixwhy li:before{content:'\\2192';position:absolute;left:0;color:var(--apricot-soft)}
+.al-ixwhy b{color:var(--chrome-ink);font-weight:600}
+.al-ixcard{border:1px solid rgba(236,231,219,.2);border-radius:14px;overflow:hidden;margin-top:18px;
+  max-width:340px;cursor:pointer;background:rgba(236,231,219,.05)}
+.al-ixshot{height:150px;background-size:cover;background-position:center;background:linear-gradient(135deg,rgba(217,154,78,.22),rgba(236,231,219,.05))}
+.al-ixshot.ph{filter:blur(9px);transform:scale(1.06)}
+.al-ixbody{padding:16px 18px}
+.al-ixaddr{font-family:'Playfair Display',serif;font-size:1.12rem;color:var(--chrome-ink);margin-top:4px}
+.al-ixspec{font-size:.84rem;color:rgba(236,231,219,.6);margin-top:4px}
+.al-ixlock{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;
+  padding-top:12px;border-top:1px solid rgba(236,231,219,.14)}
+.al-ixblur{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--apricot-soft);
+  filter:blur(5px);user-select:none}
+.al-ixtag{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.14em;
+  text-transform:uppercase;color:rgba(236,231,219,.6)}
+.al-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:20px}
+.al-tool{border:1px solid var(--line);border-radius:12px;padding:16px 18px;text-decoration:none;display:block}
+.al-tool:hover{border-color:var(--apricot)}
+.al-tool b{display:block;font-family:'Playfair Display',serif;font-size:1.06rem;color:var(--ink)}
+.al-tool span{display:block;font-size:.82rem;color:var(--slate);margin-top:3px}
+/* ---------- for-sale: map + list, Zillow-shaped ---------- */
+.al-shell{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+  gap:0;height:calc(100vh - var(--nav-h));position:relative}
+@media(max-width:1000px){.al-shell{grid-template-columns:1fr;height:auto}}
+.al-mapwrap{position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));
+  border-right:1px solid var(--chrome-line);background:#e9e5dd}
+@media(max-width:1000px){.al-mapwrap{position:relative;top:0;height:56vh;border-right:0;
+  border-bottom:1px solid var(--chrome-line)}}
+#alMap{position:absolute;inset:0}
+.al-listpane{overflow-y:auto;height:calc(100vh - var(--nav-h));padding:0 22px 40px}
+@media(max-width:1000px){.al-listpane{height:auto;overflow:visible;padding:0 20px 40px}}
+.al-listhead{position:sticky;top:0;background:var(--bg);padding:20px 0 14px;z-index:6;
+  border-bottom:1px solid var(--line);box-shadow:0 6px 12px -10px rgba(0,0,0,.35)}
+.al-listpane .listing-grid{margin-top:16px}
+.al-listhead h2{font-family:'Playfair Display',serif;font-size:1.35rem;line-height:1.2}
+.al-listhead .n{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--slate);
+  letter-spacing:.08em;margin-top:4px}
+.al-sortrow{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin-top:10px}
+
+/* map pins */
+.al-pin{background:#12151d;color:#fff;border-radius:999px;padding:5px 11px;font-weight:700;
+  font-size:12.5px;white-space:nowrap;border:1.5px solid rgba(255,255,255,.85);
+  box-shadow:0 2px 7px rgba(0,0,0,.32);cursor:pointer;font-family:'DM Sans',sans-serif}
+.al-pin.rv{background:var(--apricot);color:#12151d;border-color:#fff}
+.al-pin.pend{background:#6f7684}
+.al-pin.on{background:#fff;color:#12151d;border-color:var(--apricot);transform:scale(1.09)}
+.leaflet-marker-icon.al-pinwrap{background:none;border:0}
+
+/* the card grid becomes one column inside the pane */
+/* Sized against the PANE, not the viewport. The pane is about half the window,
+   so a viewport breakpoint left one column on screens with plenty of room.
+   auto-fill gives two whenever the pane itself can hold them. */
+.al-listpane .listing-grid{grid-template-columns:repeat(auto-fill,minmax(244px,1fr));gap:14px}
+@media(max-width:560px){.al-listpane .listing-grid{grid-template-columns:1fr}}
+
+/* days on market, top-left of the photo — Zillow's position */
+.al-dom{position:absolute;top:10px;left:10px;z-index:2;background:rgba(255,255,255,.94);
+  color:#20242e;border-radius:6px;padding:4px 9px;font-size:11.5px;font-weight:600;
+  box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.al-dom.fresh{background:#12151d;color:#fff}
+.al-cardphoto{position:relative}
+
+/* filter bar */
+.al-bar{position:sticky;top:var(--nav-h);margin-top:var(--nav-h);z-index:20;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:10px 22px}
+/* No hero above it, so the shell fills the window from the nav down.
+   The shell is sticky as well as tall: without it the document scrolls the whole
+   shell upward, and the list head — which is sticky to the PANE — pins to an
+   edge already above the viewport, so its heading and count get clipped. */
+.al-shell{height:calc(100vh - var(--nav-h) - 57px);position:sticky;
+  top:calc(var(--nav-h) + 57px);align-items:start;
+  /* Opaque, and beneath what follows. A sticky element with no background lets
+     everything that scrolls past show straight through it. */
+  background:var(--bg);z-index:1}
+.al-mapwrap,.al-listpane{height:calc(100vh - var(--nav-h) - 57px)}
+.al-mapwrap{top:0}
+@media(max-width:1000px){
+  .al-shell{height:auto;position:static}
+  .al-listpane{height:auto}
+  .al-mapwrap{height:56vh;top:0}
+}
+.al-bar-inner{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media(max-width:1000px){
+  .al-bar{padding:8px 0}
+  .al-bar-inner{flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    padding:2px 14px;scroll-padding-left:14px}
+  .al-bar-inner::-webkit-scrollbar{display:none}
+  .al-drop{flex:0 0 auto}
+  .al-dbtn{white-space:nowrap;padding:7px 12px;font-size:13.5px}
+  .al-reset{flex:0 0 auto;white-space:nowrap;padding-right:14px}
+  /* a dropdown inside a scrolling row would be clipped; pin it to the bar */
+  .al-panel{position:fixed;left:12px;right:12px;top:calc(var(--nav-h) + 52px);
+    min-width:0;max-height:66vh;overflow-y:auto}
+}
+.al-drop{position:relative}
+.al-dbtn{background:#fff;border:1px solid rgba(32,36,46,.2);border-radius:8px;padding:8px 14px;
+  font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px}
+.al-dbtn:hover{border-color:var(--apricot)}
+.al-dbtn.on{border-color:var(--apricot);box-shadow:0 0 0 1px var(--apricot)}
+.al-dbtn i{font-style:normal;font-size:9px;opacity:.5}
+.al-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:#fff;
+  border:1px solid rgba(32,36,46,.16);border-radius:12px;box-shadow:0 10px 34px rgba(0,0,0,.16);
+  padding:16px;min-width:268px}
+.al-panel.open{display:block}
+.al-panel h4{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--slate);margin-bottom:8px}
+.al-seg{display:flex;flex-wrap:wrap;gap:6px}
+.al-seg button{background:#fff;border:1px solid rgba(32,36,46,.18);border-radius:999px;
+  padding:6px 13px;font:inherit;font-size:13.5px;cursor:pointer}
+.al-seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* Dual-handle range. Two stacked inputs with transparent tracks: the browser
+   has no native two-thumb control, and this keeps keyboard access. */
+.al-slider{position:relative;height:30px;margin:6px 2px 2px}
+.al-track{position:absolute;top:13px;left:0;right:0;height:4px;border-radius:2px;
+  background:rgba(32,36,46,.16)}
+.al-fill{position:absolute;top:0;height:4px;border-radius:2px;background:var(--apricot)}
+.al-slider input[type=range]{position:absolute;top:0;left:0;width:100%;height:30px;margin:0;
+  background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.al-slider input[type=range]:focus{outline:none}
+.al-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;
+  width:19px;height:19px;border-radius:50%;background:#fff;border:2px solid var(--apricot);
+  box-shadow:0 1px 4px rgba(0,0,0,.24);cursor:grab}
+.al-slider input[type=range]::-webkit-slider-thumb:active{cursor:grabbing}
+.al-slider input[type=range]::-moz-range-thumb{pointer-events:auto;width:19px;height:19px;
+  border-radius:50%;background:#fff;border:2px solid var(--apricot);
+  box-shadow:0 1px 4px rgba(0,0,0,.24);cursor:grab}
+.al-slider input[type=range]::-moz-range-track{background:none}
+.al-sliderends{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;letter-spacing:.08em;color:var(--slate);margin-bottom:12px}
+.al-panel .row{display:flex;gap:10px;align-items:center;margin-top:10px}
+.al-panel input[type=number]{width:100%;border:1px solid rgba(32,36,46,.2);border-radius:8px;
+  padding:8px 10px;font:inherit;font-size:14px}
+.al-check{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:14px;cursor:pointer}
+.al-check input{width:16px;height:16px;accent-color:var(--apricot)}
+.al-apply{width:100%;margin-top:14px;background:var(--apricot);color:#12151d;border:0;
+  border-radius:999px;padding:10px;font:inherit;font-weight:700;cursor:pointer}
+.al-reset{background:none;border:0;color:var(--slate);font:inherit;font-size:13px;
+  text-decoration:underline;cursor:pointer;padding:0}
+.al-nomap{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--slate);margin-top:8px}
+.listing-card--rv{border-color:var(--apricot);box-shadow:0 0 0 1.5px var(--apricot),0 10px 28px rgba(193,84,40,.14)}
+.listing-card--rv:hover{box-shadow:0 0 0 1.5px var(--apricot),0 14px 34px rgba(193,84,40,.2)}
+.rv-stack{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;align-items:flex-end;gap:6px;z-index:2}
+.rv-stack .rv-badge{position:static}
+.rv-badge.rv-cma{background:#e2b04a;color:#1a1f2e;font-weight:700;box-shadow:0 4px 14px rgba(18,21,29,.35),0 0 0 1px rgba(255,255,255,.35) inset}
+.rv-badge{position:absolute;top:12px;right:12px;background:var(--apricot);color:#fff;font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:5px 11px;box-shadow:0 4px 12px rgba(18,21,29,.25)}
+.listing-card .ph,.al-spot .ph{position:relative}
+.rv-cta{color:var(--apricot);font-weight:600}
+.rv-btn{border:1.5px solid var(--apricot);color:var(--apricot);background:transparent}
+</style>
+<div class="al-bar">
+  <div class="al-bar-inner">
+    <div class="al-drop"><button class="al-dbtn" data-panel="pType">Property type <i>&#9660;</i></button>
+      <div class="al-panel" id="pType">
+        <h4>Home type</h4>
+        <div class="al-seg" id="fType">
+          <button class="on" data-v="all">All</button><button data-v="house">House</button>
+          <button data-v="condo">Condo</button><button data-v="town">Townhome</button>
+          <button data-v="multi">Multi-family</button>
+        </div>
+        <button class="al-apply" data-close>Done</button>
+      </div></div>
+
+    <div class="al-drop"><button class="al-dbtn" data-panel="pPrice">Price <i>&#9660;</i></button>
+      <div class="al-panel" id="pPrice">
+        <h4>Price range</h4>
+        <div class="al-slider">
+          <div class="al-track"><div class="al-fill" id="pFill"></div></div>
+          <input type="range" id="pLo" min="${M.priceBand.min}" max="${M.priceBand.max}"
+                 step="${M.priceBand.step}" value="${M.priceBand.min}" aria-label="Minimum price">
+          <input type="range" id="pHi" min="${M.priceBand.min}" max="${M.priceBand.max}"
+                 step="${M.priceBand.step}" value="${M.priceBand.max}" aria-label="Maximum price">
+        </div>
+        <div class="al-sliderends"><span>$${(M.priceBand.min/1000000).toFixed(1)}M</span>
+          <span>$${(M.priceBand.max/1000000).toFixed(1)}M+</span></div>
+        <div class="row"><input type="text" id="fMinP" placeholder="No min" inputmode="numeric"
+            autocomplete="off">
+          <span>&ndash;</span><input type="text" id="fMaxP" placeholder="No max" inputmode="numeric"
+            autocomplete="off"></div>
+        <button class="al-apply" data-apply>Apply</button>
+      </div></div>
+
+    <div class="al-drop"><button class="al-dbtn" data-panel="pBeds">Beds &amp; baths <i>&#9660;</i></button>
+      <div class="al-panel" id="pBeds">
+        <h4>Bedrooms</h4>
+        <div class="al-seg" id="fBeds">
+          <button class="on" data-v="all">Any</button><button data-v="1">1+</button>
+          <button data-v="2">2+</button><button data-v="3">3+</button>
+          <button data-v="4">4+</button><button data-v="5">5+</button>
+        </div>
+        <button class="al-apply" data-close>Done</button>
+      </div></div>
+
+    <div class="al-drop"><button class="al-dbtn" data-panel="pStatus">Status <i>&#9660;</i></button>
+      <div class="al-panel" id="pStatus">
+        <h4>Listing status</h4>
+        <div class="al-seg" id="fStage">
+          <button class="on" data-v="all">All</button><button data-v="available">Available</button>
+          <button data-v="pending">Pending</button>
+        </div>
+        <button class="al-apply" data-close>Done</button>
+      </div></div>
+
+    <div class="al-drop"><button class="al-dbtn" data-panel="pMore">More <i>&#9660;</i></button>
+      <div class="al-panel" id="pMore">
+        <h4>Square feet</h4>
+        <div class="row"><input type="number" id="fMinSf" placeholder="No min" inputmode="numeric">
+          <span>&ndash;</span><input type="number" id="fMaxSf" placeholder="No max" inputmode="numeric"></div>
+        <h4 style="margin-top:14px">Year built</h4>
+        <div class="row"><input type="number" id="fMinYr" placeholder="Any" inputmode="numeric">
+          <span>&ndash;</span><input type="number" id="fMaxYr" placeholder="Any" inputmode="numeric"></div>
+        <label class="al-check"><input type="checkbox" id="fReviewed"> With a CMA or disclosure review</label>
+        <label class="al-check"><input type="checkbox" id="fPhotos"> Has photographs</label>
+        <label class="al-check"><input type="checkbox" id="fNoPending"> Hide pending</label>
+        <button class="al-apply" data-apply>Apply</button>
+      </div></div>
+
+    <button class="al-reset" id="alReset">Reset all filters</button>
+  </div>
+</div>
+
+<div class="al-shell">
+  <div class="al-mapwrap"><div id="alMap"></div></div>
+  <div class="al-listpane">
+    <div class="al-listhead">
+      <h2><span class="al-count">&mdash;</span> <span class="al-what">homes for sale in </span>${M.city}</h2>
+      <div class="n" id="alResult"></div>
+      <div class="al-sortrow">
+        <select class="al-sort" id="alSort" aria-label="Sort listings">
+          <option value="reviewed_price">CMA &amp; disclosures first</option>
+          <option value="price_desc">Price &middot; high to low</option>
+          <option value="price_asc">Price &middot; low to high</option>
+          <option value="dom_asc">Newest on market</option>
+          <option value="dom_desc">Longest on market</option>
+          <option value="ppsf_asc">$/sf &middot; low to high</option>
+          <option value="ppsf_desc">$/sf &middot; high to low</option>
+          <option value="sqft_desc">Largest first</option>
+        </select>
+        <div class="al-soldwrap">
+          <label class="al-soldtoggle"><input type="checkbox" id="alSold"> Recently sold</label>
+          <select id="alSoldMo" class="al-soldmo" aria-label="Sold within" disabled>
+            <option value="1">Last month</option>
+            <option value="3" selected>Last 3 months</option>
+            <option value="6">Last 6 months</option>
+            <option value="12">Last 12 months</option>
+          </select>
+        </div>
+        <span class="al-nomap" id="alNoMap"></span>
+        <span class="al-soldnote" id="alSoldNote"></span>
+      </div>
+    </div>
+    <div id="alSpot"></div>
+    <div class="listing-grid" id="alGrid"></div>
+    <p class="map-note" style="margin-top:22px">Listing data from MLSListings, deemed reliable but not
+      guaranteed. Days on market is measured from when this feed first saw the listing. Buyers should
+      verify all information independently.</p>
+  </div>
+</div>
+
+<section class="pg al-sec"><div class="wrap">
+    
+      <div class="al-blk dark" id="alIx">
+        <span class="eyebrow">Investor Exchange</span>
+        <h3>Buy a revenue-generating rental.</h3>
+        <p>${M.city} rentals with a tenant already in place &mdash; you take title subject to the
+           lease, so the rent starts the day you close. Not on the MLS or any portal.</p>
+        <div id="alIxSlot"></div>
+        <a class="al-btn" href="/investor-exchange/" data-cta="forsale:exchange">
+          See what&rsquo;s on the Exchange &rarr;</a>
+      </div>
+
+      <div class="al-blk">
+        <span class="eyebrow">Free account</span>
+        <h3>Save the ones you like. Watch what happens to them.</h3>
+        <p>Track any listing in ${M.zipsLabel}, get told when the price moves or it goes pending, and
+           read the disclosure cheat sheet on every home ${M.agent.first} has reviewed &mdash; what the
+           inspection found, what the HOA minutes say, what it would cost to fix. Free, and there is
+           nothing to cancel.</p>
+        <a class="al-btn" href="https://app.${M.domain}/signin?mode=signup"
+           data-cta="forsale:create_account">Create a free account &rarr;</a>
+      </div>
+
+      <div class="al-blk">
+        <span class="eyebrow">Be your own agent</span>
+        <h3>The tools an agent would run for you.</h3>
+        <p>Every number here comes with the sample behind it. Run them yourself before you talk to anyone.</p>
+        <div class="al-tools">
+          <a class="al-tool" href="https://app.${M.domain}/tools/cma" data-cta="forsale:tool_cma">
+            <b>Build a CMA</b><span>What the comparables actually say</span></a>
+          <a class="al-tool" href="https://app.${M.domain}/tools/net-sheet" data-cta="forsale:tool_net">
+            <b>Seller net sheet</b><span>What you keep after costs</span></a>
+          <a class="al-tool" href="https://app.${M.domain}/tools/compare" data-cta="forsale:tool_compare">
+            <b>Compare homes</b><span>Side by side, same measures</span></a>
+          <a class="al-tool" href="https://app.${M.domain}/tools/review" data-cta="forsale:tool_review">
+            <b>Disclosure review</b><span>${M.agent.first} reads the package</span></a>
+        
+</div></section>
+  </div>
+</div>
+<section class="pg" style="background:var(--bg-2)"><div class="wrap">
+  <div class="split">
+    <div>
+      <span class="eyebrow">Not seeing it?</span>
+      <h2>The home you want probably <em>isn't listed.</em></h2>
+      <p class="sub" style="margin-top:14px">A few dozen listings — out of ${mktDerived().homes.toLocaleString('en-US')} homes. The one you actually want is in the index, and its owner has a number. <a href="/how-it-works/" style="color:var(--apricot)">Here's how to pursue it \u2192</a></p>
+    </div>
+    ${toolCta({
+      eyebrow: "Before you make an offer",
+      lead: `Weighing one of these? Get a complete disclosure review from ${M.agent.first} within 24 hours, and run the comps before you write.`,
+      actions: [
+        { label: "Request a disclosure review", href: `https://app.${M.domain}/tools/review` },
+        { label: "Build a CMA", href: `https://app.${M.domain}/tools/cma` }
+      ],
+      note: `Reviewed personally by ${M.agent.first}, usually within 24 hours · free · no obligation.`
+    })}
+  </div>
+</div></section>
+<script>${clientJs}</script>`;
+  return cityHead(title, desc, 'https://www.' + M.domain + '/active-listings/', '<style>.al-bldg{font-size:.8rem;color:var(--apricot);font-weight:600;margin:2px 0 4px}</style>\n') +
+    cityNav('forsale') + '<script>window.__AL__=' + JSON.stringify(AL).replace(/</g, '\\u003c') + ';</script>\n' +
+    body + cityFooter(foot || {}) + cityTail('');
+}
+
+
+function toolCta(o) {   // the City Markets helper, verbatim but for the note colour (contrast)
+  var acts = (o.actions || []).map(function(a, i) {
+    return i === 0
+      ? '<a href="' + a.href + '" class="btn btn-gold">' + cityEsc(a.label) + ' &rarr;</a>'
+      : '<a href="' + a.href + '" class="btn" style="background:transparent;border:1px solid rgba(0,0,0,.16);color:inherit">' + cityEsc(a.label) + ' &rarr;</a>';
+  }).join('');
+  return '<div class="method-card" style="max-width:640px">'
+    + '<span class="eyebrow">' + cityEsc(o.eyebrow) + '</span>'
+    + '<p style="margin-bottom:2px">' + o.lead + '</p>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">' + acts + '</div>'
+    + '<p style="font-size:.72rem;color:#5d6575;margin-top:14px;margin-bottom:0">' + (o.note || 'Free and instant \u00b7 save your work with a free account \u00b7 no obligation.') + '</p>'
+    + '</div>';
+}
+function condoActiveListingsMarket(mk, rows, foot) {
+  const prices = rows.map((r) => r.price).filter((p) => p > 0).sort((a, b) => a - b);
+  const q = (f) => prices.length ? prices[Math.min(prices.length - 1, Math.floor(f * prices.length))] : 0;
+  const lo = Math.max(100000, Math.floor(q(0.03) / 50000) * 50000), hi = Math.max(lo + 500000, Math.ceil(q(0.97) / 250000) * 250000);
+  return { id: 5, city: mk.region || 'San Francisco', domain: mk.domain, name: mk.brand || 'Condo Market SF', zipsLabel: mk.region || 'San Francisco',
+           agent: { first: 'Tim' }, center: [37.782, -122.415], priceBand: { min: lo, max: hi, step: hi - lo > 3e6 ? 50000 : 25000 },
+           homes: (foot && foot.totals && foot.totals.homes) || 15620 };
+}
+function condoActiveListingsRows(listings) {
+  const now = Date.now();
+  return (listings || []).map((l) => ({
+    mls: l.mls, addr: l.unit_address || l.building_name || '', slug: null, price: l.price, beds: l.beds, baths: l.baths, sqft: l.sqft, lot: null,
+    year: l.year_built, type: 'Condominium', status: 'Active', photo: l.photo || null, photos: null, lat: l.lat, lng: l.lng,
+    dom: l.listed_at ? Math.max(0, Math.round((now - Date.parse(l.listed_at)) / 86400000)) : null, pending_days: null,
+    reviewed: false, has_cma: false, risk: null, bldg: l.building_name || null, bslug: l.building_slug || null,
+  }));
+}
+
 export default {
   async fetch(request, env) {
     CARTO_KEY = (env && env.CARTO_KEY) ? String(env.CARTO_KEY) : '';
@@ -1292,16 +2236,23 @@ async function handleRequest(request, env) {
       return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
     }
 
+    /* City Markets UI (26 Sep 2026): the city Active Listings page on the condo's own listings. */
     if (url.pathname === '/active-listings' || url.pathname === '/active-listings/') {
-      let payload = await fetchActiveListingsView(hostMk);
-      if (!payload) payload = { count: 0, listings: [] };
-      payload.footerData = await fetchFooterData(hostMk);
-      const html = applyMarketSwaps(renderActiveListings(payload, hostMk), hostMk);
-      return new Response(html, {
-        status: 200,
-        headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=120, s-maxage=300' },
-      });
+      let listings = [];
+      try {
+        const alRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/active_listings_page', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ p_market_slug: hostMk.slug }),
+        });
+        if (alRes.ok) { const p = await alRes.json(); listings = (p && p.listings) ? p.listings : []; }
+      } catch (e) { listings = []; }
+      const foot = await cityFooterData(hostMk.domain);
+      const rows = condoActiveListingsRows(listings);
+      const html = applyMarketSwaps(renderActiveListingsCity(condoActiveListingsMarket(hostMk, rows, foot), rows, foot), hostMk);
+      return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
     }
+
 
     // /listing/<mls> → server-rendered standalone active-listing page.
     const lm = url.pathname.match(/^\/listing\/([^\/]+)\/?$/);
