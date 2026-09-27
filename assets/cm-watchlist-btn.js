@@ -23,7 +23,7 @@ function injectStyles() {
     }
     .cm-save-btn:hover { border-color:#d4a574; color:#d4a574; }
     .cm-save-btn.is-saved {
-      background:#d4a574; color:#1a1f2e;
+      background:#C2410C; color:#ffffff;
       border-color:#d4a574;
     }
     .cm-save-btn.is-saved:hover { background:#e8e3d8; border-color:#e8e3d8; }

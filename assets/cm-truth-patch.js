@@ -217,7 +217,7 @@
               bulletList(publicBullets, '#9fb4d8'),
             '</ul>',
           '</div>',
-          '<div style="padding:40px 36px;background:linear-gradient(180deg, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 100%);border:1px solid rgba(212,165,116,0.4);border-radius:14px;box-shadow:0 0 0 1px rgba(212,165,116,0.06), 0 8px 32px rgba(212,165,116,0.04);">',
+          '<div style="padding:40px 36px;background:linear-gradient(180deg, rgba(194,65,12,0.12) 0%, rgba(194,65,12,0.04) 100%);border:1px solid rgba(212,165,116,0.4);border-radius:14px;box-shadow:0 0 0 1px rgba(212,165,116,0.06), 0 8px 32px rgba(212,165,116,0.04);">',
             '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;color:#8f5d1c;margin-bottom:10px;">Members \u00b7 Free</div>',
             '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:28px;line-height:1.15;color:#22262f;margin-bottom:6px;font-weight:500;font-style:italic;">Per-unit specifics.</div>',
             '<div style="font-size:13px;color:#5d6575;margin-bottom:28px;">Everything in public, plus:</div>',
@@ -227,7 +227,7 @@
           '</div>',
         '</div>',
         '<div style="text-align:center;margin-top:40px;">',
-          '<a href="' + SIGNUP_URL + '" style="display:inline-flex;align-items:center;gap:10px;padding:18px 36px;background:#d4a574;color:#0f131d;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px;letter-spacing:0.005em;box-shadow:0 4px 16px rgba(212,165,116,0.2);">Create a free account \u2192</a>',
+          '<a href="' + SIGNUP_URL + '" style="display:inline-flex;align-items:center;gap:10px;padding:18px 36px;background:#c2410c;color:#ffffff;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px;letter-spacing:0.005em;box-shadow:0 4px 16px rgba(212,165,116,0.2);">Create a free account \u2192</a>',
           '<div style="margin-top:14px;font-size:12px;color:#5d6575;font-family:\'JetBrains Mono\',ui-monospace,monospace;">No credit card \u00b7 No spam \u00b7 30 seconds</div>',
         '</div>',
       '</div>'

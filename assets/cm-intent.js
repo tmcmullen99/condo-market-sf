@@ -328,7 +328,7 @@
       '.cmi-prompt-sub{font-size:11.5px;line-height:1.45;color:#5d6575;margin:0 0 11px}',
       '.cmi-prompt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
       '.cmi-pick{appearance:none;background:rgba(34,38,47,0.048);color:#22262f;border:1px solid rgba(34,38,47,0.144);border-radius:10px;padding:10px 8px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}',
-      '.cmi-pick:hover{background:rgba(212,165,116,.16);border-color:#d4a574;transform:translateY(-1px)}',
+      '.cmi-pick:hover{background:rgba(194,65,12,0.16);border-color:#d4a574;transform:translateY(-1px)}',
       '.cmi-pick small{display:block;font-weight:400;font-size:10.5px;color:#5d6575;margin-top:3px}',
       '.cmi-prompt-x{position:absolute;top:8px;right:10px;background:none;border:0;color:#5d6575;font-size:17px;line-height:1;cursor:pointer;padding:2px 4px}',
       '.cmi-prompt-x:hover{color:#22262f}',

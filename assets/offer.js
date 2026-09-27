@@ -139,7 +139,7 @@ function injectStyles() {
   .cmo-bar-clock{font-family:'JetBrains Mono',monospace;color:#8f5d1c;font-weight:600;
     letter-spacing:.04em;font-variant-numeric:tabular-nums;}
   .cmo-bar-lead-m{display:none;}
-  .cmo-bar-cta{flex:none;background:#d4a574;color:#1a1f2e;font-weight:600;font-size:13px;
+  .cmo-bar-cta{flex:none;background:#c2410c;color:#ffffff;font-weight:600;font-size:13px;
     text-decoration:none;border:none;cursor:pointer;font-family:inherit;
     border-radius:999px;padding:9px 16px;white-space:nowrap;}
   .cmo-bar-cta:hover{opacity:.9;color:#1a1f2e;}
@@ -179,7 +179,7 @@ function injectStyles() {
   .cmo-row input{width:100%;background:#eef1f6;border:1px solid rgba(34,38,47,0.112);border-radius:8px;
     padding:.7rem .8rem;color:#22262f;font-family:inherit;font-size:.92rem;}
   .cmo-row input:focus{outline:none;border-color:#d4a574;}
-  .cmo-btn{display:block;width:100%;text-align:center;background:#d4a574;color:#1a1f2e;
+  .cmo-btn{display:block;width:100%;text-align:center;background:#c2410c;color:#ffffff;
     font-weight:600;font-size:.95rem;border:none;border-radius:10px;padding:.85rem 1.5rem;
     cursor:pointer;text-decoration:none;margin-top:1rem;font-family:inherit;}
   .cmo-btn:hover{opacity:.9;color:#1a1f2e;}

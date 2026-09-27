@@ -112,11 +112,11 @@ const STYLE_CSS = `
   }
   .cm-co-slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 22px; height: 22px; background: #d4a574;
+    width: 22px; height: 22px; background: #c2410c;
     border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed;
   }
   .cm-co-slider::-moz-range-thumb {
-    width: 22px; height: 22px; background: #d4a574;
+    width: 22px; height: 22px; background: #c2410c;
     border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed;
   }
   .cm-co-slider-bounds {
@@ -167,7 +167,7 @@ const STYLE_CSS = `
     cursor: pointer; border: 1px solid; transition: all 150ms ease;
   }
   .cm-co-btn-primary {
-    background: #d4a574; color: #1a1f2e;
+    background: #c2410c; color: #ffffff;
     border-color: #d4a574;
   }
   .cm-co-btn-primary:hover:not(:disabled) {

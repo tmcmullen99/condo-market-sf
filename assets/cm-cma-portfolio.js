@@ -52,7 +52,7 @@ function css() {
   .pf-hero h1{font-size:clamp(32px,4.6vw,48px);line-height:1.07;margin-bottom:10px}
   .pf-hero h1 em{font-style:italic;color:#C2410C}
   .pf-sub{font-family:var(--mono,monospace);font-size:13px;color:var(--cream-58,#5d6575);margin-bottom:22px}
-  .pf-credit{background:linear-gradient(135deg,rgba(212,165,116,.16),rgba(212,165,116,.05));border:1px solid rgba(212,165,116,.4);border-radius:14px;padding:26px 28px;margin-top:24px}
+  .pf-credit{background:linear-gradient(135deg,rgba(194,65,12,0.16),rgba(194,65,12,0.05));border:1px solid rgba(212,165,116,.4);border-radius:14px;padding:26px 28px;margin-top:24px}
   .pf-credit .amt{font-family:var(--serif,Georgia,serif);font-size:44px;color:#8f5d1c;line-height:1}
   .pf-credit p{color:var(--cream-78,#5d6575);max-width:68ch;margin-top:10px;font-size:14.5px}
   .pf-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:16px;margin-top:24px}
@@ -85,7 +85,7 @@ function css() {
   .pf-ladder{display:grid;gap:16px;margin-top:24px}
   .pf-rung{background:#ffffff;border:1px solid var(--cream-14,rgba(34,38,47,0.112));border-radius:12px;padding:24px 26px;position:relative}
   .pf-rung.rec{border-color:rgba(212,165,116,.5);background:#ffffff}
-  .pf-rung .badge{position:absolute;top:-11px;right:22px;background:#d4a574;color:#1a1f2e;font-family:var(--mono,monospace);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;border-radius:999px}
+  .pf-rung .badge{position:absolute;top:-11px;right:22px;background:#c2410c;color:#ffffff;font-family:var(--mono,monospace);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;border-radius:999px}
   .pf-rung .tier{font-family:var(--mono,monospace);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#8f5d1c;margin-bottom:6px}
   .pf-rung h3{font-size:22px;margin-bottom:6px}
   .pf-rung p{color:var(--cream-78,#5d6575);font-size:14.5px}
@@ -100,7 +100,7 @@ function css() {
   .pf-fld input,.pf-fld select,.pf-fld textarea{width:100%;background:#eef1f6;border:1px solid var(--cream-14,rgba(34,38,47,0.112));border-radius:9px;color:#22262f;font-family:var(--sans,sans-serif);font-size:16px;padding:13px 15px}
   .pf-fld input:focus,.pf-fld select:focus,.pf-fld textarea:focus{outline:none;border-color:#d4a574}
   .pf-fld .hint{font-size:12px;color:var(--cream-38,#5d6575);margin-top:6px}
-  .pf-btn{display:inline-block;padding:14px 26px;border-radius:10px;font-family:var(--sans,sans-serif);font-size:15px;font-weight:500;cursor:pointer;border:0;background:#d4a574;color:#1a1f2e}
+  .pf-btn{display:inline-block;padding:14px 26px;border-radius:10px;font-family:var(--sans,sans-serif);font-size:15px;font-weight:500;cursor:pointer;border:0;background:#c2410c;color:#ffffff}
   .pf-btn:hover{background:#e8b985;text-decoration:none}
   .pf-btn-line{background:transparent;border:1px solid #d4a574;color:#8f5d1c}
   .pf-msg{margin-top:16px;font-size:14px;display:none}

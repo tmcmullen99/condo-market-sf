@@ -463,7 +463,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
    /assets/cm-city-ui.css (the accent swapped to the condo orange). These are
    its shared pieces - header, agent strip, footer - and the pages built on it.
    ========================================================================== */
-const CITY_UI_VER = '5';
+const CITY_UI_VER = '6';
 
 function cityEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function citySlug(s) { return String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
@@ -6164,7 +6164,7 @@ function renderBuilding(p) {
     '</div></div></div>' +
     '<div style="margin-top:32px;text-align:center;padding-top:28px;border-top:1px solid var(--cm-rule, rgba(34,38,47,0.112));">' +
     '<p style="color:var(--cm-ivory-dim, #5d6575);font-size:14px;margin-bottom:14px;">Numbers add up?</p>' +
-    '<a href="#offer" id="mortgage-offer-cta" data-cm-offer-trigger data-building-slug="' + slug + '" data-suggested-price="' + defPrice + '" style="display:inline-flex;align-items:center;gap:8px;background:#d4a574;color:#1a1f2e;padding:13px 26px;border-radius:999px;font-family:inherit;font-size:14px;font-weight:500;text-decoration:none;transition:transform 150ms ease;">Make this offer \u00b7 <span id="mortgage-offer-amt">$' + defPriceFmt + '</span> \u2192</a></div>' +
+    '<a href="#offer" id="mortgage-offer-cta" data-cm-offer-trigger data-building-slug="' + slug + '" data-suggested-price="' + defPrice + '" style="display:inline-flex;align-items:center;gap:8px;background:#c2410c;color:#ffffff;padding:13px 26px;border-radius:999px;font-family:inherit;font-size:14px;font-weight:500;text-decoration:none;transition:transform 150ms ease;">Make this offer \u00b7 <span id="mortgage-offer-amt">$' + defPriceFmt + '</span> \u2192</a></div>' +
     '<script>' + MORT_SYNC + '</script>' +
     '</div></section>';
 
@@ -6482,7 +6482,7 @@ const CSS = `
   .hstat-val .peri { color: #C2410C; }
   .hero-ask { margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(34,38,47,0.112); }
   .hero-ask-line { font-family: var(--cm-ff-serif, Georgia, serif); font-size: 17px; line-height: 1.45; color: #22262f; margin: 0 0 14px; max-width: 42ch; }
-  .hero-ask-btn { display: inline-flex; align-items: center; gap: 8px; background: #d4a574; color: #1a1f2e; padding: 13px 26px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: transform 150ms ease; }
+  .hero-ask-btn { display: inline-flex; align-items: center; gap: 8px; background: #c2410c; color: #ffffff; padding: 13px 26px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: transform 150ms ease; }
   .hero-ask-btn:hover { transform: translateY(-1px); }
   .hero-ask-alt { display: block; margin-top: 12px; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #5d6575; text-decoration: none; }
   .hero-ask-alt:hover { color: #8f5d1c; }
@@ -6490,7 +6490,7 @@ const CSS = `
   /* Watch this building. Sits in the page, not over it. */
   .watch-wrap { margin: 26px auto 0; max-width: 620px; padding: 22px 24px;
     border: 1px solid rgba(212,165,116,.34); border-radius: 14px;
-    background: rgba(212,165,116,.07); text-align: left; }
+    background: rgba(194,65,12,0.07); text-align: left; }
   .watch-head { font-family: var(--cm-ff-serif, Georgia, serif); font-size: 19px;
     color: #22262f; margin-bottom: 6px; }
   .watch-sub { font-size: 13.5px; line-height: 1.55; color: #5d6575; margin: 0 0 14px; }
@@ -6501,7 +6501,7 @@ const CSS = `
   .watch-row input:focus { outline: none; border-color: #d4a574; }
   .watch-row button { flex: 0 0 auto; padding: 12px 22px; font: inherit; font-size: 15px;
     font-weight: 600; border: 0; border-radius: 10px; cursor: pointer;
-    background: #d4a574; color: #1a1408; }
+    background: #c2410c; color: #ffffff; }
   .watch-row button:disabled { opacity: .55; cursor: default; }
   .watch-msg { margin: 11px 0 0; font-size: 13.5px; line-height: 1.5; min-height: 1px;
     color: #5d6575; }
@@ -6515,14 +6515,14 @@ const CSS = `
   /* Disclosure CTA. Sits inside the hero, below the offer ask, and is styled as
      a distinct card rather than a third link: it is a different kind of offer
      (read something we made) and should not read as another way to transact. */
-  .disc-cta { margin-top: 18px; padding: 18px 18px 16px; border: 1px solid rgba(212,165,116,.34); border-radius: 12px; background: rgba(212,165,116,.06); }
+  .disc-cta { margin-top: 18px; padding: 18px 18px 16px; border: 1px solid rgba(212,165,116,.34); border-radius: 12px; background: rgba(194,65,12,0.06); }
   .disc-cta-kicker { font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8f5d1c; margin-bottom: 8px; }
   .disc-cta-line { margin: 0 0 10px; font-size: 15px; line-height: 1.5; color: #22262f; }
   .disc-cta-held { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: #5d6575; }
-  .disc-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #d4a574; color: #1a1f2e; font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 999px; text-decoration: none; transition: transform 150ms ease; }
+  .disc-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #c2410c; color: #ffffff; font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 999px; text-decoration: none; transition: transform 150ms ease; }
   .disc-cta-btn:hover { transform: translateY(-1px); }
   .disc-cta-note { margin: 12px 0 0; font-size: 11.5px; line-height: 1.55; color: #5d6575; }
-.xb-section { padding-top: 28px; padding-bottom: 28px; border-top: 1px solid rgba(212,165,116,.22); border-bottom: 1px solid rgba(212,165,116,.22); background: rgba(212,165,116,.05); }
+.xb-section { padding-top: 28px; padding-bottom: 28px; border-top: 1px solid rgba(212,165,116,.22); border-bottom: 1px solid rgba(212,165,116,.22); background: rgba(194,65,12,0.05); }
 .xb-kicker { font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: #8f5d1c; margin-bottom: 8px; }
 .xb-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: clamp(22px, 3vw, 28px); line-height: 1.2; color: #22262f; margin: 0 0 8px; }
 .xb-line { margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: #22262f; max-width: 68ch; }
@@ -6534,7 +6534,7 @@ const CSS = `
 .xb-lock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 14px; padding: 10px 0; border-top: 1px solid rgba(212,165,116,.2); border-bottom: 1px solid rgba(212,165,116,.2); }
 .xb-lock span { display: block; white-space: nowrap; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #5d6575; }
 .xb-lock b { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; color: #22262f; filter: blur(5px); user-select: none; -webkit-user-select: none; }
-.xb-btn { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; background: #d4a574; color: #1a1f2e; font-weight: 600; font-size: 14px; padding: 11px 16px; border-radius: 999px; text-decoration: none; align-self: flex-start; max-width: 100%; }
+.xb-btn { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; background: #c2410c; color: #ffffff; font-weight: 600; font-size: 14px; padding: 11px 16px; border-radius: 999px; text-decoration: none; align-self: flex-start; max-width: 100%; }
 .xb-btn:hover { filter: brightness(1.06); }
 .xb-btn:focus-visible { outline: 2px solid #e0e5ed; outline-offset: 2px; }
 @media (max-width: 560px) { .xb-card { grid-template-columns: 1fr; } .xb-shot { min-height: 190px; } .xb-lock { grid-template-columns: repeat(2, 1fr); } .xb-btn { align-self: stretch; } }

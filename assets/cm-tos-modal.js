@@ -119,7 +119,7 @@ const STYLE_CSS = `
     content: counter(step-counter);
     position: absolute; left: 0; top: 0;
     width: 24px; height: 24px;
-    background: rgba(212, 165, 116, 0.12);
+    background: rgba(194,65,12,0.12);
     border: 1px solid rgba(212, 165, 116, 0.4);
     color: #8f5d1c;
     border-radius: 50%;
@@ -133,7 +133,7 @@ const STYLE_CSS = `
     margin: 14px 0;
   }
   .cm-tos-callout-warn {
-    background: rgba(212, 165, 116, 0.06);
+    background: rgba(194,65,12,0.06);
     border-left-color: #d4a574;
   }
   .cm-tos-tos-content {

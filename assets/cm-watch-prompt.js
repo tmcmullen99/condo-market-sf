@@ -76,7 +76,7 @@ function styles() {
   .cm-wp-row input:focus { outline: none; border-color: #d4a574; }
   .cm-wp-row button {
     flex: 0 0 auto; padding: 11px 20px; font: inherit; font-size: 15px; font-weight: 600;
-    border: 0; border-radius: 10px; cursor: pointer; background: #d4a574; color: #1a1408; }
+    border: 0; border-radius: 10px; cursor: pointer; background: #c2410c; color: #ffffff; }
   .cm-wp-row button:disabled { opacity: .55; cursor: default; }
   .cm-wp-no {
     display: block; margin: 11px auto 0; background: none; border: 0; cursor: pointer;

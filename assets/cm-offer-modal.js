@@ -151,7 +151,7 @@ const STYLE_CSS = `
   .cm-om-anchor {
     display: flex; align-items: center; justify-content: space-between;
     gap: 14px;
-    background: rgba(212, 165, 116, 0.06);
+    background: rgba(194,65,12,0.06);
     border: 1px solid rgba(212, 165, 116, 0.24);
     border-radius: 10px;
     padding: 14px 16px;
@@ -177,7 +177,7 @@ const STYLE_CSS = `
     line-height: 1; flex: 1;
   }
   .cm-om-match-btn {
-    background: rgba(212, 165, 116, 0.15);
+    background: rgba(194,65,12,0.15);
     color: #8f5d1c;
     border: 1px solid rgba(212, 165, 116, 0.4);
     padding: 8px 14px; border-radius: 999px;
@@ -186,8 +186,8 @@ const STYLE_CSS = `
     cursor: pointer; transition: all 150ms ease;
   }
   .cm-om-match-btn:hover {
-    background: #d4a574;
-    color: #1a1f2e;
+    background: #c2410c;
+    color: #ffffff;
   }
 
   .cm-om-field { margin-bottom: 14px; }
@@ -214,13 +214,13 @@ const STYLE_CSS = `
   .cm-om-slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
     width: 22px; height: 22px;
-    background: #d4a574;
+    background: #c2410c;
     border-radius: 50%; cursor: grab;
     border: 2px solid #e0e5ed;
   }
   .cm-om-slider::-moz-range-thumb {
     width: 22px; height: 22px;
-    background: #d4a574;
+    background: #c2410c;
     border-radius: 50%; cursor: grab;
     border: 2px solid #e0e5ed;
   }
@@ -284,8 +284,8 @@ const STYLE_CSS = `
 
   .cm-om-submit {
     width: 100%;
-    background: #d4a574;
-    color: #1a1f2e;
+    background: #c2410c;
+    color: #ffffff;
     border: none;
     padding: 14px 24px; border-radius: 10px;
     font-family: var(--cm-ff-body, 'DM Sans', -apple-system, sans-serif);

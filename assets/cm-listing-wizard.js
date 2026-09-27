@@ -52,7 +52,7 @@ const STYLE_CSS = `
     background: rgba(34,38,47,0.032); border: 1px solid rgba(34,38,47,0.112);
   }
   .cm-wiz-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .cm-wiz-photo.is-cover::before { content: 'Cover'; position: absolute; top: 6px; left: 6px; background: #d4a574; color: #1a1f2e; font-family: var(--cm-ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; z-index: 2; }
+  .cm-wiz-photo.is-cover::before { content: 'Cover'; position: absolute; top: 6px; left: 6px; background: #c2410c; color: #ffffff; font-family: var(--cm-ff-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; z-index: 2; }
   .cm-wiz-photo-remove { position: absolute; top: 6px; right: 6px; background: rgba(255,255,255,0.86); color: #b4532a; width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 2; }
   .cm-wiz-photo-remove:hover { background: #c97865; color: #1a1f2e; }
   .cm-wiz-photo.is-uploading::after { content: '…'; position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; color: #8f5d1c; font-size: 22px; }
@@ -66,7 +66,7 @@ const STYLE_CSS = `
     text-transform: uppercase; color: #5d6575;
     transition: all 150ms ease;
   }
-  .cm-wiz-photo-add:hover { border-color: #d4a574; background: rgba(212,165,116,0.04); color: #8f5d1c; }
+  .cm-wiz-photo-add:hover { border-color: #d4a574; background: rgba(194,65,12,0.04); color: #8f5d1c; }
 
   .cm-wiz-floorplan {
     border: 1px dashed rgba(34,38,47,0.192); border-radius: 8px;
@@ -89,8 +89,8 @@ const STYLE_CSS = `
   .cm-wiz-ppsqft.is-warn strong { color: #b4532a; }
   .cm-wiz-ppsqft-flag { display: inline-block; margin-left: 8px; padding: 2px 8px; background: rgba(180,83,42,0.12); border: 1px solid #b4532a; border-radius: 4px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #b4532a; }
   .cm-wiz-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: rgba(34,38,47,0.112); border-radius: 2px; cursor: pointer; outline: none; }
-  .cm-wiz-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: #d4a574; border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed; }
-  .cm-wiz-slider::-moz-range-thumb { width: 22px; height: 22px; background: #d4a574; border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed; }
+  .cm-wiz-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: #c2410c; border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed; }
+  .cm-wiz-slider::-moz-range-thumb { width: 22px; height: 22px; background: #c2410c; border-radius: 50%; cursor: grab; border: 2px solid #e0e5ed; }
   .cm-wiz-slider-sm { height: 3px; }
   .cm-wiz-slider-sm::-webkit-slider-thumb { width: 16px; height: 16px; }
   .cm-wiz-slider-sm::-moz-range-thumb { width: 16px; height: 16px; }
@@ -192,7 +192,7 @@ const STYLE_CSS = `
   .cm-wiz-btn-primary { background: #9fb4d8; color: #ffffff; border-color: #C2410C; }
   .cm-wiz-btn-primary:hover:not(:disabled) { background: #e8e3d8; border-color: #e0e5ed; }
   .cm-wiz-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .cm-wiz-btn-publish { background: #d4a574; color: #1a1f2e; border-color: #d4a574; }
+  .cm-wiz-btn-publish { background: #c2410c; color: #ffffff; border-color: #d4a574; }
   .cm-wiz-btn-publish:hover:not(:disabled) { background: #e8e3d8; border-color: #e0e5ed; }
   .cm-wiz-btn-secondary { background: transparent; color: #22262f; border-color: rgba(34,38,47,0.112); }
   .cm-wiz-btn-secondary:hover { border-color: #e0e5ed; }
@@ -576,7 +576,7 @@ function renderStepReview(state) {
       </div>
     ` : ''}
 
-    <div class="cm-wiz-review-block" style="background:rgba(212,165,116,0.06);border-color:rgba(212,165,116,0.3);">
+    <div class="cm-wiz-review-block" style="background:rgba(194,65,12,0.06);border-color:rgba(212,165,116,0.3);">
       <h4 style="color:#8f5d1c;">Make-me-move price</h4>
       <div style="font-family:var(--cm-ff-display);font-style:italic;font-weight:600;font-size:36px;color:#8f5d1c;line-height:1;">${fmtMoney(d.price)}</div>
     </div>

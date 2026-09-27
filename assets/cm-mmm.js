@@ -114,7 +114,7 @@ async function resolveDisplayName(slug) {
 
 const STYLES = `
 .cm-mmm-section {
-  background: linear-gradient(180deg, rgba(212,165,116,0.07) 0%, rgba(212,165,116,0.01) 100%);
+  background: linear-gradient(180deg, rgba(194,65,12,0.07) 0%, rgba(194,65,12,0.01) 100%);
   border-top: 1px solid rgba(34,38,47,0.064);
   border-bottom: 1px solid rgba(34,38,47,0.064);
   padding: 3.5rem 0;
@@ -170,7 +170,7 @@ body.mmm-auth-verified .cm-mmm-price-value { filter: none; user-select: text; }
 .cm-mmm-btn {
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.85rem 1.5rem;
-  background: #d4a574; color: #0f131d;
+  background: #c2410c; color: #ffffff;
   font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.95rem;
   border-radius: 8px; text-decoration: none;
   transition: opacity 0.15s;
@@ -263,13 +263,13 @@ body.mmm-auth-verified .cm-mmm-btn-unlocked { display: inline-flex; }
   border-radius: 8px; text-decoration: none; width: 100%;
   cursor: pointer; border: 1px solid transparent;
 }
-.cm-mmm-modal-cta-primary { background: #d4a574; color: #0f131d; }
+.cm-mmm-modal-cta-primary { background: #c2410c; color: #ffffff; }
 .cm-mmm-modal-cta-primary:hover { opacity: 0.88; color: #0f131d; }
 .cm-mmm-modal-cta-secondary {
   background: transparent; color: #8f5d1c;
   border-color: #d4a574;
 }
-.cm-mmm-modal-cta-secondary:hover { background: rgba(212,165,116,0.08); color: #8f5d1c; }
+.cm-mmm-modal-cta-secondary:hover { background: rgba(194,65,12,0.08); color: #8f5d1c; }
 
 @media (max-width: 480px) {
   .cm-mmm-modal-content { padding: 2rem 1.25rem; }

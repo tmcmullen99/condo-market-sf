@@ -92,7 +92,7 @@ const CSS = `
 .cm-sales-stat .lbl { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #5d6575; margin-bottom: 12px; }
 .cm-sales-stat .val { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 36px; line-height: 1; color: #C2410C; }
 .cm-sales-stat .meta { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #5d6575; margin-top: 8px; }
-.cm-sales-citywide { padding: 16px 22px; background: rgba(212, 165, 116, 0.06); border-left: 2px solid #d4a574; border-radius: 4px; font-size: 14px; color: #22262f; margin-bottom: 28px; line-height: 1.55; }
+.cm-sales-citywide { padding: 16px 22px; background: rgba(194,65,12,0.06); border-left: 2px solid #d4a574; border-radius: 4px; font-size: 14px; color: #22262f; margin-bottom: 28px; line-height: 1.55; }
 .cm-sales-citywide em { font-family: 'Playfair Display', Georgia, serif; font-style: italic; color: #8f5d1c; }
 .cm-sales-chart { background: rgba(34,38,47,0.024); border: 1px solid rgba(34,38,47,0.112); border-radius: 12px; padding: 28px 24px; margin-bottom: 28px; }
 .cm-sales-chart-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
@@ -103,7 +103,7 @@ const CSS = `
 /* Public CTA — sign-in prompt */
 .cm-sales-cta {
   margin-top: 32px; padding: 36px 32px; text-align: center;
-  background: linear-gradient(180deg, rgba(34,38,47,0.036) 0%, rgba(212,165,116,0.04) 100%);
+  background: linear-gradient(180deg, rgba(34,38,47,0.036) 0%, rgba(194,65,12,0.04) 100%);
   border: 1px solid rgba(34,38,47,0.112); border-radius: 12px;
 }
 .cm-sales-cta h3 { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 26px; line-height: 1.2; color: #22262f; margin-bottom: 10px; }
@@ -546,7 +546,7 @@ function drawTrendChart(canvasId, yearMedianPsf) {
     data: {
       labels: years,
       datasets: [{
-        data, borderColor: '#d4a574', backgroundColor: 'rgba(212, 165, 116, 0.10)',
+        data, borderColor: '#d4a574', backgroundColor: 'rgba(194,65,12,0.1)',
         borderWidth: 2, tension: 0.32, pointRadius: 4, pointBackgroundColor: '#d4a574', fill: true,
       }]
     },

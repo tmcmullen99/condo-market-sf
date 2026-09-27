@@ -19,7 +19,7 @@ import { CM } from '/assets/cm-supabase.js';
 const STYLE_ID = 'cm-featured-styles';
 
 const STYLE_CSS = `
-  .cm-feat { background: rgba(212, 165, 116, 0.04); border: 1px solid var(--cm-rule, rgba(34,38,47,0.112)); border-radius: 16px; padding: clamp(28px, 4vw, 48px); }
+  .cm-feat { background: rgba(194,65,12,0.04); border: 1px solid var(--cm-rule, rgba(34,38,47,0.112)); border-radius: 16px; padding: clamp(28px, 4vw, 48px); }
   .cm-feat-eyebrow {
     font-family: var(--cm-ff-mono, 'JetBrains Mono', ui-monospace, monospace);
     font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;

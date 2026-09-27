@@ -86,7 +86,7 @@
       '.cmp-seg{display:inline-flex;border:1px solid rgba(34,38,47,0.224);border-radius:999px;overflow:hidden}',
       '.cmp-seg button{font:inherit;letter-spacing:inherit;text-transform:inherit;background:transparent;color:inherit;border:0;padding:8px 14px;cursor:pointer;opacity:.6;transition:opacity .15s,background .15s}',
       '.cmp-seg button:hover:not(:disabled){opacity:.9}',
-      '.cmp-seg button.on{background:#d4a574;color:#22262f;opacity:1}',
+      '.cmp-seg button.on{background:#c2410c;color:#ffffff;opacity:1}',
       '.cmp-seg button:disabled,.cmp-seg button.is-disabled{opacity:.25;cursor:not-allowed}',
       '.cmp-empty{font-family:var(--ff-mono,"JetBrains Mono",monospace);font-size:12px;opacity:.6;padding:32px 0;text-align:center}'
     ].join('');
