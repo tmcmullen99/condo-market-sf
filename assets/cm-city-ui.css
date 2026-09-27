@@ -1323,3 +1323,60 @@ body.has-ticker .om-first{padding-top:190px!important}
 .nav-links a.on{color:var(--chrome-ink)}
 footer .foot-grid h4,footer .disclosure{color:#93a3b8}
 .omap-legend .lg-m{background:#C2410C;border-color:#9a3412}
+
+/* listing page (City Markets /for-sale/) */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px;margin-top:22px}
+.feat-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:26px;display:flex;flex-direction:column;transition:transform .18s,box-shadow .18s}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(30,20,10,.10)}
+.feat-ico{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#eccf98,#d99a4e);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:#fff}
+.feat-card h3{font-family:Georgia,serif;font-size:1.18rem;margin:0 0 8px}
+.feat-card>p{font-size:.9rem;color:var(--slate);margin:0 0 16px;line-height:1.55}
+.feat-list{list-style:none;padding:0;margin:0 0 20px}
+.feat-list li{font-size:.85rem;color:#413a30;padding-left:22px;position:relative;margin-bottom:9px;line-height:1.4}
+.feat-list li:before{content:'';position:absolute;left:2px;top:4px;width:11px;height:6px;border-left:2px solid #c8892f;border-bottom:2px solid #c8892f;transform:rotate(-45deg)}
+.feat-card .btn{margin-top:auto;align-self:flex-start}
+.mtg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin:18px 0}
+.mtg-grid label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--slate)}
+.mtg-grid input,.mtg-grid select{width:100%;margin-top:6px;padding:10px 12px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:1rem;font-family:inherit;background:#fff;color:inherit}
+.mtg-out{border-top:1px solid rgba(0,0,0,.08);padding-top:16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.mtg-big{font-family:Georgia,serif;font-size:2.3rem;color:#b06f24;line-height:1}
+.mtg-sub{font-size:.8rem;color:var(--slate)}
+.crumbs{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--slate-dim);margin-bottom:18px}
+.crumbs a{color:var(--slate)}
+.crumbs a:hover{color:var(--apricot)}
+.page-hero{padding:132px 0 44px}
+.page-hero h1{font-size:clamp(1.9rem,4.4vw,3rem);max-width:20ch;margin-bottom:14px}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:26px 0}
+.rec{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.rec .n{font-family:'Playfair Display',serif;font-size:1.3rem}
+.rec .l{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--slate-dim);margin-top:5px}
+table.cb td.val{color:var(--apricot);font-weight:600;white-space:nowrap}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.82rem;color:var(--slate);transition:border-color .15s,color .15s}
+.chip:hover{border-color:var(--apricot);color:var(--ivory)}
+#pgmap{height:380px;border:1px solid var(--line);border-radius:10px;margin:30px 0 6px}
+section.pg{padding:44px 0}
+/* ---------- nav clearance floor ----------
+   The fixed header is var(--nav-h) tall (52px on mobile). Every page must start
+   below it. Heroes set their own generous padding; this catches everything else
+   — including pages that do not exist yet. */
+body > section:first-of-type:not(.hero):not(.page-hero):not(.mms-hero),
+body > div:first-of-type:not(.drawer):not(.ticker):not(.nav){
+  padding-top:calc(var(--nav-h) + 24px);
+}
+body.has-ticker > section:first-of-type:not(.hero):not(.page-hero):not(.mms-hero),
+body.has-ticker > div:first-of-type:not(.drawer):not(.ticker):not(.nav){
+  padding-top:calc(var(--nav-h) + 62px);
+}
+.idx-cols{columns:3;column-gap:28px}
+@media(max-width:900px){.idx-cols{columns:2}}
+@media(max-width:600px){.idx-cols{columns:1}}
+.idx-cols a{display:block;break-inside:avoid;padding:7px 0;border-bottom:1px solid var(--line);font-size:.9rem;color:var(--slate)}
+.idx-cols a:hover{color:var(--ivory)}
+.idx-cols a span{color:var(--slate-dim);font-size:.76rem}
+
+/* condo contrast fixes (26 Sep 2026): the city's outline button is built for dark sections, and its
+   dim slate is too faint on light surfaces. Light surfaces get readable versions. */
+.btn-line{color:#22262f;border-color:rgba(34,38,47,.28)}.btn-line:hover{border-color:#22262f;background:rgba(34,38,47,.04)}
+#offmarket .btn-line,.omap-cta .btn-line,.lm .btn-line,footer .btn-line,.nav .btn-line{color:var(--chrome-ink);border-color:rgba(236,231,219,.4)}
+.ld-specband .sl,.map-note,.ld-remarks .src,.crumbs,.crumbs a{color:#5d6575}

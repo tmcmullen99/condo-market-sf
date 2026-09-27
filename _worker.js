@@ -446,7 +446,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
    /assets/cm-city-ui.css (the accent swapped to the condo orange). These are
    its shared pieces - header, agent strip, footer - and the pages built on it.
    ========================================================================== */
-const CITY_UI_VER = '1';
+const CITY_UI_VER = '2';
 
 function cityEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function citySlug(s) { return String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
@@ -662,6 +662,257 @@ function renderOffMarket(payload) {
     '})();</script>\n';
 
   return cityHead(title, desc, canonical, leaflet) + cityNav('offmarket') + offmarket + map + cta + how + cityFooter(payload) + cityTail(script);
+}
+
+
+/* ---------------------------------------------------------------------------
+   /listing/{mls}  - the City Markets listing page, for condos (26 Sep 2026).
+   Same structure as the city /for-sale/ page, with the one thing condos add:
+   a condo lives IN a building, and buyers choose the condo, then the building.
+   So the unit comes first, then its building - a card with the building's
+   photo when it is one of ours, and the building intelligence, linking back.
+   ------------------------------------------------------------------------- */
+const CITY_FOOT_CACHE = {};
+async function cityFooterData(domain) {
+  const c = CITY_FOOT_CACHE[domain];
+  if (c && Date.now() - c.t < 3600e3) return c.v;
+  let v = { buildings: [], hoods: [] };
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/offmarket_page_payload', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_market_domain: domain }),
+    });
+    if (r.ok) { const p = await r.json(); v = { buildings: (p.buildings || []).slice(0, 12), hoods: (p.hoods || []).slice(0, 12), totals: p.totals }; }
+  } catch (e) {}
+  CITY_FOOT_CACHE[domain] = { t: Date.now(), v };
+  return v;
+}
+
+async function listingBuildingCard(slug) {
+  if (!slug) return null;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/buildings?slug=eq.' + encodeURIComponent(slug) +
+      '&select=slug,display_name,canonical_address,hero_image_url,unit_count,year_built,neighborhood,map_hood,is_catalogued,published_at&limit=1', {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  } catch (e) { return null; }
+}
+
+function cityMortgageCalc(price) {
+  var p = Math.round(price || 1000000);
+  return '<div class="mz-card" style="max-width:none"><span class="eyebrow">Estimate the monthly payment</span>'
+    + '<div class="mtg-grid">'
+    + '<label>Home price<input id="mtgPrice" inputmode="numeric" value="$' + p.toLocaleString() + '"></label>'
+    + '<label>Down payment<input id="mtgDown" value="20%"></label>'
+    + '<label>Interest rate<input id="mtgRate" value="6.5%"></label>'
+    + '<label>Term<select id="mtgTerm"><option value="30">30 years</option><option value="15">15 years</option></select></label>'
+    + '</div>'
+    + '<div class="mtg-out"><div class="mtg-big" id="mtgPay">&mdash;</div><div class="mtg-sub" id="mtgSub">Principal &amp; interest &middot; estimate only, not a loan offer.</div></div>'
+    + '</div>'
+    + '<script>(function(){'
+    + 'function num(v){return parseFloat((""+v).replace(/[^0-9.]/g,""))||0;}'
+    + 'function fmt(x){return "$"+Math.round(x).toLocaleString();}'
+    + 'function calc(){'
+    + 'var price=num(document.getElementById("mtgPrice").value);'
+    + 'var dpRaw=num(document.getElementById("mtgDown").value);'
+    + 'var down=dpRaw<=100?price*dpRaw/100:dpRaw;'
+    + 'var P=Math.max(0,price-down);'
+    + 'var r=num(document.getElementById("mtgRate").value)/100/12;'
+    + 'var nM=(num(document.getElementById("mtgTerm").value)||30)*12;'
+    + 'var M=r>0?P*r*Math.pow(1+r,nM)/(Math.pow(1+r,nM)-1):P/nM;'
+    + 'document.getElementById("mtgPay").textContent=fmt(M)+"/mo";'
+    + 'document.getElementById("mtgSub").textContent="Principal & interest on "+fmt(P)+" financed \\u00b7 estimate only";'
+    + '}'
+    + '["mtgPrice","mtgDown","mtgRate","mtgTerm"].forEach(function(id){var e=document.getElementById(id);if(e){e.addEventListener("input",calc);e.addEventListener("change",calc);}});'
+    + 'calc();})();</script>';
+}
+
+function renderListingCity(d, B, foot) {
+  const E = cityEsc;
+  const money = (n) => (n == null ? '' : '$' + Math.round(n).toLocaleString('en-US'));
+  const short = (n) => { if (n == null) return ''; if (n >= 1e6) return '$' + (n / 1e6).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') + 'M'; return '$' + Math.round(n / 1000) + 'K'; };
+  const num = (n) => Number(n).toLocaleString('en-US');
+  const domain = 'sanfranciscocondomarket.com', region = 'San Francisco';
+  const mls = String(d.mls || '');
+  const price = d.price != null ? Number(d.price) : null;
+  const beds = d.beds != null && d.beds !== '' ? Number(d.beds) : null;
+  const baths = d.baths != null && d.baths !== '' ? Number(d.baths) : null;
+  const sqft = d.sqft != null && d.sqft !== '' ? Number(d.sqft) : null;
+  const ppsf = price != null && sqft ? Math.round(price / sqft) : null;
+  const unit = d.unit ? String(d.unit) : '';
+  const addr = String(d.address || '');
+  const hood = d.neighborhood || (B && (B.map_hood || B.neighborhood)) || '';
+  const bSlug = d.building_slug || '';
+  const bName = d.building_name || (B && B.display_name) || '';
+  const bOurs = !!(B && B.is_catalogued && B.published_at);
+  const bUrl = bSlug ? '/building/' + bSlug + '/' : '';
+  const year = d.year_built || (B && B.year_built) || null;
+  const st = d.building_stats || {};
+  const photos = Array.isArray(d.photos) ? d.photos.map((p) => p && p.url).filter(Boolean) : [];
+  const fullAddr = addr + (addr.indexOf(region) === -1 ? ', ' + region + ', CA' + (d.zip ? ' ' + d.zip : '') : '');
+  const spec = [beds != null ? beds + ' bd' : '', baths != null ? baths + ' ba' : '', sqft ? num(sqft) + ' sf' : '', year ? 'built ' + year : ''].filter(Boolean).join(' &middot; ');
+  const title = addr + (unit && addr.indexOf('#') === -1 ? ' #' + unit : '') + ' — Condo For Sale' + (bName ? ' in ' + bName : '') + ' | Condo Market SF';
+  const desc = addr + ' is for sale' + (price != null ? ' at ' + money(price) : '') + (beds != null ? ' — ' + beds + ' bed' : '') + (baths != null ? ', ' + baths + ' bath' : '') +
+    (sqft ? ', ' + num(sqft) + ' sq ft' : '') + (bName ? ' in ' + bName : '') + (hood ? ', ' + hood : '') + ', San Francisco. Every recorded sale in the building, free.';
+  const canonical = 'https://www.' + domain + '/listing/' + encodeURIComponent(mls);
+  const lat = d.lat != null ? Number(d.lat) : null, lng = d.lng != null ? Number(d.lng) : null;
+
+  const gallery =
+    '<div class="ld-gallery"><div class="ld-main" id="ldMain" title="' + (photos.length > 1 ? 'Click for next photo' : '') + '">' +
+    (photos.length ? '<img id="ldImg" src="' + E(photos[0]) + '" alt="' + E(addr) + '" onerror="this.remove()">'
+      : (bOurs && B.hero_image_url ? '<img id="ldImg" src="' + E(B.hero_image_url) + '" alt="' + E(bName) + '" onerror="this.remove()"><span class="ld-bphoto">The building &middot; ' + E(bName) + '</span>'
+        : '<div class="ld-nophoto">Photos coming soon</div>')) +
+    (price != null ? '<span class="price-chip"><span class="dot"></span>' + short(price) + '</span>' : '') +
+    (photos.length > 1 ? '<span class="ld-count" id="ldCount">1 / ' + photos.length + '</span>' : '') +
+    '</div></div>';
+
+  const head =
+    '<div class="ld-head"><div>' +
+    '<div class="ld-price">' + (price != null ? short(price) : 'Price on request') + '</div>' +
+    '<div class="ld-addr">' + E(fullAddr) + '</div>' +
+    '<div class="ld-sub">' + spec + (bName ? ' &middot; in <a href="' + bUrl + '">' + E(bName) + '</a>' : '') + '</div>' +
+    '</div><div class="ld-head-cta">' +
+    '<a class="btn btn-gold" href="#" data-cm-offer data-mls="' + E(mls) + '" data-building="' + E(bSlug) + '" data-unit="' + E(unit) + '" data-price="' + (price != null ? price : '') + '">Make an offer &rarr;</a>' +
+    '<a class="btn btn-line" href="#tour">Tour this home</a>' +
+    '</div></div>';
+
+  const specs = [];
+  if (beds != null) specs.push([String(beds), 'Beds']);
+  if (baths != null) specs.push([String(baths), 'Baths']);
+  if (sqft) specs.push([num(sqft), 'Sq Ft']);
+  if (unit) specs.push([E(unit), 'Unit']);
+  if (year) specs.push([String(year), 'Built']);
+  if (ppsf) specs.push([money(ppsf), 'Per Sq Ft']);
+  const specband = specs.length ? '<div class="ld-specband">' + specs.map((s) => '<div><div class="sv">' + s[0] + '</div><div class="sl">' + s[1] + '</div></div>').join('') + '</div>' : '';
+
+  /* THE BUILDING: the second thing a condo buyer weighs. The photo shows only for a
+     building of ours; the intelligence shows whenever the listing sits in a building. */
+  let building = '';
+  if (bSlug) {
+    const tiles = [];
+    if (st.sold_12mo != null) tiles.push([num(st.sold_12mo), 'Sales, last 12 mo']);
+    if (st.median_psf_12mo) tiles.push([money(st.median_psf_12mo), 'Median $/sq ft']);
+    if (st.median_price_12mo) tiles.push([money(st.median_price_12mo), 'Median sale price']);
+    const vs = (ppsf && st.median_psf_12mo) ? Math.round((ppsf / st.median_psf_12mo - 1) * 100) : null;
+    building =
+      '<section class="pg ld-bsec" id="building"><div class="wrap">' +
+      '<div class="section-head"><span class="eyebrow">The building</span>' +
+      '<h2>' + E(bName) + ' <em>by the numbers.</em></h2>' +
+      '<p class="sub">A condo is bought twice: the unit, then the building it sits in. Here is the building behind this listing &mdash; its recorded sales, and what units in it trade for.</p></div>' +
+      '<a class="bcard' + (bOurs && B.hero_image_url ? '' : ' bcard--noimg') + '" href="' + bUrl + '" data-cta="listing:building_card">' +
+      (bOurs && B.hero_image_url ? '<div class="bcard-img"><img src="' + E(B.hero_image_url) + '" alt="' + E(bName) + ', San Francisco" loading="lazy" onerror="this.parentNode.remove()"></div>' : '') +
+      '<div class="bcard-bd">' +
+      '<span class="bcard-k">' + (hood ? E(hood) + ' &middot; ' : '') + 'San Francisco</span>' +
+      '<div class="bcard-name">' + E(bName) + '</div>' +
+      '<div class="bcard-meta">' + [B && B.unit_count ? num(B.unit_count) + ' homes' : '', (B && B.year_built) || year ? 'built ' + ((B && B.year_built) || year) : '', B && B.canonical_address && B.canonical_address !== bName ? E(B.canonical_address) : ''].filter(Boolean).join(' &middot; ') + '</div>' +
+      (tiles.length ? '<div class="bcard-stats">' + tiles.map((t) => '<div><div class="sv">' + t[0] + '</div><div class="sl">' + t[1] + '</div></div>').join('') + '</div>' : '') +
+      (vs != null ? '<p class="bcard-vs">This unit is asking <b>' + money(ppsf) + '/sq ft</b> &mdash; ' + (vs === 0 ? 'in line with' : Math.abs(vs) + '% ' + (vs > 0 ? 'above' : 'below')) + ' the building&rsquo;s median over the last twelve months (' + num(st.sold_12mo || 0) + ' sale' + (st.sold_12mo === 1 ? '' : 's') + ').</p>' : '') +
+      '<span class="bcard-go">See all sales &amp; trends at ' + E(bName) + ' &rarr;</span>' +
+      '</div></a>' +
+      '</div></section>';
+  }
+
+  const map = (lat != null && lng != null)
+    ? '<section class="pg" style="padding-top:0"><div class="wrap"><div id="ldMap" style="height:340px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#efece4"></div>' +
+      '<p class="map-note">' + (bName ? 'The pin is ' + E(bName) + '. ' : '') + 'Location from public records. Not a survey, and not a representation of boundaries.</p></div></section>'
+    : '';
+
+  const remarkText = d.listing_description || '';
+  const remark = remarkText ? '<div class="ld-remarks">&ldquo;' + E(remarkText.slice(0, 320)) + (remarkText.length > 320 ? '&hellip;' : '') + '&rdquo;<span class="src">Listing remarks (excerpt) &middot; via the MLS</span></div>' : '';
+  const ctx = [];
+  if (bSlug) ctx.push('<div class="tile"><div class="eyebrow" style="margin-bottom:6px">The building</div><h3 style="font-size:1.05rem;margin-bottom:6px"><a href="' + bUrl + '" style="color:var(--ivory)">' + E(bName) + ' &rarr;</a></h3><p style="font-size:.85rem;color:var(--slate)">Every recorded sale, price per foot against the neighborhood, and the HOA figures.</p></div>');
+  if (hood) ctx.push('<div class="tile"><div class="eyebrow" style="margin-bottom:6px">The neighborhood</div><h3 style="font-size:1.05rem;margin-bottom:6px"><a href="/neighborhood/' + citySlug(hood) + '/" style="color:var(--ivory)">' + E(hood) + ' &rarr;</a></h3><p style="font-size:.85rem;color:var(--slate)">Every condo building in ' + E(hood) + ', with recorded sales and prices per foot.</p></div>');
+  const context = '<section class="pg" style="padding-top:0"><div class="wrap">' + remark +
+    (ctx.length ? '<div class="ld-context">' + ctx.join('') + '</div>' : '') +
+    '<p class="map-note">Listing data deemed reliable but not guaranteed. Buyers should verify all information independently. The listing agent and brokerage of record represent the seller; Condo Market SF is not the listing brokerage unless stated. MLS# ' + E(mls) + '.</p>' +
+    '</div></section>';
+
+  const ICO_DOC = "<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='9' y1='13' x2='15' y2='13'/><line x1='9' y1='17' x2='15' y2='17'/></svg>";
+  const ICO_CHART = "<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>";
+  const card = (ico, t, lead, list, label, href, cta) => '<div class="feat-card"><div class="feat-ico">' + ico + '</div><h3>' + t + '</h3><p>' + lead + '</p><ul class="feat-list">' +
+    list.map((li) => '<li>' + li + '</li>').join('') + '</ul><a class="btn btn-gold" href="' + href + '" data-cta="' + cta + '">' + label + ' &rarr;</a></div>';
+  const app = 'https://app.' + domain;
+  const edge = '<section class="pg"><div class="wrap"><div class="section-head"><span class="eyebrow">Before you make an offer</span>' +
+    '<h2>Get the edge <em>before you write.</em></h2><p class="sub">Two free tools that tell you what this home is really worth &mdash; and what the disclosures actually say.</p></div>' +
+    '<div class="feat-grid">' +
+    card(ICO_DOC, 'Disclosure review from Tim', 'Send Tim this listing and get a personal read within 24 hours &mdash; the fine print that matters, before you write.',
+      ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation', 'A detailed CMA &mdash; what it&rsquo;s really worth vs. the asking price', 'What a compelling, winning offer looks like here'],
+      'Request a disclosure review', app + '/tools/review', 'listing:request_review') +
+    card(ICO_CHART, 'Build your own CMA', 'Price it like an agent. Pull this home and the real comps around it for an instant value range &mdash; in two minutes.',
+      ['Search every recent San Francisco condo sale as a comp', 'An instant $/sf value range against the asking price', 'Free &mdash; save it, and Tim can sanity-check your number'],
+      'Build a CMA', app + '/tools/cma', 'listing:build_cma') +
+    '</div></div></section>';
+
+  const mortgage = price != null ? '<section class="pg"><div class="wrap"><div class="section-head"><span class="eyebrow">Run the numbers</span>' +
+    '<h2>What would this cost <em>per month?</em></h2><p class="sub">A quick estimate on this home&rsquo;s asking price. Adjust the down payment, rate, and term to see your payment move. HOA dues are extra.</p></div>' +
+    cityMortgageCalc(price) + '</div></section>' : '';
+
+  const tour = '<section class="pg" id="tour"><div class="wrap"><div class="section-head"><span class="eyebrow">Book time with Tim</span>' +
+    '<h2>Tour it, or talk it <em>through.</em></h2><p class="sub">A private showing, a second opinion on the price, or a walk through the building&rsquo;s HOA documents.</p></div>' +
+    '<div class="mz-card" style="max-width:none;padding:26px 24px;text-align:center">' +
+    '<a class="btn btn-gold" style="display:inline-block;padding:15px 34px;font-size:1.02rem" href="#" data-cm-showing data-mls="' + E(mls) + '" data-building="' + E(bSlug) + '">Schedule a showing</a>' +
+    '<p style="font-size:.86rem;color:var(--ink-dim);margin:14px auto 0;max-width:46ch;line-height:1.5">Every offer is personally reviewed by Tim before drafting. A valid offer needs lender pre-approval and proof of funds, uploaded securely during the offer flow.</p>' +
+    '</div></div></section>';
+
+  const exit = '<section class="pg" style="padding-top:0"><div class="wrap"><div class="tile" style="padding:20px 22px"><div class="eyebrow" style="margin-bottom:6px">The market</div>' +
+    '<h3 style="font-size:1.1rem;margin-bottom:6px"><a href="/active-listings/" style="color:var(--ivory)">All San Francisco condos for sale &rarr;</a></h3>' +
+    '<p style="font-size:.86rem;color:var(--slate)">Every condo on the market in San Francisco, and <a href="/off-market/">the off-market prices</a> owners have named.</p></div></div></section>';
+
+  const jsonLd = { '@context': 'https://schema.org', '@type': 'RealEstateListing', name: addr, url: canonical,
+    description: d.descriptor || undefined,
+    address: { '@type': 'PostalAddress', streetAddress: addr, addressLocality: 'San Francisco', postalCode: d.zip || undefined, addressRegion: 'CA', addressCountry: 'US' },
+    geo: lat != null && lng != null ? { '@type': 'GeoCoordinates', latitude: lat, longitude: lng } : undefined,
+    offers: price != null ? { '@type': 'Offer', price: price, priceCurrency: 'USD', availability: 'https://schema.org/InStock' } : undefined };
+
+  const css = '<style>' +
+    '.ld-main{position:relative}.ld-main img{width:100%;height:100%;object-fit:cover;display:block}' +
+    '.ld-count{position:absolute;right:14px;bottom:14px;background:rgba(18,21,29,.72);color:#ece7db;font:500 .72rem "JetBrains Mono",monospace;padding:5px 10px;border-radius:999px}' +
+    '.ld-bphoto{position:absolute;left:14px;top:14px;background:rgba(18,21,29,.72);color:#ece7db;font:500 .68rem "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;padding:6px 11px;border-radius:999px}' +
+    '.ld-sub a{color:var(--apricot);text-decoration:none;border-bottom:1px solid rgba(194,65,12,.35)}' +
+    '.bcard{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(26,31,46,.04),0 14px 36px rgba(26,31,46,.07);transition:transform .2s,box-shadow .2s}' +
+    '.bcard:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(26,31,46,.05),0 20px 44px rgba(26,31,46,.10)}' +
+    '.bcard--noimg{grid-template-columns:1fr}' +
+    '.bcard-img{position:relative;min-height:300px;background:#efece4}.bcard-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}' +
+    '.bcard-bd{padding:30px 32px;display:flex;flex-direction:column;gap:10px}' +
+    '.bcard-k{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--apricot)}' +
+    '.bcard-name{font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.7rem,3vw,2.3rem);line-height:1.1;color:var(--ink)}' +
+    '.bcard-meta{color:var(--slate);font-size:.92rem}' +
+    '.bcard-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:10px 0 4px}' +
+    '.bcard-stats>div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 12px;text-align:center}' +
+    '.bcard-stats .sv{font-family:"Playfair Display",Georgia,serif;font-size:1.45rem;color:var(--ink)}' +
+    '.bcard-stats .sl{font-size:.74rem;color:var(--slate);margin-top:2px}' +
+    '.bcard-vs{font-size:.9rem;color:var(--ink-dim,#4c5261);line-height:1.55;margin:4px 0 0}' +
+    '.bcard-go{margin-top:auto;color:var(--apricot);font-weight:600;font-size:.95rem}' +
+    '@media(max-width:760px){.bcard{grid-template-columns:1fr}.bcard-img{min-height:220px}.bcard-bd{padding:24px 22px}.bcard-stats .sv{font-size:1.2rem}}' +
+    '</style>';
+
+  const script = (lat != null && lng != null ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>' +
+    '<script>(function(){var el=document.getElementById("ldMap");if(!el||!window.L)return;' +
+    'var m=L.map(el,{scrollWheelZoom:false}).setView([' + lat + ',' + lng + '],16);' +
+    'var k=(document.querySelector(\'meta[name="carto-key"]\')||{}).content||"";' +
+    'L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"+(k&&k.indexOf("__")!==0?"?key="+encodeURIComponent(k):""),{attribution:"&copy; OpenStreetMap &copy; CARTO",subdomains:"abcd",maxZoom:19}).addTo(m);' +
+    'L.circleMarker([' + lat + ',' + lng + '],{radius:10,color:"#9a3412",weight:2,fillColor:"#C2410C",fillOpacity:.9}).addTo(m)' + (bName ? '.bindTooltip(' + JSON.stringify(bName).replace(/</g, '\\u003c') + ',{permanent:false})' : '') + ';})();</script>' : '') +
+    (photos.length > 1 ? '<script>(function(){var P=' + JSON.stringify(photos).replace(/</g, '\\u003c') + ',i=0,img=document.getElementById("ldImg"),c=document.getElementById("ldCount"),m=document.getElementById("ldMain");' +
+      'if(!img||!m)return;m.style.cursor="pointer";m.addEventListener("click",function(){i=(i+1)%P.length;img.src=P[i];if(c)c.textContent=(i+1)+" / "+P.length;});})();</script>' : '') +
+    '<script src="/assets/cm-supabase.js" defer></script>\n<script src="/assets/cm-actions.js" defer></script>\n' +
+    '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>\n';
+
+  const body =
+    '<header class="page-hero" style="padding-bottom:26px"><div class="wrap">' +
+    '<div class="crumbs"><a href="/">Condo Market SF</a> / <a href="/active-listings/">For sale</a>' + (bName ? ' / <a href="' + bUrl + '">' + E(bName) + '</a>' : '') + '</div>' +
+    '<span class="eyebrow"><span class="live-dot"></span>Active listing &middot; MLS# ' + E(mls) + ' &middot; Condo' + (unit ? ' &middot; Unit ' + E(unit) : '') + '</span>' +
+    '</div></header>' +
+    '<section class="pg" style="padding-top:6px"><div class="wrap">' + gallery + head + specband + '</div></section>' +
+    building + map + context + edge + mortgage + tour + exit;
+
+  const leaflet = (lat != null && lng != null) ? '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">\n' : '';
+  const ogImg = photos[0] || (bOurs && B.hero_image_url) || '';
+  return cityHead(title, desc, canonical, leaflet + css + (ogImg ? '<meta property="og:image" content="' + E(ogImg) + '">\n' : '')) +
+    cityNav('forsale') + body + cityFooter(foot || {}) + cityTail(script);
 }
 
 export default {
@@ -1086,7 +1337,9 @@ async function handleRequest(request, env) {
         return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=600' } });
       }
 
-      const listingHtml = applyMarketSwaps(renderListing(d, await fetchFooterData(hostMk)), hostMk);
+      /* City Markets UI (26 Sep 2026): the unit, then its building. renderListing stays for reference. */
+      const [bcard, foot] = await Promise.all([listingBuildingCard(d.building_slug), cityFooterData(hostMk.domain)]);
+      const listingHtml = applyMarketSwaps(renderListingCity(d, bcard, foot), hostMk);
       return new Response(listingHtml, {
         status: 200,
         headers: {
