@@ -292,7 +292,7 @@ async function withFavicon(res) {
     const body = await res.text();
     /* One seam, on the path every HTML response already takes - so a map
        added later cannot miss the key. */
-    let out = ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body))));
+    let out = ensureMarketNav(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body)))));
     if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
@@ -682,6 +682,979 @@ function renderOffMarket(payload) {
 }
 
 
+/* THE MARKET NAV (Tim, 26 Sep 2026): For sale and Off market lead every header, as on the City
+   Markets. Added once, at the output seam every HTML response passes, rather than in each template
+   and static page: every older header style (masthead nav-meta, the homepage cm-nav, how-it-works
+   topnav, press site-nav) gets the two links first, styled like its own links; an existing
+   Active Listings link is replaced by For sale so nothing appears twice. */
+function ensureMarketNav(html) {
+  if (typeof html !== 'string' || html.indexOf('data-cm-mkt-nav') !== -1) return html;
+  /* The neighbourhood / news / stats header: <header class="cm"> ... <nav class="nav">. "nav" alone
+     is too generic a class to match site-wide, so only inside that header. */
+  html = html.replace(/(<header class="cm">[\s\S]{0,600}?<nav class="nav">)(?![\s\S]{0,1200}?href="[^"]*\/off-market)/,
+    '$1<a href="/active-listings/" data-cm-mkt-nav>For sale</a><a href="/off-market/" data-cm-mkt-nav>Off market</a>');
+  /* The press header squeezes on a phone once it carries two more links: wrap whole links. */
+  if (html.indexOf('class="site-nav"') !== -1 && /<\/head>/i.test(html)) {
+    html = html.replace(/<\/head>/i, '<style>@media(max-width:640px){.site-nav{flex-wrap:wrap;gap:6px 14px;justify-content:flex-end}.site-nav a{white-space:nowrap}}</style></head>');
+  }
+  return html.replace(/(<(nav|div)\b[^>]*\bclass="(?:[^"]*\s)?(?:nav-meta|cm-nav|cm-drawer|topnav|site-nav)(?:\s[^"]*)?"[^>]*>)([\s\S]*?)(<\/\2>)/g,
+    function (all, open, tag, inner, close) {
+      if (/href="\/off-market\/?"/.test(inner)) return all;
+      inner = inner.replace(/<a\b[^>]*href="\/active-listings\/?"[^>]*>[\s\S]*?<\/a>/g, '');
+      const first = inner.match(/<a\b(?![^>]*(?:signin|data-cm-auth|btn|cta))[^>]*>/);
+      if (!first) return all;
+      const cls = (first[0].match(/\sclass="[^"]*"/) || [''])[0];
+      const add = '<a href="/active-listings/"' + cls + ' data-cm-mkt-nav>For sale</a><a href="/off-market/"' + cls + ' data-cm-mkt-nav>Off market</a>';
+      const at = inner.indexOf(first[0]);
+      return open + inner.slice(0, at) + add + inner.slice(at) + close;
+    });
+}
+
+
+/* ---------------------------------------------------------------------------
+   DISCLOSURE VIEWER - the City Markets' renderDisclosureSheet / renderCheatSheet, ported (26 Sep 2026).
+   San Francisco's disclosure reviews are published on the city platform (market 5), where the
+   agent desk writes them; this renders those tokens on the condo domain. /disclosure/?token= tries
+   this first and falls back to the condo platform's own viewer (static /disclosure/) otherwise.
+   ------------------------------------------------------------------------- */
+const RPT_KEY = 'sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2';   // the city platform's public key
+const RPT_M = { id: 5, name: 'Condo Market SF', city: 'San Francisco', agent: { name: 'Tim McMullen' } };
+async function renderDisclosureSheet(token) {
+  /* The structured cheat sheet first (published, or a draft to its token);
+     a review from before v10 has no sheet and renders the older page. A sheet
+     is only served on its own market's domain. */
+  const cs = await rptRpc('get_disclosure_sheet', { p_token: token });
+  if (cs && cs.ok === true && cs.sheet) {
+    if (Number(cs.market_id) !== Number(RPT_M.id)) return null;
+    return renderCheatSheet(cs);
+  }
+  const d = await rptRpc('get_published_disclosure', { p_token: token });
+  if (!d || d.ok !== true) return null;
+  const F = Array.isArray(d.key_findings) ? d.key_findings : [];
+  const bySec = (s) => F.filter((f) => (f.section || 'confirm') === s);
+  const findCard = (f) =>
+    `<div class="rpt-find">${f.title ? `<h3>${esc(f.title)}</h3>` : (f.severity ? `<h3 class="rpt-sev ${esc(f.severity)}">${esc(String(f.severity).replace(/^./, (c) => c.toUpperCase()))}</h3>` : '')}` +
+    `<p>${esc(f.body || f.finding || '')}</p><span class="rpt-src">${esc(f.source)}</span></div>`;   // older reviews: {finding, severity}
+  const section = (title, em, list) => list.length
+    ? `<section class="rpt-sec"><h2>${title} <em>${em}</em></h2>${list.map(findCard).join('')}</section>` : '';
+
+  const flags = Array.isArray(d.financial_flags) ? d.financial_flags : [];
+  const tierRows = (tier) => flags.filter((x) => (x.tier || 'near_term') === tier);
+  const row = (x) => `<tr><td>${esc(x.item)}</td><td class="rpt-basis">${esc(x.basis || 'Estimate')}</td>` +
+    `<td class="num">${rptMoney(x.low)}</td><td class="num">${rptMoney(x.high)}</td></tr>`;
+  const sum = (list, k) => list.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+  const near = tierRows('near_term'), def = tierRows('deferrable'), cont = tierRows('contingent');
+  let budget = '';
+  /* Older reviews carry money items as sourced notes, not low/high figures: list them. */
+  if (flags.length && !flags.some((x) => x.low != null || x.high != null)) {
+    budget = `<section class="rpt-sec"><h2>The money <em>side</em></h2>${flags.map((x) =>
+      `<div class="rpt-find"><p>${esc(x.flag || x.item || '')}</p>${x.source ? `<span class="rpt-src">${esc(x.source)}</span>` : ''}</div>`).join('')}</section>`;
+  } else if (flags.length) {
+    budget = `<section class="rpt-sec"><h2>What to <em>budget for</em></h2>
+<table class="rpt-table"><thead><tr><th>Item</th><th>Basis</th><th class="num">Low</th><th class="num">High</th></tr></thead><tbody>
+${near.map(row).join('')}
+${near.length ? `<tr class="subtotal"><td colspan="2">Near-term subtotal</td><td class="num">${rptMoney(sum(near,'low'))}</td><td class="num">${rptMoney(sum(near,'high'))}</td></tr>` : ''}
+${def.map(row).join('')}${cont.map(row).join('')}
+${flags.length > near.length ? `<tr class="subtotal"><td colspan="2">All items</td><td class="num">${rptMoney(sum(flags,'low'))}</td><td class="num">${rptMoney(sum(flags,'high'))}</td></tr>` : ''}
+</tbody></table>
+<p style="font-size:.76rem;color:#8a8f9c;margin-top:8px">Figures labeled "Formal bid" are the contractor's own numbers from the package. Everything else is a planning estimate — not a quote. Get trade bids before removing contingencies.</p></section>`;
+  }
+
+  const qs = Array.isArray(d.questions_to_ask) ? d.questions_to_ask : [];
+  const questions = qs.length
+    ? `<section class="rpt-sec"><h2>Confirm these <em>before you write</em></h2><ol class="rpt-q">${qs.map((q) => `<li>${esc(typeof q === 'string' ? q : ((q && (q.question || q.q)) || ''))}</li>`).join('')}</ol></section>` : '';
+
+  const cross = d.cma_token
+    ? `<a class="rpt-cross" href="/cma/?token=${encodeURIComponent(d.cma_token)}">See the CMA — the recorded comps →</a>` : '';
+
+  const body = `<div class="rpt-page">
+<p class="rpt-eyebrow">Disclosure cheat sheet · ${esc(RPT_M.name)}</p>
+<h1>${esc(d.address)}</h1>
+<p class="rpt-sub">${esc(RPT_M.city)}, CA${d.mls ? ' · MLS ' + esc(d.mls) : ''} · reviewed ${esc(String(d.published_at || '').slice(0, 10))}</p>
+<div class="rpt-head">
+${d.condition_score != null ? `<div class="rpt-score"><span class="v">${Number(d.condition_score)}</span><span class="l">Condition</span></div>` : ''}
+<div><div class="rpt-strip">${d.risk_level ? `<span class="rpt-risk ${esc(d.risk_level)}">${esc(d.risk_level)} risk</span>` : ''}</div>
+<p class="rpt-headline">${esc(d.headline || '')}</p></div>
+</div>
+${d.property_summary ? `<p style="font-size:.95rem;line-height:1.65;color:#3a3f4c;max-width:64ch">${esc(d.property_summary)}</p>` : ''}
+${section("What's genuinely", 'strong', bySec('strong'))}
+${section('Verify before', 'you write', bySec('confirm'))}
+${section('Looks alarming,', "isn't", bySec('calm'))}
+${budget}
+${questions}
+${d.condition_summary ? `<div class="rpt-bottom"><h2>The bottom line</h2><p>${esc(d.condition_summary)}</p></div>` : ''}
+${cross}
+<p class="rpt-meta">Prepared by ${esc(d.prepared_by || RPT_M.agent.name)}${d.prepared_dre ? ', DRE #' + esc(d.prepared_dre) : ''} · ${esc(RPT_M.name)} · Sourced from the seller's disclosure package for ${esc(d.address)}; every finding above names the document it came from. This summary does not replace reading the full package, and nothing here is an appraisal or an opinion of value.</p>
+</div>`;
+  return cityHead('Disclosure Cheat Sheet \u00b7 ' + d.address, 'What the disclosure package for ' + d.address + ' actually says \u2014 sourced finding by finding.', 'https://www.sanfranciscocondomarket.com/disclosure/', '<meta name="robots" content="noindex,nofollow"><style>' + rptCss() + '</style>') +
+    cityNav('') + body + cityFooter({}) + cityTail('');
+}
+
+async function renderCheatSheet(d) {
+  const S = d.sheet || {};
+  const m = (n) => (n == null || isNaN(Number(n))) ? '\u2014' : '$' + Math.round(Number(n)).toLocaleString('en-US');
+  const cite = (s) => s ? `<span class="cite">${esc(s)}</span>` : '';
+  const L = Array.isArray(S.ledger) ? S.ledger : [];
+  const buyer = L.filter((x) => x.basis !== 'seller_cost');
+  const toSeller = L.filter((x) => x.basis === 'seller_cost');
+  const sum = (list, k) => list.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+  const cat = (c) => buyer.filter((x) => x.category === c);
+  const safety = cat('safety'), future = cat('known_future'), elective = cat('elective');
+  const other = [...future, ...elective];
+  const allLo = sum(buyer, 'low'), allHi = sum(buyer, 'high');
+
+  /* The CMA this sheet belongs to: its range and asking price, by the same
+     rule the CMA page uses. No CMA, or no range, and the price sections are
+     simply absent — never estimated here. */
+  let R = null, asking = null, sqft = null, cmaHref = null;
+  if (d.cma_slug) {
+    const c = await rptRpc('get_cma_by_slug', { p_slug: d.cma_slug });
+    if (c && c.ok === true) {
+      const snap = c.comp_snapshot || {};
+      sqft = Number((snap.subject || {}).sqft || 0) || null;
+      R = cmaRange(snap.comps, sqft, c.mmm_range_low, c.mmm_range_high, c.implied);
+      if (!R.lo || !R.hi) R = null;
+      const ph = await rptRpc('cma_subject_photos', { p_token: c.public_token, p_limit: 1 });
+      asking = (ph && ph.asking) ? Number(ph.asking) : null;
+      cmaHref = '/cma/' + d.cma_slug + '/';
+    }
+  }
+  const rangeName = R ? (R.agent ? 'Range on the CMA' : 'Supported range') : '';
+  const pct = (a, b) => (a && b) ? (a / b * 100).toFixed(1) + '%' : '\u2014';
+  const score = Number.isFinite(Number(d.condition_score)) ? Math.max(0, Math.min(100, Number(d.condition_score))) : null;
+  const pkg = S.package || {};
+  const pages = Number(pkg.pages) || null;
+  const today = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  const prepared = d.published_at || d.analyzed_at;
+  const preparedOn = prepared ? new Date(prepared).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : today;
+  const foot = `${esc(RPT_M.name)} \u00b7 ${esc(d.prepared_by || RPT_M.agent.name)}${d.prepared_dre ? ', California DRE #' + esc(d.prepared_dre) : ''} \u00b7 Prepared ${esc(preparedOn)}`;
+
+  const ledgerRows = (title, list, note) => list.length ? `
+<tr class="grp"><td colspan="4">${title}</td></tr>
+${list.map((x) => `<tr><td>${esc(x.item)}${x.basis === 'bid' ? ' <span class="bid">contractor bid</span>' : ''}</td><td class="src">${esc(x.source)}</td><td class="n">${m(x.low)}</td><td class="n">${m(x.high)}</td></tr>`).join('')}
+<tr class="sub"><td colspan="2">${note}</td><td class="n">${m(sum(list, 'low'))}</td><td class="n">${m(sum(list, 'high'))}</td></tr>` : '';
+
+  const work = Math.round((allLo + allHi) / 2 / 1000) * 1000;
+  const offerRows = R ? [
+    [R.lo, 'Bottom of the ' + (R.agent ? 'range on the CMA' : 'supported range')],
+    [Math.round((R.lo + R.hi) / 2000) * 1000, 'Midpoint'],
+    [R.hi, 'Top of the ' + (R.agent ? 'range on the CMA' : 'supported range')],
+  ] : [];
+
+  const body = `
+<div class="bar noprint"><div class="in">
+  <span>${d.is_draft ? '<b class="draft">Draft \u2014 not published</b> \u00b7 only you can see this link' : 'Disclosure cheat sheet'}</span>
+  <span class="acts">${cmaHref ? `<a class="btn ghost" href="${cmaHref}">Back to the CMA</a>` : ''}<button class="btn" type="button" onclick="window.print()">Download PDF</button></span>
+</div></div>
+<main class="doc">
+<header class="mast">
+  <div>
+    <h1>${esc(d.address)}</h1>
+    <p class="kick">${esc(RPT_M.city)}${RPT_M.city ? ', CA' : ''} \u00b7 Property condition review \u00b7 Prepared for a buyer</p>
+  </div>
+  <div class="px">
+    ${asking ? `<div class="k">Asking</div><div class="v">${m(asking)}</div>` : ''}
+    ${R ? `<div class="k">${rangeName}</div><div class="r">${m(R.lo)} \u2013 ${m(R.hi)}</div>` : ''}
+  </div>
+</header>
+
+${score != null ? `<section class="score">
+  <div class="num"><b>${score}</b><span>out of 100</span></div>
+  <div class="band"><b>${esc(S.band || '')}</b><span>${esc(S.band_note || '')}</span></div>
+  <div class="scale"><div class="track"><i style="left:${score}%"></i></div>
+    <div class="lbl"><span>Major problems</span><span>Typical older home</span><span>Turnkey</span></div></div>
+</section>` : ''}
+
+${S.thesis ? `<section class="thesis"><h2 class="eyebrow">What the ${pages ? pages + '-page ' : ''}package says, in one paragraph</h2><p>${esc(S.thesis)}</p></section>` : ''}
+
+${buyer.length ? `<section class="money">
+  <div><div class="k">To make it safe</div><div class="v">${m(sum(safety, 'low'))} \u2013 ${m(sum(safety, 'high'))}</div><p>${esc((S.money_notes || {}).safety || '')}</p></div>
+  <div><div class="k">Everything else, over time</div><div class="v">${m(sum(other, 'low'))} \u2013 ${m(sum(other, 'high'))}</div><p>${esc((S.money_notes || {}).other || '')}</p></div>
+  <div class="all"><div class="k">All open items</div><div class="v">${m(allLo)} \u2013 ${m(allHi)}</div><p>${R
+      ? 'About ' + Math.max(1, Math.round(allLo / R.hi * 100)) + '% to ' + Math.max(1, Math.round(allHi / R.lo * 100)) + '% of a purchase in the ' + (R.agent ? 'range on the CMA' : 'supported range')
+      : buyer.length + ' open item' + (buyer.length === 1 ? '' : 's') + ' in the ledger'}</p></div>
+</section>` : ''}
+
+${(S.matters || []).length ? `<section><h2>The ${S.matters.length === 2 ? 'two' : S.matters.length === 1 ? 'one' : 'three'} thing${S.matters.length === 1 ? '' : 's'} that matter${S.matters.length === 1 ? 's' : ''}</h2>
+${S.matters.map((x, i) => `<div class="matter"><h3><span>${i + 1}.</span> ${esc(x.title)}</h3><p>${esc(x.body)} ${cite(x.source)}</p>${x.action ? `<p class="do">${esc(x.action)}</p>` : ''}</div>`).join('')}
+</section>` : ''}
+
+${(S.strong || []).length ? `<section class="strong"><h2>What is genuinely strong</h2><ul>
+${S.strong.map((x) => `<li><b>${esc(x.title)}</b> ${esc(x.body)} ${cite(x.source)}</li>`).join('')}
+</ul></section>` : ''}
+
+${L.length ? `<section class="ledger"><h2>Every open item, grouped by urgency</h2>
+<table><thead><tr><th>Item, in plain terms</th><th>Where it comes from</th><th class="n">Low</th><th class="n">High</th></tr></thead><tbody>
+${ledgerRows('Safety \u2014 do these first, before or soon after you move in', safety, 'Safety subtotal')}
+${ledgerRows('Known future \u2014 real costs, but on your timetable', future, 'Known-future subtotal')}
+${ledgerRows('Elective \u2014 tidy-up and prevention, no urgency', elective, 'Elective subtotal')}
+${buyer.length ? `<tr class="tot"><td colspan="2">All open items \u2014 ${buyer.length} line${buyer.length === 1 ? '' : 's'}</td><td class="n">${m(allLo)}</td><td class="n">${m(allHi)}</td></tr>` : ''}
+${toSeller.length ? `<tr class="grp"><td colspan="4">Cost to the seller \u2014 repair requests, not buyer budget</td></tr>
+${toSeller.map((x) => `<tr class="seller"><td>${esc(x.item)}</td><td class="src">${esc(x.source)}</td><td class="n" colspan="2">seller</td></tr>`).join('')}` : ''}
+</tbody></table>
+<p class="fine">Figures are planning estimates prepared by ${esc(RPT_M.name)}. They are not bids, quotes, or the inspector\u2019s opinion \u2014 lines marked contractor bid carry the bid\u2019s own figure. Get contractor numbers on the largest lines before you commit.</p>
+</section>` : ''}
+
+${(S.not_defect || []).length ? `<section class="calm"><h2>${S.not_defect.length === 1 ? 'One thing' : 'Two things'} to ask about, which ${S.not_defect.length === 1 ? 'is' : 'are'} not a defect</h2>
+${S.not_defect.map((x) => `<h3>${esc(x.title)}</h3><p>${esc(x.body)} ${cite(x.source)}</p>`).join('')}
+</section>` : ''}
+
+<section class="uninspected"><h2>What was not inspected</h2>
+${(S.not_inspected || []).length
+    ? `<ul>${S.not_inspected.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`
+    : '<p>The reports in this package do not name any area as not entered, tested or scoped. That is worth confirming with the inspector rather than assuming.</p>'}
+</section>
+
+${R ? `<section class="offer"><h2>What this means for your offer</h2>
+<table><thead><tr><th>Offer</th><th class="n">Per sq ft</th>${asking ? '<th class="n">Of asking</th>' : ''}<th class="n">All-in with ${m(work)} of work</th><th>How to read it</th></tr></thead><tbody>
+${offerRows.map(([o, lab]) => `<tr><td class="n b">${m(o)}</td><td class="n">${sqft ? m(o / sqft) : '\u2014'}</td>${asking ? `<td class="n">${pct(o, asking)}</td>` : ''}<td class="n">${m(o + work)}</td><td>${esc(lab)}</td></tr>`).join('')}
+</tbody></table>
+<p class="fine">${R.agent ? 'The range is the one set on the CMA for this home.' : `The range is what the ${R.n} recorded comparable sales on the CMA imply per square foot, applied to this home\u2019s recorded area.`} All-in adds the midpoint of the open-items budget. Arithmetic on the CMA and the ledger, not an appraisal.</p>
+</section>` : ''}
+
+${(S.questions || []).length ? `<section class="qs"><h2>${S.questions.length === 1 ? 'One thing' : ['', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven'][S.questions.length] + ' things'} to ask in writing, before the offer date</h2>
+<table><thead><tr><th>Question</th><th>Why it matters</th></tr></thead><tbody>
+${S.questions.map((x) => `<tr><td>${esc(x.q)}</td><td>${esc(x.why)}</td></tr>`).join('')}
+</tbody></table></section>` : ''}
+
+${S.bottom_line ? `<section class="bottom"><h2>The bottom line</h2><p>${esc(S.bottom_line)}</p></section>` : ''}
+
+${d.agent_saw ? `<section class="saw"><h2>What I saw on site</h2><p>${esc(d.agent_saw)}</p>${d.agent_saw_on ? `<p class="fine">${esc(d.prepared_by || RPT_M.agent.name)}, ${esc(String(d.agent_saw_on))}</p>` : ''}</section>` : ''}
+
+${(S.file_facts || []).length ? `<section class="facts">${S.file_facts.map((x) => `<div><span>${esc(x.label)}</span><b>${esc(x.value)}</b></div>`).join('')}</section>` : ''}
+
+<footer class="src"><p>Prepared from the seller\u2019s disclosure package for ${esc(d.address)}${pkg.compiled ? ', compiled ' + esc(String(pkg.compiled)) : ''}. Every finding names the document it came from. The property condition score is ${esc(RPT_M.name)}\u2019s own measure of physical condition relative to comparable housing; it is not a warranty and not an inspection. Cost figures are planning estimates, not bids or quotes. This sheet is a summary and is not a substitute for reading the full package or commissioning your own inspections. Not an appraisal, a construction estimate, legal advice or tax advice.</p>
+<p class="who">${foot}</p></footer>
+</main>`;
+
+  const title = d.address + ' \u2014 disclosure cheat sheet';
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>${esc(title)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>${cheatCss(foot)}</style></head><body>${body}</body></html>`;
+}
+
+function cheatCss(foot) {
+  return `
+:root{--cream:#faf7f1;--navy:#1a1f2e;--ink:#2a2f3c;--mute:#6b7180;--rule:#e3ddd0;--rust:#b0632a;--green:#3f7d4e;--amber:#c79a2e}
+*{box-sizing:border-box}
+html{background:#efeae0}
+body{margin:0;color:var(--ink);font:400 14px/1.6 Poppins,system-ui,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bar{position:sticky;top:0;z-index:5;background:var(--navy);color:#ece7db;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px}
+.bar .in{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px}
+.bar .draft{color:#f2c27a}
+.bar .acts{display:flex;gap:8px}
+.btn{font:600 13px/1 Poppins,sans-serif;border:0;border-radius:999px;padding:11px 18px;background:#d99a4e;color:var(--navy);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;min-height:42px}
+.btn.ghost{background:transparent;color:#ece7db;border:1px solid rgba(236,231,219,.3)}
+.doc{max-width:860px;margin:24px auto 60px;background:var(--cream);padding:48px 52px;box-shadow:0 2px 24px rgba(26,31,46,.08)}
+h1,h2,h3{font-family:Lora,Georgia,serif;color:var(--navy);margin:0}
+h1{font-size:34px;line-height:1.1;font-weight:700}
+h2{font-size:21px;margin:0 0 12px;font-weight:600}
+h2.eyebrow{font:600 11px/1.3 Poppins,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+h3{font-size:16px;margin:14px 0 4px;font-weight:600}
+section{margin:30px 0 0;break-inside:auto}
+.mast{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:2px solid var(--navy);padding-bottom:18px}
+.kick{font:600 10.5px/1.4 Poppins,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:8px 0 0}
+.px{text-align:right;min-width:170px}
+.px .k{font:600 10px/1.2 Poppins,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+.px .v{font:700 26px/1.1 Lora,serif;color:var(--navy)}
+.px .r{font:600 15px/1.3 Lora,serif;color:var(--rust)}
+.score{display:grid;grid-template-columns:auto auto 1fr;gap:26px;align-items:center;background:var(--navy);color:#ece7db;border-radius:10px;padding:22px 26px;break-inside:avoid}
+.score .num b{display:block;font:700 58px/1 Lora,serif;color:#fff}
+.score .num span{font:600 10px/1 Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+.score .band b{display:block;font:600 19px/1.2 Lora,serif;color:#fff}
+.score .band span{font-size:12.5px;opacity:.75}
+.track{position:relative;height:10px;border-radius:99px;background:linear-gradient(90deg,#b8452e,#d99a4e 45%,#e2c86a 65%,#5e9b63)}
+.track i{position:absolute;top:-5px;width:4px;height:20px;margin-left:-2px;background:#fff;border-radius:2px;box-shadow:0 0 0 2px var(--navy)}
+.lbl{display:flex;justify-content:space-between;font-size:10.5px;opacity:.7;margin-top:8px}
+.thesis p{font:500 16px/1.65 Lora,serif;color:var(--navy);margin:0}
+.money{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;break-inside:avoid}
+.money>div{border:1px solid var(--rule);border-radius:8px;padding:14px 16px;background:#fff}
+.money .all{background:var(--navy);color:#ece7db;border-color:var(--navy)}
+.money .k{font:600 10px/1.3 Poppins,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:var(--mute)}
+.money .all .k{color:rgba(236,231,219,.7)}
+.money .v{font:700 19px/1.25 Lora,serif;color:var(--navy);margin:6px 0 6px}
+.money .all .v{color:#fff}
+.money p{font-size:12px;line-height:1.5;margin:0;color:var(--mute)}
+.money .all p{color:rgba(236,231,219,.8)}
+.matter{border-left:3px solid var(--rust);padding:2px 0 2px 16px;margin:0 0 16px;break-inside:avoid}
+.matter h3 span{color:var(--rust)}
+.matter p{margin:6px 0}
+.matter .do{font-weight:500;color:var(--navy)}
+.cite{display:inline-block;font:500 10.5px/1.4 Poppins,sans-serif;color:var(--rust);background:rgba(176,99,42,.08);border-radius:4px;padding:1px 6px;margin-left:2px;white-space:normal}
+.strong ul{list-style:none;padding:0;margin:0}
+.strong li{padding:8px 0 8px 22px;border-bottom:1px solid var(--rule);position:relative;break-inside:avoid}
+.strong li:before{content:"";position:absolute;left:4px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font:600 10px/1.3 Poppins,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px 8px;border-bottom:2px solid var(--navy)}
+td{padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr{break-inside:avoid}
+.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.b{font-weight:600}
+td.src{color:var(--mute);font-size:11.5px}
+.bid{font-size:10px;color:var(--green);border:1px solid var(--green);border-radius:3px;padding:0 4px}
+.grp td{font:600 12.5px/1.4 Lora,serif;color:var(--navy);background:rgba(26,31,46,.05);padding-top:10px}
+.sub td{font-weight:600;border-bottom:2px solid var(--rule)}
+.tot td{font-weight:700;color:#fff;background:var(--navy)}
+.seller td{color:var(--mute)}
+.fine{font-size:11px;color:var(--mute);margin:10px 0 0}
+.calm{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:18px 20px;break-inside:avoid}
+.calm h3:first-of-type{margin-top:0}
+.uninspected{border:1px dashed var(--mute);border-radius:8px;padding:14px 18px;break-inside:avoid}
+.uninspected h2{font-size:17px}
+.uninspected ul{margin:0;padding-left:18px}
+.bottom{background:var(--navy);color:#ece7db;border-radius:10px;padding:20px 24px;break-inside:avoid}
+.bottom h2{color:#fff}
+.bottom p{margin:0;font:500 15px/1.65 Lora,serif}
+.saw{border-left:3px solid var(--green);padding-left:16px}
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:0 24px;font-size:12px;border-top:2px solid var(--navy);padding-top:10px}
+.facts div{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--rule)}
+.facts span{color:var(--mute);min-width:110px}
+footer.src{margin-top:26px;font-size:10.5px;color:var(--mute);line-height:1.55}
+footer .who{font-weight:600;color:var(--navy)}
+@media(max-width:700px){
+  .doc{margin:0;padding:26px 18px;box-shadow:none}
+  h1{font-size:26px}
+  .mast{flex-direction:column}.px{text-align:left}
+  .score{grid-template-columns:auto 1fr}.score .scale{grid-column:1/-1}
+  .money{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr}
+  table{display:block;overflow-x:auto}
+}
+@page{size:letter;margin:.55in .6in .7in;
+  @bottom-left{content:${JSON.stringify(String(foot).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'"))};font:9px Poppins,sans-serif;color:#6b7180}
+  @bottom-right{content:"Page " counter(page) " of " counter(pages);font:9px Poppins,sans-serif;color:#6b7180}}
+@media print{
+  html,body{background:#fff}
+  .noprint{display:none!important}
+  .doc{max-width:none;margin:0;padding:0;box-shadow:none;background:#fff}
+  body{font-size:11.5px}
+  h1{font-size:28px} section{margin-top:20px}
+  a{color:inherit;text-decoration:none}
+}`;
+}
+
+function rptCss() {
+  return `
+.rpt-page{max-width:880px;margin:0 auto;padding:36px 20px 90px}
+.rpt-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--apricot);margin-bottom:10px}
+.rpt-page h1{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.12;margin:0 0 8px}
+.rpt-sub{color:#5d6575;font-size:.95rem;margin-bottom:22px}
+.rpt-strip{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 26px}
+.rpt-chip{border:1px solid rgba(32,36,46,.14);border-radius:999px;padding:6px 14px;font-size:.82rem;background:#fff}
+.rpt-chip b{font-weight:600}
+.rpt-score{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:86px;height:86px;border-radius:50%;border:3px solid var(--apricot);background:#fff;font-family:'Playfair Display',serif}
+.rpt-score .v{font-size:1.7rem;line-height:1}
+.rpt-score .l{font-family:'JetBrains Mono',monospace;font-size:.44rem;letter-spacing:.14em;text-transform:uppercase;color:#5d6575;margin-top:3px}
+.rpt-risk{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:5px 13px}
+.rpt-risk.low{background:rgba(63,125,78,.1);color:#3f7d4e}
+.rpt-risk.moderate{background:rgba(176,125,36,.12);color:#8a6015}
+.rpt-risk.elevated{background:rgba(168,67,31,.1);color:#a8431f}
+.rpt-head{display:flex;gap:22px;align-items:center;margin-bottom:26px;flex-wrap:wrap}
+.rpt-headline{font-size:1.06rem;line-height:1.55;font-weight:500;max-width:56ch}
+.rpt-sec{margin:34px 0 0}
+.rpt-sec h2{font-family:'Playfair Display',serif;font-size:1.28rem;margin:0 0 14px}
+.rpt-sec h2 em{color:var(--apricot);font-style:italic}
+.rpt-find{background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;padding:16px 18px;margin-bottom:11px}
+.rpt-find h3{font-size:.98rem;margin:0 0 6px}
+.rpt-find p{margin:0;font-size:.92rem;line-height:1.6;color:#3a3f4c}
+.rpt-src{display:block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#8a8f9c}
+.rpt-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;overflow:hidden;font-size:.88rem}
+.rpt-table th{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:#8a8f9c;text-align:left;padding:10px 14px;border-bottom:1px solid rgba(32,36,46,.1)}
+.rpt-table td{padding:10px 14px;border-bottom:1px solid rgba(32,36,46,.07);color:#3a3f4c}
+.rpt-table tr:last-child td{border-bottom:0}
+.rpt-table .num{text-align:right;white-space:nowrap}
+.rpt-table .subtotal td{font-weight:600;background:rgba(193,84,40,.05)}
+.rpt-basis{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#8a8f9c}
+.rpt-q{background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;padding:6px 18px}
+.rpt-q li{margin:11px 0;font-size:.92rem;line-height:1.55;color:#3a3f4c}
+.rpt-bottom{background:var(--chrome,#12151d);color:#ece7db;border-radius:14px;padding:24px 26px;margin-top:36px}
+.rpt-bottom h2{font-family:'Playfair Display',serif;font-size:1.25rem;margin:0 0 10px;color:#fff}
+.rpt-bottom p{margin:0;line-height:1.65;font-size:.95rem;color:#c6cbd6}
+.rpt-cross{display:inline-block;margin-top:26px;background:var(--apricot);color:#fff;border-radius:11px;padding:13px 22px;font-weight:600;text-decoration:none}
+.rpt-cross.ghost{background:transparent;border:1.5px solid var(--apricot);color:var(--apricot);margin-left:10px}
+.rpt-meta{margin-top:34px;padding-top:18px;border-top:1px solid rgba(32,36,46,.12);font-size:.74rem;color:#8a8f9c;line-height:1.7}
+.rpt-scatter{background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;padding:14px;margin-top:10px}
+.rpt-scatter text{font-family:'JetBrains Mono',monospace;font-size:9px;fill:#8a8f9c}
+@media print{
+  header,footer,.rpt-cross,.site-header,.site-footer,nav{display:none !important}
+  body{background:#fff}
+  .rpt-page{padding:0;max-width:none}
+  .rpt-find,.rpt-table,.rpt-q{break-inside:avoid;border-color:#ccc}
+  .rpt-bottom{background:#fff;color:#111;border:2px solid #111}
+  .rpt-bottom h2{color:#111}.rpt-bottom p{color:#333}
+}`;
+}
+
+async function rptRpc(fn, body) {
+  try {
+    const r = await fetch('https://qinuukntpyulqjzndnho.supabase.co/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: { 'apikey': RPT_KEY, 'Authorization': 'Bearer ' + RPT_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+function rptMoney(n) {
+  if (n == null || n === '' || isNaN(Number(n))) return '\u2014';
+  return '$' + Number(n).toLocaleString('en-US');
+}
+
+function cmaRange(comps, sqft, agentLo, agentHi, implied) {
+  /* The range comes from the database's cma_implied_range — the one rule the
+     composer and the cheat sheet read too: each sale adjusted to this home's
+     size at half its own $/sf. The same arithmetic runs here only if a page
+     arrives without it, so the two can only agree. */
+  let impliedLo = null, impliedHi = null, n = 0;
+  if (implied && Number(implied.n) > 0) {
+    impliedLo = Number(implied.lo); impliedHi = Number(implied.hi); n = Number(implied.n);
+  } else {
+    const adj = (Array.isArray(comps) ? comps : [])
+      .filter((x) => x && Number(x.soldPrice) > 0 && Number(x.sqft) > 100 && Number(sqft) > 100)
+      .map((x) => Number(x.soldPrice) + (Number(sqft) - Number(x.sqft)) * (Number(x.soldPrice) / Number(x.sqft)) * 0.5);
+    if (adj.length) {
+      impliedLo = Math.round(Math.min(...adj) / 1000) * 1000;
+      impliedHi = Math.round(Math.max(...adj) / 1000) * 1000;
+      n = adj.length;
+    }
+  }
+  return { impliedLo, impliedHi, lo: agentLo || impliedLo, hi: agentHi || impliedHi,
+           agent: !!(agentLo && agentHi), n };
+}
+
+
+/* ---------------------------------------------------------------------------
+   LISTING REPORTS SECTION - the City Markets listing 'lead magnet', ported (Tim, 26 Sep 2026).
+   Every listing gets it: when a CMA / disclosure review is published for this unit (on the city
+   platform, market 5, where the desk publishes), the preview + email gate that opens it and emails
+   the links; otherwise the same section asks the buyer to request them.
+   Only a listing WITH a unit is looked up: the city matcher treats a unit-less address as the
+   whole building, and a review of #607 must never appear on another unit.
+   ------------------------------------------------------------------------- */
+const LM_CSS = ".lm{background:#161a24;color:#ece7db;padding:72px 0 80px;position:relative;overflow:hidden;scroll-margin-top:60px}\n.lm:before{content:\"\";position:absolute;inset:0;background:radial-gradient(900px 480px at 20% 110%,rgba(232,93,42,.16),transparent 60%),radial-gradient(700px 380px at 90% -10%,rgba(232,93,42,.12),transparent 60%);pointer-events:none}\n.lm:after{content:\"\";position:absolute;inset:0;pointer-events:none;opacity:var(--glow,0);transition:opacity .5s ease;\n  background:radial-gradient(520px circle at var(--mx,80%) var(--my,10%),rgba(232,93,42,.16),rgba(232,93,42,.05) 40%,transparent 70%)}\n.lm .wrap{position:relative;z-index:1}\n.lm-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e85d2a}\n.lm h2{font-family:'Playfair Display',serif;font-size:clamp(2rem,4.2vw,3.1rem);line-height:1.08;color:#fff;margin:12px 0 12px;max-width:20ch}\n.lm h2 em{color:#e85d2a}\n.lm-sub{font-size:1.02rem;line-height:1.6;color:rgba(236,231,219,.78);max-width:62ch;margin:0}\n.lm-stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:56px;margin-top:40px;align-items:center}\n/* the document, in miniature */\n.lm-vis{position:relative;min-height:480px;display:flex;align-items:center;justify-content:center}\n.pp{position:relative;width:min(420px,100%);background:#fbf8f2;color:#1a1f2e;border-radius:14px;padding:22px 22px 0;margin:0;\n  box-shadow:0 30px 70px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.6) inset;overflow:hidden;height:460px;\n  transform:perspective(1000px) rotate(var(--rot,0deg)) translate(var(--tx,0px),var(--ty,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--lift,0px));\n  transition:transform .35s cubic-bezier(.2,.7,.2,1);will-change:transform}\n.pp:before{content:\"\";position:absolute;inset:0;pointer-events:none;opacity:var(--shine,0);transition:opacity .35s ease;\n  background:radial-gradient(360px circle at var(--cx,50%) var(--cy,50%),rgba(255,255,255,.6),transparent 55%);mix-blend-mode:soft-light;z-index:2}\n.lm-vis .pp-cma{--rot:-2.5deg;z-index:2}\n.lm-vis.two .pp-cma{--tx:-26px;--ty:14px}\n.lm-vis .pp-disc{--rot:3deg;z-index:1}\n.lm-vis.two .pp-disc{position:absolute;--tx:46px;--ty:-18px;opacity:.97}\n.lm-vis:not(.two) .pp-disc{--rot:-2.5deg}\n.pp-head{display:flex;justify-content:space-between;align-items:center;gap:10px}\n.pp-kind{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#b0632a}\n.pp-ok{font-size:11px;font-weight:700;color:#2f7a4f;background:rgba(47,122,79,.12);border-radius:999px;padding:4px 9px;white-space:nowrap}\n.pp-addr{font-family:'Playfair Display',serif;font-size:1.55rem;line-height:1.15;margin:12px 0 4px}\n.pp-by{font-size:12px;color:#6b7180}\n.pp-photo{height:132px;border-radius:10px;margin:14px 0 0;background:#e9e3d6 center/cover no-repeat}\n.pp-veil{padding:16px 0 30px;filter:blur(3.6px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent);user-select:none}\n.pp-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8f9a;margin-bottom:8px}\n.pp-range{display:flex;align-items:center;gap:8px;margin-bottom:14px}\n.pp-range i{height:22px;flex:1;border-radius:6px;background:#1a1f2e}\n.pp-range b{width:18px;height:3px;background:#b0632a}\n.pp-chart{width:100%;height:62px;margin-bottom:12px}\n.pp-chart rect{fill:#d9a441}\n.pp-chart rect:nth-child(4){fill:#b0632a}\n.pp-row{display:flex;gap:10px;align-items:center;margin:9px 0}\n.pp-row i{display:block;height:10px;border-radius:5px;background:#cfc7b8}\n.pp-row b{display:block;width:62px;height:10px;border-radius:5px;background:#1a1f2e;margin-left:auto}\n.pp-score{display:flex;gap:14px;align-items:center;margin:4px 0 14px}\n.pp-score svg{width:64px;height:64px;flex:0 0 64px}\n.pp-score circle{fill:none;stroke:#e5dfd2;stroke-width:7}\n.pp-score circle.arc{stroke:#2f7a4f;stroke-dasharray:130 164;transform:rotate(-90deg);transform-origin:center;stroke-linecap:round}\n.pp-score > div{flex:1}\n.pp-led{display:flex;gap:9px;align-items:center;margin:10px 0}\n.pp-led i{height:10px;border-radius:5px;background:#cfc7b8;flex:0 0 auto}\n.pp-led b{width:54px;height:10px;border-radius:5px;background:#1a1f2e;margin-left:auto}\n.pp-tag{font-size:9px;font-weight:700;border-radius:5px;padding:3px 6px;white-space:nowrap}\n.pp-tag.saf{background:rgba(176,99,42,.16);color:#b0632a}.pp-tag.fut{background:rgba(217,164,65,.2);color:#8a6310}.pp-tag.ele{background:rgba(47,122,79,.14);color:#2f7a4f}\n.pp-lock{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;white-space:nowrap;\n  background:#1a1f2e;color:#fff;font-size:13px;font-weight:600;border-radius:999px;padding:10px 16px;box-shadow:0 12px 30px rgba(0,0,0,.4)}\n.pp-lock svg{width:16px;height:16px;fill:none;stroke:#e85d2a;stroke-width:2;stroke-linecap:round}\n/* the ask */\n.lm-inside{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px}\n.lm-inside li{position:relative;padding-left:26px;font-size:.98rem;line-height:1.5;color:rgba(236,231,219,.88)}\n.lm-inside li:before{content:\"\\2713\";position:absolute;left:0;top:0;color:#e85d2a;font-weight:700}\n.lm-gate{background:#faf7f1;color:#20242e;border-radius:18px;padding:22px 24px;box-shadow:0 24px 60px rgba(0,0,0,.3)}\n.lm-gate-copy{font-size:1rem;margin-bottom:12px}\n.lm-gate-copy b{font-family:'Playfair Display',serif;font-size:1.25rem;margin-right:6px}\n.lm-form .rpt-in{font-size:16px;padding:15px 16px;border-radius:12px}\n.lm-form .rpt-btn{font-size:16px;padding:15px 24px;border-radius:12px;transition:transform .2s ease,box-shadow .2s ease}\n.lm-form .rpt-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(193,84,40,.35)}\n.lm .rpt-note{color:#6b7180;margin-top:10px}\n.lm-agent{display:grid;grid-template-columns:56px 1fr;column-gap:14px;align-items:center;margin-top:16px;padding:14px 16px;border-radius:16px;\n  background:rgba(255,255,255,.05);border:1px solid rgba(236,231,219,.14)}\n.lm-agent img,.lm-mono{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(232,93,42,.6)}\n.lm-mono{display:flex;align-items:center;justify-content:center;background:#2a3040;font-family:'Playfair Display',serif;font-size:1.2rem;color:#e85d2a}\n.lm-by{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,231,219,.55)}\n.lm-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff}\n.lm-title{font-size:.8rem;color:#e85d2a}\n.lm-stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}\n.lm-stats div{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 4px;text-align:center}\n.lm-stats b{display:block;font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff}\n.lm-stats span{font-size:9.5px;color:rgba(236,231,219,.62);text-transform:uppercase;letter-spacing:.06em}\n@media(max-width:900px){.lm-stage{grid-template-columns:1fr;gap:28px}.lm-vis{min-height:400px}.pp{height:400px}}\n/* PHONE: the preview on top, the ask right under it, the agent last. */\n@media(max-width:600px){\n  .lm{padding:22px 0 26px}\n  .lm-eyebrow{font-size:9.5px;letter-spacing:.12em}\n  .lm h2{font-size:1.5rem;line-height:1.12;margin:6px 0 0;max-width:none}\n  .lm-sub,.lm-inside{display:none}\n  .lm-stage{margin-top:14px;gap:12px}\n  .lm-vis{min-height:0;height:232px;align-items:flex-start;overflow:visible}\n  .pp{height:232px;padding:14px 15px 0;border-radius:12px;width:calc(100% - 26px)}\n  .lm-vis .pp-cma{--rot:-1.5deg}\n  .lm-vis.two .pp-cma{--tx:-10px;--ty:6px}\n  .lm-vis.two .pp-disc{--tx:18px;--ty:-6px;--rot:2.5deg}\n  .pp-addr{font-size:1.15rem;margin:8px 0 2px}\n  .pp-by{font-size:10.5px}\n  .pp-photo{height:62px;margin-top:9px}\n  .pp-veil{padding-top:10px}\n  .pp-chart{height:40px}\n  .pp-lock{bottom:14px;font-size:11.5px;padding:8px 12px}\n  .lm-gate{padding:13px;border-radius:14px}\n  .lm-gate-copy{font-size:.82rem;margin-bottom:8px}\n  .lm-gate-copy b{font-size:1.02rem}\n  .lm-form{flex-direction:column;gap:7px}\n  .lm-form .rpt-in{width:100%;min-width:0;padding:12px 13px}\n  .lm-form .rpt-btn{width:100%;font-size:15px;padding:13px 16px}\n  .lm .rpt-note{margin-top:6px;font-size:11px}\n  .lm-agent{grid-template-columns:44px 1fr;padding:10px 12px;margin-top:10px}\n  .lm-agent img,.lm-mono{width:44px;height:44px;font-size:1rem}\n  .lm-stats{gap:6px;margin-top:9px}\n  .lm-stats b{font-size:.95rem}\n  .lm-stats span{font-size:8px}\n}\n@media (prefers-reduced-motion: reduce){.lm:after{display:none}.pp{transition:none}}\n.rpt-grid{display:grid;grid-template-columns:300px minmax(0,640px);gap:40px;align-items:start}\n.rpt-grid--solo{grid-template-columns:minmax(0,640px)}\n@media(max-width:840px){.rpt-grid{grid-template-columns:1fr}.rpt-agent{max-width:240px}}\n.rpt-agent img{width:100%;height:auto;border-radius:18px;border:1px solid rgba(32,36,46,.13);box-shadow:0 10px 30px rgba(18,21,29,.10);display:block}\n.rpt-agent-cap{font-size:13px;line-height:1.55;color:rgba(32,36,46,.62);margin-top:12px}\n.rpt-section .rpt-card{background:#fff;border:1px solid rgba(32,36,46,.13);border-radius:14px;padding:24px}\n.rpt-list li{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}\n.rpt-list{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14.5px}\n.rpt-risk{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;\n  background:rgba(193,84,40,.08);color:#c15428;border-radius:999px;padding:2px 9px;margin-left:6px}\n.rpt-form{display:flex;gap:8px;flex-wrap:wrap}\n.rpt-in{flex:1;min-width:200px;border:1px solid rgba(32,36,46,.16);border-radius:10px;padding:11px 13px;font:inherit;font-size:14.5px}\n.rpt-in:focus{outline:none;border-color:#c15428}\n.rpt-btn{appearance:none;background:#c15428;color:#fff;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}\n.rpt-btn[disabled]{opacity:.5}\n.rpt-note{font-size:12px;color:rgba(32,36,46,.45);margin-top:10px}\n.rpt-out{margin-top:14px;font-size:14.5px}\n.rpt-out a{display:block;color:#c15428;font-weight:600;text-decoration:none;margin-top:6px}\n.rpt-unlocked{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}\n@media(max-width:700px){.rpt-unlocked{grid-template-columns:1fr}}\n.rpt-doc{display:block;background:#fff;border:1.5px solid #c15428;border-radius:14px;padding:18px 18px 16px;\n  text-decoration:none;color:inherit;box-shadow:0 12px 32px rgba(193,84,40,.16);\n  animation:rptPop .45s cubic-bezier(.2,.9,.3,1.2) both;transition:transform .15s,box-shadow .15s}\n.rpt-doc:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(193,84,40,.24)}\n.rpt-doc-k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;\n  color:#c15428;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}\n.rpt-doc p{font-size:13.5px;line-height:1.55;color:rgba(32,36,46,.78);margin:0 0 10px;\n  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}\n.rpt-score{font-size:12.5px;color:rgba(32,36,46,.6);margin-bottom:10px}\n.rpt-open{font-weight:700;font-size:14px;color:#c15428}\n@keyframes rptPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}\n.rpt-modal-veil{position:fixed;inset:0;background:rgba(18,21,29,.55);backdrop-filter:blur(3px);z-index:220;\n  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s}\n.rpt-modal-veil.on{opacity:1}\n.rpt-modal{position:relative;background:#faf7f2;border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow:auto;\n  padding:30px 30px 24px;box-shadow:0 30px 80px rgba(18,21,29,.4);transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.2,.9,.3,1.15)}\n.rpt-modal-veil.on .rpt-modal{transform:none}\n.rpt-m-x{position:absolute;top:12px;right:14px;appearance:none;background:none;border:0;font-size:26px;line-height:1;\n  color:rgba(32,36,46,.45);cursor:pointer;padding:6px}\n.rpt-m-k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#c15428}\n.rpt-m-h{font-family:'Playfair Display',serif;font-size:1.7rem;margin:6px 0 18px;color:#20242e}\n.rpt-m-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}\n@media(max-width:600px){.rpt-m-btns{grid-template-columns:1fr}}\n.rpt-m-btn{display:block;background:#c15428;border-radius:12px;padding:15px 16px;text-decoration:none;\n  box-shadow:0 10px 24px rgba(193,84,40,.3);transition:transform .15s,box-shadow .15s}\n.rpt-m-btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(193,84,40,.38)}\n.rpt-m-big{display:block;color:#fff;font-weight:700;font-size:15.5px}\n.rpt-m-small{display:block;color:rgba(255,255,255,.82);font-size:12px;margin-top:4px}\n.rpt-m-how{background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;padding:16px 18px}\n.rpt-m-how ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}\n.rpt-m-how li{font-size:13.5px;line-height:1.55;color:rgba(32,36,46,.8)}\n.rpt-m-note{font-size:12px;color:rgba(32,36,46,.5);margin:14px 0 0}/* condo: the preview's small labels, deepened for contrast (same hues) */\n.pp .pp-kind{color:#8a4a1f}.pp .pp-ok{color:#245f3d}.pp .pp-lbl{color:#5d6575}\n.pp .pp-tag.saf{color:#8a3f12}.pp .pp-tag.fut{color:#6b4d0b}.pp .pp-tag.ele{color:#245f3d}\n.lm-title{color:#f28c63}\n";
+const LM_M = { id: 5, name: 'Condo Market SF', city: 'San Francisco', agent: { name: 'Tim McMullen', first: 'Tim', dre: '02016832', reviewImg: null } };
+async function listingReportsSection(l) {
+  const M = LM_M, KEY = RPT_KEY;
+  if (!l.unit && String(l.address_raw || '').indexOf('#') === -1) return await listingRequestSection(l);
+  let reportsBlock = '';
+  // Surfaced in the title, description and schema below: this is the one thing
+  // a portal cannot copy. A buyer searching an address sees Zillow, Redfin and
+  // us; the snippet has to say why we are different before they click.
+  let hasD = false, hasC = false, reviewRisk = null;
+  try {
+    const rr = await fetch('https://qinuukntpyulqjzndnho.supabase.co/rest/v1/rpc/ai_reports_for_property',
+      { method: 'POST', headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_market_id: M.id, p_address: l.address_norm || l.address_raw }) });
+    const reports = rr.ok ? await rr.json() : [];
+    const real = Array.isArray(reports) ? reports.filter(x => x && x.kind === 'disclosure_review') : [];
+    if (real.length) {
+      hasD = real.some(x => x.kind === 'disclosure_review');
+      hasC = real.some(x => x.kind === 'cma');
+      reviewRisk = (real.find(x => x.kind === 'disclosure_review') || {}).risk_level || null;
+      const what = hasD && hasC ? 'the disclosure cheat sheet and the CMA'
+                 : hasD ? 'the disclosure cheat sheet' : 'the comparative market analysis';
+      const items = real.map(x =>
+        '<li><b>' + (x.kind === 'cma' ? 'Comparative Market Analysis' : 'Disclosure Cheat Sheet') + '</b>' +
+        (x.headline ? ' — ' + esc(x.headline) : '') +
+        (x.risk_level ? ' <span class="rpt-risk">' + esc(x.risk_level) + '</span>' : '') + '</li>').join('');
+      /* THE LEAD MAGNET (Tim, 24 Sep 2026). Says exactly which reports are
+         finished for this home — a visitor should know what they are about to
+         receive — and who prepared them, from the agent's own signature on the
+         desk (name, title with DRE, photo, the stats they chose). Nothing here
+         is invented: an agent with no stats shows none. */
+      const card = await rptRpc('market_agent_card', { p_market_id: M.id });
+      const A = (card && card.ok) ? card : { name: M.agent.name, dre: M.agent.dre, stats: [] };
+      const aName = A.name || M.agent.name;
+      const aTitle = A.title || (A.dre ? 'DRE #' + A.dre : '');
+      const aPhoto = A.photo || M.agent.reviewImg || null;
+      const aStats = (Array.isArray(A.stats) ? A.stats : []).filter(s => s && s.value && s.label).slice(0, 4);
+      const aFirst = String(aName).split(' ')[0];
+      const cmaRow = real.find(x => x.kind === 'cma');
+      const dRow = real.find(x => x.kind === 'disclosure_review');
+      const both = !!(cmaRow && dRow);
+      const initials = esc(String(aName).split(' ').map(w => w[0]).join('').slice(0, 2));
+      const pvPhoto = (Array.isArray(l.photos) && l.photos[0]) || l.rehosted_url || '';
+      const pvAddr = esc(String(l.address_raw || '').split(',')[0]);
+      const pvBy = 'Prepared by ' + esc(aName) + (A.dre ? ' \u00b7 DRE #' + esc(A.dre) : '');
+      /* THE PREVIEW. A miniature of the document the visitor is asking for —
+         crisp where the facts are already public (the document, the address,
+         the listing photo, the preparer), blurred below. The blurred half holds
+         NO figures at all, only the document's shapes: blur is not a lock, and
+         anything in this markup can be read in the page source. The numbers are
+         released by get_report_access, after the email. */
+      const bars = [34, 52, 41, 63, 47, 58, 38];
+      const cmaPaper = cmaRow ? `
+      <figure class="pp pp-cma" aria-hidden="true">
+        <div class="pp-head"><span class="pp-kind">Comparative Market Analysis</span><span class="pp-ok">\u2713 Completed</span></div>
+        <div class="pp-addr">${pvAddr}</div>
+        <div class="pp-by">${pvBy}</div>
+        ${pvPhoto ? `<div class="pp-photo" style="background-image:url('${esc(pvPhoto)}')"></div>` : ''}
+        <div class="pp-veil">
+          <div class="pp-lbl">What the recorded sales imply</div>
+          <div class="pp-range"><i></i><b></b><i></i></div>
+          <svg class="pp-chart" viewBox="0 0 210 70" preserveAspectRatio="none">${bars.map((h, n) =>
+            `<rect x="${n * 30 + 4}" y="${70 - h}" width="20" height="${h}" rx="3"></rect>`).join('')}</svg>
+          ${[78, 64, 71, 58].map(w => `<div class="pp-row"><i style="width:${w}%"></i><b></b></div>`).join('')}
+        </div>
+      </figure>` : '';
+      const dPaper = dRow ? `
+      <figure class="pp pp-disc" aria-hidden="true">
+        <div class="pp-head"><span class="pp-kind">Disclosure Review</span><span class="pp-ok">\u2713 Completed</span></div>
+        <div class="pp-addr">${pvAddr}</div>
+        <div class="pp-by">${pvBy}</div>
+        <div class="pp-veil">
+          <div class="pp-score"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26"></circle><circle class="arc" cx="32" cy="32" r="26"></circle></svg>
+            <div><div class="pp-lbl">Condition score</div><div class="pp-row"><i style="width:70%"></i></div></div></div>
+          ${[['Safety', 'saf', 72], ['Known future', 'fut', 60], ['Known future', 'fut', 66], ['Elective', 'ele', 54], ['Elective', 'ele', 62]].map(r =>
+            `<div class="pp-led"><span class="pp-tag ${r[1]}">${r[0]}</span><i style="width:${r[2]}%"></i><b></b></div>`).join('')}
+        </div>
+      </figure>` : '';
+      const heading = both ? `A CMA and a disclosure review, <em>done for this home.</em>`
+        : cmaRow ? `An agent\u2019s CMA, <em>done for this home.</em>`
+        : `The disclosure package, <em>read for this home.</em>`;
+      const btnLabel = both ? 'Send me both' : cmaRow ? 'Send me the CMA' : 'Send me the review';
+      const inside = [
+        ...(cmaRow ? ['Recorded sales near this home, chosen one by one by ' + esc(aFirst) + ' \u2014 not an automated estimate',
+                      'The range those sales imply, beside the asking price, with every comparable on a map'] : []),
+        ...(dRow ? ['A condition score and a repair budget: what to fix first, what can wait',
+                    'Every finding tied to the report and page it came from'] : [])];
+      reportsBlock = `
+<section class="lm" id="reviewed"><div class="wrap">
+  <div class="lm-head">
+    <span class="lm-eyebrow">Prepared for ${esc(l.address_raw || 'this home')} \u00b7 free</span>
+    <h2>${heading}</h2>
+    <p class="lm-sub">${both ? 'Two documents' : 'A document'} most buyers never get to see before they write an offer \u2014 prepared by a licensed agent for this address, not generated for every listing on the internet.</p>
+  </div>
+  <div class="lm-stage">
+    <div class="lm-vis${both ? ' two' : ''}">
+      ${dPaper}${cmaPaper}
+      <div class="pp-lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+        The full ${both ? 'documents unlock' : (cmaRow ? 'CMA unlocks' : 'review unlocks')} with your email</div>
+    </div>
+    <div class="lm-side">
+      <ul class="lm-inside">${inside.map(t => `<li>${t}</li>`).join('')}</ul>
+      <div class="lm-gate">
+        <div class="lm-gate-copy"><b>${both ? 'Get both, free.' : 'Get it free.'}</b> Opens on this screen the moment you enter your email \u2014 and a copy goes to your inbox.</div>
+        <div class="rpt-form lm-form" data-rpt>
+          <input type="email" class="rpt-in" data-rpt-email data-cta="gate:email_focus" placeholder="you@email.com" autocomplete="email" aria-label="Your email">
+          <button class="rpt-btn" data-rpt-go data-cta="gate:unlock_reports">${btnLabel} \u2192</button>
+        </div>
+        <p class="rpt-note">No call required.</p>
+        <div class="rpt-out" data-rpt-out hidden></div>
+      </div>
+      <div class="lm-agent">
+        ${aPhoto ? `<img src="${esc(aPhoto)}" alt="${esc(aName)}" width="56" height="56" loading="lazy">` : `<div class="lm-mono">${initials}</div>`}
+        <div class="lm-who"><div class="lm-by">Prepared by</div><div class="lm-name">${esc(aName)}</div>${aTitle ? `<div class="lm-title">${esc(aTitle)}</div>` : ''}</div>
+        ${aStats.length ? `<div class="lm-stats">${aStats.map(s => `<div><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>` : ''}
+      </div>
+    </div>
+  </div>
+</div></section>
+<style>
+.lm{background:#161a24;color:#ece7db;padding:72px 0 80px;position:relative;overflow:hidden;scroll-margin-top:60px}
+.lm:before{content:"";position:absolute;inset:0;background:radial-gradient(900px 480px at 20% 110%,rgba(232,93,42,.16),transparent 60%),radial-gradient(700px 380px at 90% -10%,rgba(232,93,42,.12),transparent 60%);pointer-events:none}
+.lm:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:var(--glow,0);transition:opacity .5s ease;
+  background:radial-gradient(520px circle at var(--mx,80%) var(--my,10%),rgba(232,93,42,.16),rgba(232,93,42,.05) 40%,transparent 70%)}
+.lm .wrap{position:relative;z-index:1}
+.lm-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e85d2a}
+.lm h2{font-family:'Playfair Display',serif;font-size:clamp(2rem,4.2vw,3.1rem);line-height:1.08;color:#fff;margin:12px 0 12px;max-width:20ch}
+.lm h2 em{color:#e85d2a}
+.lm-sub{font-size:1.02rem;line-height:1.6;color:rgba(236,231,219,.78);max-width:62ch;margin:0}
+.lm-stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:56px;margin-top:40px;align-items:center}
+/* the document, in miniature */
+.lm-vis{position:relative;min-height:480px;display:flex;align-items:center;justify-content:center}
+.pp{position:relative;width:min(420px,100%);background:#fbf8f2;color:#1a1f2e;border-radius:14px;padding:22px 22px 0;margin:0;
+  box-shadow:0 30px 70px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.6) inset;overflow:hidden;height:460px;
+  transform:perspective(1000px) rotate(var(--rot,0deg)) translate(var(--tx,0px),var(--ty,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--lift,0px));
+  transition:transform .35s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.pp:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:var(--shine,0);transition:opacity .35s ease;
+  background:radial-gradient(360px circle at var(--cx,50%) var(--cy,50%),rgba(255,255,255,.6),transparent 55%);mix-blend-mode:soft-light;z-index:2}
+.lm-vis .pp-cma{--rot:-2.5deg;z-index:2}
+.lm-vis.two .pp-cma{--tx:-26px;--ty:14px}
+.lm-vis .pp-disc{--rot:3deg;z-index:1}
+.lm-vis.two .pp-disc{position:absolute;--tx:46px;--ty:-18px;opacity:.97}
+.lm-vis:not(.two) .pp-disc{--rot:-2.5deg}
+.pp-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pp-kind{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#b0632a}
+.pp-ok{font-size:11px;font-weight:700;color:#2f7a4f;background:rgba(47,122,79,.12);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.pp-addr{font-family:'Playfair Display',serif;font-size:1.55rem;line-height:1.15;margin:12px 0 4px}
+.pp-by{font-size:12px;color:#6b7180}
+.pp-photo{height:132px;border-radius:10px;margin:14px 0 0;background:#e9e3d6 center/cover no-repeat}
+.pp-veil{padding:16px 0 30px;filter:blur(3.6px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent);user-select:none}
+.pp-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8f9a;margin-bottom:8px}
+.pp-range{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.pp-range i{height:22px;flex:1;border-radius:6px;background:#1a1f2e}
+.pp-range b{width:18px;height:3px;background:#b0632a}
+.pp-chart{width:100%;height:62px;margin-bottom:12px}
+.pp-chart rect{fill:#d9a441}
+.pp-chart rect:nth-child(4){fill:#b0632a}
+.pp-row{display:flex;gap:10px;align-items:center;margin:9px 0}
+.pp-row i{display:block;height:10px;border-radius:5px;background:#cfc7b8}
+.pp-row b{display:block;width:62px;height:10px;border-radius:5px;background:#1a1f2e;margin-left:auto}
+.pp-score{display:flex;gap:14px;align-items:center;margin:4px 0 14px}
+.pp-score svg{width:64px;height:64px;flex:0 0 64px}
+.pp-score circle{fill:none;stroke:#e5dfd2;stroke-width:7}
+.pp-score circle.arc{stroke:#2f7a4f;stroke-dasharray:130 164;transform:rotate(-90deg);transform-origin:center;stroke-linecap:round}
+.pp-score > div{flex:1}
+.pp-led{display:flex;gap:9px;align-items:center;margin:10px 0}
+.pp-led i{height:10px;border-radius:5px;background:#cfc7b8;flex:0 0 auto}
+.pp-led b{width:54px;height:10px;border-radius:5px;background:#1a1f2e;margin-left:auto}
+.pp-tag{font-size:9px;font-weight:700;border-radius:5px;padding:3px 6px;white-space:nowrap}
+.pp-tag.saf{background:rgba(176,99,42,.16);color:#b0632a}.pp-tag.fut{background:rgba(217,164,65,.2);color:#8a6310}.pp-tag.ele{background:rgba(47,122,79,.14);color:#2f7a4f}
+.pp-lock{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;white-space:nowrap;
+  background:#1a1f2e;color:#fff;font-size:13px;font-weight:600;border-radius:999px;padding:10px 16px;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.pp-lock svg{width:16px;height:16px;fill:none;stroke:#e85d2a;stroke-width:2;stroke-linecap:round}
+/* the ask */
+.lm-inside{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px}
+.lm-inside li{position:relative;padding-left:26px;font-size:.98rem;line-height:1.5;color:rgba(236,231,219,.88)}
+.lm-inside li:before{content:"\\2713";position:absolute;left:0;top:0;color:#e85d2a;font-weight:700}
+.lm-gate{background:#faf7f1;color:#20242e;border-radius:18px;padding:22px 24px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.lm-gate-copy{font-size:1rem;margin-bottom:12px}
+.lm-gate-copy b{font-family:'Playfair Display',serif;font-size:1.25rem;margin-right:6px}
+.lm-form .rpt-in{font-size:16px;padding:15px 16px;border-radius:12px}
+.lm-form .rpt-btn{font-size:16px;padding:15px 24px;border-radius:12px;transition:transform .2s ease,box-shadow .2s ease}
+.lm-form .rpt-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(193,84,40,.35)}
+.lm .rpt-note{color:#6b7180;margin-top:10px}
+.lm-agent{display:grid;grid-template-columns:56px 1fr;column-gap:14px;align-items:center;margin-top:16px;padding:14px 16px;border-radius:16px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(236,231,219,.14)}
+.lm-agent img,.lm-mono{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(232,93,42,.6)}
+.lm-mono{display:flex;align-items:center;justify-content:center;background:#2a3040;font-family:'Playfair Display',serif;font-size:1.2rem;color:#e85d2a}
+.lm-by{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,231,219,.55)}
+.lm-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff}
+.lm-title{font-size:.8rem;color:#e85d2a}
+.lm-stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.lm-stats div{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 4px;text-align:center}
+.lm-stats b{display:block;font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff}
+.lm-stats span{font-size:9.5px;color:rgba(236,231,219,.62);text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:900px){.lm-stage{grid-template-columns:1fr;gap:28px}.lm-vis{min-height:400px}.pp{height:400px}}
+/* PHONE: the preview on top, the ask right under it, the agent last. */
+@media(max-width:600px){
+  .lm{padding:22px 0 26px}
+  .lm-eyebrow{font-size:9.5px;letter-spacing:.12em}
+  .lm h2{font-size:1.5rem;line-height:1.12;margin:6px 0 0;max-width:none}
+  .lm-sub,.lm-inside{display:none}
+  .lm-stage{margin-top:14px;gap:12px}
+  .lm-vis{min-height:0;height:232px;align-items:flex-start;overflow:visible}
+  .pp{height:232px;padding:14px 15px 0;border-radius:12px;width:calc(100% - 26px)}
+  .lm-vis .pp-cma{--rot:-1.5deg}
+  .lm-vis.two .pp-cma{--tx:-10px;--ty:6px}
+  .lm-vis.two .pp-disc{--tx:18px;--ty:-6px;--rot:2.5deg}
+  .pp-addr{font-size:1.15rem;margin:8px 0 2px}
+  .pp-by{font-size:10.5px}
+  .pp-photo{height:62px;margin-top:9px}
+  .pp-veil{padding-top:10px}
+  .pp-chart{height:40px}
+  .pp-lock{bottom:14px;font-size:11.5px;padding:8px 12px}
+  .lm-gate{padding:13px;border-radius:14px}
+  .lm-gate-copy{font-size:.82rem;margin-bottom:8px}
+  .lm-gate-copy b{font-size:1.02rem}
+  .lm-form{flex-direction:column;gap:7px}
+  .lm-form .rpt-in{width:100%;min-width:0;padding:12px 13px}
+  .lm-form .rpt-btn{width:100%;font-size:15px;padding:13px 16px}
+  .lm .rpt-note{margin-top:6px;font-size:11px}
+  .lm-agent{grid-template-columns:44px 1fr;padding:10px 12px;margin-top:10px}
+  .lm-agent img,.lm-mono{width:44px;height:44px;font-size:1rem}
+  .lm-stats{gap:6px;margin-top:9px}
+  .lm-stats b{font-size:.95rem}
+  .lm-stats span{font-size:8px}
+}
+@media (prefers-reduced-motion: reduce){.lm:after{display:none}.pp{transition:none}}
+/* condo: small labels deepened for contrast (same hues) */
+.pp .pp-kind{color:#8a4a1f}.pp .pp-ok{color:#245f3d}.pp .pp-lbl{color:#5d6575}.pp .pp-tag.saf{color:#8a3f12}.pp .pp-tag.fut{color:#6b4d0b}.pp .pp-tag.ele{color:#245f3d}.lm-title{color:#f28c63}
+</style>
+<script>
+/* Pointer tracking for the lead magnet. A fine pointer only (no touch, where
+   a tilt would fight scrolling), and nothing for visitors who ask the system
+   to reduce motion. One requestAnimationFrame per move; no library. */
+(function(){
+  var sec = document.querySelector('.lm');
+  if (!sec || !window.matchMedia) return;
+  if (!matchMedia('(pointer: fine)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cards = [].slice.call(sec.querySelectorAll('.pp,.lm-agent'));
+  var raf = 0, ev = null;
+  function frame(){
+    raf = 0; if (!ev) return;
+    var r = sec.getBoundingClientRect();
+    sec.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
+    sec.style.setProperty('--my', (ev.clientY - r.top) + 'px');
+    cards.forEach(function(c){
+      var b = c.getBoundingClientRect();
+      var inside = ev.clientX >= b.left && ev.clientX <= b.right && ev.clientY >= b.top && ev.clientY <= b.bottom;
+      if (!inside) { c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); c.style.setProperty('--lift','0px');
+        c.style.setProperty('--shine','0'); c.classList.remove('is-tilt'); return; }
+      var px = (ev.clientX - b.left) / b.width, py = (ev.clientY - b.top) / b.height;
+      c.style.setProperty('--ry', ((px - .5) * 7).toFixed(2) + 'deg');
+      c.style.setProperty('--rx', ((.5 - py) * 6).toFixed(2) + 'deg');
+      c.style.setProperty('--lift', '-4px');
+      c.style.setProperty('--cx', (px * 100).toFixed(1) + '%');
+      c.style.setProperty('--cy', (py * 100).toFixed(1) + '%');
+      c.style.setProperty('--shine', '1');
+      c.classList.add('is-tilt');
+    });
+  }
+  sec.addEventListener('pointermove', function(e){ ev = e; sec.style.setProperty('--glow','1'); if (!raf) raf = requestAnimationFrame(frame); });
+  sec.addEventListener('pointerleave', function(){
+    ev = null; sec.style.setProperty('--glow','0');
+    cards.forEach(function(c){ ['--rx','--ry'].forEach(function(k){ c.style.setProperty(k,'0deg'); });
+      c.style.setProperty('--lift','0px'); c.style.setProperty('--shine','0'); c.classList.remove('is-tilt'); });
+  });
+})();
+</script>
+<style>
+.rpt-grid{display:grid;grid-template-columns:300px minmax(0,640px);gap:40px;align-items:start}
+.rpt-grid--solo{grid-template-columns:minmax(0,640px)}
+@media(max-width:840px){.rpt-grid{grid-template-columns:1fr}.rpt-agent{max-width:240px}}
+.rpt-agent img{width:100%;height:auto;border-radius:18px;border:1px solid rgba(32,36,46,.13);box-shadow:0 10px 30px rgba(18,21,29,.10);display:block}
+.rpt-agent-cap{font-size:13px;line-height:1.55;color:rgba(32,36,46,.62);margin-top:12px}
+.rpt-section .rpt-card{background:#fff;border:1px solid rgba(32,36,46,.13);border-radius:14px;padding:24px}
+.rpt-list li{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rpt-list{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.rpt-risk{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(193,84,40,.08);color:#c15428;border-radius:999px;padding:2px 9px;margin-left:6px}
+.rpt-form{display:flex;gap:8px;flex-wrap:wrap}
+.rpt-in{flex:1;min-width:200px;border:1px solid rgba(32,36,46,.16);border-radius:10px;padding:11px 13px;font:inherit;font-size:14.5px}
+.rpt-in:focus{outline:none;border-color:#c15428}
+.rpt-btn{appearance:none;background:#c15428;color:#fff;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+.rpt-btn[disabled]{opacity:.5}
+.rpt-note{font-size:12px;color:rgba(32,36,46,.45);margin-top:10px}
+.rpt-out{margin-top:14px;font-size:14.5px}
+.rpt-out a{display:block;color:#c15428;font-weight:600;text-decoration:none;margin-top:6px}
+.rpt-unlocked{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+@media(max-width:700px){.rpt-unlocked{grid-template-columns:1fr}}
+.rpt-doc{display:block;background:#fff;border:1.5px solid #c15428;border-radius:14px;padding:18px 18px 16px;
+  text-decoration:none;color:inherit;box-shadow:0 12px 32px rgba(193,84,40,.16);
+  animation:rptPop .45s cubic-bezier(.2,.9,.3,1.2) both;transition:transform .15s,box-shadow .15s}
+.rpt-doc:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(193,84,40,.24)}
+.rpt-doc-k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:#c15428;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.rpt-doc p{font-size:13.5px;line-height:1.55;color:rgba(32,36,46,.78);margin:0 0 10px;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.rpt-score{font-size:12.5px;color:rgba(32,36,46,.6);margin-bottom:10px}
+.rpt-open{font-weight:700;font-size:14px;color:#c15428}
+@keyframes rptPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+.rpt-modal-veil{position:fixed;inset:0;background:rgba(18,21,29,.55);backdrop-filter:blur(3px);z-index:220;
+  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s}
+.rpt-modal-veil.on{opacity:1}
+.rpt-modal{position:relative;background:#faf7f2;border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow:auto;
+  padding:30px 30px 24px;box-shadow:0 30px 80px rgba(18,21,29,.4);transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.2,.9,.3,1.15)}
+.rpt-modal-veil.on .rpt-modal{transform:none}
+.rpt-m-x{position:absolute;top:12px;right:14px;appearance:none;background:none;border:0;font-size:26px;line-height:1;
+  color:rgba(32,36,46,.45);cursor:pointer;padding:6px}
+.rpt-m-k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#c15428}
+.rpt-m-h{font-family:'Playfair Display',serif;font-size:1.7rem;margin:6px 0 18px;color:#20242e}
+.rpt-m-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+@media(max-width:600px){.rpt-m-btns{grid-template-columns:1fr}}
+.rpt-m-btn{display:block;background:#c15428;border-radius:12px;padding:15px 16px;text-decoration:none;
+  box-shadow:0 10px 24px rgba(193,84,40,.3);transition:transform .15s,box-shadow .15s}
+.rpt-m-btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(193,84,40,.38)}
+.rpt-m-big{display:block;color:#fff;font-weight:700;font-size:15.5px}
+.rpt-m-small{display:block;color:rgba(255,255,255,.82);font-size:12px;margin-top:4px}
+.rpt-m-how{background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;padding:16px 18px}
+.rpt-m-how ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rpt-m-how li{font-size:13.5px;line-height:1.55;color:rgba(32,36,46,.8)}
+.rpt-m-note{font-size:12px;color:rgba(32,36,46,.5);margin:14px 0 0}
+</style>
+<script>
+(function(){
+  var box=document.querySelector('[data-rpt]'); if(!box) return;
+  var input=document.querySelector('[data-rpt-email]'), btn=document.querySelector('[data-rpt-go]'),
+      out=document.querySelector('[data-rpt-out]');
+  function vid(){ try{return localStorage.getItem('cb_vid')||null;}catch(e){return null;} }
+  btn.addEventListener('click', function(){
+    var email=(input.value||'').trim();
+    if(!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){ input.style.borderColor='#a8431f'; return; }
+    btn.disabled=true; btn.textContent='One moment\u2026';
+    if(window.CBTrack) CBTrack.event('cta_click',{cta:'report_access',mls:'${l.mls_number}'});
+    try{ localStorage.setItem('cm_email', email); }catch(e){}
+    fetch('${SUPABASE_URL}/functions/v1/listing-report-request',{
+      method:'POST',
+      headers:{'apikey':'${SUPABASE_ANON_KEY}','Authorization':'Bearer ${SUPABASE_ANON_KEY}','Content-Type':'application/json'},
+      body:JSON.stringify({mode:'deliver',email:email,address:document.querySelector('[data-rpt]').getAttribute('data-addr'),mls:'${l.mls_number}',
+        building_slug:${JSON.stringify(l.building_slug || null)},building_name:${JSON.stringify(l.building_name || '')},unit_label:${JSON.stringify(l.unit || null)}})
+    }).then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok&&j.reports&&j.reports.length){
+        // The conversion itself. Without this the funnel ended at "popup shown".
+        try{ window.CBTrack && window.CBTrack.track
+          ? window.CBTrack.track('gate_unlocked',{docs:j.reports.length})
+          : fetch(SB+'/rest/v1/site_events',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify({event_name:'gate_unlocked',page_path:location.pathname,host:location.hostname,market_id:${M.id},meta:{docs:j.reports.length}})}); }catch(e){}
+        out.hidden=false;
+        function eshtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        out.innerHTML='<div class="rpt-unlocked">'+j.reports.map(function(x,i){
+          var isCma=x.kind==='cma';
+          var href=x.url;
+          var eyebrow=isCma?'Comparative Market Analysis':'Disclosure Cheat Sheet';
+          var badge=!isCma&&x.risk_level?'<span class="rpt-risk">'+eshtml(x.risk_level)+' risk</span>':'';
+          var lead=isCma
+            ? (x.n_comps?('<p>'+x.n_comps+' recorded sales, selected and adjusted to this exact home \u2014 beds, baths, and square footage accounted for.</p>'):'<p>Recorded comparable sales, selected and adjusted to this exact home.</p>')
+            : (x.headline?('<p>'+eshtml(x.headline)+'</p>'):'<p>Every finding sourced to the report it came from, with a repair budget.</p>');
+          var scoreLine=(!isCma&&x.score!=null)?'<div class="rpt-score">Condition score <b>'+x.score+'</b> / 100</div>':'';
+          return '<a class="rpt-doc" style="animation-delay:'+(i*120)+'ms" href="'+href+'">'+
+            '<div class="rpt-doc-k">'+eyebrow+badge+'</div>'+lead+scoreLine+
+            '<span class="rpt-open">Open it \u2192</span></a>';
+        }).join('')+'</div>';
+        box.hidden=true;
+        // Unlock modal: the moment of delivery + why these documents are different.
+        var mv=document.createElement('div');
+        mv.className='rpt-modal-veil';
+        var hasDisc=j.reports.some(function(x){return x.kind!=='cma';}), hasCma=j.reports.some(function(x){return x.kind==='cma';});
+        var docBtns=j.reports.map(function(x){
+          var isCma=x.kind==='cma';
+          var href=x.url;
+          var big=isCma?'Open the CMA':'Open the Disclosure Cheat Sheet';
+          var small=isCma
+            ? ((x.n_comps?x.n_comps+' recorded sales':'Recorded sales')+', adjusted to this exact home')
+            : ((x.risk_level?x.risk_level.charAt(0).toUpperCase()+x.risk_level.slice(1)+' risk':'Sourced findings')+(x.score!=null?' \u00b7 condition score '+x.score+'/100':''));
+          return '<a class="rpt-m-btn" href="'+href+'"><span class="rpt-m-big">'+big+' \u2192</span><span class="rpt-m-small">'+eshtml(small)+'</span></a>';
+        }).join('');
+        mv.innerHTML='<div class="rpt-modal" role="dialog" aria-label="Your documents">'+
+          '<button class="rpt-m-x" aria-label="Close">&times;</button>'+
+          '<div class="rpt-m-k">Unlocked</div>'+
+          '<h3 class="rpt-m-h">'+(j.reports.length>1?'Both documents are yours.':'It\u2019s yours.')+'</h3>'+
+          '<div class="rpt-m-btns">'+docBtns+'</div>'+
+          '<div class="rpt-m-how"><div class="rpt-m-k" style="margin-bottom:8px">How these were made</div>'+
+            '<ul>'+
+            /* Only what was delivered. A CMA alone is never described as a
+               disclosure review, and the CMA is described as what it is. */
+            (hasDisc?'<li><b>The disclosure package, reviewed.</b> ${M.agent.first} reviewed the seller\u2019s disclosure package for this home \u2014 inspections, pest, permits and the seller\u2019s own statements.</li>'+
+            '<li><b>Every finding names its source.</b> Each item on the cheat sheet cites the report and section it came from. Nothing unsourced gets published.</li>'+
+            '<li><b>A condition score and a repair budget.</b> The 0\u2013100 score summarizes the package; the budget is grouped by what needs doing first and what can wait.</li>':'')+
+            (hasCma?'<li><b>A CMA from recorded sales.</b> Each comparable is a closed sale chosen for this home, with the arithmetic shown \u2014 not an automated estimate, and not an appraisal.</li>':'')+
+            '</ul></div>'+
+          '<p class="rpt-m-note">These links stay on this page too \u2014 come back to them anytime.</p>'+
+        '</div>';
+        document.body.appendChild(mv);
+        requestAnimationFrame(function(){ mv.classList.add('on'); });
+        function closeModal(){ mv.classList.remove('on'); setTimeout(function(){ if(mv.parentNode) mv.parentNode.removeChild(mv); }, 250); }
+        mv.addEventListener('click', function(e){ if(e.target===mv) closeModal(); });
+        mv.querySelector('.rpt-m-x').addEventListener('click', closeModal);
+        document.addEventListener('keydown', function esc(e){ if(e.key==='Escape'){ closeModal(); document.removeEventListener('keydown', esc); } });
+        if(window.CBTrack) CBTrack.event('conversion',{kind:'report_access',mls:'${l.mls_number}'});
+      } else {
+        btn.disabled=false; btn.textContent='Try again';
+        out.hidden=false; out.textContent='That did not go through ('+((j&&j.error)||'error')+'). Please try again.';
+        // A gate that silently fails is worse than one that never existed.
+        try{ fetch(SB+'/rest/v1/site_events',{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify({event_name:'gate_failed',page_path:location.pathname,host:location.hostname,market_id:${M.id},meta:{reason:(j&&j.error)||'unknown'}})}); }catch(e){}
+      }
+    }).catch(function(){ btn.disabled=false; btn.textContent='Try again';
+      out.hidden=false; out.textContent='Network hiccup \u2014 please try again.'; });
+  });
+})();
+</script>`;
+      // the address the RPC will match on, attached as data so the inline JS
+      // never needs server-side string interpolation of free text
+      reportsBlock = reportsBlock.replace('data-rpt>', 'data-rpt data-addr="' + esc(l.address_norm || l.address_raw) + '">');
+    } else {
+      reportsBlock = await listingRequestSection(l);
+    }
+  } catch (e) { reportsBlock = ''; }
+  return reportsBlock;
+}
+
+async function listingRequestSection(l) {
+  const M = LM_M;
+  const card = await rptRpc('market_agent_card', { p_market_id: M.id });
+  const A = (card && card.ok) ? card : { name: M.agent.name, dre: M.agent.dre, stats: [] };
+  const aName = A.name || M.agent.name, aFirst = String(aName).split(' ')[0];
+  const aTitle = A.title || (A.dre ? 'DRE #' + A.dre : '');
+  const aPhoto = A.photo || null;
+  const aStats = (Array.isArray(A.stats) ? A.stats : []).filter(s => s && s.value && s.label).slice(0, 4);
+  const initials = esc(String(aName).split(' ').map(w => w[0]).join('').slice(0, 2));
+  const pvPhoto = (Array.isArray(l.photos) && l.photos[0]) || '';
+  const pvAddr = esc(String(l.address_raw || '').split(',')[0]);
+  const pvBy = 'Prepared by ' + esc(aName) + (A.dre ? ' \u00b7 DRE #' + esc(A.dre) : '');
+  const bars = [34, 52, 41, 63, 47, 58, 38];
+  const req = '<span class="pp-ok pp-req">On request</span>';
+  const cmaPaper = `
+      <figure class="pp pp-cma" aria-hidden="true">
+        <div class="pp-head"><span class="pp-kind">Comparative Market Analysis</span>${req}</div>
+        <div class="pp-addr">${pvAddr}</div><div class="pp-by">${pvBy}</div>
+        ${pvPhoto ? `<div class="pp-photo" style="background-image:url('${esc(pvPhoto)}')"></div>` : ''}
+        <div class="pp-veil"><div class="pp-lbl">What the recorded sales imply</div><div class="pp-range"><i></i><b></b><i></i></div>
+          <svg class="pp-chart" viewBox="0 0 210 70" preserveAspectRatio="none">${bars.map((h, n) => `<rect x="${n * 30 + 4}" y="${70 - h}" width="20" height="${h}" rx="3"></rect>`).join('')}</svg>
+          ${[78, 64, 71, 58].map(w => `<div class="pp-row"><i style="width:${w}%"></i><b></b></div>`).join('')}</div>
+      </figure>`;
+  const dPaper = `
+      <figure class="pp pp-disc" aria-hidden="true">
+        <div class="pp-head"><span class="pp-kind">Disclosure Review</span>${req}</div>
+        <div class="pp-addr">${pvAddr}</div><div class="pp-by">${pvBy}</div>
+        <div class="pp-veil"><div class="pp-score"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26"></circle><circle class="arc" cx="32" cy="32" r="26"></circle></svg>
+            <div><div class="pp-lbl">Condition score</div><div class="pp-row"><i style="width:70%"></i></div></div></div>
+          ${[['Safety', 'saf', 72], ['Known future', 'fut', 60], ['Elective', 'ele', 54], ['Elective', 'ele', 62]].map(r => `<div class="pp-led"><span class="pp-tag ${r[1]}">${r[0]}</span><i style="width:${r[2]}%"></i><b></b></div>`).join('')}</div>
+      </figure>`;
+  const inside = ['Recorded sales near this home, chosen one by one by ' + esc(aFirst) + ' \u2014 not an automated estimate',
+    'The range those sales imply, beside the asking price',
+    'The disclosure package read for you: a condition score and a repair budget \u2014 what to fix first, what can wait',
+    'For a condo, the HOA side too: dues, reserves, special assessments and litigation'];
+  const payload = { building_slug: l.building_slug || null, building_name: l.building_name || '', unit_label: l.unit || null, mls: l.mls_number || '', address: l.address_raw || '' };
+  return `
+<section class="lm lm--req" id="reviewed"><div class="wrap">
+  <div class="lm-head">
+    <span class="lm-eyebrow">For ${esc(l.address_raw || 'this home')} \u00b7 free</span>
+    <h2>A CMA and a disclosure review, <em>before you write.</em></h2>
+    <p class="lm-sub">Two documents most buyers never get to see before they make an offer \u2014 prepared by a licensed agent for this address, not generated for every listing on the internet. Ask, and ${esc(aFirst)} prepares them for this home.</p>
+  </div>
+  <div class="lm-stage">
+    <div class="lm-vis two">${dPaper}${cmaPaper}
+      <div class="pp-lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Prepared for this home on request</div>
+    </div>
+    <div class="lm-side">
+      <ul class="lm-inside">${inside.map(t => `<li>${t}</li>`).join('')}</ul>
+      <div class="lm-gate" data-req>
+        <div class="lm-gate-copy"><b>Request them, free.</b> Choose what you want and where to send it.</div>
+        <div class="lm-pick"><label><input type="checkbox" data-req-cma checked> The CMA</label><label><input type="checkbox" data-req-disc checked> The disclosure review</label></div>
+        <div class="rpt-form lm-form">
+          <input type="email" class="rpt-in" data-req-email placeholder="you@email.com" autocomplete="email" aria-label="Your email">
+          <button class="rpt-btn" data-req-go data-cta="listing:request_reports">Request them \u2192</button>
+        </div>
+        <p class="rpt-note">No call required. The disclosure review needs the seller\u2019s package from the listing agent \u2014 if it isn\u2019t released, you\u2019ll be told.</p>
+        <div class="rpt-out" data-req-out hidden></div>
+      </div>
+      <div class="lm-agent">
+        ${aPhoto ? `<img src="${esc(aPhoto)}" alt="${esc(aName)}" width="56" height="56" loading="lazy">` : `<div class="lm-mono">${initials}</div>`}
+        <div class="lm-who"><div class="lm-by">Prepared by</div><div class="lm-name">${esc(aName)}</div>${aTitle ? `<div class="lm-title">${esc(aTitle)}</div>` : ''}</div>
+        ${aStats.length ? `<div class="lm-stats">${aStats.map(s => `<div><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>` : ''}
+      </div>
+    </div>
+  </div>
+</div></section>
+<style>${LM_CSS}
+.pp-req{background:rgba(232,93,42,.14)!important;color:#9a360c!important}
+.lm-pick{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 12px;font-size:.92rem;color:#1a1f2e}
+.lm-pick label{display:flex;align-items:center;gap:7px;cursor:pointer}
+.lm-pick input{width:16px;height:16px;accent-color:#C2410C}
+</style>
+<script>
+(function(){
+  var box=document.querySelector('[data-req]'); if(!box) return;
+  var P=${JSON.stringify(payload).replace(/</g, '\\u003c')};
+  var input=box.querySelector('[data-req-email]'), btn=box.querySelector('[data-req-go]'), out=box.querySelector('[data-req-out]');
+  btn.addEventListener('click', function(){
+    var email=(input.value||'').trim(), c=box.querySelector('[data-req-cma]').checked, d=box.querySelector('[data-req-disc]').checked;
+    if(!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){ input.style.borderColor='#a8431f'; return; }
+    if(!c && !d){ out.hidden=false; out.textContent='Choose at least one document.'; return; }
+    btn.disabled=true; btn.textContent='One moment\\u2026';
+    if(window.cmTrack) try{ cmTrack('cta_click',{cta:'listing:request_reports',mls:P.mls}); }catch(e){}
+    fetch('${SUPABASE_URL}/functions/v1/listing-report-request',{method:'POST',
+      headers:{'apikey':'${SUPABASE_ANON_KEY}','Authorization':'Bearer ${SUPABASE_ANON_KEY}','Content-Type':'application/json'},
+      body:JSON.stringify(Object.assign({mode:'request',email:email,want_cma:c,want_disclosure:d},P))})
+    .then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok){
+        box.innerHTML='<div class="rpt-unlocked"><div class="rpt-doc" style="cursor:default"><div class="rpt-doc-k">Requested</div>'+
+          '<p>'+(c&&d?'Both documents are':'Your document is')+' on the way to <b>'+email.replace(/</g,'&lt;')+'</b>. A confirmation is in your inbox now.</p>'+
+          (d?'<p>The disclosure review follows once the listing agent releases the seller\\u2019s package.</p>':'')+'</div></div>';
+      } else { btn.disabled=false; btn.textContent='Try again'; out.hidden=false; out.textContent='That did not go through ('+((j&&j.error)||'error')+'). Please try again.'; }
+    }).catch(function(){ btn.disabled=false; btn.textContent='Try again'; out.hidden=false; out.textContent='Network hiccup \\u2014 please try again.'; });
+  });
+})();
+</script>`;
+}
+
+
 /* ---------------------------------------------------------------------------
    /listing/{mls}  - the City Markets listing page, for condos (26 Sep 2026).
    Same structure as the city /for-sale/ page, with the one thing condos add:
@@ -748,7 +1721,7 @@ function cityMortgageCalc(price) {
     + 'calc();})();</script>';
 }
 
-function renderListingCity(d, B, foot) {
+function renderListingCity(d, B, foot, reportsHtml) {
   const E = cityEsc;
   const money = (n) => (n == null ? '' : '$' + Math.round(n).toLocaleString('en-US'));
   const short = (n) => { if (n == null) return ''; if (n >= 1e6) return '$' + (n / 1e6).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') + 'M'; return '$' + Math.round(n / 1000) + 'K'; };
@@ -959,7 +1932,7 @@ function renderListingCity(d, B, foot) {
     '<span class="eyebrow"><span class="live-dot"></span>Active listing &middot; MLS# ' + E(mls) + ' &middot; Condo' + (unit ? ' &middot; Unit ' + E(unit) : '') + '</span>' +
     '</div></header>' +
     '<section class="pg" style="padding-top:6px"><div class="wrap">' + gallery + head + specband + '</div></section>' +
-    building + map + context + edge + mortgage + tour + exit;
+    building + (reportsHtml || '') + map + context + edge + mortgage + tour + exit;
 
   const leaflet = (lat != null && lng != null) ? '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">\n' : '';
   const ogImg = photos[0] || (bOurs && B.hero_image_url) || '';
@@ -2272,6 +3245,17 @@ async function handleRequest(request, env) {
    ───────────────────────────────────────────────────────────────────────── */
 
     // /active-listings → server-rendered market grid + map enhancement.
+    /* Disclosure reviews published on the city platform (the agent desk) open here; any other
+       token falls through to the condo platform's own viewer. */
+    if ((url.pathname === '/disclosure' || url.pathname === '/disclosure/') && url.searchParams.get('token')) {
+      const tk = url.searchParams.get('token').trim();
+      if (/^[A-Za-z0-9_-]{8,120}$/.test(tk)) {
+        let page = null;
+        try { page = await renderDisclosureSheet(tk); } catch (e) { page = null; }
+        if (page) return new Response(page, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, max-age=300', 'X-Robots-Tag': 'noindex' } });
+      }
+    }
+
     /* Off Market (City Markets UI): counts only - never a price. */
     if (url.pathname === '/off-market' || url.pathname === '/off-market/') {
       let payload = { buildings: [], totals: {}, hoods: [] };
@@ -2340,8 +3324,13 @@ async function handleRequest(request, env) {
       }
 
       /* City Markets UI: the unit, then its building. */
-      const [bcard, foot] = await Promise.all([listingBuildingCard(d.building_slug), cityFooterData(hostMk.domain)]);
-      const listingHtml = applyMarketSwaps(renderListingCity(d, bcard, foot), hostMk);
+      const lmPhotos = Array.isArray(d.photos) ? d.photos.map((p) => p && p.url).filter(Boolean) : [];
+      const [bcard, foot, reportsHtml] = await Promise.all([
+        listingBuildingCard(d.building_slug), cityFooterData(hostMk.domain),
+        listingReportsSection({ mls_number: d.mls, address_raw: d.address || '', address_norm: d.address || '', photos: lmPhotos,
+          building_slug: d.building_slug || null, building_name: d.building_name || '', unit: d.unit || null }).catch(() => ''),
+      ]);
+      const listingHtml = applyMarketSwaps(renderListingCity(d, bcard, foot, reportsHtml), hostMk);
       return new Response(listingHtml, {
         status: 200,
         headers: {
