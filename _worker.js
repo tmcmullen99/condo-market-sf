@@ -292,7 +292,7 @@ async function withFavicon(res) {
     const body = await res.text();
     /* One seam, on the path every HTML response already takes - so a map
        added later cannot miss the key. */
-    let out = ensureMarketNav(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body)))));
+    let out = ensureMarketNav(ensureBrand(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body))))));   // brand first, then the nav links
     if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
@@ -701,13 +701,42 @@ function ensureMarketNav(html) {
     function (all, open, tag, inner, close) {
       if (/href="\/off-market\/?"/.test(inner)) return all;
       inner = inner.replace(/<a\b[^>]*href="\/active-listings\/?"[^>]*>[\s\S]*?<\/a>/g, '');
-      const first = inner.match(/<a\b(?![^>]*(?:signin|data-cm-auth|btn|cta))[^>]*>/);
+      const first = inner.match(/<a\b(?![^>]*(?:signin|data-cm-auth|btn|cta|wordmark|cm-wordmark|class="wm"))[^>]*>/);
       if (!first) return all;
       const cls = (first[0].match(/\sclass="[^"]*"/) || [''])[0];
       const add = '<a href="/active-listings/"' + cls + ' data-cm-mkt-nav>For sale</a><a href="/off-market/"' + cls + ' data-cm-mkt-nav>Off market</a>';
       const at = inner.indexOf(first[0]);
       return open + inner.slice(0, at) + add + inner.slice(at) + close;
     });
+}
+
+/* ONE BRAND IN EVERY HEADER (Tim, 27 Sep 2026): the Condo Market SF wordmark - "Condo Market"
+   in white Playfair, "· sf" in the orange italic - and the orange accent button. Six wordmark
+   variants and five sign-in button styles had grown across the templates and static pages;
+   they are normalised here, at the seam every HTML page passes. */
+const CM_BRAND_CSS = '<style id="cm-brand">'
+  + 'a.wordmark,a.wm,a.cm-wordmark{font-family:"Playfair Display",Georgia,serif!important;font-weight:600!important;font-style:normal!important;'
+  + 'color:#ffffff!important;text-decoration:none!important;letter-spacing:-.01em;white-space:nowrap}'
+  + 'a.wordmark .cm-sf,a.wm .cm-sf,a.cm-wordmark .cm-sf{color:#e85d2a!important;font-style:italic!important;font-weight:500!important;margin-left:.12em}'
+  + ':is(header,nav,.nav,.masthead,.cm-masthead,.cm-header,.topnav) :is(a.signin-btn,a.nav-cta,a.cm-signin,a.cm-signin-mini,a.signin-pill,.nav-right a[data-cm-auth]){'
+  + 'background:#C2410C!important;color:#ffffff!important;border:1px solid #C2410C!important;box-shadow:none!important}'
+  + ':is(header,nav,.nav,.masthead,.cm-masthead,.cm-header,.topnav) :is(a.signin-btn,a.nav-cta,a.cm-signin,a.cm-signin-mini,a.signin-pill,.nav-right a[data-cm-auth]):hover{'
+  + 'background:#a8370a!important;border-color:#a8370a!important;color:#ffffff!important}'
+  + '.topnav a.cm-wordmark{font-size:20px;line-height:1.2}'
+  + '.nav .nav-inner a.wordmark{font-size:20px;line-height:1.2}'
+  + '</style>';
+function ensureBrand(html) {
+  if (typeof html !== 'string' || html.indexOf('id="cm-brand"') !== -1) return html;
+  html = html.replace(/<a\b([^>]*\bclass="(?:[^"]*\s)?(?:wordmark|wm|cm-wordmark)(?:\s[^"]*)?"[^>]*)>[\s\S]{0,240}?<\/a>/g,
+    function (all, attrs) {
+      if (/<a\b/i.test(all.slice(2))) return all;          // never swallow a neighbouring link
+      return '<a' + attrs + '>Condo Market<span class="cm-sf"> \u00b7 sf</span></a>';
+    });
+  /* the How it works pages carry a text brand ("Condo Market · How it works"): the standard wordmark, linked home */
+  html = html.replace(/<div class="topnav-brand">(?:(?!<\/div>)[\s\S]){0,200}<\/div>/,
+    '<a class="cm-wordmark topnav-brand" href="/">Condo Market<span class="cm-sf"> \u00b7 sf</span></a>');
+  const i = html.search(/<\/head>/i);
+  return i === -1 ? html : html.slice(0, i) + CM_BRAND_CSS + html.slice(i);
 }
 
 
