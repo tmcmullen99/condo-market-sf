@@ -1759,6 +1759,13 @@ function cityMortgageCalc(price) {
     + 'calc();})();</script>';
 }
 
+/* The storage service's resized copy of one of our stored photos; anything else is returned as-is. */
+function cmThumbUrl(u, w, h) {
+  const m = String(u || '').match(/^(https:\/\/[a-z0-9]+\.supabase\.co)\/storage\/v1\/object\/public\/(.+)$/);
+  if (!m) return u;
+  return m[1] + '/storage/v1/render/image/public/' + m[2] + '?width=' + w + (h ? '&height=' + h + '&resize=cover' : '') + '&quality=65';
+}
+
 function renderListingCity(d, B, foot, reportsHtml) {
   const E = cityEsc;
   const money = (n) => (n == null ? '' : '$' + Math.round(n).toLocaleString('en-US'));
@@ -1799,8 +1806,15 @@ function renderListingCity(d, B, foot, reportsHtml) {
       '<button type="button" class="ld-nav ld-prev" id="ldPrev" aria-label="Previous photo">&#8249;</button>' +
       '<button type="button" class="ld-nav ld-next" id="ldNext" aria-label="Next photo">&#8250;</button>' : '') +
     '</div></div>' +
+    /* Thumbnails are the storage service's resized copy (~7 KB, not ~200 KB): twenty full-size photos
+       requested at once is what left some thumbnails as bare labels. A failed thumb retries twice,
+       then falls back to the full photo, then to a plain tile - never a broken image or its label. */
     (photos.length > 1 ? '<div class="ld-thumbs">' + photos.map((u, i) =>
-      '<button type="button" class="' + (i === 0 ? 'on' : '') + '" aria-label="Photo ' + (i + 1) + '"><img loading="lazy" src="' + E(u) + '" alt="' + E(addr) + ' photo ' + (i + 1) + '"></button>').join('') + '</div>' : '');
+      '<button type="button" class="' + (i === 0 ? 'on' : '') + '" aria-label="Photo ' + (i + 1) + '"><img loading="lazy" src="' + E(cmThumbUrl(u, 240, 160)) + '" data-full="' + E(u) + '" alt="" onerror="cmThumbRetry(this)"></button>').join('') + '</div>' +
+      '<script>function cmThumbRetry(im){var n=+(im.getAttribute("data-try")||0)+1;im.setAttribute("data-try",n);' +
+      'if(n<=2){setTimeout(function(){var u=im.src.replace(/([?&])r=\\d+/,"");im.src=u+(u.indexOf("?")<0?"?":"&")+"r="+n;},700*n);return;}' +
+      'if(n===3&&im.getAttribute("data-full")){im.src=im.getAttribute("data-full");return;}' +
+      'im.onerror=null;im.style.visibility="hidden";if(im.parentNode)im.parentNode.style.background="#e0e5ed";}</script>' : '');
 
   const head =
     '<div class="ld-head"><div>' +
@@ -2916,7 +2930,7 @@ function condoActiveListingsRows(listings) {
   const now = Date.now();
   return (listings || []).map((l) => ({
     mls: l.mls, addr: l.unit_address || l.building_name || '', slug: null, price: l.price, beds: l.beds, baths: l.baths, sqft: l.sqft, lot: null,
-    year: l.year_built, type: 'Condominium', status: 'Active', photo: l.photo || null, photos: null, lat: l.lat, lng: l.lng,
+    year: l.year_built, type: 'Condominium', status: 'Active', photo: l.photo ? cmThumbUrl(l.photo, 720, 0) : null, photos: null, lat: l.lat, lng: l.lng,   // a 720px copy, not the full photo
     dom: l.listed_at ? Math.max(0, Math.round((now - Date.parse(l.listed_at)) / 86400000)) : null, pending_days: null,
     reviewed: false, has_cma: false, risk: null, bldg: l.building_name || null, bslug: l.building_slug || null,
   }));
