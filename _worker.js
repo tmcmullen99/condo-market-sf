@@ -784,8 +784,12 @@ function renderListingCity(d, B, foot) {
       : (bOurs && B.hero_image_url ? '<img id="ldImg" src="' + E(B.hero_image_url) + '" alt="' + E(bName) + '" onerror="this.remove()"><span class="ld-bphoto">The building &middot; ' + E(bName) + '</span>'
         : '<div class="ld-nophoto">Photos coming soon</div>')) +
     (price != null ? '<span class="price-chip"><span class="dot"></span>' + short(price) + '</span>' : '') +
-    (photos.length > 1 ? '<span class="ld-count" id="ldCount">1 / ' + photos.length + '</span>' : '') +
-    '</div></div>';
+    (photos.length > 1 ? '<span class="ld-count" id="ldCount">1 / ' + photos.length + '</span>' +
+      '<button type="button" class="ld-nav ld-prev" id="ldPrev" aria-label="Previous photo">&#8249;</button>' +
+      '<button type="button" class="ld-nav ld-next" id="ldNext" aria-label="Next photo">&#8250;</button>' : '') +
+    '</div></div>' +
+    (photos.length > 1 ? '<div class="ld-thumbs">' + photos.map((u, i) =>
+      '<button type="button" class="' + (i === 0 ? 'on' : '') + '" aria-label="Photo ' + (i + 1) + '"><img loading="lazy" src="' + E(u) + '" alt="' + E(addr) + ' photo ' + (i + 1) + '"></button>').join('') + '</div>' : '');
 
   const head =
     '<div class="ld-head"><div>' +
@@ -793,7 +797,7 @@ function renderListingCity(d, B, foot) {
     '<div class="ld-addr">' + E(fullAddr) + '</div>' +
     '<div class="ld-sub">' + spec + (bName ? ' &middot; in <a href="' + bUrl + '">' + E(bName) + '</a>' : '') + '</div>' +
     '</div><div class="ld-head-cta">' +
-    '<a class="btn btn-gold" href="#" data-cm-offer data-mls="' + E(mls) + '" data-building="' + E(bSlug) + '" data-unit="' + E(unit) + '" data-price="' + (price != null ? price : '') + '">Make an offer &rarr;</a>' +
+    '<button type="button" class="btn btn-gold" data-cm-offer-trigger data-building-slug="' + E(bSlug) + '" data-unit-label="' + E(unit) + '" data-suggested-price="' + (price != null ? price : '') + '" data-cta="listing:offer">Make an offer &rarr;</button>' +
     '<a class="btn btn-line" href="#tour">Tour this home</a>' +
     '</div></div>';
 
@@ -868,12 +872,30 @@ function renderListingCity(d, B, foot) {
     '<h2>What would this cost <em>per month?</em></h2><p class="sub">A quick estimate on this home&rsquo;s asking price. Adjust the down payment, rate, and term to see your payment move. HOA dues are extra.</p></div>' +
     cityMortgageCalc(price) + '</div></section>' : '';
 
+  /* Touring: the same two routes as the building page's "Talk it through with Tim" card - the
+     booking calendar, or an email that records a tour_request lead with this listing's context. */
+  const CAL_URL = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ3Ro-mJuYsbPWaLPZXUTo6gEa9qxdTVMpdX1E88E529PAUTuDC2CXdwNgjQrDsOJGo8IZRD8og5?gv=true';
   const tour = '<section class="pg" id="tour"><div class="wrap"><div class="section-head"><span class="eyebrow">Book time with Tim</span>' +
     '<h2>Tour it, or talk it <em>through.</em></h2><p class="sub">A private showing, a second opinion on the price, or a walk through the building&rsquo;s HOA documents.</p></div>' +
     '<div class="mz-card" style="max-width:none;padding:26px 24px;text-align:center">' +
-    '<a class="btn btn-gold" style="display:inline-block;padding:15px 34px;font-size:1.02rem" href="#" data-cm-showing data-mls="' + E(mls) + '" data-building="' + E(bSlug) + '">Schedule a showing</a>' +
-    '<p style="font-size:.86rem;color:var(--ink-dim);margin:14px auto 0;max-width:46ch;line-height:1.5">Every offer is personally reviewed by Tim before drafting. A valid offer needs lender pre-approval and proof of funds, uploaded securely during the offer flow.</p>' +
-    '</div></div></section>';
+    '<button type="button" class="btn btn-gold" id="ldCalOpen" style="display:inline-block;padding:15px 34px;font-size:1.02rem" data-cta="listing:book_showing">Book a time &rarr;</button>' +
+    '<form id="ldTourForm" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px auto 0;max-width:460px">' +
+    '<input type="email" required placeholder="&hellip;or leave your email" aria-label="Your email" style="flex:1 1 220px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:var(--ink)">' +
+    '<button type="submit" class="btn btn-line" style="padding:12px 20px">Request a showing</button></form>' +
+    '<p id="ldTourDone" hidden style="margin:12px 0 0;color:#2f6b40;font-weight:600">&#10003; Thanks &mdash; Tim will be in touch about a showing.</p>' +
+    '<p style="font-size:.86rem;color:var(--slate);margin:14px auto 0;max-width:46ch;line-height:1.5">Every offer is personally reviewed by Tim before drafting. A valid offer needs lender pre-approval and proof of funds, uploaded securely during the offer flow.</p>' +
+    '<div id="ldCalWrap" hidden style="margin-top:18px"><iframe data-src="' + CAL_URL + '" style="border:0;width:100%;height:620px;border-radius:12px;background:#fff" title="Schedule with Tim"></iframe></div>' +
+    '</div></div></section>' +
+    '<script>(function(){var co=document.getElementById("ldCalOpen"),w=document.getElementById("ldCalWrap");' +
+    'if(co&&w)co.addEventListener("click",function(){var f=w.querySelector("iframe");if(f&&!f.src)f.src=f.getAttribute("data-src");w.hidden=false;w.scrollIntoView({behavior:"smooth",block:"center"});});' +
+    'var fm=document.getElementById("ldTourForm");if(!fm)return;fm.addEventListener("submit",function(e){e.preventDefault();' +
+    'var em=fm.querySelector("input").value.trim(),bt=fm.querySelector("button");if(!em)return;bt.disabled=true;bt.textContent="Sending\u2026";' +
+    'var AK="' + SUPABASE_ANON_KEY + '";' +
+    'fetch("' + SUPABASE_URL + '/rest/v1/rpc/capture_lead",{method:"POST",headers:{"Content-Type":"application/json","apikey":AK,"Authorization":"Bearer "+AK},' +
+    'body:JSON.stringify({p_email:em,p_building_slug:' + JSON.stringify(bSlug || null) + ',p_intent:"tour_request",p_source:"listing_tour_form",' +
+    'p_unit_label:' + JSON.stringify(unit || null) + ',p_message:' + JSON.stringify('Showing request for ' + addr + ' (MLS# ' + mls + ')').replace(/</g, '\\u003c') + '})})' +
+    '.then(function(r){if(r.ok){fm.hidden=true;document.getElementById("ldTourDone").hidden=false;}else{bt.disabled=false;bt.textContent="Try again";}})' +
+    '.catch(function(){bt.disabled=false;bt.textContent="Try again";});});})();</script>';
 
   const exit = '<section class="pg" style="padding-top:0"><div class="wrap"><div class="tile" style="padding:20px 22px"><div class="eyebrow" style="margin-bottom:6px">The market</div>' +
     '<h3 style="font-size:1.1rem;margin-bottom:6px"><a href="/active-listings/" style="color:var(--ivory)">All San Francisco condos for sale &rarr;</a></h3>' +
@@ -913,9 +935,22 @@ function renderListingCity(d, B, foot) {
     'var k=(document.querySelector(\'meta[name="carto-key"]\')||{}).content||"";' +
     'L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"+(k&&k.indexOf("__")!==0?"?key="+encodeURIComponent(k):""),{attribution:"&copy; OpenStreetMap &copy; CARTO",subdomains:"abcd",maxZoom:19}).addTo(m);' +
     'L.circleMarker([' + lat + ',' + lng + '],{radius:10,color:"#9a3412",weight:2,fillColor:"#C2410C",fillOpacity:.9}).addTo(m)' + (bName ? '.bindTooltip(' + JSON.stringify(bName).replace(/</g, '\\u003c') + ',{permanent:false})' : '') + ';})();</script>' : '') +
-    (photos.length > 1 ? '<script>(function(){var P=' + JSON.stringify(photos).replace(/</g, '\\u003c') + ',i=0,img=document.getElementById("ldImg"),c=document.getElementById("ldCount"),m=document.getElementById("ldMain");' +
-      'if(!img||!m)return;m.style.cursor="pointer";m.addEventListener("click",function(){i=(i+1)%P.length;img.src=P[i];if(c)c.textContent=(i+1)+" / "+P.length;});})();</script>' : '') +
-    '<script src="/assets/cm-supabase.js" defer></script>\n<script src="/assets/cm-actions.js" defer></script>\n' +
+    (photos.length > 1 ? '<script>(function(){var photos=' + JSON.stringify(photos).replace(/</g, '\\u003c') + ';' +
+      'var main=document.getElementById("ldImg"),thumbs=document.querySelectorAll(".ld-thumbs button"),idx=0;' +
+      'function show(i){if(!photos.length||!main)return;idx=(i+photos.length)%photos.length;main.src=photos[idx];' +
+      'var c=document.getElementById("ldCount");if(c)c.textContent=(idx+1)+" / "+photos.length;' +
+      'thumbs.forEach(function(b,bi){b.classList.toggle("on",bi===idx);});' +
+      'var strip=document.querySelector(".ld-thumbs"),t=thumbs[idx];if(strip&&t)strip.scrollTo({left:t.offsetLeft-strip.clientWidth/2+t.clientWidth/2,behavior:"smooth"});}' +
+      'thumbs.forEach(function(b,bi){b.addEventListener("click",function(){show(bi);});});' +
+      'var mw=document.getElementById("ldMain");if(mw){mw.style.cursor="pointer";mw.addEventListener("click",function(){show(idx+1);});}' +
+      'var pv=document.getElementById("ldPrev"),nx=document.getElementById("ldNext");' +
+      'if(pv)pv.addEventListener("click",function(e){e.stopPropagation();show(idx-1);});' +
+      'if(nx)nx.addEventListener("click",function(e){e.stopPropagation();show(idx+1);});' +
+      'var sx=null;if(mw){mw.addEventListener("touchstart",function(e){sx=e.touches[0].clientX;},{passive:true});' +
+      'mw.addEventListener("touchend",function(e){if(sx==null)return;var dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>40){e.preventDefault();show(idx+(dx<0?1:-1));}});}' +
+      'document.addEventListener("keydown",function(e){if(e.target&&/input|select|textarea/i.test(e.target.tagName))return;if(e.key==="ArrowLeft")show(idx-1);if(e.key==="ArrowRight")show(idx+1);});' +
+      '})();</script>' : '') +
+    '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
     '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>\n';
 
   const body =
