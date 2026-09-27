@@ -58,21 +58,21 @@ function styles() {
   .cm-wp {
     position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 110%);
     width: min(560px, calc(100% - 24px)); z-index: 900;
-    background: #12161f; border: 1px solid rgba(212,165,116,.38);
+    background: #eef1f6; border: 1px solid rgba(212,165,116,.38);
     border-bottom: 0; border-radius: 16px 16px 0 0;
     padding: 20px 22px calc(20px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -18px 50px rgba(0,0,0,.5);
+    box-shadow: 0 -18px 50px rgba(0,0,0,0.175);
     transition: transform .34s cubic-bezier(.16,1,.3,1);
     font-family: inherit;
   }
   .cm-wp.in { transform: translate(-50%, 0); }
-  .cm-wp-head { font-family: Georgia, serif; font-size: 18px; color: #e8e3d8; margin: 0 0 5px; }
-  .cm-wp-sub  { font-size: 13.5px; line-height: 1.5; color: rgba(232,227,216,.66); margin: 0 0 13px; }
+  .cm-wp-head { font-family: Georgia, serif; font-size: 18px; color: #1a1f2e; margin: 0 0 5px; }
+  .cm-wp-sub  { font-size: 13.5px; line-height: 1.5; color: #5d6575; margin: 0 0 13px; }
   .cm-wp-row  { display: flex; gap: 8px; flex-wrap: wrap; }
   .cm-wp-row input {
     flex: 1 1 200px; min-width: 0; padding: 11px 13px; font: inherit; font-size: 15px;
-    border-radius: 10px; border: 1px solid rgba(232,227,216,.24);
-    background: rgba(0,0,0,.3); color: #e8e3d8; }
+    border-radius: 10px; border: 1px solid rgba(26,31,46,0.192);
+    background: rgba(26,31,46,0.105); color: #1a1f2e; }
   .cm-wp-row input:focus { outline: none; border-color: #d4a574; }
   .cm-wp-row button {
     flex: 0 0 auto; padding: 11px 20px; font: inherit; font-size: 15px; font-weight: 600;
@@ -80,9 +80,9 @@ function styles() {
   .cm-wp-row button:disabled { opacity: .55; cursor: default; }
   .cm-wp-no {
     display: block; margin: 11px auto 0; background: none; border: 0; cursor: pointer;
-    font: inherit; font-size: 12.5px; color: rgba(232,227,216,.45); text-decoration: underline; }
-  .cm-wp-msg { margin: 10px 0 0; font-size: 13.5px; color: rgba(232,227,216,.72); }
-  .cm-wp-msg.bad { color: #e8a08f; }
+    font: inherit; font-size: 12.5px; color: #5d6575; text-decoration: underline; }
+  .cm-wp-msg { margin: 10px 0 0; font-size: 13.5px; color: #5d6575; }
+  .cm-wp-msg.bad { color: #9c4322; }
   @media (max-width: 520px) {
     .cm-wp-row input, .cm-wp-row button { flex: 1 1 100%; }
   }`;
