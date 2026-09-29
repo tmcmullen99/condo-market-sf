@@ -522,7 +522,20 @@ img { display: block; max-width: 100%; }
 
   /* 360 -> 240. The map cannot be dragged at this width, so it is orientation,
      not a workspace, and 120px of it was buying nothing. */
-  .atlas-map { height: 300px; }
+  .atlas-map { height: 62vh; min-height: 380px; max-height: 620px; }
+  .atlas-map-overlay { display: none !important; }   /* the map is the map; the list below names the hood */
+  #cm-pin-card { position: relative; margin-top: 10px; }
+  #cm-pin-card[hidden] { display: none; }
+  #cm-pin-card .pc-body { display: flex; gap: 12px; align-items: stretch; background: #fff; border: 1.5px solid #C2410C;
+    border-radius: 14px; padding: 12px; text-decoration: none; color: #1a1f2e; box-shadow: 0 10px 24px rgba(26,31,46,.10); }
+  #cm-pin-card .pc-img { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; flex: none; }
+  #cm-pin-card .pc-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-right: 26px; }
+  #cm-pin-card .pc-name { font-family: 'Playfair Display', Georgia, serif; font-size: 19px; font-weight: 600; line-height: 1.2; }
+  #cm-pin-card .pc-meta { font-size: 13px; color: #5d6575; }
+  #cm-pin-card .pc-act { align-self: flex-start; font-size: 11.5px; font-weight: 700; color: #fff; background: #C2410C; border-radius: 999px; padding: 3px 9px; margin-top: 2px; }
+  #cm-pin-card .pc-go { font-size: 13.5px; font-weight: 600; color: #C2410C; margin-top: auto; }
+  #cm-pin-card .pc-x { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border: 0; border-radius: 50%;
+    background: #f1f3f7; color: #5d6575; font-size: 20px; line-height: 1; }
   /* Zillow-style: the neighbourhood chips stay pinned under the header while the list
      scrolls with the page (29 Sep 2026). */
   .hood-rail-wrap { position: sticky; top: var(--cm-head-h, 60px); z-index: 30;
@@ -2044,9 +2057,11 @@ img { display: block; max-width: 100%; }
        inline orientation map and the neighbourhood list scrolls with the page, with the chip row
        pinned under the header. Everything the stage built is still here, gated on STAGE. */
     var STAGE = false;
+    var PHONE = window.matchMedia('(max-width: 720px)').matches;
     var map = L.map('atlas-map', {
       zoomControl: false, scrollWheelZoom: false,
-      dragging: STAGE || window.innerWidth > 980,
+      /* Phones: one-finger pan on the map itself (Tim, 29 Sep 2026). */
+      dragging: STAGE || PHONE || window.innerWidth > 980,
       tap: false
     });
     map.fitBounds(BOUNDS, { padding: [30, 30] });
@@ -2076,7 +2091,32 @@ img { display: block; max-width: 100%; }
 
        If the row is one of the hidden ones, the whole card expands rather than
        revealing a single orphan row in the middle of a truncated list. */
+    /* Phones (Tim, 29 Sep 2026): a pin tap shows that building's card directly under the map.
+       The neighbourhood list is left alone; extremely simple. */
+    function showPinCard(b) {
+      var col = document.querySelector('.atlas-map-col'); if (!col) return;
+      var el = document.getElementById('cm-pin-card');
+      if (!el) { el = document.createElement('div'); el.id = 'cm-pin-card'; col.appendChild(el); }
+      var href = '/building/' + encodeURIComponent(b.slug) + '/';
+      var bits = [b.hood, b.units ? nf(b.units) + ' units' : null, b.psf != null ? '$' + nf(b.psf) + '/sf' : null].filter(Boolean).join(' \u00b7 ');
+      el.innerHTML =
+        '<a class="pc-body" href="' + href + '">' +
+          (b.img ? '<img class="pc-img" src="' + esc(b.img) + '" alt="" loading="lazy">' : '') +
+          '<span class="pc-txt"><span class="pc-name">' + esc(b.name) + '</span>' +
+          '<span class="pc-meta">' + esc(bits) + '</span>' +
+          (b.active_count > 0 ? '<span class="pc-act">' + b.active_count + ' for sale</span>' : '') +
+          '<span class="pc-go">View building &rarr;</span></span></a>' +
+        '<button type="button" class="pc-x" aria-label="Close">&times;</button>';
+      el.hidden = false;
+      el.querySelector('.pc-x').onclick = function () { el.hidden = true; };
+      requestAnimationFrame(function () {
+        var r = el.getBoundingClientRect();
+        if (r.bottom > window.innerHeight - 90) window.scrollBy({ top: r.bottom - window.innerHeight + 100, behavior: 'smooth' });
+      });
+    }
+
     function pickBuilding(b) {
+      if (PHONE) { showPinCard(b); return; }
       var hood = (b.hood || '').replace(/"/g, '');
       var card = hood ? document.querySelector('.hood[data-hood="' + hood + '"]') : null;
       var row  = card ? card.querySelector('.hood-bldg[data-bldg-slug="' + String(b.slug).replace(/"/g, '') + '"]') : null;
@@ -2104,7 +2144,9 @@ img { display: block; max-width: 100%; }
     BLDGS.forEach(function (b) {
       var hasActive = b.active_count > 0;
       var icon = L.divIcon({ html: '<div class="cm-marker' + (hasActive ? ' has-active' : '') + '" data-hood="' + esc(b.hood) + '"' + (hasActive ? ' data-slug="' + esc(b.slug) + '"' : '') + '></div>', className: '', iconSize: [12, 12], iconAnchor: [6, 6] });
-      var mk = L.marker([b.lat, b.lng], { icon: icon })
+      var mk = L.marker([b.lat, b.lng], { icon: icon });
+      if (PHONE) { mk.on('click', function () { pickBuilding(b); }).addTo(map); CM_MARKERS.push({ marker: mk, hasActive: hasActive }); return; }
+      mk = mk
         /* This is the card a tap pulls up. It has to survive the tap that
            opened it, so it is not tied to hover: Leaflet's default closes a
            tooltip on the next touch anywhere, which on a phone is the same
@@ -2470,7 +2512,7 @@ img { display: block; max-width: 100%; }
     var HOODS = renderAtlas(hoods);
     wireAtlas();
     renderIndex(idx, hoods);
-    var BLDGS = idx.filter(function (b) { return b.lat != null && b.lng != null; }).map(function (b) { return { name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng, slug: b.slug, psf: b.psf, active_count: (b.active_count != null ? Number(b.active_count) : 0) }; });
+    var BLDGS = idx.filter(function (b) { return b.lat != null && b.lng != null; }).map(function (b) { return { name: b.name, hood: b.neighborhood, lat: b.lat, lng: b.lng, slug: b.slug, psf: b.psf, units: b.units, address: b.address, img: b.hero_image_url || b.hero_image || b.image || null, active_count: (b.active_count != null ? Number(b.active_count) : 0) }; });
     initMap(BLDGS, HOODS);
     wireIndexControls(idx.length);
     intelTeaser(idx);
