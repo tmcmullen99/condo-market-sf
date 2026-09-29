@@ -1516,74 +1516,55 @@ img { display: block; max-width: 100%; }
   </div>
 </section>
 
-<!-- ═══ STATE OF THE HIGHRISE ═══ -->
-
-<section class="cm-section cm-soh" id="soh">
+<style>
+/* Toolkit + Methodology, mirrored from the City Markets home page (Tim, 29 Sep 2026). */
+#toolkit .tk-rowhead { display:flex; align-items:center; gap:18px; margin:0 0 18px; }
+#toolkit .tk-rowline { flex:1; height:1px; background:rgba(34,38,47,.12); }
+#toolkit .tk-badge { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; padding:8px 14px; border-radius:999px; white-space:nowrap; }
+#toolkit .tk-badge--free { background:#C2410C; color:#fff; }
+#toolkit .tk-badge--acct { background:transparent; color:#5d6575; border:1px solid rgba(34,38,47,.18); }
+#toolkit .tk-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:36px; }
+#toolkit .tk-card { display:flex; flex-direction:column; background:#fff; border:1px solid rgba(34,38,47,.10); border-radius:18px; padding:24px; text-decoration:none; color:#22262f; transition:transform .18s, box-shadow .18s, border-color .18s; }
+#toolkit .tk-card:hover { transform:translateY(-2px); border-color:#C2410C; box-shadow:0 14px 34px rgba(26,31,46,.08); }
+#toolkit .tk-card--acct { background:#f7f8fb; }
+#toolkit .tk-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+#toolkit .tk-ico { width:44px; height:44px; border-radius:50%; background:rgba(194,65,12,.09); color:#C2410C; display:flex; align-items:center; justify-content:center; }
+#toolkit .tk-ico svg { width:20px; height:20px; }
+#toolkit .tk-arrow { color:#C2410C; font-size:18px; }
+#toolkit .tk-lock { font-size:13px; opacity:.55; }
+#toolkit .tk-card h3 { font-family:'Playfair Display',Georgia,serif; font-weight:500; font-size:22px; line-height:1.2; margin:0 0 10px; color:#22262f; }
+#toolkit .tk-card p { font-size:15px; line-height:1.55; color:#5d6575; margin:0 0 18px; }
+#toolkit .tk-tags { margin-top:auto; display:flex; gap:6px; flex-wrap:wrap; }
+#toolkit .tk-tag { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#5d6575; background:#f1f3f7; border:1px solid rgba(34,38,47,.08); border-radius:999px; padding:5px 10px; }
+#toolkit .tk-grid--acct { grid-template-columns:repeat(3,minmax(0,1fr)); max-width:calc(75% + 5px); }
+@media (max-width:1100px) { #toolkit .tk-grid, #toolkit .tk-grid--acct { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:none; } }
+@media (max-width:640px) { #toolkit .tk-grid, #toolkit .tk-grid--acct { grid-template-columns:1fr; } #toolkit .tk-card { padding:20px; } }
+#method .mt-split { display:grid; grid-template-columns:1.1fr 1fr; gap:48px; align-items:start; }
+#method .mt-card { background:#fff; border:1px solid rgba(34,38,47,.10); border-radius:20px; padding:30px; }
+#method .mt-card p { color:#5d6575; line-height:1.6; font-size:15.5px; margin:10px 0 0; }
+#method .mt-btns { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+#method .mt-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 20px; border-radius:999px; font-weight:500; font-size:14px; text-decoration:none; }
+#method .mt-btn--solid { background:#C2410C; color:#fff; }
+#method .mt-btn--line { border:1px solid rgba(34,38,47,.18); color:#22262f; }
+#method .mt-fine { font-size:12px; color:#8a90a0; margin-top:14px !important; }
+#method .mt-link { color:#C2410C; text-decoration:none; font-weight:500; }
+@media (max-width:900px) { #method .mt-split { grid-template-columns:1fr; gap:28px; } }
+</style>
+<!-- ═══ YOUR TOOLKIT (mirrors the City Markets home, 29 Sep 2026) ═══ -->
+<section class="cm-section cm-section-light" id="toolkit">
   <div class="cm-container">
     <div class="cm-section-head">
-      <p class="cm-eyebrow">State of the highrise</p>
-      <h2 class="cm-h">Two <em>data layers</em>. One platform.</h2>
-      <p>Everyone sees the regional totals. Signed-in members get the per-unit layer — every closing on every unit, owner tenure per address, and Make-Me-Move prices when owners submit them.</p>
+      <p class="cm-eyebrow">Your toolkit</p>
+      <h2 class="cm-h">Be your own <em>agent.</em></h2>
+      <p>Every tool a realtor uses to price, compare and sell a condo in <span class="tk-region">San Francisco</span>. <a href="https://app.sanfranciscocondomarket.com/tools" data-app-path="/tools" style="color:#C2410C">See the whole toolkit &rarr;</a></p>
     </div>
-    <div class="cm-soh-tabs">
-      <button class="cm-soh-tab on" data-mode="public">Public</button>
-      <button class="cm-soh-tab" data-mode="enhanced">Enhanced (members)</button>
-    </div>
-    <div class="cm-soh-compare">
-      <div class="cm-soh-card cm-soh-public">
-        <div class="cm-soh-lbl">Public layer</div>
-        <h4>What anyone can see</h4>
-        <div class="cm-soh-rows" id="soh-public-rows"></div>
-      </div>
-      <div class="cm-soh-card cm-soh-enhanced">
-        <div class="cm-soh-lbl">Enhanced layer</div>
-        <h4>What members see</h4>
-        <div class="cm-soh-rows" id="soh-enhanced-rows"></div>
-      </div>
-    </div>
-    <div class="cm-soh-cta">
-      <div class="cm-soh-cta-glow"></div>
-      <div class="cm-soh-cta-inner">
-        <div class="cm-soh-cta-badge">FREE · Unlimited access</div>
-        <h3>Unlock the <em>enhanced layer.</em></h3>
-        <p id="soh-lead">Everything the public can't see — per-unit sale history, owner tenure per address, and Make-Me-Move prices from owners who've named a number.</p>
-        <div class="cm-soh-feat-grid">
-          <div class="cm-soh-feat">
-            <div class="cm-soh-feat-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-5"/></svg></div>
-            <div class="cm-soh-feat-title">Sale history</div>
-            <div class="cm-soh-feat-sub">Every unit, every closing, last 10 years</div>
-          </div>
-          <div class="cm-soh-feat">
-            <div class="cm-soh-feat-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="7" r="4"/><path d="M3 21a9 9 0 0 1 18 0"/></svg></div>
-            <div class="cm-soh-feat-title">Owner tenure</div>
-            <div class="cm-soh-feat-sub">Who's been there, how long</div>
-          </div>
-          <div class="cm-soh-feat">
-            <div class="cm-soh-feat-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
-            <div class="cm-soh-feat-title">Comparable sales</div>
-            <div class="cm-soh-feat-sub" id="soh-feat-comps">Ten years · per unit</div>
-          </div>
-          <div class="cm-soh-feat">
-            <div class="cm-soh-feat-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
-            <div class="cm-soh-feat-title">Make-Me-Move</div>
-            <div class="cm-soh-feat-sub">Owner prices, visible to members</div>
-          </div>
-        </div>
-        <div class="cm-soh-cta-row">
-          <a class="cm-btn-p cm-btn-xl" href="#signup" data-cm-auth="signup"><span>Create free account</span><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg></a>
-          <a class="cm-btn-s" href="/intelligence/">See all intelligence</a>
-        </div>
-        <div class="cm-soh-cta-proof">
-          <span><strong id="soh-units">—</strong> units tracked</span>
-          <span class="cm-soh-cta-proof-dot"></span>
-          <span><strong id="soh-sales">—</strong> sales · 10-year history</span>
-          <span class="cm-soh-cta-proof-dot"></span>
-          <span><strong id="soh-buildings">—</strong> buildings · every unit</span>
-        </div>
-      </div>
-    </div>
+    <div class="tk-rowhead"><span class="tk-badge tk-badge--free">Free &middot; no account</span><span class="tk-rowline"></span></div>
+    <div class="tk-grid"><a class="tk-card" href="/calculate-payout-from-condo-sale/" data-cta="toolkit:Seller net sheet"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18 M7 14l3-3 3 3 5-6"/></svg></span><span class="tk-arrow" aria-hidden="true">&rarr;</span></div><h3>Seller net sheet</h3><p>What you&rsquo;d actually walk away with at close: commission, transfer tax, HOA and your account credit, in the math.</p><div class="tk-tags"><span class="tk-tag">seller</span></div></a><a class="tk-card" href="/intelligence/" data-cta="toolkit:See the sales in your building"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16 M7 16V9 M12 16V5 M17 16v-4"/></svg></span><span class="tk-arrow" aria-hidden="true">&rarr;</span></div><h3>See the sales in your building</h3><p>Every recorded sale across <span class="tk-nb">the market&rsquo;s</span> buildings, by neighborhood, price and $/sf.</p><div class="tk-tags"><span class="tk-tag">buyer</span><span class="tk-tag">seller</span></div></a><a class="tk-card" href="/off-market/" data-cta="toolkit:Every unit, listed or not"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z M8 9h8 M8 13h8 M8 17h4"/></svg></span><span class="tk-arrow" aria-hidden="true">&rarr;</span></div><h3>Every unit, listed or not</h3><p>Browse the units that aren&rsquo;t on the MLS and see which owners have named a price.</p><div class="tk-tags"><span class="tk-tag">buyer</span><span class="tk-tag">investor</span></div></a><a class="tk-card" href="/owner-signup/" data-cta="toolkit:Make Me Move"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9 M5 10v10h14V10"/></svg></span><span class="tk-arrow" aria-hidden="true">&rarr;</span></div><h3>Make Me Move</h3><p>Name the price that would actually make you sell. No listing, no obligation.</p><div class="tk-tags"><span class="tk-tag">seller</span></div></a></div>
+    <div class="tk-rowhead"><span class="tk-badge tk-badge--acct">Free with an account</span><span class="tk-rowline"></span></div>
+    <div class="tk-grid tk-grid--acct"><a class="tk-card tk-card--acct" href="https://app.sanfranciscocondomarket.com/tools/cma" data-app-path="/tools/cma" data-cta="toolkit:Build your own Comp Report"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17V9 M15 17V5 M4 21h16"/></svg></span><span class="tk-lock" aria-hidden="true">&#128274;</span></div><h3>Build your own Comp Report</h3><p>Pick your unit and a few recent sales in the building &mdash; get a value range the way an agent prices a listing.</p><div class="tk-tags"><span class="tk-tag">seller</span><span class="tk-tag">investor</span></div></a><a class="tk-card tk-card--acct" href="https://app.sanfranciscocondomarket.com/tools/compare" data-app-path="/tools/compare" data-cta="toolkit:Compare units"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7v12H3z M14 6h7v12h-7z"/></svg></span><span class="tk-lock" aria-hidden="true">&#128274;</span></div><h3>Compare units</h3><p>Two units side by side &mdash; price, $/sf, beds, baths, HOA dues &mdash; and which is the better buy.</p><div class="tk-tags"><span class="tk-tag">buyer</span><span class="tk-tag">investor</span></div></a><a class="tk-card tk-card--acct" href="https://app.sanfranciscocondomarket.com/tools/review" data-app-path="/tools/review" data-cta="toolkit:Disclosure review"><div class="tk-top"><span class="tk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5v18h14V8l-5-5z M8 12h8 M8 16h5"/></svg></span><span class="tk-lock" aria-hidden="true">&#128274;</span></div><h3>Disclosure review</h3><p>A first pass on what matters in the HOA and disclosure packet, then Tim reviews it personally.</p><div class="tk-tags"><span class="tk-tag">buyer</span><span class="tk-tag">seller</span></div></a></div>
   </div>
 </section>
+
 
 <!-- ═══ CASE STUDIES ═══ -->
 <section class="cm-section cm-section-light" id="case-studies">
@@ -1654,41 +1635,28 @@ img { display: block; max-width: 100%; }
   pmCheckAuth();
 </script>
 
-<!-- ═══ HOW IT WORKS ═══ -->
-
-<section class="cm-section cm-section-light" id="hiw" style="padding-bottom: 40px;">
+<!-- ═══ METHODOLOGY (mirrors the City Markets home, 29 Sep 2026) ═══ -->
+<section class="cm-section cm-section-light" id="method" style="padding-top:40px">
   <div class="cm-container">
-    <div class="cm-section-head">
-      <p class="cm-eyebrow">How it works</p>
-      <h2 class="cm-h">Two sides of the <em>same exchange.</em></h2>
-      <p>The platform assigns a licensed agent who takes your offer to the owner. You hear back within 24 hours.</p>
-    </div>
-    <div class="hiw-switch" id="hiw-switch">
-      <button class="on" data-side="buyer">For buyers</button>
-      <button data-side="owner">For owners</button>
-    </div>
-    <div class="hiw-grid" id="hiw-grid-buyer">
-      <div class="hiw-step"><span class="hiw-step-n">01</span><h4>Browse the index</h4><p>Every unit across <span id="hiw-buildings">the market’s</span> buildings — whether it's listed on the MLS or not. Tax-record data, floor plans, unit history.</p></div>
-      <div class="hiw-step"><span class="hiw-step-n">02</span><h4>Set the number</h4><p>Pick a unit. Sketch the price, financing posture, and timeline you'd actually move on. Nothing here is binding — yet.</p></div>
-      <div class="hiw-step"><span class="hiw-step-n">03</span><h4>Express interest</h4><p>One click hands the marketplace off to your assigned California-licensed agent. They draft the formal Letter of Intent and deliver it to the owner.</p></div>
-      <div class="hiw-step"><span class="hiw-step-n">04</span><h4>Close on your terms</h4><p>If accepted, your agent runs the SFAR Residential Purchase Agreement and escrow. Flat <span id="hiw-fee-txn-a">3%</span> transaction fee. <span id="hiw-fee-hoa-a">1%</span> to participating HOAs.</p></div>
-    </div>
-    <div class="hiw-grid" id="hiw-grid-owner" hidden>
-      <div class="hiw-step"><span class="hiw-step-n">01</span><h4>Claim your unit</h4><p>Verify ownership. Takes two minutes. Your unit appears on the platform — privately, to you.</p></div>
-      <div class="hiw-step"><span class="hiw-step-n">02</span><h4>Name your number</h4><p>Set a Make-Me-Move number. Not a listing. Not an agreement to sell. The figure that would actually make you reconsider.</p></div>
-      <div class="hiw-step"><span class="hiw-step-n">03</span><h4>Watch the book</h4><p>See which buyers are interested and at what price. The marketplace surfaces only what matches or beats your number.</p></div>
-      <div class="hiw-step"><span class="hiw-step-n">04</span><h4>Move only if you want to</h4><p>Your assigned California-licensed agent presents every offer. Accept, counter, decline, or withdraw your number anytime. You commit to nothing until you sign the SFAR RPA.</p></div>
-    </div>
-    <div class="hiw-fees">
-      <h4>Flat fee · <em>always.</em></h4>
-      <div class="hiw-fees-bits">
-        <div class="hiw-fees-bit"><span class="hiw-fees-bit-v" id="hiw-fee-txn">3%</span><span class="hiw-fees-bit-l">Transaction fee</span></div>
-        <div class="hiw-fees-bit"><span class="hiw-fees-bit-v" id="hiw-fee-hoa">1%</span><span class="hiw-fees-bit-l">Participating HOAs</span></div>
-        <div class="hiw-fees-bit"><span class="hiw-fees-bit-v">0</span><span class="hiw-fees-bit-l">Hidden costs</span></div>
+    <div class="mt-split">
+      <div class="cm-section-head" style="margin-bottom:0">
+        <p class="cm-eyebrow">Methodology</p>
+        <h2 class="cm-h">Here is the number, <em>and how we got it.</em></h2>
+        <p>Everything on this site traces to a public source: <span class="tk-region">San Francisco</span> assessor and recorder data, recorded deeds, and MLS sale records across <span class="tk-nbs">every catalogued building</span>. No estimates without a basis, no trend arrows on one sale. <a class="mt-link" href="/methodology/">Read the methodology &rarr;</a></p>
+      </div>
+      <div class="mt-card" id="contact">
+        <p class="cm-eyebrow" style="margin:0">Your unit is in this index</p>
+        <p>Every one of the <span class="mt-nu">catalogued</span> units here has a file, including yours. Ask for your unit&rsquo;s record and what the recent sales in your building actually mean. Direct from Tim McMullen, a licensed <span class="tk-region">San Francisco</span> agent: no listing required, no obligation.</p>
+        <div class="mt-btns">
+          <a class="mt-btn mt-btn--solid" href="https://app.sanfranciscocondomarket.com/tools/cma" data-app-path="/tools/cma" data-cta="method:value">Value your unit &rarr;</a>
+          <a class="mt-btn mt-btn--line" href="/calculate-payout-from-condo-sale/" data-cta="method:net">See your net sheet &rarr;</a>
+        </div>
+        <p class="mt-fine">Free and instant &middot; save your work with a free account &middot; no obligation.</p>
       </div>
     </div>
   </div>
 </section>
+
 
 <!-- ═══ FOOTER ═══ -->
 
@@ -1888,6 +1856,12 @@ img { display: block; max-width: 100%; }
     setHTML('pm-lead', 'Owners across ' + nB + ' buildings can name their Make-Me-Move number — the price they\u2019d actually say yes to. Numbers stay private until a serious buyer reaches out, and only members ever see them. Create a free account to be the first to look.');
     setText('pm-units', nU); setText('pm-units-lbl', 'Units across ' + nB + ' buildings');
     setText('pm-vol', vol); setText('pm-psf', psf);
+
+    // Toolkit + Methodology (29 Sep 2026)
+    document.querySelectorAll('.tk-region').forEach(function (el) { el.textContent = region; });
+    document.querySelectorAll('.tk-nb').forEach(function (el) { el.textContent = nB; });
+    document.querySelectorAll('.mt-nu').forEach(function (el) { el.textContent = nU; });
+    document.querySelectorAll('.tk-nbs').forEach(function (el) { el.textContent = nB + ' catalogued buildings'; });
 
     // How it works + fees
     setText('hiw-buildings', region + '\u2019s'); setText('hiw-fee-txn', txn + '%'); setText('hiw-fee-hoa', hoa + '%');
