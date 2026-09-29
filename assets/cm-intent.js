@@ -318,7 +318,13 @@
       '.cmi-launch:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(10,13,18,0.158)}',
       '.cmi-launch .cmi-dock-live{background:#7aa87a}',
       '.cmi-launch[hidden]{display:none}',
-      '@media(max-width:620px){.cmi-launch{right:14px;bottom:14px;padding:11px 16px}}',
+      '.cmi-launch .cmi-launch-go{display:none}',
+      /* Phones: a full-width "Ask anything" bar pinned to the bottom, America.gov-style
+         (Tim, 29 Sep 2026). Same launcher, same flow; it only looks like a search box. */
+      '@media(max-width:620px){.cmi-launch{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));justify-content:space-between;background:#fff;border:1.5px solid rgba(34,38,47,0.22);padding:7px 7px 7px 18px;font-size:15.5px;font-weight:500;color:#6b7285;box-shadow:0 10px 30px rgba(10,13,18,0.16)}',
+      '.cmi-launch .cmi-launch-q{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}',
+      '.cmi-launch .cmi-launch-go{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#C2410C;color:#fff;flex:none}',
+      'body.cmi-has-bar{padding-bottom:78px}}',
       /* Persistent persona prompt. Present on 100% of sessions from first
          paint - no scroll gesture, no dwell timer, no suppression key. */
       '.cmi-prompt{position:fixed;right:20px;bottom:20px;z-index:9997;width:268px;background:#f8fafc;color:#22262f;border:1px solid rgba(34,38,47,0.128);border-radius:16px;padding:15px 15px 13px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 14px 40px rgba(10,13,18,0.158);animation:cmiRise .4s cubic-bezier(.2,.8,.2,1) both}',
@@ -508,7 +514,11 @@
     /* A launcher that names the page it is sitting on is answering the
        question "can this thing help me with THIS?" before it is asked.
        Falls back to the generic label everywhere else. */
-    launchEl.innerHTML = '<span class="cmi-dock-live"></span>' + launcherLabel();
+    var small = window.matchMedia('(max-width: 620px)').matches;
+    var lbl = launcherLabel();
+    launchEl.innerHTML = '<span class="cmi-launch-q"><span class="cmi-dock-live"></span>' +
+      (small ? (lbl === 'Ask the market' ? 'Ask anything\u2026' : lbl + '\u2026') : lbl) + '</span>' +
+      '<span class="cmi-launch-go" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
     launchEl.addEventListener('click', function () {
       track('intent_launcher_clicked', { path: location.pathname });
       hideLauncher();
@@ -517,8 +527,8 @@
     });
     document.body.appendChild(launchEl);
   }
-  function hideLauncher() { if (launchEl) launchEl.hidden = true; }
-  function showLauncher() { ensureLauncher(); launchEl.hidden = false; }
+  function hideLauncher() { if (launchEl) launchEl.hidden = true; document.body.classList.remove('cmi-has-bar'); }
+  function showLauncher() { ensureLauncher(); launchEl.hidden = false; document.body.classList.add('cmi-has-bar'); }
 
   function close(reason) {
     try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch (e) {}
