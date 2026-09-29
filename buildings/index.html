@@ -522,7 +522,12 @@ img { display: block; max-width: 100%; }
 
   /* 360 -> 240. The map cannot be dragged at this width, so it is orientation,
      not a workspace, and 120px of it was buying nothing. */
-  .atlas-map { height: 240px; }
+  .atlas-map { height: 300px; }
+  /* Zillow-style: the neighbourhood chips stay pinned under the header while the list
+     scrolls with the page (29 Sep 2026). */
+  .hood-rail-wrap { position: sticky; top: var(--cm-head-h, 60px); z-index: 30;
+    background: #eef1f6; margin: 0 -20px; padding: 10px 20px 10px; box-shadow: 0 8px 12px -12px rgba(26,31,46,.35); }
+  .atlas-map .leaflet-control-attribution { font-size: 9px; opacity: .75; background: rgba(255,255,255,.7); }
 
   /* Zoom buttons on a map with dragging:false are a dead end — you can zoom in
      and then not reach what you zoomed toward. */
@@ -2034,7 +2039,11 @@ img { display: block; max-width: 100%; }
        360px strip. It is not defensible now that the map is the screen: a
        full-bleed map you cannot pan is worse than a small one, because it
        looks like it should work. touchZoom and pinch stay on their defaults. */
-    var STAGE = window.matchMedia('(max-width: 720px)').matches;
+    /* The full-screen phone "stage" (map + drag-up sheet) is retired (Tim, 29 Sep 2026): three
+       scroll areas fighting one thumb made the home page feel stuck. On phones the map is now an
+       inline orientation map and the neighbourhood list scrolls with the page, with the chip row
+       pinned under the header. Everything the stage built is still here, gated on STAGE. */
+    var STAGE = false;
     var map = L.map('atlas-map', {
       zoomControl: false, scrollWheelZoom: false,
       dragging: STAGE || window.innerWidth > 980,
@@ -2321,6 +2330,11 @@ img { display: block; max-width: 100%; }
       return list;
     }
     var STAGE_SCROLLER = buildStage();
+    (function () {
+      var hd = document.querySelector('.cm-header');
+      function setH() { if (hd) document.documentElement.style.setProperty('--cm-head-h', Math.round(hd.getBoundingClientRect().height) + 'px'); }
+      setH(); window.addEventListener('resize', setH);
+    })();
 
     var obs = new IntersectionObserver(function (entries) {
       var vis = entries.filter(function (e) { return e.isIntersecting; });
