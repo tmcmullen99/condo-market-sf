@@ -1759,11 +1759,12 @@ function cityMortgageCalc(price) {
     + 'calc();})();</script>';
 }
 
-/* The storage service's resized copy of one of our stored photos; anything else is returned as-is. */
+/* Switched OFF 29 Sep 2026. Supabase bills every stored photo it resizes ($5 per 1,000 origin
+   images after 100 a month): the listing strips sent 3,443 over the allowance in their first
+   day. Photos are served as stored until thumbnails are made once, at rehost time, or by
+   Cloudflare image resizing. Keep the call sites; only this function decides. */
 function cmThumbUrl(u, w, h) {
-  const m = String(u || '').match(/^(https:\/\/[a-z0-9]+\.supabase\.co)\/storage\/v1\/object\/public\/(.+)$/);
-  if (!m) return u;
-  return m[1] + '/storage/v1/render/image/public/' + m[2] + '?width=' + w + (h ? '&height=' + h + '&resize=cover' : '') + '&quality=65';
+  return u;
 }
 
 function renderListingCity(d, B, foot, reportsHtml) {
