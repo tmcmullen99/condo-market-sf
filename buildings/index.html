@@ -634,6 +634,23 @@ img { display: block; max-width: 100%; }
   }
 }
 
+/* Phone chip row, fixed (Tim, 29 Sep 2026). The base .hood-rail-wrap rule above came later in
+   the file than the sticky phone rule, so it reset the padding and max-width: the row was
+   shifted 20px left (first chip cut at the screen edge) and its background stopped short on
+   the right. This block comes last and wins: full-bleed band, chips inset 20px, a proper fade. */
+@media (max-width: 720px) {
+  #atlas .hood-rail-wrap { position: sticky; top: var(--cm-head-h, 60px); z-index: 30;
+    margin: 0 -20px 6px; padding: 10px 0; max-width: none; background: #eef1f6;
+    box-shadow: 0 8px 12px -12px rgba(26,31,46,.35); }
+  #atlas .hood-rail { gap: 8px; padding: 0 20px; scroll-padding: 0 20px; }
+  #atlas .hood-rail::after { content: ''; flex: 0 0 4px; }   /* room after the last chip */
+  #atlas .hood-rail-wrap::after { top: 10px; bottom: 10px; right: 0; width: 36px;
+    background: linear-gradient(90deg, rgba(238,241,246,0), #eef1f6 85%); }
+  #atlas .hood-chip { font-size: 13.5px; padding: 9px 14px; }
+  #atlas .hood-chip .n { background: #C2410C; font-size: 10.5px; padding: 2px 6px; }
+  #atlas .hood-chip.is-current { background: #1a1f2e; border-color: #1a1f2e; color: #fff; }
+}
+
 .hoods-col { display: block; min-width: 0; }
 .hoods-list { display: flex; flex-direction: column; gap: 10px; }
 .hood {
