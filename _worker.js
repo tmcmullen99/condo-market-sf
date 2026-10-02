@@ -490,7 +490,6 @@ function cityNav(active) {
     '      ' + a('/buildings/', 'Buildings', 'buildings') + '\n' +
     '      ' + a('/intelligence/', 'Intelligence', 'intelligence') + '\n' +
     '      ' + a('/how-it-works/', 'How it works', 'how') + '\n' +
-    '      ' + a('/save-10k/', 'Save $10K', 'save') + '\n' +
     '    </div>\n' +
     '    <div class="nav-right"><a class="nav-cta" href="#signin" data-cm-auth="login">Sign in</a></div>\n' +
     '    <button class="burger" aria-label="Open menu" aria-expanded="false" id="burger"><span></span><span></span><span></span></button>\n' +
@@ -528,7 +527,7 @@ function cityFooter(payload) {
     '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/buildings/">Buildings</a>' +
     '<a href="/neighborhoods/">Neighborhoods</a><a href="/san-francisco-condo-market-stats/">Market stats</a><a href="/san-francisco-condo-rankings/">Rankings</a>' +
     '<a href="/intelligence/">Intelligence</a><a href="/how-it-works/">How it works</a><a href="/investor-exchange/">Investor Exchange</a></div>\n' +
-    '      <div><h4>Contact</h4><a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a><a href="/methodology/">Methodology</a><a href="/save-10k/">Save $10K</a></div>\n' +
+    '      <div><h4>Contact</h4><a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a><a href="/methodology/">Methodology</a></div>\n' +
     '    </div>\n' +
     '    <p class="disclosure">&copy; 2026 Condo Market SF &middot; Platform operated by McMullen Properties LLC, which is not a real estate brokerage &middot; ' +
     'Real estate services provided by Tim McMullen, Broker, CA DRE #02016832. Condo Market SF is a marketing platform and is not a real estate brokerage. ' +
@@ -582,7 +581,6 @@ function renderOffMarket(payload) {
     '</div>\n' +
     '    <div class="reveal" style="text-align:center;margin-top:30px">\n' +
     '      <button class="btn btn-gold" data-cm-auth="signup" data-cta="offmarket:combined-signup">Create a free account to see the numbers &rarr;</button>\n' +
-    '      <p style="font-size:.78rem;color:var(--chrome-soft);margin-top:12px">Includes a <b style="color:var(--accent-on-dark)">$10,000 credit</b> off commission when you sell &middot; no obligation.</p>\n' +
     '    </div>\n  </div>\n</section>\n';
 
   const map = '<section class="map-section omap" id="map">\n  <div class="wrap">\n' +
@@ -622,7 +620,7 @@ function renderOffMarket(payload) {
 
   const cta = '<section class="omap-cta"><div class="wrap"><div class="omap-cta-in reveal">\n  <div>\n    <div class="omap-cta-k">Members only</div>\n' +
     '    <h3>See the prices that never reach a listing site.</h3>\n' +
-    '    <p>Owners&rsquo; private numbers and every building&rsquo;s full sales history with a free account &mdash; plus a <b>$10,000 credit</b> off commission when you sell.</p>\n' +
+    '    <p>Owners&rsquo; private numbers and every building&rsquo;s full sales history with a free account.</p>\n' +
     '  </div>\n  <button class="btn btn-gold" data-cm-auth="signup" data-cta="offmarket:map-signup">Create a free account &rarr;</button>\n</div></div></section>\n';
 
   const how = '<section class="om-how" id="how"><div class="wrap">\n' +
@@ -6252,7 +6250,6 @@ function renderBuilding(p) {
     '<nav class="nav-meta">' +
     '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/history/">History</a><a href="/how-it-works/">How it works</a>' +
-    '<a href="/save-10k/">Save $10k</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n' +
     '<div class="wrap"><div class="crumb">' +
