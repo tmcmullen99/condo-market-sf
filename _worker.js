@@ -4331,7 +4331,8 @@ const CM_NEWS_CSS = '<style>' +
 
 /* LOCAL NEWS vs MARKET REPORTS (Tim, 4 Oct 2026): two tabs, two pages. Reports are named by one rule
    ("San Francisco Condo September 2026 Market Report") and live under /market-reports/. */
-const cmNewsHref = (base, a) => base + (a && a.kind === 'market_review' ? '/market-reports/' : '/news/') + a.slug + '/';
+// every article, report or news, keeps the address it was published and shared under (Tim, 4 Oct 2026)
+const cmNewsHref = (base, a) => base + '/news/' + a.slug + '/';
 const cmReportType = (a) => /\bQ[1-4] \d{4}\b/.test(a.headline || '') ? 'Quarterly'
   : /Year-to-Date/.test(a.headline || '') ? 'Year to date'
   : /\b\d{4} Market Report$/.test(a.headline || '') && !/(January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/.test(a.headline || '') ? 'Annual' : 'Monthly';
@@ -4396,7 +4397,7 @@ async function renderCondoNewsArticle(mk, slug, area) {
   // a renamed report answers with where it moved; a report asked for under /news/ (or the reverse) moves too
   if (data && data.error === 'moved' && data.redirect_slug)
     return new Response(null, { status: 301, headers: { 'location': cmNewsHref(base, { kind: data.kind, slug: data.redirect_slug }), 'cache-control': 'public, max-age=3600' } });
-  if (data && data.ok && data.article && (area || 'news') !== (data.article.kind === 'market_review' ? 'reports' : 'news'))
+  if (data && data.ok && data.article && area === 'reports')   // /market-reports/ is the index tab only
     return new Response(null, { status: 301, headers: { 'location': cmNewsHref(base, data.article), 'cache-control': 'public, max-age=3600' } });
   if (!data || !data.ok || !data.article) {
     const body = CM_NEWS_CSS + '<div class="wrap"><div class="nw-art"><p class="nw-crumb"><a href="' + base + '/news/">News</a></p>' +
