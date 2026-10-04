@@ -3082,11 +3082,14 @@ async function handleRequest(request, env) {
     // Local news and monthly market reports. The articles live on the city
     // platform (news_articles, market 5 = SF, 6 = SV); this site renders them.
     if (request.method === 'GET' && (url.pathname === '/news' || url.pathname === '/news/')) {
-      return renderCondoNewsIndex(hostMk);
+      return renderCondoNewsIndex(hostMk, 'local_news');
+    }
+    if (request.method === 'GET' && (url.pathname === '/market-reports' || url.pathname === '/market-reports/')) {
+      return renderCondoNewsIndex(hostMk, 'market_review');
     }
     {
-      const nm = url.pathname.match(/^\/news\/([a-z0-9-]+)\/?$/);
-      if (request.method === 'GET' && nm) return renderCondoNewsArticle(hostMk, nm[1]);
+      const nm = url.pathname.match(/^\/news\/([a-z0-9-]+)\/?$/) || url.pathname.match(/^\/market-reports\/([a-z0-9-]+)\/?$/);
+      if (request.method === 'GET' && nm) return renderCondoNewsArticle(hostMk, nm[1], url.pathname.startsWith('/market-reports/') ? 'reports' : 'news');
     }
 
     // Evergreen data hub: citywide market stats (trailing-12mo pulse + YoY).
@@ -3570,8 +3573,9 @@ async function renderSitemap(mk) {
   const newsIdx = await aNewsRpc('get_news_index', { p_market_id: A_MARKET_ID_BY_TAG[mk.tag] || 5, p_limit: 50, p_offset: 0 });
   const newsArts = (newsIdx && newsIdx.ok && Array.isArray(newsIdx.articles)) ? newsIdx.articles : [];
   urlsXml.push('<url><loc>' + base + '/news/</loc><lastmod>' + (newsArts[0] && newsArts[0].published_at ? String(newsArts[0].published_at).slice(0, 10) : today) + '</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>');
+  urlsXml.push('<url><loc>' + base + '/market-reports/</loc><lastmod>' + today + '</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>');
   for (const n of newsArts) {
-    urlsXml.push('<url><loc>' + base + '/news/' + n.slug + '/</loc><lastmod>' + String(n.published_at || today).slice(0, 10) + '</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>');
+    urlsXml.push('<url><loc>' + cmNewsHref(base, n) + '</loc><lastmod>' + String(n.published_at || today).slice(0, 10) + '</lastmod><changefreq>monthly</changefreq><priority>' + (n.kind === 'market_review' ? '0.8' : '0.7') + '</priority></url>');
   }
   for (const u of staticUrls) {
     urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
@@ -4325,38 +4329,75 @@ const CM_NEWS_CSS = '<style>' +
 '.nw-legal{font-size:12.5px;color:#5d6575;margin-top:30px}' +
 '</style>';
 
-async function renderCondoNewsIndex(mk) {
+/* LOCAL NEWS vs MARKET REPORTS (Tim, 4 Oct 2026): two tabs, two pages. Reports are named by one rule
+   ("San Francisco Condo September 2026 Market Report") and live under /market-reports/. */
+const cmNewsHref = (base, a) => base + (a && a.kind === 'market_review' ? '/market-reports/' : '/news/') + a.slug + '/';
+const cmReportType = (a) => /\bQ[1-4] \d{4}\b/.test(a.headline || '') ? 'Quarterly'
+  : /Year-to-Date/.test(a.headline || '') ? 'Year to date'
+  : /\b\d{4} Market Report$/.test(a.headline || '') && !/(January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/.test(a.headline || '') ? 'Annual' : 'Monthly';
+const CM_TABS_CSS = '<style>.nw-tabs{display:flex;gap:6px;margin:26px 0 0;padding:5px;background:#fff;border:1px solid #e0e5ed;border-radius:14px;width:max-content;max-width:100%}' +
+  '.nw-tabs a{display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:700;font-size:15px;color:#5d6575;text-decoration:none;white-space:nowrap}' +
+  '.nw-tabs a span{font:600 11px ui-monospace,Menlo,monospace;background:rgba(32,36,46,.07);border-radius:99px;padding:2px 8px}' +
+  '.nw-tabs a.on{background:#12151d;color:#fff}.nw-tabs a.on span{background:rgba(255,255,255,.18);color:#fff}.nw-tabs a:not(.on):hover{color:#22262f;background:rgba(32,36,46,.05)}' +
+  '.nw-sect{font-family:"Playfair Display",serif;font-size:22px;margin:30px 0 4px}' +
+  '.nw-sub{font-family:"Playfair Display",serif;font-style:italic;font-size:20px;line-height:1.35;color:#5d6575;margin:6px 0 10px}' +
+  '@media(max-width:600px){.nw-tabs{width:100%}.nw-tabs a{flex:1;justify-content:center;padding:11px 8px}}</style>';
+function cmNewsTabs(base, active, counts) {
+  const c = counts || {};
+  return '<nav class="nw-tabs" aria-label="Local news and market reports">' +
+    '<a href="' + base + '/news/" class="' + (active === 'local_news' ? 'on' : '') + '">Local News' + (c.local_news ? '<span>' + c.local_news + '</span>' : '') + '</a>' +
+    '<a href="' + base + '/market-reports/" class="' + (active === 'market_review' ? 'on' : '') + '">Market Reports' + (c.market_review ? '<span>' + c.market_review + '</span>' : '') + '</a></nav>';
+}
+
+async function renderCondoNewsIndex(mk, kind) {
+  const rep = kind === 'market_review';
   const marketId = A_MARKET_ID_BY_TAG[mk.tag] || 5;
   const base = 'https://www.' + mk.domain;
-  const canonical = base + '/news/';
-  const data = await aNewsRpc('get_news_index', { p_market_id: marketId, p_limit: 30, p_offset: 0 });
+  const canonical = base + (rep ? '/market-reports/' : '/news/');
+  const data = await aNewsRpc('get_news_index', { p_market_id: marketId, p_limit: rep ? 60 : 30, p_offset: 0, p_kind: rep ? 'market_review' : 'local_news' });
   const arts = (data && data.ok && Array.isArray(data.articles)) ? data.articles : [];
-  const title = mk.region + ' condo news & monthly market reports \u2014 ' + mk.brand;
-  const desc = 'What is moving the ' + mk.region + ' condo market: recorded sales, building by building, and a monthly report with the sample behind every number.';
-  const cards = arts.map(a => {
+  const counts = (data && data.counts) || {};
+  const title = rep ? mk.region + ' Condo Market Reports \u2014 ' + mk.brand : mk.region + ' condo news \u2014 ' + mk.brand;
+  const desc = rep
+    ? 'Every ' + mk.region + ' condo market report in one place: monthly, quarterly and annual closings, volume and median prices from recorded sales, with the sample behind every number.'
+    : 'What is moving the ' + mk.region + ' condo market: recorded sales, building by building, and coverage of anything notable between the monthly reports.';
+  const card = (a) => {
     const img = a.hero_path ? '<div class="ph"><img src="' + attr(cmNewsMedia(a.hero_path)) + '" alt="' + attr(a.hero_alt || a.headline) + '" loading="lazy"></div>' : '';
-    return '<a class="nw-card" href="' + base + '/news/' + attr(a.slug) + '/">' + img + '<div class="bd">' +
-      '<div class="nw-kind">' + (a.kind === 'market_review' ? 'Monthly market report' : 'Local news') + '</div>' +
-      '<h2>' + esc(a.headline) + '</h2>' + (a.dek ? '<p>' + esc(a.dek) + '</p>' : '') +
+    const text = rep ? (a.subhead || a.dek) : a.dek;
+    return '<a class="nw-card" href="' + cmNewsHref(base, a) + '">' + img + '<div class="bd">' +
+      '<div class="nw-kind">' + (rep ? cmReportType(a) + ' market report' : 'Local news') + '</div>' +
+      '<h2>' + esc(a.headline) + '</h2>' + (text ? '<p>' + esc(text) + '</p>' : '') +
       '<div class="nw-meta">' + esc(cmNewsDate(a.published_at)) + (a.word_count ? ' \u00b7 ' + Math.max(1, Math.round(a.word_count / 220)) + ' min read' : '') + '</div>' +
       '</div></a>';
-  }).join('');
+  };
+  let list;
+  if (!arts.length) list = '<div class="nw-empty">' + (rep ? 'No market reports are published here yet. The report for the month just ended goes up in the first days of each month.' : 'No articles are published here yet.') + '</div>';
+  else if (rep) {
+    const big = arts.filter((a) => cmReportType(a) !== 'Monthly'), monthly = arts.filter((a) => cmReportType(a) === 'Monthly');
+    list = (big.length ? '<h2 class="nw-sect">Quarterly &amp; annual reports</h2><div class="nw-list">' + big.map(card).join('') + '</div>' : '') +
+           (monthly.length ? '<h2 class="nw-sect">Monthly reports</h2><div class="nw-list">' + monthly.map(card).join('') + '</div>' : '');
+  } else list = '<div class="nw-list">' + arts.map(card).join('') + '</div>';
   const jsonld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, url: canonical, description: desc,
-    hasPart: arts.slice(0, 20).map(a => ({ '@type': 'NewsArticle', headline: a.headline, url: base + '/news/' + a.slug + '/', datePublished: a.published_at })) };
-  const body = CM_NEWS_CSS +
-    '<div class="hero"><div class="wrap"><p class="kick">' + esc(mk.region) + ' \u00b7 Local news</p>' +
-    '<h1>' + esc(mk.region) + ' condo news</h1>' +
-    '<p class="lede">What actually moved the market, from the recorded sales. A monthly report on the first of every month, and coverage of anything notable in between.</p></div></div>' +
-    '<div class="wrap">' + (cards ? '<div class="nw-list">' + cards + '</div>'
-      : '<div class="nw-empty">No articles are published here yet. The monthly report for the month just ended goes up in the first days of each month.</div>') + '</div>';
+    hasPart: arts.slice(0, 30).map(a => ({ '@type': rep ? 'Report' : 'NewsArticle', headline: a.headline, url: cmNewsHref(base, a), datePublished: a.published_at })) };
+  const body = CM_NEWS_CSS + CM_TABS_CSS +
+    '<div class="hero"><div class="wrap">' + cmNewsTabs(base, rep ? 'market_review' : 'local_news', counts) +
+    '<p class="kick" style="margin-top:22px">' + esc(mk.region) + ' \u00b7 ' + (rep ? 'Market reports' : 'Local news') + '</p>' +
+    '<h1>' + esc(mk.region) + (rep ? ' condo market reports' : ' condo news') + '</h1>' +
+    '<p class="lede">' + esc(desc) + '</p></div></div>' +
+    '<div class="wrap">' + list + '</div>';
   const html = nbChrome(title, desc, canonical, jsonld, base, body);
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=900' } });
 }
 
-async function renderCondoNewsArticle(mk, slug) {
+async function renderCondoNewsArticle(mk, slug, area) {
   const marketId = A_MARKET_ID_BY_TAG[mk.tag] || 5;
   const base = 'https://www.' + mk.domain;
   const data = await aNewsRpc('get_news_article', { p_market_id: marketId, p_slug: slug });
+  // a renamed report answers with where it moved; a report asked for under /news/ (or the reverse) moves too
+  if (data && data.error === 'moved' && data.redirect_slug)
+    return new Response(null, { status: 301, headers: { 'location': cmNewsHref(base, { kind: data.kind, slug: data.redirect_slug }), 'cache-control': 'public, max-age=3600' } });
+  if (data && data.ok && data.article && (area || 'news') !== (data.article.kind === 'market_review' ? 'reports' : 'news'))
+    return new Response(null, { status: 301, headers: { 'location': cmNewsHref(base, data.article), 'cache-control': 'public, max-age=3600' } });
   if (!data || !data.ok || !data.article) {
     const body = CM_NEWS_CSS + '<div class="wrap"><div class="nw-art"><p class="nw-crumb"><a href="' + base + '/news/">News</a></p>' +
       '<h1>That article isn\u2019t here</h1><p class="nw-dek">It may have been moved or taken down. <a style="color:#e85d2a" href="' + base + '/news/">See all ' + esc(mk.region) + ' news</a>.</p></div></div>';
@@ -4364,7 +4405,8 @@ async function renderCondoNewsArticle(mk, slug) {
       { status: 404, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=60' } });
   }
   const a = data.article;
-  const canonical = base + '/news/' + a.slug + '/';
+  const rep = a.kind === 'market_review';
+  const canonical = cmNewsHref(base, a);
   const imgs = Array.isArray(data.images) ? data.images : [];
   const blocks = cmNewsBlocks(a.body_md);
   let bodyHtml = '';
@@ -4392,14 +4434,14 @@ async function renderCondoNewsArticle(mk, slug) {
     '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(canonical) + '" target="_blank" rel="noopener">LinkedIn</a></div>';
   const title = a.meta_title || a.headline;
   const desc = a.meta_description || a.dek || '';
-  const jsonld = { '@context': 'https://schema.org', '@type': 'NewsArticle', headline: a.headline, description: desc, url: canonical,
+  const jsonld = { '@context': 'https://schema.org', '@type': rep ? 'Report' : 'NewsArticle', headline: a.headline, alternativeHeadline: rep && a.subhead ? a.subhead : undefined, description: desc, url: canonical,
     datePublished: a.published_at, dateModified: a.updated_at || a.published_at,
     image: a.hero_path ? [cmNewsMedia(a.hero_path)] : undefined,
     author: au.name ? { '@type': 'Person', name: au.name } : undefined,
     publisher: { '@type': 'Organization', name: mk.brand } };
-  const body = CM_NEWS_CSS + '<div class="wrap"><article class="nw-art">' +
-    '<p class="nw-crumb"><a href="' + base + '/">' + esc(mk.brand) + '</a> \u203a <a href="' + base + '/news/">News</a></p>' +
-    '<h1>' + esc(a.headline) + '</h1>' + (a.dek ? '<p class="nw-dek">' + esc(a.dek) + '</p>' : '') +
+  const body = CM_NEWS_CSS + CM_TABS_CSS + '<div class="wrap"><article class="nw-art">' +
+    '<p class="nw-crumb"><a href="' + base + '/">' + esc(mk.brand) + '</a> \u203a ' + (rep ? '<a href="' + base + '/market-reports/">Market reports</a>' : '<a href="' + base + '/news/">News</a>') + '</p>' +
+    '<h1>' + esc(a.headline) + '</h1>' + (rep && a.subhead ? '<p class="nw-sub">' + esc(a.subhead) + '</p>' : '') + (a.dek ? '<p class="nw-dek">' + esc(a.dek) + '</p>' : '') +
     '<div class="nw-by">' + (au.name ? 'By ' + esc(au.name) + ' \u00b7 ' : '') + esc(cmNewsDate(a.published_at)) + '</div>' +
     hero + '<div class="nw-body">' + bodyHtml + '</div>' + src + share +
     '<p class="nw-legal">' + (au.name ? esc(au.name) + (au.dre ? ', CA DRE #' + esc(au.dre) : '') + '. ' : '') +
@@ -5020,7 +5062,8 @@ async function renderLlmsTxt(mk) {
     lines.push('- [Condo rankings](' + base + '/san-francisco-condo-rankings): buildings ranked by price and activity');
     lines.push('- [Market stats](' + base + '/san-francisco-condo-market-stats): the ' + mk.region + ' condo market in numbers');
   }
-  lines.push('- [News](' + base + '/news/): daily and monthly market reports');
+  lines.push('- [Local news](' + base + '/news/): daily coverage of recorded sales');
+  lines.push('- [Market reports](' + base + '/market-reports/): monthly, quarterly and annual market reports');
   lines.push('- [How it works](' + base + '/how-it-works/)');
   lines.push('');
   lines.push('## Buildings by neighborhood');
