@@ -5907,11 +5907,41 @@ function renderBuilding(p) {
       + '<p class="disc-cta-line">We have read this association\u2019s HOA documents and written up what is in them'
       +   (asOf ? ', as of ' + esc(asOf) : '') + '. ' + docLine + '</p>'
       + heldLine
-      + '<a class="disc-cta-btn" data-cm-auth="signup" data-cta="building-disclosure-signup" href="#signup">'
-      +   'Create a free account to read the review \u2192</a>'
+      + (d.has_pdf
+          /* DOWNLOAD (9 Oct 2026). When the review has a PDF, the button downloads it for a
+           * signed-in account. The PDF sits in a private bucket on Platform A; the
+           * building-review-pdf function checks this site's session and returns a 5-minute
+           * signed link. Signed out, the same button opens signup and resumes afterwards. */
+          ? '<a class="disc-cta-btn" href="#signup" data-bdr-dl="' + esc(d.tract_slug || '') + '" data-bdr-mk="' + Number(d.market_id || 0) + '" data-cta="building-disclosure-download">'
+            +   'Create a free account to download the review (PDF) \u2192</a>'
+            + '<p class="disc-cta-msg" data-bdr-msg role="status" hidden></p>'
+          : '<a class="disc-cta-btn" data-cm-auth="signup" data-cta="building-disclosure-signup" href="#signup">'
+            +   'Create a free account to read the review \u2192</a>')
       + '<p class="disc-cta-note">' + esc(ageNote) + '. Prepared by a licensed agent from the disclosure package of a listing in this building. '
       +   'It describes the association, not any one unit.</p>'
-      + '</div>';
+      + '</div>'
+      + (d.has_pdf
+          ? '<script>(function(){var b=document.querySelector("[data-bdr-dl]");if(!b)return;'
+            + 'var FN="' + SB_A_URL + '/functions/v1/building-review-pdf",m=document.querySelector("[data-bdr-msg]"),pend=false,busy=false;'
+            + 'function say(t){if(m){m.hidden=false;m.textContent=t;}}'
+            + 'function lab(s){b.textContent=s?"Download the review (PDF) \u2192":"Create a free account to download the review (PDF) \u2192";}'
+            + 'function ses(){try{if(window.CM&&window.CM.getSession)return window.CM.getSession().catch(function(){return null;});}catch(e){}return Promise.resolve(null);}'
+            + 'function auth(mode){pend=true;window.dispatchEvent(new CustomEvent("openAuthModal",{detail:{mode:mode}}));}'
+            + 'function go(){if(busy)return;ses().then(function(s){if(!s||!s.access_token){auth("signup");return;}busy=true;say("Preparing your download\u2026");'
+            + 'return fetch(FN,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},'
+            + 'body:JSON.stringify({market_id:+b.getAttribute("data-bdr-mk"),tract_slug:b.getAttribute("data-bdr-dl")})})'
+            + '.then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};},function(){return {ok:false,j:{}};});})'
+            + '.then(function(x){busy=false;if(x.ok&&x.j.url){say("Your download has started.");window.location.href=x.j.url;}'
+            + 'else if(x.j.error==="account_required"){say("");auth("login");}'
+            + 'else{say("The download is not available right now. Please try again in a few minutes.");}});})'
+            + '.catch(function(){busy=false;say("The download could not start. Please try again.");});}'
+            + 'b.addEventListener("click",function(e){e.preventDefault();go();});'
+            + 'window.addEventListener("cm-auth-change",function(e){var ev=e&&e.detail&&e.detail.event;'
+            + 'if((ev==="SIGNED_IN"||ev==="INITIAL_SESSION")&&e.detail.session){lab(true);if(pend){pend=false;go();}}else if(ev==="SIGNED_OUT"){lab(false);}});'
+            + 'function init(){ses().then(function(s){lab(!!(s&&s.access_token));});}'
+            + 'if(window.CM)init();else window.addEventListener("cm-ready",init);'
+            + '})();</script>'
+          : '');
   }
 
 
@@ -6564,6 +6594,7 @@ const CSS = `
   .disc-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #c2410c; color: #ffffff; font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 999px; text-decoration: none; transition: transform 150ms ease; }
   .disc-cta-btn:hover { transform: translateY(-1px); }
   .disc-cta-note { margin: 12px 0 0; font-size: 11.5px; line-height: 1.55; color: #5d6575; }
+  .disc-cta-msg { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: #22262f; }
 .xb-section { padding-top: 28px; padding-bottom: 28px; border-top: 1px solid rgba(212,165,116,.22); border-bottom: 1px solid rgba(212,165,116,.22); background: rgba(194,65,12,0.05); }
 .xb-kicker { font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: #8f5d1c; margin-bottom: 8px; }
 .xb-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: clamp(22px, 3vw, 28px); line-height: 1.2; color: #22262f; margin: 0 0 8px; }
