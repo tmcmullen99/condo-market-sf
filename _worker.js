@@ -6344,7 +6344,7 @@ function renderBuilding(p) {
     '<script type="module" src="/assets/cm-featured.js"></script>\n' +
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
     '<script type="module" src="/assets/cm-offer-modal.js?v=4"></script>\n' +
-    '<script type="module" src="/assets/cm-dossier.js"></script>\n' +
+    '<script type="module" src="/assets/cm-dossier.js?v=2"></script>\n' +
     '<script type="module" src="/assets/cm-market.js"></script>\n' +
     '</body>\n</html>';
 }

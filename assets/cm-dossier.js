@@ -381,6 +381,21 @@
     });
 
     setView(showTowerView ? 'tower' : 'table');
+
+    /* /building/<slug>/#unit-711 opens that unit (Tim, 13 Oct 2026): the building watch
+       emails list recent sales and each unit links straight to its record here. */
+    var hm = String(location.hash || '').match(/^#unit-([A-Za-z0-9-]+)$/);
+    if (hm) {
+      var want = hm[1].toUpperCase(), found = null;
+      for (var i = 0; i < d.units.length; i++) {
+        if (String(d.units[i].label || d.units[i].u || '').replace(/^#+/, '').toUpperCase() === want) { found = d.units[i]; break; }
+      }
+      if (found) {
+        selectUnit(found);
+        var sec = host.closest ? (host.closest('section') || host) : host;
+        setTimeout(function () { sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+      }
+    }
   }
 
   /* ------------------------------- styles --------------------------------- */
