@@ -1974,7 +1974,7 @@ function renderListingCity(d, B, foot, reportsHtml) {
       'mw.addEventListener("touchend",function(e){if(sx==null)return;var dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>40){e.preventDefault();show(idx+(dx<0?1:-1));}});}' +
       'document.addEventListener("keydown",function(e){if(e.target&&/input|select|textarea/i.test(e.target.tagName))return;if(e.key==="ArrowLeft")show(idx-1);if(e.key==="ArrowRight")show(idx+1);});' +
       '})();</script>' : '') +
-    '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
+    '<script type="module" src="/assets/cm-offer-modal.js?v=4"></script>\n' +
     '<script type="application/ld+json">' + JSON.stringify(jsonLd).replace(/</g, '\\u003c') + '</script>\n';
 
   const body =
@@ -3477,6 +3477,7 @@ async function handleRequest(request, env) {
      * text, so nothing hidden is ever in the HTML. */
     let disclosure = null;
     let exchange = null;
+    let review = null;   // the building's newest published review (Tim, 13 Oct 2026)
     const aMarketId = A_MARKET_ID_BY_TAG[hostMk.tag];
     if (aMarketId) {
       const aRpc = function (fn, body) {
@@ -3494,12 +3495,15 @@ async function handleRequest(request, env) {
       const both = await Promise.all([
         aRpc('building_disclosure_teaser', { p_market_id: aMarketId, p_tract_slug: slug }),
         aRpc('building_exchange_teaser', { p_market_id: aMarketId, p_slug: slug }),
+        aRpc('building_review_latest', { p_market_id: aMarketId, p_slug: slug }),
       ]);
       if (both[0] && both[0].has_review === true) disclosure = both[0];
       if (both[1] && Array.isArray(both[1].listings) && both[1].listings.length) exchange = both[1];
+      if (both[2] && both[2].ok === true && both[2].slug) review = both[2];
     }
     payload.disclosure = disclosure;
     payload.exchange = exchange;
+    payload.review = review;
 
     // Cross-domain canonical enforcement: if this building belongs to a different
     // market than the host being requested, 301 to the correct domain. This is
@@ -3575,7 +3579,7 @@ async function renderSitemap(mk) {
   urlsXml.push('<url><loc>' + base + '/news/</loc><lastmod>' + (newsArts[0] && newsArts[0].published_at ? String(newsArts[0].published_at).slice(0, 10) : today) + '</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>');
   urlsXml.push('<url><loc>' + base + '/market-reports/</loc><lastmod>' + today + '</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>');
   for (const n of newsArts) {
-    urlsXml.push('<url><loc>' + cmNewsHref(base, n) + '</loc><lastmod>' + String(n.published_at || today).slice(0, 10) + '</lastmod><changefreq>monthly</changefreq><priority>' + (n.kind === 'market_review' ? '0.8' : '0.7') + '</priority></url>');
+    urlsXml.push('<url><loc>' + cmNewsHref(base, n) + '</loc><lastmod>' + String(n.published_at || today).slice(0, 10) + '</lastmod><changefreq>monthly</changefreq><priority>' + (n.kind === 'market_review' || n.kind === 'building_review' ? '0.8' : '0.7') + '</priority></url>');
   }
   for (const u of staticUrls) {
     urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
@@ -4360,13 +4364,13 @@ async function renderCondoNewsIndex(mk, kind) {
   const counts = (data && data.counts) || {};
   const title = rep ? mk.region + ' Condo Market Reports \u2014 ' + mk.brand : mk.region + ' condo news \u2014 ' + mk.brand;
   const desc = rep
-    ? 'Every ' + mk.region + ' condo market report in one place: monthly, quarterly and annual closings, volume and median prices from recorded sales, with the sample behind every number.'
+    ? 'Every ' + mk.region + ' condo market report in one place: monthly, quarterly and annual closings, volume and median prices from recorded sales, and building-by-building reviews, with the sample behind every number.'
     : 'What is moving the ' + mk.region + ' condo market: recorded sales, building by building, and coverage of anything notable between the monthly reports.';
   const card = (a) => {
     const img = a.hero_path ? '<div class="ph"><img src="' + attr(cmNewsMedia(a.hero_path)) + '" alt="' + attr(a.hero_alt || a.headline) + '" loading="lazy"></div>' : '';
-    const text = rep ? (a.subhead || a.dek) : a.dek;
+    const text = rep ? (a.kind === 'building_review' ? (a.dek || a.subhead) : (a.subhead || a.dek)) : a.dek;
     return '<a class="nw-card" href="' + cmNewsHref(base, a) + '">' + img + '<div class="bd">' +
-      '<div class="nw-kind">' + (rep ? cmReportType(a) + ' market report' : 'Local news') + '</div>' +
+      '<div class="nw-kind">' + (a.kind === 'building_review' ? 'Building review' : rep ? cmReportType(a) + ' market report' : 'Local news') + '</div>' +
       '<h2>' + esc(a.headline) + '</h2>' + (text ? '<p>' + esc(text) + '</p>' : '') +
       '<div class="nw-meta">' + esc(cmNewsDate(a.published_at)) + (a.word_count ? ' \u00b7 ' + Math.max(1, Math.round(a.word_count / 220)) + ' min read' : '') + '</div>' +
       '</div></a>';
@@ -4374,8 +4378,11 @@ async function renderCondoNewsIndex(mk, kind) {
   let list;
   if (!arts.length) list = '<div class="nw-empty">' + (rep ? 'No market reports are published here yet. The report for the month just ended goes up in the first days of each month.' : 'No articles are published here yet.') + '</div>';
   else if (rep) {
-    const big = arts.filter((a) => cmReportType(a) !== 'Monthly'), monthly = arts.filter((a) => cmReportType(a) === 'Monthly');
+    // building-by-building reviews sit beside the market-wide ones (Tim, 13 Oct 2026)
+    const mkt = arts.filter((a) => a.kind !== 'building_review'), bldg = arts.filter((a) => a.kind === 'building_review');
+    const big = mkt.filter((a) => cmReportType(a) !== 'Monthly'), monthly = mkt.filter((a) => cmReportType(a) === 'Monthly');
     list = (big.length ? '<h2 class="nw-sect">Quarterly &amp; annual reports</h2><div class="nw-list">' + big.map(card).join('') + '</div>' : '') +
+           (bldg.length ? '<h2 class="nw-sect">Building reviews</h2><div class="nw-list">' + bldg.map(card).join('') + '</div>' : '') +
            (monthly.length ? '<h2 class="nw-sect">Monthly reports</h2><div class="nw-list">' + monthly.map(card).join('') + '</div>' : '');
   } else list = '<div class="nw-list">' + arts.map(card).join('') + '</div>';
   const jsonld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, url: canonical, description: desc,
@@ -4406,7 +4413,7 @@ async function renderCondoNewsArticle(mk, slug, area) {
       { status: 404, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=60' } });
   }
   const a = data.article;
-  const rep = a.kind === 'market_review';
+  const rep = a.kind === 'market_review' || a.kind === 'building_review';
   const canonical = cmNewsHref(base, a);
   const imgs = Array.isArray(data.images) ? data.images : [];
   const blocks = cmNewsBlocks(a.body_md);
@@ -6149,7 +6156,9 @@ function renderBuilding(p) {
     '<section class="section" id="market"><div class="wrap">' +
     '<div class="section-head"><div class="section-kicker">Market analysis</div>' +
     '<h2 class="section-title">How <em>' + name + '</em> compares</h2>' +
-    '<p class="section-sub">Trailing-12-month performance against the half-mile surroundings and the broader market, plus quarter-by-quarter $/ft\u00b2 history.</p></div>' +
+    '<p class="section-sub">Trailing-12-month performance against the half-mile surroundings and the broader market, plus quarter-by-quarter $/ft\u00b2 history.</p>' +
+    (p.review && p.review.slug ? '<p class="section-sub" style="margin-top:10px"><a href="/news/' + esc(p.review.slug) + '/" data-cm-cta="building-review" style="color:#C2410C;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.3)">Read the ' + esc(p.review.headline) + ' \u2192</a></p>' : '') +
+    '</div>' +
     '<div id="cm-market-root"></div>' +
     '</div></section>';
 
@@ -6334,7 +6343,7 @@ function renderBuilding(p) {
     '<script>' + WATCH_JS + '</script>\n' +
     '<script type="module" src="/assets/cm-featured.js"></script>\n' +
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
-    '<script type="module" src="/assets/cm-offer-modal.js"></script>\n' +
+    '<script type="module" src="/assets/cm-offer-modal.js?v=4"></script>\n' +
     '<script type="module" src="/assets/cm-dossier.js"></script>\n' +
     '<script type="module" src="/assets/cm-market.js"></script>\n' +
     '</body>\n</html>';

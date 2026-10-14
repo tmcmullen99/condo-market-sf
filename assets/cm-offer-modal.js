@@ -1074,3 +1074,14 @@ document.addEventListener('click', (e) => {
 window.addEventListener('cm:open-offer-modal', (e) => {
   open(e.detail || {});
 });
+
+/* A link to /building/<slug>/#offer opens the offer form on arrival (Tim, 13 Oct 2026): the
+   building watch email "Start an offer at <building>" and the off-market map's "Write an offer"
+   both land here. A click on an in-page #offer link only scrolls, as before. */
+(function () {
+  if (window.location.hash !== '#offer') return;
+  const m = window.location.pathname.match(/\/building\/([^\/]+)/);
+  if (!m) return;
+  const go = () => setTimeout(() => open({ building_slug: decodeURIComponent(m[1]) }), 500);
+  if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+})();
