@@ -395,7 +395,20 @@ async function renderChrome(request, env, kind) {
     }
   }
 
-  if (kind === 'home' && mk.heroImage) {
+  if (kind === 'home') {
+    /* S39: who runs the site, as markup. S58: the hero sized to the screen, not 2400 px on a phone. */
+    html = html.replace('</head>', '<script type="application/ld+json">' + JSON.stringify(siteEntityLd(mk)).replace(/</g, '\\u003c') + '</script>\n</head>');
+    const m0 = html.match(/<img class="cm-hero-img" src="([^"]*)"/i);
+    const heroSrc = mk.heroImage || (m0 && m0[1]) || '';
+    if (/[?&]w=\d+/.test(heroSrc)) {
+      const at = function (w) { return heroSrc.replace(/([?&])w=\d+/, '$1w=' + w); };
+      const set = [640, 1080, 1600, 2400].map(function (w) { return at(w) + ' ' + w + 'w'; }).join(', ');
+      html = html
+        .replace(/<img class="cm-hero-img" src="[^"]*"/i, '<img class="cm-hero-img" src="' + attr(at(1600)) + '" srcset="' + attr(set) + '" sizes="100vw" fetchpriority="high"')
+        .replace(/<link rel="preload" as="image" href="[^"]*"/i, '<link rel="preload" as="image" href="' + attr(at(1600)) + '" imagesrcset="' + attr(set) + '" imagesizes="100vw"');
+    }
+  }
+  if (false && kind === 'home' && mk.heroImage) {
     const hero = attr(mk.heroImage);
     html = html
       .replace(/(<img class="cm-hero-img" src=")[^"]*(")/i, function (m, a, b) { return a + hero + b; })
@@ -446,6 +459,12 @@ async function renderChrome(request, env, kind) {
 
 async function wrapStaticWithSwaps(request, env, mk) {
   const resp = await env.ASSETS.fetch(request);
+  /* The 404 page gets the market's name too (it said "Condo Market SF" on every host, S26). */
+  if (resp.status === 404 && (resp.headers.get('content-type') || '').toLowerCase().includes('text/html')) {
+    let nf; try { nf = await resp.text(); } catch (e) { return resp; }
+    const h404 = new Headers(resp.headers); h404.delete('content-length');
+    return new Response(applyMarketSwaps(nf, mk), { status: 404, headers: h404 });
+  }
   if (!resp.ok) return resp;
   const ct = (resp.headers.get('content-type') || '').toLowerCase();
   const isText = ct.startsWith('text/') || ct.includes('javascript') || ct.includes('xml') || ct.includes('json');
@@ -453,6 +472,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
   let body;
   try { body = await resp.text(); } catch (e) { return resp; }
   body = applyMarketSwaps(body, mk);
+  if (/^\/how-it-works\/?(index\.html)?$/.test(new URL(request.url).pathname)) body = localizeHowItWorks(body, mk);
   body = applyOgRotation(body, new URL(request.url), mk);
   const headers = new Headers(resp.headers);
   headers.delete('content-length');
@@ -1806,7 +1826,7 @@ function renderListingCity(d, B, foot, reportsHtml) {
 
   const gallery =
     '<div class="ld-gallery"><div class="ld-main" id="ldMain" title="' + (photos.length > 1 ? 'Click for next photo' : '') + '">' +
-    (photos.length ? '<img id="ldImg" src="' + E(photos[0]) + '" alt="' + E(addr) + '" onerror="this.remove()">'
+    (photos.length ? '<img id="ldImg" src="' + E(photos[0]) + '" alt="' + E(addr) + '" fetchpriority="high" onerror="this.remove()">'
       : (bOurs && B.hero_image_url ? '<img id="ldImg" src="' + E(B.hero_image_url) + '" alt="' + E(bName) + '" onerror="this.remove()"><span class="ld-bphoto">The building &middot; ' + E(bName) + '</span>'
         : '<div class="ld-nophoto">Photos coming soon</div>')) +
     (price != null ? '<span class="price-chip"><span class="dot"></span>' + short(price) + '</span>' : '') +
@@ -2006,8 +2026,8 @@ function renderListingCity(d, B, foot, reportsHtml) {
    condo recorded sales (sold_listings_map_condo) and links to the building. */
 function renderActiveListingsCity(M, AL, foot) {
   const mktDerived = () => ({ homes: M.homes });
-  const title = `Homes For Sale in ${M.city}, CA ${M.zipsLabel} — Live | ${M.name}`;
-  const desc = `Every home for sale in ${M.city}, CA ${M.zipsLabel} right now — available and pending, live from the MLS, refreshed twice daily, filterable by status, type, price, and bedrooms, each linked to its full home record.`;
+  const title = `${M.city} Condos for Sale — Live Listings | ${M.name}`;
+  const desc = `Every condo for sale in ${M.city} right now — available and pending, live from the MLS, refreshed twice daily, filterable by status, type, price, and bedrooms, each linked to its full home record.`;
   const clientJs = `
 (function(){
   var SB='https://qinuukntpyulqjzndnho.supabase.co';
@@ -2371,7 +2391,7 @@ function renderActiveListingsCity(M, AL, foot) {
     Array.prototype.forEach.call(document.querySelectorAll('.al-count'),function(n){n.textContent = SOLDON ? SOLD.length : rows.length;});
     var np=0; for(var pi=0;pi<rows.length;pi++){ if(isPend(rows[pi])) np++; }
     Array.prototype.forEach.call(document.querySelectorAll('.al-what'),function(w){
-      w.textContent = SOLDON ? 'recently sold in ' : 'homes for sale in ';
+      w.textContent = SOLDON ? 'recently sold in ' : 'condos for sale in ';
     });
     var offMap = BOUNDS ? ALL.filter(function(l){return l.lat==null||l.lng==null;}).length : 0;
     var rc=document.getElementById('alResult');
@@ -2566,7 +2586,7 @@ function renderActiveListingsCity(M, AL, foot) {
   .al-listpane:before{content:'';display:block;width:44px;height:5px;border-radius:3px;
     background:rgba(32,36,46,.26);margin:10px auto 4px}
   .al-listhead{padding-top:10px}
-  .al-listhead h2{font-size:1.18rem}
+  .al-listhead h1,.al-listhead h2{font-size:1.18rem}
   .al-sortrow{gap:8px}
   .al-soldwrap{width:100%}
   .al-sort{flex:1;min-width:0}
@@ -2621,7 +2641,7 @@ function renderActiveListingsCity(M, AL, foot) {
 .al-listhead{position:sticky;top:0;background:var(--bg);padding:20px 0 14px;z-index:6;
   border-bottom:1px solid var(--line);box-shadow:0 6px 12px -10px rgba(0,0,0,.35)}
 .al-listpane .listing-grid{margin-top:16px}
-.al-listhead h2{font-family:'Playfair Display',serif;font-size:1.35rem;line-height:1.2}
+.al-listhead h1,.al-listhead h2{font-family:'Playfair Display',serif;font-size:1.35rem;line-height:1.2;margin:0;font-weight:500}
 .al-listhead .n{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--slate);
   letter-spacing:.08em;margin-top:4px}
 .al-sortrow{display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -2814,7 +2834,7 @@ function renderActiveListingsCity(M, AL, foot) {
   <div class="al-mapwrap"><div id="alMap"></div></div>
   <div class="al-listpane">
     <div class="al-listhead">
-      <h2><span class="al-count">&mdash;</span> <span class="al-what">homes for sale in </span>${M.city}</h2>
+      <h1><span class="al-count">${(AL && AL.length) ? AL.length : '&mdash;'}</span> <span class="al-what">condos for sale in </span>${M.city}</h1>
       <div class="n" id="alResult"></div>
       <div class="al-sortrow">
         <select class="al-sort" id="alSort" aria-label="Sort listings">
@@ -2893,7 +2913,7 @@ function renderActiveListingsCity(M, AL, foot) {
     <div>
       <span class="eyebrow">Not seeing it?</span>
       <h2>The home you want probably <em>isn't listed.</em></h2>
-      <p class="sub" style="margin-top:14px">A few dozen listings — out of ${mktDerived().homes.toLocaleString('en-US')} homes. The one you actually want is in the index, and its owner has a number. <a href="/how-it-works/" style="color:var(--apricot)">Here's how to pursue it \u2192</a></p>
+      <p class="sub" style="margin-top:14px">A few dozen listings${mktDerived().homes ? ' — out of ' + mktDerived().homes.toLocaleString('en-US') + ' homes' : ''}. The one you actually want is in the index, and its owner has a number. <a href="/how-it-works/" style="color:var(--apricot)">Here's how to pursue it \u2192</a></p>
     </div>
     ${toolCta({
       eyebrow: "Before you make an offer",
@@ -2932,7 +2952,7 @@ function condoActiveListingsMarket(mk, rows, foot) {
   const lo = Math.max(100000, Math.floor(q(0.03) / 50000) * 50000), hi = Math.max(lo + 500000, Math.ceil(q(0.97) / 250000) * 250000);
   return { id: 5, city: mk.region || 'San Francisco', domain: mk.domain, name: mk.brand || 'Condo Market SF', zipsLabel: mk.region || 'San Francisco',
            agent: { first: 'Tim' }, center: [37.782, -122.415], priceBand: { min: lo, max: hi, step: hi - lo > 3e6 ? 50000 : 25000 },
-           homes: (foot && foot.totals && foot.totals.homes) || 15620 };
+           homes: (foot && foot.totals && foot.totals.homes) || null };   // never another market's count (S26)
 }
 function condoActiveListingsRows(listings) {
   const now = Date.now();
@@ -2960,7 +2980,12 @@ export default {
     /* withFavicon is async. Passing its promise straight to withRobots gave the
        noindexed paths an empty 200 body (every /cma/ Comp Report link, 15 Oct
        2026), because the promise has no .body or .status. Await it first. */
-    const res = await withFavicon(await handleRequest(request, env));
+    let res = await withFavicon(await handleRequest(request, env));
+    /* Versioned assets (?v=) never change in place: cache them for a year (S81). */
+    if (/^\/assets\//.test(reqPath) && reqUrl.searchParams.has('v') && res.status === 200) {
+      const h = new Headers(res.headers); h.set('Cache-Control', 'public, max-age=31536000, immutable');
+      res = new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+    }
     return withRobots(reqPath, reqUrl.hostname, res);
   },
 };
@@ -3611,6 +3636,7 @@ async function handleRequest(request, env) {
     }
 
     payload.footerData = await footP;
+    try { payload.news = newsAbout(await newsIndexCached(hostMk), payload.name, payload.street, payload.slug, 3); } catch (e) { payload.news = []; }
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
     return new Response(bodyHtml, {
       status: 200,
@@ -4241,11 +4267,20 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
   const idx = await callReportRpc('neighborhoods_index', { p_market_domain: DOMAIN });
   const match = (Array.isArray(idx) ? idx : []).find(function (n) { return hoodSlug(n.neighborhood) === slug; });
   if (!match) {
-    return new Response(null, { status: 302, headers: { 'Location': base + '/neighborhoods' } });
+    /* An unknown neighbourhood is a 404, not a 302 to the hub (S51); an empty index means the
+       database did not answer, which is a 503. */
+    if (!Array.isArray(idx) || !idx.length) return new Response('Temporarily unavailable', { status: 503, headers: { 'retry-after': '30', 'cache-control': 'no-store' } });
+    const nf = nbChrome('Neighborhood not found \u00b7 Condo Market SF', 'This neighborhood is not in the catalogue.', base + '/neighborhoods', { '@context': 'https://schema.org', '@type': 'WebPage', name: 'Not found' }, base,
+      '<div class="hero"><div class="wrap"><h1>That neighborhood isn\u2019t here</h1><p class="lede"><a href="' + base + '/neighborhoods" style="color:#C2410C">See every San Francisco neighborhood \u2192</a></p></div></div>', { robots: 'noindex' });
+    return new Response(nf, { status: 404, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300' } });
   }
   const hood = match.neighborhood;
   const canonical = base + '/neighborhood/' + slug;
-  const updated = new Date().toISOString().slice(0, 10);
+  const [lastSale, omB, alL, newsL] = await Promise.all([
+    callReportRpc('neighborhood_last_sale', { p_market_domain: DOMAIN, p_neighborhood: hood }),
+    offmarketCached(mk), activeListingsCached(mk), newsIndexCached(mk)]);
+  // dateModified is the latest recorded sale in the neighbourhood, not today (S51)
+  const updated = (typeof lastSale === 'string' && /^\d{4}-\d{2}-\d{2}/.test(lastSale)) ? lastSale.slice(0, 10) : new Date().toISOString().slice(0, 10);
 
   const [detRows, bldRows] = await Promise.all([
     callReportRpc('neighborhood_detail', { p_market_domain: DOMAIN, p_neighborhood: hood }),
@@ -4283,9 +4318,29 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
       '</td><td class="num">' + psf + '</td></tr>';
   }).join('');
 
+  /* One sentence with its sample and window, shown on the page and used as the Dataset
+     description (Google requires one, 50-5000 characters). */
+  const nbSentence = hood + ', San Francisco: ' + intc(d.building_count || blds.length) + ' catalogued condo building' + (Number(d.building_count || blds.length) === 1 ? '' : 's') + ' and ' +
+    intc(d.cur_sales || 0) + ' recorded sale' + (Number(d.cur_sales) === 1 ? '' : 's') + ' in the 12 months to ' + fmtDay(new Date().toISOString().slice(0, 10)) +
+    ((d.is_thin || d.cur_median_psf == null) ? (Number(d.cur_sales) > 0 ? ', too few for a reliable median.' : '.') : ', at a median of ' + money(d.cur_median_psf) + ' per square foot' + (d.cur_median_price != null ? ' and ' + money(d.cur_median_price) + ' per sale' : '') + '.') +
+    (updated ? ' Latest recorded sale: ' + fmtDay(updated) + '.' : '');
   const jsonld = { '@context': 'https://schema.org', '@type': 'Dataset',
     name: hood + ' San Francisco Condo Market', url: canonical, dateModified: updated,
-    creator: { '@type': 'RealEstateAgent', name: 'McMullen Properties LLC' } };
+    description: nbSentence + ' Medians exclude below-market-rate sales and are shown only from five or more sales.',
+    spatialCoverage: { '@type': 'Place', name: hood + ', San Francisco, CA' },
+    variableMeasured: ['Recorded sales', 'Median price per square foot', 'Median sale price'],
+    creator: { '@type': 'Organization', name: 'McMullen Properties LLC' } };
+  const hoodListings = (alL || []).filter(function (l) { return l && l.neighborhood === hood && l.mls; }).slice(0, 8);
+  const listBlock = hoodListings.length ? '<section><h2>For sale now in ' + esc(hood) + '</h2><table><thead><tr><th>Address</th><th class="num">Beds</th><th class="num">Sq ft</th><th class="num">Asking</th></tr></thead><tbody>' +
+    hoodListings.map(function (l) { return '<tr><td><a href="' + base + '/listing/' + esc(l.mls) + '">' + esc(l.unit_address || l.building_name || l.mls) + '</a></td><td class="num">' + (l.beds != null ? l.beds : '\u2014') + '</td><td class="num">' + (l.sqft ? intc(l.sqft) : '\u2014') + '</td><td class="num">' + (money(l.price) || '\u2014') + '</td></tr>'; }).join('') +
+    '</tbody></table><p class="links"><a href="' + base + '/active-listings/">Every condo for sale in San Francisco \u2192</a></p></section>' : '';
+  const hoodRe = new RegExp('(^|[^A-Za-z])' + reEsc(hood) + '(?![A-Za-z])');
+  const hoodNews = (newsL || []).filter(function (a) { return hoodRe.test([a.headline, a.dek, a.subhead].join(' ')); }).slice(0, 4);
+  const newsBlock = hoodNews.length ? '<section><h2>' + esc(hood) + ' in the news</h2><ul style="padding-left:18px;line-height:1.9">' +
+    hoodNews.map(function (a) { return '<li><a href="' + base + '/news/' + esc(a.slug) + '/" style="color:#C2410C;font-weight:600;text-decoration:none">' + esc(a.headline) + '</a> \u00b7 ' + esc(fmtDay(a.published_at)) + '</li>'; }).join('') + '</ul></section>' : '';
+  const near = nearbyHoods(omB, hood, 5);
+  const nearBlock = near.length ? '<section><h2>Nearby neighborhoods</h2><p class="links" style="padding-top:0">' +
+    near.map(function (h) { return '<a href="' + base + '/neighborhood/' + hoodSlug(h) + '">' + esc(h) + ' condos</a>'; }).join('') + '</p></section>' : '';
 
   const title = hood + ' Condos \u2014 Market Data, Prices & Buildings | San Francisco';
   const desc  = (d.is_thin
@@ -4298,11 +4353,13 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
     '<p class="kick"><a href="' + base + '/neighborhoods" style="color:inherit;text-decoration:none">San Francisco Neighborhoods</a> · ' + esc(hood) + '</p>' +
     '<h1>' + esc(hood) + ' Condo Market</h1>' +
     '<p class="lede">Recorded sales, pricing, and the cataloged condo buildings in ' + esc(hood) + ', San Francisco\u2014measured over the trailing twelve months.</p>' +
-    '<p class="upd">Updated ' + updated + '</p></div></div>' +
+    '<p class="lede" style="margin-top:14px;color:#22262f">' + esc(nbSentence) + '</p>' +
+    '<p class="upd">Latest recorded sale ' + esc(fmtDay(updated)) + '</p></div></div>' +
     '<div class="wrap">' + statBlock +
     '<section><h2>Buildings in ' + esc(hood) + '</h2>' +
     '<table><thead><tr><th>Building</th><th class="num">Built</th><th class="num">Units</th><th class="num">Median $/sqft</th></tr></thead><tbody>' +
     (bRows || '<tr><td colspan="4">No cataloged buildings.</td></tr>') + '</tbody></table></section>' +
+    listBlock + newsBlock + nearBlock +
     '<p class="links"><a href="' + base + '/neighborhoods">\u2190 All neighborhoods</a><a href="' + base + '/intelligence/">Compare neighborhoods \u2192</a></p>' +
     '<p class="method">Per-building price per square foot is the median of recorded sales over the trailing twelve months, shown where sales exist. Neighborhood and building medians are shown only from five or more recent sales. Tim McMullen, Broker, CA DRE #02016832.</p>' +
     '<div style="height:50px"></div></div>';
@@ -4532,6 +4589,11 @@ async function renderCondoNewsArticle(mk, slug, area) {
     '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(canonical) + '" target="_blank" rel="noopener">LinkedIn</a></div>';
   const title = a.meta_title || a.headline;
   const desc = a.meta_description || a.dek || '';
+  /* Buildings in this story (S25): every catalogued building the article names, linked. */
+  const inB = buildingsInText([a.headline, a.subhead, a.dek, a.body_md].join('\n'), await catalogueCached(mk), 12);
+  const inStory = inB.length ? '<div class="nw-src"><b>Buildings in this story</b><ul>' +
+    inB.map(function (b) { return '<li><a href="' + base + '/building/' + esc(b.slug) + '">' + esc(b.name) + '</a>' + (b.address && b.address !== b.name ? ' \u00b7 ' + esc(String(b.address).split(',')[0]) : '') + (b.neighborhood ? ' \u00b7 ' + esc(b.neighborhood) : '') + '</li>'; }).join('') +
+    '</ul></div>' : '';
   const jsonld = { '@context': 'https://schema.org', '@type': rep ? 'Report' : 'NewsArticle', headline: a.headline, alternativeHeadline: rep && a.subhead ? a.subhead : undefined, description: desc, url: canonical,
     datePublished: a.published_at, dateModified: a.updated_at || a.published_at,
     image: a.hero_path ? [cmNewsMedia(a.hero_path)] : undefined,
@@ -4546,7 +4608,8 @@ async function renderCondoNewsArticle(mk, slug, area) {
       (au.brokerage ? 'Real estate services provided by ' + esc(au.brokerage) + (au.brokerage_dre ? ', CA DRE #' + esc(au.brokerage_dre) : '') + '. ' : '') +
       'Figures are from recorded sales; nothing here is an opinion of the value of any home.</p>' +
     '</article></div>';
-  const html = nbChrome(title, desc, canonical, jsonld, base, body);
+  const html = nbChrome(title, desc, canonical, jsonld, base, body.replace('<div class="nw-share">', inStory + '<div class="nw-share">'),
+    { ogImage: a.hero_path ? cmNewsMedia(a.hero_path) : base + '/og-' + mk.tag + '.jpg' });
   return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=900' } });
 }
 
@@ -5165,7 +5228,7 @@ async function renderLlmsTxt(mk) {
   lines.push('# ' + mk.brand);
   lines.push('');
   lines.push('> A public record of the ' + mk.region + ' condominium market: ' + bl.length + ' buildings across ' + hoods.filter(function (h) { return h !== 'Other'; }).length +
-    ' neighborhoods, each with its recorded sales, price per square foot, owner tenure and current listings. Operated by a licensed California real estate agent.');
+    ' neighborhoods, each with its recorded sales, price per square foot and current listings. Operated by Tim McMullen, a licensed California real estate broker (DRE #02016832), through McMullen Properties LLC.');
   lines.push('');
   lines.push('Every building page reports recorded sales and the sample behind each figure. The site does not estimate the value of individual homes; value questions are routed to the licensed agent.');
   lines.push('');
@@ -5181,6 +5244,15 @@ async function renderLlmsTxt(mk) {
   lines.push('- [Local news](' + base + '/news/): daily coverage of recorded sales');
   lines.push('- [Market reports](' + base + '/market-reports/): monthly, quarterly and annual market reports');
   lines.push('- [How it works](' + base + '/how-it-works/)');
+  lines.push('');
+  if (mk.unitPages) {
+    lines.push('## Unit pages');
+    lines.push('Each unit with a recorded sale has a page at ' + base + '/building/<building>/unit/<unit>: its recorded sales, its size, and the units directly above and below it in the same stack. Building pages link every unit page; the full list is in ' + base + '/sitemap-units.xml.');
+    lines.push('');
+  }
+  lines.push('## Citing these figures');
+  lines.push('Every figure on this site comes from recorded sales (county records and the MLS) and is published with its sample and period. When you quote one, name the building or neighborhood, the figure, the number of sales and the period, and link the page, for example: "<Building> at <address>: median $<n>/sq ft across <n> recorded sales in the 12 months to <date> (' + mk.brand + ', ' + base + '/building/<slug>)".');
+  lines.push('Medians are published only from five or more sales; below that the site gives the count. Below-market-rate sales are listed but left out of every figure. Nothing on this site is an opinion of the value of any home; value questions go to the licensed broker.');
   lines.push('');
   lines.push('## Buildings by neighborhood');
   hoods.forEach(function (h) {
@@ -6272,15 +6344,23 @@ async function renderSitemapNews(mk) {
 async function renderSitemapUnits(mk) {
   const base = 'https://www.' + mk.domain;
   if (!mk.unitPages) return sitemapXml([]);
-  let rows = [];
-  try {
-    const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/sitemap_units', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ p_market_tag: mk.tag }),
-    }, 8000);
-    if (r.ok) rows = await r.json();
-  } catch (e) { rows = []; }
+  /* PostgREST returns at most 1,000 rows per call: page until a short page. */
+  let rows = [], failed = false;
+  for (let off = 0; off < 100000; off += 1000) {
+    let page = null;
+    try {
+      const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/sitemap_units?limit=1000&offset=' + off, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ p_market_tag: mk.tag }),
+      }, 8000);
+      if (r.ok) page = await r.json();
+    } catch (e) { page = null; }
+    if (!Array.isArray(page)) { failed = true; break; }
+    rows.push.apply(rows, page);
+    if (page.length < 1000) break;
+  }
+  if (failed) rows = [];
   if (!Array.isArray(rows) || !rows.length) {
     // never publish an empty child: a failed read must not drop every unit URL
     return new Response('Sitemap temporarily unavailable', { status: 503, headers: { 'retry-after': '300', 'cache-control': 'no-store' } });
@@ -6288,6 +6368,149 @@ async function renderSitemapUnits(mk) {
   return sitemapXml(rows.map(function (r) {
     return '<url><loc>' + base + unitHref(r.slug, r.unit_key) + '</loc>' + (r.last_sale ? '<lastmod>' + String(r.last_sale).slice(0, 10) + '</lastmod>' : '') + '</url>';
   }));
+}
+
+
+/* ---------------- news <-> buildings (SEO audit S25) ----------------
+   Catalogue names and street addresses, cached per market for 10 minutes, matched against an
+   article's text. A name matches case-sensitively as a whole phrase; an address matches with
+   Street/Avenue/... normalised. */
+const DIR_CACHE = {};
+async function catalogueCached(mk) {
+  const hit = DIR_CACHE[mk.tag];
+  if (hit && Date.now() - hit.t < 600000) return hit.v;
+  let v = [];
+  try {
+    const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/llms_directory', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_market_tag: mk.tag }),
+    }, 2500);
+    if (r.ok) { const d = await r.json(); v = (d && Array.isArray(d.buildings)) ? d.buildings : []; }
+  } catch (e) { v = []; }
+  if (v.length) DIR_CACHE[mk.tag] = { t: Date.now(), v: v };
+  return v;
+}
+function streetKey(s) {
+  return String(s || '').split(',')[0].toLowerCase().replace(/[.']/g, '')
+    .replace(/\bstreet\b/g, 'st').replace(/\bavenue\b/g, 'ave').replace(/\bboulevard\b/g, 'blvd')
+    .replace(/\bplace\b/g, 'pl').replace(/\bcourt\b/g, 'ct').replace(/\bdrive\b/g, 'dr').replace(/\s+/g, ' ').trim();
+}
+function reEsc(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function buildingsInText(text, dir, max) {
+  const raw = String(text || '');
+  const norm = ' ' + streetKey(raw.replace(/\n/g, ' ').replace(/,/g, ' , ')) + ' ';
+  const normAll = ' ' + raw.toLowerCase().replace(/[.']/g, '').replace(/\bstreet\b/g, 'st').replace(/\bavenue\b/g, 'ave')
+    .replace(/\bboulevard\b/g, 'blvd').replace(/\bplace\b/g, 'pl').replace(/\bcourt\b/g, 'ct').replace(/\s+/g, ' ') + ' ';
+  const out = [];
+  (dir || []).forEach(function (b) {
+    if (out.length >= (max || 12)) return;
+    const name = String(b.name || '');
+    const st = streetKey(b.address || '');
+    let hit = false;
+    if (name && !/^\d/.test(name) && name.length >= 4 && new RegExp('(^|[^A-Za-z0-9])' + reEsc(name) + '(?![A-Za-z0-9])').test(raw)) hit = true;
+    if (!hit && st && /^\d+\s+\S/.test(st) && new RegExp('[^a-z0-9]' + reEsc(st) + '(?![a-z0-9])').test(normAll)) hit = true;
+    if (hit) out.push(b);
+  });
+  void norm;
+  return out;
+}
+const NEWS_CACHE = {};
+async function newsIndexCached(mk) {
+  const hit = NEWS_CACHE[mk.tag];
+  if (hit && Date.now() - hit.t < 600000) return hit.v;
+  const idx = await aNewsRpc('get_news_index', { p_market_id: A_MARKET_ID_BY_TAG[mk.tag] || 5, p_limit: 100, p_offset: 0 });
+  const v = (idx && idx.ok && Array.isArray(idx.articles)) ? idx.articles : [];
+  if (v.length) NEWS_CACHE[mk.tag] = { t: Date.now(), v: v };
+  return v;
+}
+function newsAbout(arts, name, street, slug, max) {
+  const st = streetKey(street || '');
+  return (arts || []).filter(function (a) {
+    if (a.report_area && a.report_area === slug) return true;
+    const t = [a.headline, a.dek, a.subhead, (a.tags || []).join(' ')].join(' ');
+    if (name && !/^\d/.test(name) && new RegExp('(^|[^A-Za-z0-9])' + reEsc(name) + '(?![A-Za-z0-9])').test(t)) return true;
+    if (st && /^\d+\s/.test(st) && (' ' + streetKey(t) + ' ').indexOf(' ' + st + ' ') !== -1) return true;
+    return false;
+  }).slice(0, max || 3);
+}
+
+/* SV buildings that are also Campbell city-market communities (S79): link the pair. */
+const CROSS_MARKET_LINKS = {
+  'campbell-apricot-manor': 'apricot-manor', 'campbell-campbell-orchard-oaks': 'campbell-orchard-oaks',
+  'campbell-cottage-place': 'cottage-place', 'campbell-heritage-place': 'heritage-place',
+  'campbell-madison-townhomes': 'madison-townhomes-of-campbell', 'campbell-onyx': 'onyx',
+  'campbell-orchard-grove': 'orchard-grove-at-campbell', 'campbell-park-town-place': 'park-town-place',
+  'campbell-rose-villas-ii': 'rose-villas-ii', 'campbell-sandalwood': 'sandalwood', 'campbell-sonata': 'sonata',
+  'campbell-town-38': 'town-38', 'campbell-union-91': 'union-91', 'campbell-winchester-ii': 'winchester-ii',
+};
+
+/* Organization, WebSite and the broker behind the site (S39). Facts only: no address we have
+   not verified, no ratings. */
+function siteEntityLd(mk) {
+  const www = 'https://www.' + mk.domain;
+  return { '@context': 'https://schema.org', '@graph': [
+    { '@type': 'Organization', '@id': www + '/#org', name: mk.brand, url: www + '/',
+      logo: www + '/og-' + mk.tag + '.png',
+      description: 'A public record of the ' + mk.region + ' condominium market: every catalogued building, its recorded sales and current listings.',
+      parentOrganization: { '@type': 'Organization', name: 'McMullen Properties LLC' },
+      founder: { '@id': www + '/#broker' },
+      contactPoint: { '@type': 'ContactPoint', telephone: '+1-415-691-9272', contactType: 'sales', areaServed: mk.region, availableLanguage: 'en' } },
+    { '@type': 'WebSite', '@id': www + '/#website', url: www + '/', name: mk.brand, publisher: { '@id': www + '/#org' }, inLanguage: 'en-US' },
+    { '@type': 'Person', '@id': www + '/#broker', name: 'Tim McMullen', jobTitle: 'Real Estate Broker',
+      telephone: '+1-415-691-9272', url: 'https://mcmullenresidential.com/meet-tim',
+      sameAs: ['https://mcmullenresidential.com'],
+      hasCredential: { '@type': 'EducationalOccupationalCredential', credentialCategory: 'license',
+        name: 'California real estate broker license', identifier: '02016832',
+        recognizedBy: { '@type': 'GovernmentOrganization', name: 'California Department of Real Estate' } } } ] };
+}
+
+/* SV is dormant but indexable (Tim, 15 Oct 2026): its how-it-works page must not carry San
+   Francisco's buildings, counts or sales as if they were Silicon Valley's (S26). */
+function localizeHowItWorks(html, mk) {
+  if (!mk || mk.tag === 'sf') return html;
+  return html
+    .replace(/Of the 12,183 units we index, <strong>471 traded last year<\/strong>\. The other 96% weren't unavailable\. /g, '')
+    .replace(/<div class="big-number">12,183<\/div>\s*<div class="big-label">[^<]*<\/div>/, '<div class="big-number">Every unit</div><div class="big-label">In every catalogued building, open to an EOI today</div>')
+    .replace(/<h3>Recent sales · 650 2nd St<\/h3>/, '<h3>Recent sales · every building page has this table</h3>')
+    .replace(/const COMPS = \[[\s\S]*?\];/, 'const COMPS = [];')
+    .replace(/(<div class="building-strip[^"]*">)[\s\S]*?(<a href="\/buildings\/" class="building-mini">)/, '$1$2')
+    .replace(/\$1,395,000 on Unit 504 at 650 2nd St — /, 'Your price on any unit — ')
+    .replace(/<a href="\/building\/madrone" class="toolkit-card">/, '<a href="/" class="toolkit-card">')
+    .replace(/See Madrone's dossier →/, 'Open any building →');
+}
+
+
+/* ---------------- neighbourhood pages (SEO audit S51) ---------------- */
+const OM_CACHE = {}, AL_CACHE = {};
+async function offmarketCached(mk) {
+  const hit = OM_CACHE[mk.tag];
+  if (hit && Date.now() - hit.t < 600000) return hit.v;
+  const p = await callReportRpc('offmarket_page_payload', { p_market_domain: mk.domain });
+  const v = (p && Array.isArray(p.buildings)) ? p.buildings : [];
+  if (v.length) OM_CACHE[mk.tag] = { t: Date.now(), v: v };
+  return v;
+}
+async function activeListingsCached(mk) {
+  const hit = AL_CACHE[mk.tag];
+  if (hit && Date.now() - hit.t < 600000) return hit.v;
+  const p = await callReportRpc('active_listings_page', { p_market_slug: mk.slug });
+  const v = (p && Array.isArray(p.listings)) ? p.listings : [];
+  if (v.length) AL_CACHE[mk.tag] = { t: Date.now(), v: v };
+  return v;
+}
+function nearbyHoods(blds, hood, n) {
+  const c = {};
+  (blds || []).forEach(function (b) {
+    if (!b || !b.h || b.la == null || b.lo == null) return;
+    const k = c[b.h] || (c[b.h] = { la: 0, lo: 0, n: 0 });
+    k.la += Number(b.la); k.lo += Number(b.lo); k.n++;
+  });
+  const me = c[hood]; if (!me) return [];
+  const mla = me.la / me.n, mlo = me.lo / me.n;
+  return Object.keys(c).filter(function (h) { return h !== hood; })
+    .map(function (h) { const k = c[h]; const dla = k.la / k.n - mla, dlo = (k.lo / k.n - mlo) * 0.79; return { h: h, d: dla * dla + dlo * dlo }; })
+    .sort(function (a, b) { return a.d - b.d; }).slice(0, n || 5).map(function (x) { return x.h; });
 }
 
 function renderBuilding(p) {
@@ -6734,6 +6957,15 @@ function renderBuilding(p) {
   const crumbHtml = '<nav class="bc" aria-label="Breadcrumb"><a href="/">' + esc(mkBrand) + '</a>' +
     (hoodHref ? '<span class="sep">\u203a</span><a href="/neighborhoods">Neighborhoods</a><span class="sep">\u203a</span><a href="' + hoodHref + '">' + hood + '</a>' : '') +
     '<span class="sep">\u203a</span><span aria-current="page">' + name + '</span></nav>';
+  const newsArr = Array.isArray(p.news) ? p.news : [];
+  const pair = CROSS_MARKET_LINKS[p.slug];
+  const newsAndPairs = (newsArr.length || pair)
+    ? '<section class="section" id="news"><div class="wrap"><div class="section-head"><div class="section-kicker">Elsewhere</div>' +
+      '<h2 class="section-title">More on <em>' + name + '</em></h2></div><ul class="rs-note" style="font-size:15px;line-height:1.9;padding-left:18px">' +
+      newsArr.map(function (a) { return '<li><a href="/news/' + esc(a.slug) + '/" style="color:#C2410C;font-weight:600;text-decoration:none">' + esc(a.headline) + '</a> \u00b7 ' + esc(fmtDay(a.published_at)) + '</li>'; }).join('') +
+      (pair ? '<li><a href="https://campbellrealestatemarket.com/community/' + pair + '/" style="color:#C2410C;font-weight:600;text-decoration:none">' + name + ' on the Campbell Real Estate Market \u2192</a> every home and recorded sale in the community</li>' : '') +
+      '</ul></div></section>\n'
+    : '';
   const moreLinks = conf.hubPages
     ? '<div class="wrap"><p class="more-links">' + (hoodHref ? '<a href="' + hoodHref + '">More condos in ' + hood + ' \u2192</a>' : '') +
       '<a href="/san-francisco-condo-rankings">Building rankings</a><a href="/san-francisco-condo-market-stats">Market stats</a><a href="/market-reports/">Market reports</a><a href="/san-francisco-condos">All buildings</a></p></div>\n'
@@ -6830,6 +7062,7 @@ function renderBuilding(p) {
     dossierSection +
     recordedSalesSection(p) +
     unitsIndexSection(p) +
+    newsAndPairs +
     marketSection +
     compareSection +
     moreLinks +
