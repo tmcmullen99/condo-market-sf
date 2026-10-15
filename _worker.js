@@ -41,7 +41,7 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { tag: 'sf', dirPath: '/san-francisco-condos', slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
+  sf: { tag: 'sf', dirPath: '/san-francisco-condos', hubPages: true, unitPages: true, slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
   sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', ogImage: 'https://www.siliconvalleycondomarket.com/og-sv.jpg', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
@@ -320,6 +320,10 @@ function applyMarketSwaps(s, mk) {
   if (mk.region && mk.region !== 'San Francisco') {
     s = s.replace(/San Francisco/g, mk.region);
   }
+  if (mk.tag && mk.tag !== 'sf') {
+    s = s.replace(/\/og-sf\.jpg/g, '/og-' + mk.tag + '.jpg');   // its own card, not San Francisco's (S26)
+  }
+  if (!mk.dirPath) s = s.replace(/href="\/san-francisco-condos"/g, 'href="/"');
   if (mk.domain && mk.domain !== 'sanfranciscocondomarket.com') {
     s = s.replace(/sanfranciscocondomarket\.com/g, mk.domain);
   }
@@ -474,7 +478,7 @@ function cityHead(title, desc, canonical, extra) {
     '<title>' + cityEsc(title) + '</title>\n<meta name="description" content="' + cityEsc(desc) + '">\n' +
     '<link rel="canonical" href="' + canonical + '">\n' +
     '<meta property="og:title" content="' + cityEsc(title) + '">\n<meta property="og:description" content="' + cityEsc(desc) + '">\n' +
-    '<meta property="og:url" content="' + canonical + '">\n<meta property="og:image" content="https://www.sanfranciscocondomarket.com/og-sf.jpg">\n' +
+    '<meta property="og:url" content="' + canonical + '">\n' + ((extra || '').indexOf('property="og:image"') === -1 ? '<meta property="og:image" content="https://www.sanfranciscocondomarket.com/og-sf.jpg">\n' : '') +
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
     '<link rel="stylesheet" href="/assets/cm-city-ui.css?v=' + CITY_UI_VER + '">\n' + (extra || '') + '</head>\n';
@@ -487,7 +491,8 @@ function cityNav(active) {
     '    <div class="nav-links">\n' +
     '      ' + a('/active-listings/', '<span class="live-dot"></span>For sale', 'forsale') + '\n' +
     '      ' + a('/off-market/', 'Off market', 'offmarket') + '\n' +
-    '      ' + a('/buildings/', 'Buildings', 'buildings') + '\n' +
+    '      ' + a('/san-francisco-condos', 'Buildings', 'buildings') + '\n' +
+    '      ' + a('/market-reports/', 'Reports', 'reports') + '\n' +
     '      ' + a('/intelligence/', 'Intelligence', 'intelligence') + '\n' +
     '      ' + a('/how-it-works/', 'How it works', 'how') + '\n' +
     '    </div>\n' +
@@ -510,12 +515,13 @@ function cityFooter(payload) {
     '.seo-foot ul{list-style:none;margin:0;padding:0}.seo-foot li{margin:0 0 5px;line-height:1.35}' +
     '.seo-foot a{color:inherit;opacity:.78;text-decoration:none;font-size:.82rem}.seo-foot a:hover{opacity:1;text-decoration:underline}' +
     '.seo-foot .sf-more{display:inline-block;margin-top:6px;font-size:.78rem;opacity:.95}</style>\n' +
+    (payload.hubPages === false ? '' :
     '  <div class="sf-col"><h4>Neighborhoods in San Francisco</h4><ul>' +
-    hoods.map((h) => '<li><a href="/neighborhood/' + citySlug(h.h) + '/">' + cityEsc(h.h) + '</a></li>').join('') +
-    '</ul><a class="sf-more" href="/neighborhoods/">All neighborhoods &rarr;</a></div>\n' +
+    hoods.map((h) => '<li><a href="/neighborhood/' + citySlug(h.h) + '">' + cityEsc(h.h) + '</a></li>').join('') +
+    '</ul><a class="sf-more" href="/neighborhoods">All neighborhoods &rarr;</a></div>\n') +
     '  <div class="sf-col"><h4>Condo buildings</h4><ul>' +
-    blds.map((b) => '<li><a href="/building/' + cityEsc(b.s) + '/">' + cityEsc(b.n) + '</a></li>').join('') +
-    '</ul><a class="sf-more" href="/buildings/">All buildings &rarr;</a></div>\n' +
+    blds.map((b) => '<li><a href="/building/' + cityEsc(b.s) + '">' + cityEsc(b.n) + '</a></li>').join('') +
+    '</ul><a class="sf-more" href="/san-francisco-condos">All buildings &rarr;</a></div>\n' +
     '  <div class="sf-col"><h4>The condo markets</h4><ul>' +
     '<li><a href="https://www.sanfranciscocondomarket.com/">San Francisco condos</a></li>' +
     '<li><a href="https://www.siliconvalleycondomarket.com/">Silicon Valley condos</a></li>' +
@@ -524,8 +530,9 @@ function cityFooter(payload) {
     '    <div class="foot-grid">\n' +
     '      <div><a class="wordmark" href="/" style="--bs:1.00"><b>Condo</b> Market<span class="tag">SF</span></a>\n' +
     '        <p style="color:var(--slate-dim);font-size:.84rem;margin-top:12px;max-width:36ch">The complete record of San Francisco condominiums.</p></div>\n' +
-    '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/buildings/">Buildings</a>' +
-    '<a href="/neighborhoods/">Neighborhoods</a><a href="/san-francisco-condo-market-stats/">Market stats</a><a href="/san-francisco-condo-rankings/">Rankings</a>' +
+    '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/san-francisco-condos">Buildings</a>' +
+    (payload.hubPages === false ? '' : '<a href="/neighborhoods">Neighborhoods</a><a href="/san-francisco-condo-market-stats">Market stats</a><a href="/san-francisco-condo-rankings">Rankings</a>') +
+    '<a href="/market-reports/">Market reports</a><a href="/news/">News</a>' +
     '<a href="/intelligence/">Intelligence</a><a href="/how-it-works/">How it works</a><a href="/investor-exchange/">Investor Exchange</a></div>\n' +
     '      <div><h4>Contact</h4><a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a><a href="/methodology/">Methodology</a></div>\n' +
     '    </div>\n' +
@@ -657,8 +664,8 @@ function renderOffMarket(payload) {
     '  document.getElementById("mactMetaOut").textContent=(b[2]||"San Francisco")+", San Francisco";\n' +
     '  function f(k,v){return "<div><div class=\\"mf-k\\">"+k+"</div><div class=\\"mf-v\\">"+v+"</div></div>";}\n' +
     '  document.getElementById("mactFacts").innerHTML=(b[3]?f("Units",fmt(b[3])):"")+(b[4]?f("Built",b[4]):"")+f("For sale",b[7]?"Now":"None listed");\n' +
-    '  document.getElementById("mactRec").href="/building/"+b[0]+"/";\n' +
-    '  document.getElementById("mactOffer").href="/building/"+b[0]+"/#offer";\n' +
+    '  document.getElementById("mactRec").href="/building/"+b[0];\n' +
+    '  document.getElementById("mactOffer").href="/building/"+b[0]+"#offer";\n' +
     '  document.getElementById("mactClaim").href="/owner-signup/?address="+encodeURIComponent(b[1]);\n' +
     '  Object.keys(pins).forEach(function(s){pins[s].setStyle({weight:s===b[0]?3:1});});\n' +
     '  map.panTo([b[5],b[6]]);\n' +
@@ -1711,6 +1718,7 @@ async function cityFooterData(domain) {
     });
     if (r.ok) { const p = await r.json(); v = { buildings: (p.buildings || []).slice(0, 12), hoods: (p.hoods || []).slice(0, 12), totals: p.totals }; }
   } catch (e) {}
+  v.hubPages = !!(MARKETS[MARKET_BY_HOST[domain]] || {}).hubPages;
   CITY_FOOT_CACHE[domain] = { t: Date.now(), v };
   return v;
 }
@@ -1783,15 +1791,16 @@ function renderListingCity(d, B, foot, reportsHtml) {
   const bSlug = d.building_slug || '';
   const bName = d.building_name || (B && B.display_name) || '';
   const bOurs = !!(B && B.is_catalogued && B.published_at);
-  const bUrl = bSlug ? '/building/' + bSlug + '/' : '';
+  const bUrl = (bSlug && bOurs) ? '/building/' + bSlug : '';   // an uncatalogued building has no page to link (S78)
   const year = d.year_built || (B && B.year_built) || null;
   const st = d.building_stats || {};
   const photos = Array.isArray(d.photos) ? d.photos.map((p) => p && p.url).filter(Boolean) : [];
-  const fullAddr = addr + (addr.indexOf(region) === -1 ? ', ' + region + ', CA' + (d.zip ? ' ' + d.zip : '') : '');
+  const cityName = d.city || region;   // the listing's own city, not the market's region (S26)
+  const fullAddr = addr + (addr.indexOf(cityName) === -1 ? ', ' + cityName + ', CA' + (d.zip ? ' ' + d.zip : '') : '');
   const spec = [beds != null ? beds + ' bd' : '', baths != null ? baths + ' ba' : '', sqft ? num(sqft) + ' sf' : '', year ? 'built ' + year : ''].filter(Boolean).join(' &middot; ');
   const title = addr + (unit && addr.indexOf('#') === -1 ? ' #' + unit : '') + ' — Condo For Sale' + (bName ? ' in ' + bName : '') + ' | Condo Market SF';
   const desc = addr + ' is for sale' + (price != null ? ' at ' + money(price) : '') + (beds != null ? ' — ' + beds + ' bed' : '') + (baths != null ? ', ' + baths + ' bath' : '') +
-    (sqft ? ', ' + num(sqft) + ' sq ft' : '') + (bName ? ' in ' + bName : '') + (hood ? ', ' + hood : '') + ', San Francisco. Every recorded sale in the building, free.';
+    (sqft ? ', ' + num(sqft) + ' sq ft' : '') + (bName ? ' in ' + bName : '') + (hood ? ', ' + hood : '') + (hood && hood.indexOf(cityName) !== -1 ? '' : ', ' + cityName) + '. Every recorded sale in the building, free.';
   const canonical = 'https://www.' + domain + '/listing/' + encodeURIComponent(mls);
   const lat = d.lat != null ? Number(d.lat) : null, lng = d.lng != null ? Number(d.lng) : null;
 
@@ -1818,8 +1827,8 @@ function renderListingCity(d, B, foot, reportsHtml) {
   const head =
     '<div class="ld-head"><div>' +
     '<div class="ld-price">' + (price != null ? short(price) : 'Price on request') + '</div>' +
-    '<div class="ld-addr">' + E(fullAddr) + '</div>' +
-    '<div class="ld-sub">' + spec + (bName ? ' &middot; in <a href="' + bUrl + '">' + E(bName) + '</a>' : '') + '</div>' +
+    '<h1 class="ld-addr" style="font-weight:500;line-height:1.2">' + E(fullAddr) + '</h1>' +
+    '<div class="ld-sub">' + spec + (bName ? ' &middot; in ' + (bUrl ? '<a href="' + bUrl + '">' + E(bName) + '</a>' : E(bName)) : '') + '</div>' +
     '</div><div class="ld-head-cta">' +
     '<button type="button" class="btn btn-gold" data-cm-offer-trigger data-building-slug="' + E(bSlug) + '" data-unit-label="' + E(unit) + '" data-suggested-price="' + (price != null ? price : '') + '" data-cta="listing:offer">Make an offer &rarr;</button>' +
     '<a class="btn btn-line" href="#tour">Tour this home</a>' +
@@ -1848,16 +1857,16 @@ function renderListingCity(d, B, foot, reportsHtml) {
       '<div class="section-head"><span class="eyebrow">The building</span>' +
       '<h2>' + E(bName) + ' <em>by the numbers.</em></h2>' +
       '<p class="sub">A condo is bought twice: the unit, then the building it sits in. Here is the building behind this listing &mdash; its recorded sales, and what units in it trade for.</p></div>' +
-      '<a class="bcard' + (bOurs && B.hero_image_url ? '' : ' bcard--noimg') + '" href="' + bUrl + '" data-cta="listing:building_card">' +
-      (bOurs && B.hero_image_url ? '<div class="bcard-img"><img src="' + E(B.hero_image_url) + '" alt="' + E(bName) + ', San Francisco" loading="lazy" onerror="this.parentNode.remove()"></div>' : '') +
+      (bUrl ? '<a' : '<div') + ' class="bcard' + (bOurs && B.hero_image_url ? '' : ' bcard--noimg') + '"' + (bUrl ? ' href="' + bUrl + '" data-cta="listing:building_card"' : '') + '>' +
+      (bOurs && B.hero_image_url ? '<div class="bcard-img"><img src="' + E(B.hero_image_url) + '" alt="' + E(bName) + ', ' + E(cityName) + '" loading="lazy" onerror="this.parentNode.remove()"></div>' : '') +
       '<div class="bcard-bd">' +
-      '<span class="bcard-k">' + (hood ? E(hood) + ' &middot; ' : '') + 'San Francisco</span>' +
+      '<span class="bcard-k">' + (hood ? E(hood) + (hood.indexOf(cityName) !== -1 ? '' : ' &middot; ' + E(cityName)) : E(cityName)) + '</span>' +
       '<div class="bcard-name">' + E(bName) + '</div>' +
       '<div class="bcard-meta">' + [B && B.unit_count ? num(B.unit_count) + ' homes' : '', (B && B.year_built) || year ? 'built ' + ((B && B.year_built) || year) : '', B && B.canonical_address && B.canonical_address !== bName ? E(B.canonical_address) : ''].filter(Boolean).join(' &middot; ') + '</div>' +
       (tiles.length ? '<div class="bcard-stats">' + tiles.map((t) => '<div><div class="sv">' + t[0] + '</div><div class="sl">' + t[1] + '</div></div>').join('') + '</div>' : '') +
       (vs != null ? '<p class="bcard-vs">This unit is asking <b>' + money(ppsf) + '/sq ft</b> &mdash; ' + (vs === 0 ? 'in line with' : Math.abs(vs) + '% ' + (vs > 0 ? 'above' : 'below')) + ' the building&rsquo;s median over the last twelve months (' + num(st.sold_12mo || 0) + ' sale' + (st.sold_12mo === 1 ? '' : 's') + ').</p>' : '') +
-      '<span class="bcard-go">See all sales &amp; trends at ' + E(bName) + ' &rarr;</span>' +
-      '</div></a>' +
+      (bUrl ? '<span class="bcard-go">See all sales &amp; trends at ' + E(bName) + ' &rarr;</span>' : '') +
+      '</div>' + (bUrl ? '</a>' : '</div>') +
       '</div></section>';
   }
 
@@ -1869,8 +1878,8 @@ function renderListingCity(d, B, foot, reportsHtml) {
   const remarkText = d.listing_description || '';
   const remark = remarkText ? '<div class="ld-remarks">&ldquo;' + E(remarkText.slice(0, 320)) + (remarkText.length > 320 ? '&hellip;' : '') + '&rdquo;<span class="src">Listing remarks (excerpt) &middot; via the MLS</span></div>' : '';
   const ctx = [];
-  if (bSlug) ctx.push('<div class="tile"><div class="eyebrow" style="margin-bottom:6px">The building</div><h3 style="font-size:1.05rem;margin-bottom:6px"><a href="' + bUrl + '" style="color:var(--ivory)">' + E(bName) + ' &rarr;</a></h3><p style="font-size:.85rem;color:var(--slate)">Every recorded sale, price per foot against the neighborhood, and the HOA figures.</p></div>');
-  if (hood) ctx.push('<div class="tile"><div class="eyebrow" style="margin-bottom:6px">The neighborhood</div><h3 style="font-size:1.05rem;margin-bottom:6px"><a href="/neighborhood/' + citySlug(hood) + '/" style="color:var(--ivory)">' + E(hood) + ' &rarr;</a></h3><p style="font-size:.85rem;color:var(--slate)">Every condo building in ' + E(hood) + ', with recorded sales and prices per foot.</p></div>');
+  if (bUrl) ctx.push('<div class="tile"><div class="eyebrow" style="margin-bottom:6px">The building</div><h3 style="font-size:1.05rem;margin-bottom:6px"><a href="' + bUrl + '" style="color:var(--ivory)">' + E(bName) + ' &rarr;</a></h3><p style="font-size:.85rem;color:var(--slate)">Every recorded sale, price per foot against the neighborhood, and the HOA figures.</p></div>');
+  if (hood) ctx.push('<div class="tile"><div class="eyebrow" style="margin-bottom:6px">The neighborhood</div><h3 style="font-size:1.05rem;margin-bottom:6px"><a href="/neighborhood/' + citySlug(hood) + '" style="color:var(--ivory)">' + E(hood) + ' &rarr;</a></h3><p style="font-size:.85rem;color:var(--slate)">Every condo building in ' + E(hood) + ', with recorded sales and prices per foot.</p></div>');
   const context = '<section class="pg" style="padding-top:0"><div class="wrap">' + remark +
     (ctx.length ? '<div class="ld-context">' + ctx.join('') + '</div>' : '') +
     '<p class="map-note">Listing data deemed reliable but not guaranteed. Buyers should verify all information independently. The listing agent and brokerage of record represent the seller; Condo Market SF is not the listing brokerage unless stated. MLS# ' + E(mls) + '.</p>' +
@@ -1927,7 +1936,7 @@ function renderListingCity(d, B, foot, reportsHtml) {
 
   const jsonLd = { '@context': 'https://schema.org', '@type': 'RealEstateListing', name: addr, url: canonical,
     description: d.descriptor || undefined,
-    address: { '@type': 'PostalAddress', streetAddress: addr, addressLocality: 'San Francisco', postalCode: d.zip || undefined, addressRegion: 'CA', addressCountry: 'US' },
+    address: { '@type': 'PostalAddress', streetAddress: addr, addressLocality: d.city || region, postalCode: d.zip || undefined, addressRegion: 'CA', addressCountry: 'US' },
     geo: lat != null && lng != null ? { '@type': 'GeoCoordinates', latitude: lat, longitude: lng } : undefined,
     offers: price != null ? { '@type': 'Offer', price: price, priceCurrency: 'USD', availability: 'https://schema.org/InStock' } : undefined };
 
@@ -1979,7 +1988,7 @@ function renderListingCity(d, B, foot, reportsHtml) {
 
   const body =
     '<header class="page-hero" style="padding-bottom:26px"><div class="wrap">' +
-    '<div class="crumbs"><a href="/">Condo Market SF</a> / <a href="/active-listings/">For sale</a>' + (bName ? ' / <a href="' + bUrl + '">' + E(bName) + '</a>' : '') + '</div>' +
+    '<div class="crumbs"><a href="/">Condo Market SF</a> / <a href="/active-listings/">For sale</a>' + (bName && bUrl ? ' / <a href="' + bUrl + '">' + E(bName) + '</a>' : '') + '</div>' +
     '<span class="eyebrow"><span class="live-dot"></span>Active listing &middot; MLS# ' + E(mls) + ' &middot; Condo' + (unit ? ' &middot; Unit ' + E(unit) : '') + '</span>' +
     '</div></header>' +
     '<section class="pg" style="padding-top:6px"><div class="wrap">' + gallery + head + specband + '</div></section>' +
@@ -2296,7 +2305,7 @@ function renderActiveListingsCity(M, AL, foot) {
                  x.year?'built '+x.year:null,
                  x.psf?'$'+Number(x.psf).toLocaleString('en-US')+'/sf':null]
                 .filter(Boolean).join(' \u00b7 ');
-    var href = x.slug ? '/building/'+x.slug+'/' : '#';
+    var href = x.slug ? '/building/'+x.slug : '#';
     return '<a class="listing-card listing-card--sold" href="'+href+'" data-mls="'+(x.mls||'')+'">'
       +'<div class="ph al-cardphoto">'
         +'<span class="al-dom sold">Sold '+when+'</span>'+img
@@ -3101,8 +3110,15 @@ async function handleRequest(request, env) {
 
     // sitemap.xml — lists THIS market's live building pages + key static pages,
     // all on this host's domain, so each domain's Search Console owns its own URLs.
-    if (url.pathname === '/sitemap.xml') {
-      return renderSitemap(hostMk);
+    // /sitemap.xml is an index of per-type children (SEO audit S23, S42).
+    if (url.pathname === '/sitemap.xml') return renderSitemapIndex(hostMk);
+    if (url.pathname === '/sitemap-pages.xml') return renderSitemap(hostMk);
+    if (url.pathname === '/sitemap-news.xml') return renderSitemapNews(hostMk);
+    if (url.pathname === '/sitemap-units.xml') return renderSitemapUnits(hostMk);
+
+    // The hubs' canonical URLs have no trailing slash; the slash form 301s (S19).
+    if (request.method === 'GET' && /^\/(?:neighborhoods|neighborhood\/[^\/]+|san-francisco-condos|san-francisco-condo-market-stats|san-francisco-condo-rankings|buy|sell)\/$/.test(url.pathname)) {
+      return new Response(null, { status: 301, headers: { 'Location': url.pathname.replace(/\/+$/, '') + url.search, 'Cache-Control': 'public, max-age=86400' } });
     }
 
     if (hostMk && hostMk.tag !== 'sf' && isPetitionPath(url.pathname)) {
@@ -3214,7 +3230,7 @@ async function handleRequest(request, env) {
           if (bj && bj.ok === true && bj.slug) {
             bldg = bj;
             bldgNav = '<a href="' + base + '/building/' + encodeURIComponent(bj.slug)
-              + '/" style="color:#e8a33d">' + esc(bj.name || 'Your building') + '</a>';
+              + '" style="color:#e8a33d">' + esc(bj.name || 'Your building') + '</a>';
           }
         }
       } catch (e) { bldgNav = ''; bldg = null; }
@@ -3256,7 +3272,7 @@ async function handleRequest(request, env) {
     // market analysis section; this preserves email-link integrity.
     const reportM = url.pathname.match(/^\/building\/([^\/]+)\/report\/?$/);
     if (reportM && request.method === 'GET') {
-      const target = 'https://' + url.host + '/building/' + reportM[1] + '/#market';
+      const target = 'https://' + url.host + '/building/' + reportM[1] + '#market';
       return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
     }
 
@@ -3331,7 +3347,7 @@ async function handleRequest(request, env) {
     if (mergedM && request.method === 'GET') {
       const canonical = MERGED_SLUGS[mergedM[1].toLowerCase()];
       if (canonical) {
-        const target = 'https://' + url.host + '/building/' + canonical + '/' + url.search + url.hash;
+        const target = 'https://' + url.host + '/building/' + canonical + url.search;
         return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
       }
     }
@@ -3363,6 +3379,7 @@ async function handleRequest(request, env) {
         });
         if (r.ok) payload = (await r.json()) || payload;
       } catch (e) {}
+      payload.hubPages = !!hostMk.hubPages;
       const html = applyMarketSwaps(renderOffMarket(payload), hostMk);
       return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
     }
@@ -3404,9 +3421,14 @@ async function handleRequest(request, env) {
         if (res.ok) d = await res.json();
       } catch (e) { d = null; }
 
-      // No live listing → fall through to static (avoids dead-end 404).
+      // No live listing: 301 to the unit or building it was in (S24), else the static 404.
       if (!d || !d.mls) {
+        const rd = await listingRedirect(url, hostMk, mls);
+        if (rd) return rd;
         return wrapStaticWithSwaps(request, env, hostMk);
+      }
+      if (url.pathname.endsWith('/') && request.method === 'GET') {
+        return new Response(null, { status: 301, headers: { 'Location': url.pathname.replace(/\/+$/, '') + url.search, 'Cache-Control': 'public, max-age=86400' } });
       }
 
       // Cross-domain canonical: a listing whose market differs from the host
@@ -3476,6 +3498,13 @@ async function handleRequest(request, env) {
       return new Response(html, { status: 200, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' } });
     }
 
+    // Unit pages: /building/<slug>/unit/<unit> (SEO audit S23).
+    const unitM = url.pathname.match(/^\/building\/([^\/]+)\/unit\/([^\/]+)\/?$/);
+    if (unitM && request.method === 'GET') return handleUnitRoute(request, env, hostMk, url, unitM);
+    // Unit maps quote the building page's 12-month figure with its sample (S21).
+    const umM = url.pathname.match(/^\/building\/([^\/]+)\/unit-map(?:\.html)?\/?$/);
+    if (umM && request.method === 'GET') return handleUnitMap(request, env, hostMk, decodeURIComponent(umM[1]).toLowerCase());
+
     const m = url.pathname.match(/^\/building\/([^\/]+)\/?$/);
 
     if (!m) {
@@ -3514,6 +3543,19 @@ async function handleRequest(request, env) {
 
     if (!payload || payload.is_live !== true) {
       return wrapStaticWithSwaps(request, env, hostMk);
+    }
+
+    /* ONE URL PER BUILDING (SEO audit S19). Another market's building, an alias, a retired
+       slug (building_slug_redirects) and the trailing-slash form all 301 to
+       /building/<slug> with no slash, the form the canonical tag and sitemap use. The
+       query string is kept. Preview hosts render in place. */
+    {
+      const bDom = (payload.market && payload.market.domain) || hostMk.domain;
+      const hostKnown = Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase());
+      if (request.method === 'GET' && ((hostKnown && bDom !== hostMk.domain) || payload.is_alias === true || url.pathname !== '/building/' + payload.slug)) {
+        const origin = (hostKnown && bDom !== hostMk.domain) ? 'https://www.' + bDom : 'https://' + url.host;
+        return new Response(null, { status: 301, headers: { 'Location': origin + '/building/' + payload.slug + url.search, 'Cache-Control': 'public, max-age=86400' } });
+      }
     }
 
     /* Disclosure teaser and Exchange teaser from Platform A, in parallel.
@@ -3598,7 +3640,11 @@ async function renderSitemap(mk) {
   } catch (e) { rows = []; }
 
   // '/buildings/' is not listed: it is the home page, and declares '/' as its canonical.
-  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings', '/off-market/', '/buy', '/sell'];
+  // Canonical forms only (S77): /active-listings/ declares the slash form.
+  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings/', '/off-market/', '/buy', '/sell',
+    '/how-it-works/sell-with-tenants/', '/how-it-works/1031-exchange/', '/calculate-payout-from-condo-sale/',
+    '/methodology/', '/history/', '/owner-signup/', '/investor-exchange/'];
+  if (mk.tag === 'sf') staticUrls.push('/press/');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-market-stats');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condos');
@@ -3624,14 +3670,7 @@ async function renderSitemap(mk) {
 
   const today = new Date().toISOString().slice(0, 10);
   const urlsXml = [];
-  // News: the index plus every published article for this market.
-  const newsIdx = await aNewsRpc('get_news_index', { p_market_id: A_MARKET_ID_BY_TAG[mk.tag] || 5, p_limit: 50, p_offset: 0 });
-  const newsArts = (newsIdx && newsIdx.ok && Array.isArray(newsIdx.articles)) ? newsIdx.articles : [];
-  urlsXml.push('<url><loc>' + base + '/news/</loc><lastmod>' + (newsArts[0] && newsArts[0].published_at ? String(newsArts[0].published_at).slice(0, 10) : today) + '</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>');
-  urlsXml.push('<url><loc>' + base + '/market-reports/</loc><lastmod>' + today + '</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>');
-  for (const n of newsArts) {
-    urlsXml.push('<url><loc>' + cmNewsHref(base, n) + '</loc><lastmod>' + String(n.published_at || today).slice(0, 10) + '</lastmod><changefreq>monthly</changefreq><priority>' + (n.kind === 'market_review' || n.kind === 'building_review' ? '0.8' : '0.7') + '</priority></url>');
-  }
+  // News and reports live in /sitemap-news.xml, paged until exhausted (S42).
   for (const u of staticUrls) {
     urlsXml.push('<url><loc>' + base + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
   }
@@ -3827,7 +3866,7 @@ function renderCityPage(mk, data, intent, footerData) {
     const meta = [];
     if (b.unit_count != null) meta.push(intc(b.unit_count) + ' units');
     if (b.year_built != null) meta.push('Built ' + b.year_built);
-    return '<a class="cl-card" href="/building/' + esc(b.slug) + '/">' + img +
+    return '<a class="cl-card" href="/building/' + esc(b.slug) + '">' + img +
       '<div class="cl-card-body"><div class="cl-card-name">' + esc(b.display_name) + '</div>' +
       (b.neighborhood ? '<div class="cl-card-hood">' + esc(b.neighborhood) + '</div>' : '') +
       (meta.length ? '<div class="cl-card-meta">' + meta.join(' \u00b7 ') + '</div>' : '') +
@@ -3874,7 +3913,7 @@ function renderCityPage(mk, data, intent, footerData) {
       '@type': 'ItemList',
       'numberOfItems': nBldgs,
       'itemListElement': bldgs.slice(0, 25).map(function (b, i) {
-        return { '@type': 'ListItem', 'position': i + 1, 'name': b.display_name, 'url': 'https://www.' + domain + '/building/' + b.slug + '/' };
+        return { '@type': 'ListItem', 'position': i + 1, 'name': b.display_name, 'url': 'https://www.' + domain + '/building/' + b.slug };
       }),
     },
   };
@@ -4239,7 +4278,7 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
 
   const bRows = blds.map(function (b) {
     const psf = b.median_psf ? money(b.median_psf) : '\u2014';
-    return '<tr><td><a href="' + base + '/building/' + esc(b.slug) + '/">' + esc(b.display_name) + '</a></td>' +
+    return '<tr><td><a href="' + base + '/building/' + esc(b.slug) + '">' + esc(b.display_name) + '</a></td>' +
       '<td class="num">' + (b.year_built || '\u2014') + '</td><td class="num">' + (b.unit_count ? intc(b.unit_count) : '\u2014') +
       '</td><td class="num">' + psf + '</td></tr>';
   }).join('');
@@ -4265,7 +4304,7 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
     '<table><thead><tr><th>Building</th><th class="num">Built</th><th class="num">Units</th><th class="num">Median $/sqft</th></tr></thead><tbody>' +
     (bRows || '<tr><td colspan="4">No cataloged buildings.</td></tr>') + '</tbody></table></section>' +
     '<p class="links"><a href="' + base + '/neighborhoods">\u2190 All neighborhoods</a><a href="' + base + '/intelligence/">Compare neighborhoods \u2192</a></p>' +
-    '<p class="method">Per-building price per square foot is the median of recorded sales over the trailing twelve months, shown where sales exist. Neighborhood medians are suppressed below five recent sales. McMullen Properties LLC \u00b7 CA DRE #02016832.</p>' +
+    '<p class="method">Per-building price per square foot is the median of recorded sales over the trailing twelve months, shown where sales exist. Neighborhood and building medians are shown only from five or more recent sales. Tim McMullen, Broker, CA DRE #02016832.</p>' +
     '<div style="height:50px"></div></div>';
 
   const html = nbChrome(title, desc, canonical, jsonld, base, body);
@@ -4512,16 +4551,19 @@ async function renderCondoNewsArticle(mk, slug, area) {
 }
 
 // shared chrome for neighborhood pages (header/nav/styles)
-function nbChrome(title, desc, canonical, jsonld, base, body) {
+function nbChrome(title, desc, canonical, jsonld, base, body, opts) {
+  opts = opts || {};
   return '<!doctype html><html lang="en"><head>' +
 '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
 '<title>' + esc(title) + '</title><meta name="description" content="' + attr(desc) + '">' +
+(opts.robots ? '<meta name="robots" content="' + attr(opts.robots) + '">' : '') +
+(opts.ogImage ? '<meta property="og:image" content="' + attr(opts.ogImage) + '"><meta name="twitter:card" content="summary_large_image">' : '') +
 '<link rel="canonical" href="' + canonical + '">' +
 '<meta property="og:title" content="' + attr(title) + '"><meta property="og:description" content="' + attr(desc) + '">' +
 '<meta property="og:url" content="' + canonical + '"><meta property="og:type" content="website">' +
 '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
 '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
-'<script type="application/ld+json">' + JSON.stringify(jsonld) + '</script>' +
+'<script type="application/ld+json">' + JSON.stringify(jsonld).replace(/</g, '\\u003c') + '</script>' +
 '<style>' +
 ':root{--dark:#f5f7fa;--orange:#C2410C;--orange-bright:#e85d2a;--ivory:#22262f;--dim:#5d6575;--line:#e0e5ed;--up:#2f6b40;--down:#b4532a}' +
 '*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#22262f;font-family:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6}' +
@@ -4552,8 +4594,8 @@ function nbChrome(title, desc, canonical, jsonld, base, body) {
 '.method{color:#5d6575;font-size:13px;max-width:760px;margin-top:26px}' +
 '</style></head><body>' +
 '<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
-'<nav class="nav"><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a href="' + base + '/news/">News</a></nav></div></header>' +
-body + '</body></html>';
+'<nav class="nav"><a href="' + base + '/san-francisco-condos">Buildings</a><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a href="' + base + '/market-reports/">Reports</a><a href="' + base + '/news/">News</a></nav></div></header>' +
+body + (opts.footer || '') + '</body></html>';
 }
 
 /* ---- intel page: neighborhood comparison widget (client-rendered) ---- */
@@ -4715,7 +4757,7 @@ async function renderBuildingsDirectory(mk) {
     cur.items.push(r);
   }
 
-  const bUrl = function (slug) { return base + '/building/' + esc(slug) + '/'; };
+  const bUrl = function (slug) { return base + '/building/' + esc(slug); };
   const cardHtml = function (r) {
     const facts = [];
     if (r.year_built) facts.push('Built ' + r.year_built);
@@ -4729,7 +4771,7 @@ async function renderBuildingsDirectory(mk) {
   };
 
   const sections = groups.map(function (g) {
-    return '<section class="hoodsec"><h2>' + esc(g.hood) + ' <span class="hoodn">' + intc(g.items.length) + '</span></h2>' +
+    return '<section class="hoodsec"><h2>' + (g.hood !== 'Other' ? '<a href="' + base + '/neighborhood/' + hoodSlug(g.hood) + '" style="color:inherit;text-decoration:none">' + esc(g.hood) + '</a>' : esc(g.hood)) + ' <span class="hoodn">' + intc(g.items.length) + '</span></h2>' +
       '<div class="bgrid">' + g.items.map(cardHtml).join('') + '</div></section>';
   }).join('');
 
@@ -4868,7 +4910,7 @@ async function renderStatsHub(mk) {
 '<meta property="og:url" content="' + canonical + '"><meta property="og:type" content="website">' +
 '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
 '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
-'<script type="application/ld+json">' + JSON.stringify(jsonld) + '</script>' +
+'<script type="application/ld+json">' + JSON.stringify(jsonld).replace(/</g, '\\u003c') + '</script>' +
 '<style>' +
 ':root{--dark:#f5f7fa;--orange:#C2410C;--orange-bright:#e85d2a;--ivory:#22262f;--dim:#5d6575;--line:#e0e5ed;--up:#2f6b40;--down:#b4532a}' +
 '*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#22262f;font-family:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6}' +
@@ -4958,8 +5000,8 @@ function CM_FOOTER(footerData) {
     hoodNames.forEach(function (h) {
       const list = hoods[h];
       bldgCols += '<div class="cf-group">' +
-        '<h5 class="cf-group-title">' + (h ? esc(h) : esc(cityName)) + '</h5><ul>' +
-        list.map(function (b) { return '<li><a href="/building/' + esc(b.slug) + '/">' + esc(b.name) + '</a></li>'; }).join('') +
+        '<h5 class="cf-group-title">' + (h && fd.hubPages ? '<a href="/neighborhood/' + hoodSlug(h) + '" style="color:inherit;text-decoration:none">' + esc(h) + '</a>' : (h ? esc(h) : esc(cityName))) + '</h5><ul>' +
+        list.map(function (b) { return '<li><a href="/building/' + esc(b.slug) + '">' + esc(b.name) + '</a></li>'; }).join('') +
         '</ul></div>';
     });
   });
@@ -4985,7 +5027,9 @@ function CM_FOOTER(footerData) {
     '<div class="wordmark" style="font-size:20px;margin-bottom:12px;">Condo <em>Market</em> \u00b7 sf</div>' +
     '<p class="cf-tag">A private marketplace for every condo in San Francisco. Ten years of sales, owner tenure, live activity \u2014 every unit available for the right price.</p>' +
     '<div class="cf-primary">' +
-    '<a href="/buildings/">All buildings</a><a href="/active-listings">Active listings</a>' +
+    '<a href="' + esc(fd.dirPath || '/buildings/') + '">All buildings</a><a href="/active-listings/">Active listings</a>' +
+    (fd.hubPages ? '<a href="/neighborhoods">Neighborhoods</a><a href="/san-francisco-condo-market-stats">Market stats</a><a href="/san-francisco-condo-rankings">Rankings</a>' : '') +
+    '<a href="/market-reports/">Market reports</a><a href="/news/">News</a>' +
     '<a href="/intelligence/">Intelligence</a><a href="/buy">Buy a condo</a>' +
     '<a href="/sell">Sell a condo</a><a href="/how-it-works/">How it works</a>' +
     '</div></div>' +
@@ -5077,10 +5121,11 @@ async function fetchFooterData(hostMk) {
 }
 async function fetchFooterDataRaw(hostMk) {
   const dirPath = hostMk.dirPath || '/buildings/';
+  const hubPages = !!hostMk.hubPages;
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,cities!inner(slug,display_name,domain)&is_catalogued=eq.true&slug=not.like.*-eichlers&display_name=not.ilike.*eichler*&order=display_name.asc&limit=2000',
       { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
-    if (!res.ok) return { byCityHood: {}, cities: [], dirPath: dirPath };
+    if (!res.ok) return { byCityHood: {}, cities: [], dirPath: dirPath, hubPages: hubPages };
     const rows = await res.json();
     const byCityHood = {};
     const cityCounts = {};
@@ -5096,8 +5141,8 @@ async function fetchFooterDataRaw(hostMk) {
       cityCounts[c.slug].n++;
     });
     const cities = Object.keys(cityCounts).map(function (k) { return cityCounts[k]; }).sort(function (a, b) { return b.n - a.n; });
-    return { byCityHood: byCityHood, cities: cities, dirPath: dirPath };
-  } catch (e) { return { byCityHood: {}, cities: [], dirPath: dirPath }; }
+    return { byCityHood: byCityHood, cities: cities, dirPath: dirPath, hubPages: hubPages };
+  } catch (e) { return { byCityHood: {}, cities: [], dirPath: dirPath, hubPages: hubPages }; }
 }
 
 
@@ -5185,7 +5230,7 @@ async function renderRankingsHub(mk) {
     callReportRpc('report_turnover_leaders',    { p_market_domain: DOMAIN, p_min_units: 10, p_limit: 12 }),
   ]);
 
-  const bLink = (slug, name) => '<a href="' + base + '/building/' + esc(slug) + '/">' + esc(name) + '</a>';
+  const bLink = (slug, name) => '<a href="' + base + '/building/' + esc(slug) + '">' + esc(name) + '</a>';
   const topHood = (psf && psf[0]) ? psf[0] : null;
   const topVol  = (volume && volume[0]) ? volume[0] : null;
   const updated = new Date().toISOString().slice(0, 10);
@@ -5215,7 +5260,7 @@ async function renderRankingsHub(mk) {
 
   // ── JSON-LD: Dataset + ItemList of the ranked buildings
   const itemListEls = (volume || []).map(function (r, i) {
-    return { '@type': 'ListItem', position: i + 1, url: base + '/building/' + r.slug + '/', name: r.display_name };
+    return { '@type': 'ListItem', position: i + 1, url: base + '/building/' + r.slug, name: r.display_name };
   });
   const jsonld = {
     '@context': 'https://schema.org',
@@ -5889,6 +5934,362 @@ function leadToolsSection(slug, buildingName, mk) {
   + '</section>';
 }
 
+
+/* ============================================================================
+   SEO AUDIT 15 OCT 2026: recorded sales on building pages (S22), unit pages
+   (S23), expired-listing redirects (S24). Facts only: recorded sales with their
+   dates and samples. Never estimated_value, owner names, corporate flags, Make
+   Me Move prices, or any statement of what a specific home is worth.
+   ========================================================================== */
+function fmtDay(iso) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? MONTHS[parseInt(m[2], 10) - 1] + ' ' + parseInt(m[3], 10) + ', ' + m[1] : '';
+}
+function fmtMonth(iso) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})/);
+  return m ? MONTHS[parseInt(m[2], 10) - 1] + ' ' + m[1] : '';
+}
+function mkConf(tag) { return MARKETS[tag] || {}; }
+function unitHref(slug, key) { return '/building/' + slug + '/unit/' + encodeURIComponent(key); }
+
+/* "Lumina at 201 Folsom St has 673 recorded sales since 2015. In the 12 months to Oct 15, 2026,
+   42 sold at a median of $1,329 per square foot." One sentence a reader or an engine can quote,
+   with its sample and window. */
+function buildingSalesSentence(p) {
+  const st = p.stats || {};
+  const name = p.name || '';
+  const street = p.street && String(p.street).replace(/[^a-z0-9]/gi, '').toLowerCase() !== String(name).replace(/[^a-z0-9]/gi, '').toLowerCase() ? p.street : '';
+  const n = Number(p.recorded_sales_n || 0);
+  const since = p.recorded_sales_since ? String(p.recorded_sales_since).slice(0, 4) : '';
+  const asOf = fmtDay(st.as_of);
+  const sold = Number(st.sold_12mo || 0);
+  const parts = [];
+  if (n > 0) parts.push(name + (street ? ' at ' + street : '') + ' has ' + intc(n) + ' recorded sale' + (n === 1 ? '' : 's') + (since ? ' since ' + since : '') + '.');
+  if (asOf) {
+    if (st.median_psf_12mo != null && sold >= 5) parts.push('In the 12 months to ' + asOf + ', ' + intc(sold) + ' sold at a median of ' + money(st.median_psf_12mo) + ' per square foot.');
+    else if (sold > 0) parts.push('In the 12 months to ' + asOf + ', ' + intc(sold) + ' sold, too few for a median.');
+    else if (n > 0) parts.push('None sold in the 12 months to ' + asOf + '.');
+  }
+  if (st.dom_median_12mo != null && Number(st.dom_n_12mo) >= 5) parts.push('Median time on market: ' + intc(st.dom_median_12mo) + ' days (' + intc(st.dom_n_12mo) + ' MLS sales, same 12 months).');
+  return parts.join(' ');
+}
+
+function salesTableHtml(rows, opts) {
+  opts = opts || {};
+  const head = '<tr><th>Date</th>' + (opts.unitCol ? '<th>Unit</th>' : '') + '<th class="num">Price</th><th class="num">Sq ft</th><th class="num">$/sq ft</th></tr>';
+  const body = rows.map(function (r) {
+    // A building with several street addresses names the street: its "4F"s are different homes.
+    const lab = String(r.u || '').replace(/^(#|unit\s*|apt\.?\s*)/i, '').toUpperCase();
+    const unitTxt = lab ? (r.st ? r.st + ' #' + lab : lab) : '—';
+    const unitCell = opts.unitCol
+      ? '<td>' + (r.k && opts.slug ? '<a href="' + unitHref(opts.slug, r.k) + '">' + esc(unitTxt) + '</a>' : esc(unitTxt)) + '</td>' : '';
+    return '<tr><td>' + esc(fmtDay(r.d)) + '</td>' + unitCell +
+      '<td class="num">' + (money(r.p) || '—') + (r.bmr ? ' <span class="bmr" title="Below-market-rate sale: listed, left out of every figure">BMR</span>' : '') + '</td>' +
+      '<td class="num">' + (r.s ? intc(r.s) : '—') + '</td>' +
+      '<td class="num">' + (r.psf != null ? money(r.psf) : '—') + '</td></tr>';
+  }).join('');
+  return '<div class="rs-scroll"><table class="rs-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+}
+
+const RS_CSS = '<style>' +
+  '.rs-section .rs-lede{font-size:17px;line-height:1.6;max-width:780px;margin:0 0 18px;color:#22262f}' +
+  '.rs-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}' +
+  '.rs-table{width:100%;border-collapse:collapse;font-size:15px;min-width:420px}' +
+  '.rs-table th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5d6575;font-weight:700;padding:0 10px 10px;border-bottom:1px solid rgba(194,65,12,.18)}' +
+  '.rs-table td{padding:10px;border-bottom:1px solid rgba(34,38,47,.09);font-variant-numeric:tabular-nums}' +
+  '.rs-table .num{text-align:right}.rs-table a{color:#22262f;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.3)}.rs-table a:hover{color:#C2410C}' +
+  '.rs-note{font-size:13px;color:#5d6575;margin-top:12px;max-width:780px}' +
+  '.bmr{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;color:#9A3412;background:rgba(194,65,12,.1);border-radius:4px;padding:1px 5px;margin-left:4px}' +
+  '.ux-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 14px;margin-top:14px}' +
+  '.ux-grid a{display:block;font-size:14px;color:#22262f;text-decoration:none;padding:6px 0;border-bottom:1px solid rgba(34,38,47,.08)}' +
+  '.ux-grid a span{display:block;font-size:12px;color:#5d6575}.ux-grid a:hover{color:#C2410C}' +
+  '.ux-more summary{cursor:pointer;color:#C2410C;font-weight:600;margin-top:12px}' +
+  '.bc{font-size:13px;color:#5d6575;padding:14px 0 0}.bc a{color:#5d6575;text-decoration:none}.bc a:hover{color:#C2410C}.bc .sep{margin:0 8px;opacity:.6}' +
+  '.more-links{display:flex;flex-wrap:wrap;gap:10px 22px;margin:22px 0 0;font-size:14px}.more-links a{color:#C2410C;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.25)}' +
+  '</style>';
+
+function recordedSalesSection(p) {
+  const rows = Array.isArray(p.recorded_sales) ? p.recorded_sales : [];
+  const n = Number(p.recorded_sales_n || 0);
+  if (!rows.length) return '';
+  const unitsOn = !!mkConf((p.market || {}).tag || 'sf').unitPages;
+  const sentence = buildingSalesSentence(p);
+  return '<section class="section rs-section" id="sales"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">Recorded sales</div>' +
+    '<h2 class="section-title">Every recorded sale at <em>' + esc(p.name) + '</em></h2></div>' +
+    '<p class="rs-lede">' + esc(sentence) + '</p>' +
+    salesTableHtml(rows, { unitCol: true, slug: unitsOn ? p.slug : null }) +
+    '<p class="rs-note">The ' + intc(rows.length) + ' most recent of ' + intc(n) + ' recorded sales, from county records and the MLS, one row per sale. ' +
+    'Transfers under $100,000 are left out. BMR marks a below-market-rate sale: it is listed here and left out of every figure on this site.</p>' +
+    '</div></section>\n';
+}
+
+function unitsIndexSection(p) {
+  const conf = mkConf((p.market || {}).tag || 'sf');
+  const list = Array.isArray(p.units_index) ? p.units_index : [];
+  if (!conf.unitPages || !list.length) return '';
+  const link = function (u) {
+    const label = u[2] || String(u[0]).toUpperCase();
+    return '<a href="' + unitHref(p.slug, u[0]) + '">' + (/^\d/.test(label) && label.indexOf('#') === -1 ? 'Unit ' : '') + esc(label) + '<span>Last sale ' + esc(fmtMonth(u[1])) + '</span></a>';
+  };
+  const first = list.slice(0, 48).map(link).join('');
+  const rest = list.length > 48 ? '<details class="ux-more"><summary>All ' + intc(list.length) + ' units with a recorded sale since 2016</summary><div class="ux-grid">' + list.slice(48).map(link).join('') + '</div></details>' : '';
+  return '<section class="section" id="units"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">Unit by unit</div>' +
+    '<h2 class="section-title">Sale history <em>by unit</em></h2>' +
+    '<p class="section-sub">' + intc(list.length) + ' units at ' + esc(p.name) + ' have a recorded sale since 2016. Each page lists that unit’s recorded sales and the units directly above and below it.</p></div>' +
+    '<div class="ux-grid">' + first + '</div>' + rest +
+    '</div></section>\n';
+}
+
+/* ---------------------------------------------------------------- unit page */
+async function handleUnitRoute(request, env, hostMk, url, unitM) {
+  if (!hostMk.unitPages) return wrapStaticWithSwaps(request, env, hostMk);
+  const rawSlug = decodeURIComponent(unitM[1]).trim();
+  const rawUnit = decodeURIComponent(unitM[2]).trim();
+  let u = null, failed = false;
+  try {
+    const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/unit_page_payload', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_slug: rawSlug.toLowerCase(), p_unit: rawUnit }),
+    }, 3000);
+    if (r.ok) u = await r.json(); else failed = r.status >= 500;
+  } catch (e) { failed = true; }
+  if (failed) {
+    return new Response('<!doctype html><meta charset="utf-8"><title>Temporarily unavailable</title><p>This page is temporarily unavailable. Please try again in a moment.</p>',
+      { status: 503, headers: { 'content-type': 'text/html;charset=utf-8', 'retry-after': '30', 'cache-control': 'no-store' } });
+  }
+  if (!u) return wrapStaticWithSwaps(request, env, hostMk);
+  const hostKnown = Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase());
+  const dom = u.domain || (u.market && u.market.domain) || hostMk.domain;
+  const origin = hostKnown ? 'https://www.' + dom : 'https://' + url.host;
+  // No such unit in the record: the building page is the closest true page.
+  if (u.ok !== true) {
+    return new Response(null, { status: 301, headers: { 'Location': origin + '/building/' + u.slug, 'Cache-Control': 'public, max-age=3600' } });
+  }
+  const canonPath = '/building/' + u.slug + '/unit/' + u.unit_key;
+  if (url.pathname !== canonPath || (hostKnown && dom !== hostMk.domain)) {
+    return new Response(null, { status: 301, headers: { 'Location': origin + canonPath + url.search, 'Cache-Control': 'public, max-age=3600' } });
+  }
+  const footerData = await fetchFooterData(hostMk);
+  const html = applyMarketSwaps(renderUnitPage(u, footerData), hostMk);
+  const headers = { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=300, s-maxage=3600' };
+  if (u.tier_a !== true) headers['x-robots-tag'] = 'noindex, follow';
+  return new Response(html, { status: 200, headers: headers });
+}
+
+function renderUnitPage(u, footerData) {
+  const B = u.building || {};
+  const M = u.market || {};
+  const base = 'https://www.' + (M.domain || 'sanfranciscocondomarket.com');
+  const city = M.city || 'San Francisco';
+  const label = u.unit_label || String(u.unit_key || '').toUpperCase();
+  const street = u.street || B.street || '';
+  const addr = (street ? street + ' #' : 'Unit ') + label;
+  const sales = Array.isArray(u.sales) ? u.sales : [];
+  const facts = u.facts || {};
+  const last = sales[0] || null;
+  const canonical = u.canonical_url || (base + '/building/' + u.slug + '/unit/' + u.unit_key);
+  const bUrl = '/building/' + u.slug;
+  const hoodUrl = (B.neighborhood && B.hood_slug && mkConf(M.tag || 'sf').hubPages) ? '/neighborhood/' + B.hood_slug : '';
+
+  let title = addr + ', ' + city + ' · ' + (B.name || '') + ' condo sale history';
+  if (title.length > 70) title = addr + ', ' + city + ' · ' + (B.name || '');
+  const spec = [facts.beds != null ? facts.beds + ' bd' : '', facts.baths != null ? Number(facts.baths) + ' ba' : '', facts.sqft ? intc(facts.sqft) + ' sq ft' : ''].filter(Boolean).join(', ');
+  const bedBath = [facts.beds != null ? facts.beds + ' bd' : '', facts.baths != null ? Number(facts.baths) + ' ba' : ''].filter(Boolean).join(', ');
+  const desc = 'Unit ' + label + ' at ' + (B.name || street) + (B.name && street && B.name !== street ? ', ' + street : '') + ', ' + city + ': ' +
+    intc(sales.length) + ' recorded sale' + (sales.length === 1 ? '' : 's') +
+    (last ? ', most recently ' + money(last.p) + ' on ' + fmtDay(last.d) + (last.s ? ' (' + intc(last.s) + ' sq ft)' : '') : '') + '.' +
+    (bedBath ? ' ' + bedBath + '.' : '') + ' Recorded sales only.';
+
+  const fact = function (k, v) { return v == null || v === '' ? '' : '<div class="stat"><div class="stat-label">' + k + '</div><div class="stat-val" style="font-size:26px">' + v + '</div></div>'; };
+  const factGrid = '<div class="grid">' +
+    fact('Size', facts.sqft ? intc(facts.sqft) + ' <span style="font-size:15px">sq ft</span>' : null) +
+    fact('Beds / baths', (facts.beds != null || facts.baths != null) ? (facts.beds != null ? facts.beds : '—') + ' / ' + (facts.baths != null ? Number(facts.baths) : '—') : null) +
+    fact('Floor', u.floor != null ? String(u.floor) : null) +
+    fact('Recorded sales', intc(sales.length)) +
+    fact('Last recorded sale', last ? esc(fmtMonth(last.d)) : null) +
+    fact('Stack', u.stack ? esc(u.stack) : null) +
+    '</div>';
+
+  const bm = u.building_median || {};
+  const bmLine = (bm.psf != null && Number(bm.n) >= 5)
+    ? esc(B.name) + '’s median over the 12 months to ' + esc(fmtDay(bm.as_of)) + ': ' + money(bm.psf) + ' per square foot across ' + intc(bm.n) + ' recorded sales in the building.'
+    : esc(B.name) + ' recorded ' + intc(bm.n || 0) + ' sale' + (Number(bm.n) === 1 ? '' : 's') + ' in the 12 months to ' + esc(fmtDay(bm.as_of)) + (Number(bm.n) > 0 ? ', too few for a median' : '') + '.';
+
+  const salesBlock = '<section><h2>Recorded sales of unit ' + esc(label) + '</h2>' +
+    salesTableHtml(sales.map(function (s) { return { d: s.d, p: s.p, s: s.s, psf: s.psf, bmr: s.bmr }; }), {}) +
+    '<p class="rs-note">From county records and the MLS, one row per sale. BMR marks a below-market-rate sale, left out of every figure on this site.</p></section>';
+
+  const adj = Array.isArray(u.adjacent) ? u.adjacent : [];
+  const adjBlock = adj.length ? '<section><h2>Same stack, one floor up and one floor down</h2>' +
+    '<p class="rs-note" style="margin-top:0">Units in the same stack on the floors directly above and below unit ' + esc(label) + '. Recorded sales only.</p>' +
+    adj.map(function (a) {
+      const ttl = 'Unit ' + esc(a.label) + ' · ' + (a.rel === 'above' ? 'one floor up' : 'one floor down');
+      return '<h3 style="font-size:17px;margin:18px 0 8px">' + (a.tier_a ? '<a href="' + unitHref(u.slug, a.unit_key) + '" style="color:#22262f">' + ttl + ' →</a>' : ttl) + '</h3>' +
+        salesTableHtml((a.sales || []).slice(0, 5), {});
+    }).join('') + '</section>' : '';
+
+  const L = u.listing;
+  const listingBlock = L && L.mls ? '<div class="thinnote" style="border-color:#C2410C"><strong>For sale now.</strong> Unit ' + esc(label) + ' is listed' +
+    (L.price ? ' at ' + money(L.price) : '') + '. <a href="/listing/' + esc(L.mls) + '" style="color:#C2410C;font-weight:600">See the listing →</a></div>' : '';
+
+  const multiNote = '';
+  const cta = '<section><h2>Own this unit, or want to buy it?</h2>' +
+    '<p class="links" style="padding-top:4px">' +
+    '<a href="/owner-signup/?address=' + encodeURIComponent(addr + ', ' + city) + '" data-cta="unit:owner">Own this unit? Name your price privately →</a>' +
+    '<a href="' + bUrl + '#offer" data-cta="unit:offer">Make an offer on unit ' + esc(label) + ' →</a>' +
+    '<a href="https://app.' + esc(M.domain || 'sanfranciscocondomarket.com') + '/tools/cma" data-cta="unit:comp_report">Build a Comp Report →</a></p>' +
+    '<p class="rs-note">Any unit here is open to an offer, listed or not. Tim McMullen, a licensed California real estate broker (DRE #02016832), presents it to the owner of record.</p></section>';
+
+  const crumb = '<nav class="kick" aria-label="Breadcrumb"><a href="' + base + '/" style="color:inherit;text-decoration:none">' + esc(M.brand || 'Condo Market SF') + '</a> › ' +
+    (hoodUrl ? '<a href="' + hoodUrl + '" style="color:inherit;text-decoration:none">' + esc(B.neighborhood) + '</a> › ' : '') +
+    '<a href="' + bUrl + '" style="color:inherit;text-decoration:none">' + esc(B.name) + '</a> › Unit ' + esc(label) + '</nav>';
+
+  const body =
+    '<div class="hero"><div class="wrap">' + crumb +
+    '<h1>' + esc(addr) + '</h1>' +
+    '<p class="lede">Unit ' + esc(label) + ' at <a href="' + bUrl + '" style="color:#C2410C;text-decoration:none;font-weight:600">' + esc(B.name) + '</a>' +
+    (B.neighborhood ? ', ' + esc(B.neighborhood) : '') + ', ' + esc(city) + (spec ? '. ' + esc(spec) : '') + '. ' +
+    'Every recorded sale of this unit, and of the units directly above and below it.</p></div></div>' +
+    '<div class="wrap">' + listingBlock + factGrid + multiNote + salesBlock +
+    '<section><h2>The building</h2><p style="max-width:760px">' + bmLine + ' ' +
+    (B.unit_count ? esc(B.name) + ' has ' + intc(B.unit_count) + ' units' + (B.year_built ? ' and was built in ' + B.year_built : '') + '. ' : '') + '</p>' +
+    '<p class="links"><a href="' + bUrl + '">All recorded sales at ' + esc(B.name) + ' →</a>' +
+    (hoodUrl ? '<a href="' + hoodUrl + '">' + esc(B.neighborhood) + ' condos →</a>' : '') + '</p></section>' +
+    adjBlock + cta +
+    '<p class="method">Recorded sales only, from county records and the MLS. For a Comp Report on this unit, ask Tim McMullen. ' +
+    'Figures exclude below-market-rate sales; a building median is shown only from five or more sales.</p>' +
+    '<div style="height:40px"></div></div>';
+
+  const jsonld = { '@context': 'https://schema.org', '@graph': [
+    { '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: M.brand || 'Condo Market SF', item: base + '/' }]
+      .concat(hoodUrl ? [{ '@type': 'ListItem', position: 2, name: B.neighborhood, item: base + hoodUrl }] : [])
+      .concat([{ '@type': 'ListItem', position: hoodUrl ? 3 : 2, name: B.name, item: base + bUrl },
+               { '@type': 'ListItem', position: hoodUrl ? 4 : 3, name: 'Unit ' + label, item: canonical }]) },
+    { '@type': 'Apartment', name: addr, url: canonical,
+      address: { '@type': 'PostalAddress', streetAddress: addr, addressLocality: city, addressRegion: 'CA', addressCountry: 'US' },
+      floorSize: facts.sqft ? { '@type': 'QuantitativeValue', value: facts.sqft, unitCode: 'FTK' } : undefined,
+      numberOfBedrooms: facts.beds != null ? Number(facts.beds) : undefined,
+      containedInPlace: { '@type': 'ApartmentComplex', name: B.name, url: base + bUrl } } ] };
+
+  return nbChrome(title, desc, canonical, jsonld, base, RS_CSS + body,
+    { robots: u.tier_a === true ? '' : 'noindex, follow', footer: CM_FOOTER(footerData) });
+}
+
+/* S24: an expired listing URL keeps its address signal: 301 to the unit page when the unit
+   resolves, else to the building; 410 when the listing never had a building here. */
+async function listingRedirect(url, hostMk, mls) {
+  let t = null;
+  try {
+    const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/listing_redirect_target', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_mls: mls }),
+    }, 2500);
+    if (r.ok) t = await r.json();
+  } catch (e) { t = null; }
+  if (!t || !t.mls || t.is_live === true) return null;
+  const hostKnown = Object.prototype.hasOwnProperty.call(MARKET_BY_HOST, url.hostname.toLowerCase());
+  if (t.building_slug) {
+    const dom = t.domain || hostMk.domain;
+    const origin = hostKnown ? 'https://www.' + dom : 'https://' + url.host;
+    const tm = MARKETS[MARKET_BY_HOST[dom]] || hostMk;
+    const path = (t.unit_key && tm.unitPages) ? unitHref(t.building_slug, t.unit_key) : '/building/' + t.building_slug;
+    return new Response(null, { status: 301, headers: { 'Location': origin + path, 'Cache-Control': 'public, max-age=86400' } });
+  }
+  return new Response('<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><title>Listing no longer available</title>' +
+    '<p>This listing is no longer on the market. <a href="/active-listings/">See every condo for sale</a>.</p>',
+    { status: 410, headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'public, max-age=86400', 'x-robots-tag': 'noindex' } });
+}
+
+/* S21: the static unit maps carried their own all-time "Median PSF" with no window. They now show
+   the building page's figure: the 12-month median with its sample, or the count when under 5. */
+async function handleUnitMap(request, env, hostMk, slug) {
+  const res = await wrapStaticWithSwaps(request, env, hostMk);
+  const ct = (res.headers.get('content-type') || '').toLowerCase();
+  if (!res.ok || !ct.includes('text/html')) return res;
+  let html = await res.text();
+  let st = null;
+  try {
+    const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/building_page_payload', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_slug: slug }),
+    }, 2500);
+    if (r.ok) { const p = await r.json(); st = p && p.stats ? p.stats : null; }
+  } catch (e) { st = null; }
+  const cell = st
+    ? ((st.median_psf_12mo != null && Number(st.sold_12mo) >= 5)
+        ? '<div class="cm-statcell-label">Median $/sq ft · 12 mo</div><div class="cm-statcell-value">' + money(st.median_psf_12mo) + '<small>/sf</small></div>' +
+          '<div style="font-size:11px;opacity:.7;margin-top:4px">' + intc(st.sold_12mo) + ' sales to ' + esc(fmtDay(st.as_of)) + '</div>'
+        : '<div class="cm-statcell-label">Sales · 12 mo</div><div class="cm-statcell-value">' + intc(st.sold_12mo || 0) + '</div>' +
+          '<div style="font-size:11px;opacity:.7;margin-top:4px">Too few for a median</div>')
+    : '<div class="cm-statcell-label">Median $/sq ft</div><div class="cm-statcell-value">—</div>';
+  html = html.replace(/<div class="cm-statcell-label">Median PSF<\/div>\s*<div class="cm-statcell-value">[\s\S]*?<\/div>/, cell);
+  const h = new Headers(res.headers); h.delete('content-length');
+  return new Response(html, { status: res.status, headers: h });
+}
+
+/* S23 + S42: /sitemap.xml is an index of per-type children so Search Console reports each type,
+   and no child is capped (news paged until exhausted). */
+function sitemapXml(urls) {
+  return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.join('\n') + '\n</urlset>\n',
+    { status: 200, headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
+}
+async function renderSitemapIndex(mk) {
+  const base = 'https://www.' + mk.domain;
+  const kids = ['/sitemap-pages.xml', '/sitemap-news.xml'];
+  if (mk.unitPages) kids.push('/sitemap-units.xml');
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    kids.map(function (k) { return '<sitemap><loc>' + base + k + '</loc></sitemap>'; }).join('\n') + '\n</sitemapindex>\n';
+  return new Response(xml, { status: 200, headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600, s-maxage=86400' } });
+}
+async function renderSitemapNews(mk) {
+  const base = 'https://www.' + mk.domain;
+  const marketId = A_MARKET_ID_BY_TAG[mk.tag] || 5;
+  const arts = [];
+  for (let off = 0; off < 5000; off += 100) {
+    const idx = await aNewsRpc('get_news_index', { p_market_id: marketId, p_limit: 100, p_offset: off });
+    const page = (idx && idx.ok && Array.isArray(idx.articles)) ? idx.articles : [];
+    arts.push.apply(arts, page);
+    if (page.length < 100) break;
+  }
+  const urls = [];
+  const latest = arts.reduce(function (m, a) { return (a.published_at && String(a.published_at) > m) ? String(a.published_at) : m; }, '');
+  const latestRep = arts.filter(function (a) { return a.kind === 'market_review' || a.kind === 'building_review'; })
+    .reduce(function (m, a) { return (a.published_at && String(a.published_at) > m) ? String(a.published_at) : m; }, '');
+  urls.push('<url><loc>' + base + '/news/</loc>' + (latest ? '<lastmod>' + latest.slice(0, 10) + '</lastmod>' : '') + '<changefreq>daily</changefreq><priority>0.8</priority></url>');
+  urls.push('<url><loc>' + base + '/market-reports/</loc>' + (latestRep ? '<lastmod>' + latestRep.slice(0, 10) + '</lastmod>' : '') + '<changefreq>weekly</changefreq><priority>0.8</priority></url>');
+  arts.forEach(function (n) {
+    urls.push('<url><loc>' + cmNewsHref(base, n) + '</loc>' + (n.published_at ? '<lastmod>' + String(n.published_at).slice(0, 10) + '</lastmod>' : '') +
+      '<changefreq>monthly</changefreq><priority>' + (n.kind === 'market_review' || n.kind === 'building_review' ? '0.8' : '0.7') + '</priority></url>');
+  });
+  return sitemapXml(urls);
+}
+async function renderSitemapUnits(mk) {
+  const base = 'https://www.' + mk.domain;
+  if (!mk.unitPages) return sitemapXml([]);
+  let rows = [];
+  try {
+    const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/sitemap_units', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_market_tag: mk.tag }),
+    }, 8000);
+    if (r.ok) rows = await r.json();
+  } catch (e) { rows = []; }
+  if (!Array.isArray(rows) || !rows.length) {
+    // never publish an empty child: a failed read must not drop every unit URL
+    return new Response('Sitemap temporarily unavailable', { status: 503, headers: { 'retry-after': '300', 'cache-control': 'no-store' } });
+  }
+  return sitemapXml(rows.map(function (r) {
+    return '<url><loc>' + base + unitHref(r.slug, r.unit_key) + '</loc>' + (r.last_sale ? '<lastmod>' + String(r.last_sale).slice(0, 10) + '</lastmod>' : '') + '</url>';
+  }));
+}
+
 function renderBuilding(p) {
   const name = esc(p.name);
   const slug = esc(p.slug);
@@ -5911,8 +6312,8 @@ function renderBuilding(p) {
   const countCardLabel = isTownhomes ? 'Home count' : 'Unit count';
   const dossierTitleSuffix = isTownhomes ? 'home by <em>home</em>' : 'by the <em>numbers</em>';
   const enhancedCtaCopy = isTownhomes
-    ? 'Home-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.'
-    : 'Unit-level sale history, owner tenure patterns, price trajectories, sale-to-list ratios, and off-market activity signals \u2014 all available to members. Free to sign up.';
+    ? 'Owner tenure patterns, price trajectories, sale-to-list ratios and off-market activity signals \u2014 available to members. Free to sign up.'
+    : 'Owner tenure patterns, price trajectories, sale-to-list ratios and off-market activity signals \u2014 available to members. Free to sign up.';
   const propertyKind = isTownhomes ? 'townhome community' : 'condominium building';
 
   /* HERO */
@@ -5920,11 +6321,11 @@ function renderBuilding(p) {
   if (p.unit_count != null) hstats.push('<div><div class="hstat-label">' + countWordPl + '</div><div class="hstat-val">' + intc(p.unit_count) + '</div></div>');
   if (p.year_built != null) hstats.push('<div><div class="hstat-label">Built</div><div class="hstat-val">' + p.year_built + '</div></div>');
   if (p.floors != null)     hstats.push('<div><div class="hstat-label">Floors</div><div class="hstat-val">' + p.floors + '</div></div>');
-  if (psf != null)          hstats.push('<div><div class="hstat-label">Median $/sf</div><div class="hstat-val"><span class="peri">' + money(psf) + '</span></div></div>');
+  if (psf != null)          hstats.push('<div><div class="hstat-label">Median $/sq ft \u00b7 ' + intc(st.sold_12mo) + ' sales, 12 mo</div><div class="hstat-val"><span class="peri">' + money(psf) + '</span></div></div>');
   const heroStats = hstats.length ? '<div class="hero-stats">' + hstats.join('') + '</div>' : '';
 
   const heroMedia = p.hero_url
-    ? '<img class="hero-img" src="' + esc(p.hero_url) + '" alt="' + name + '" loading="eager">'
+    ? '<img class="hero-img" src="' + esc(p.hero_url) + '" alt="' + name + '" loading="eager" fetchpriority="high" decoding="async">'
     : '<div class="hero-img hero-img--ph" role="img" aria-label="' + name + '"></div>';
 
   /* HERO ASK (T8)
@@ -6142,7 +6543,8 @@ function renderBuilding(p) {
       propertyKind +
       (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built in ' + p.year_built : '') + '.');
-    if (psf != null) bits.push('Over the last 12 months, ' + countWord + 's here have traded at a median of ' + money(psf) + ' per square foot.');
+    if (psf != null) bits.push('In the 12 months to ' + fmtDay(st.as_of) + ', ' + countWord + 's here traded at a median of ' + money(psf) + ' per square foot across ' + intc(st.sold_12mo) + ' recorded sales.');
+    else if (st.sold_12mo != null && st.as_of) bits.push(intc(st.sold_12mo) + ' recorded sale' + (Number(st.sold_12mo) === 1 ? '' : 's') + ' in the 12 months to ' + fmtDay(st.as_of) + (Number(st.sold_12mo) > 0 ? ', too few for a median' : '') + '.');
     aboutBody = '<div class="prose"><p>' + esc(bits.join(' ')) + '</p></div>';
   }
   const facts = [];
@@ -6179,9 +6581,10 @@ function renderBuilding(p) {
       '<div class="dossier-metric-sub">' + sub + '</div></div>';
   }
   const dcards = [];
-  if (psf != null)      dcards.push(card('Median $/sf', money(psf), 'Per square foot \u00b7 last 12 months of sales', true));
-  if (medPrice != null) dcards.push(card('Median price', money(medPrice), 'Median closed price \u00b7 last 12 months'));
-  if (st.sold_12mo != null) dcards.push(card('Sold (12\u202fmo)', intc(st.sold_12mo), 'Closed sales in the last 12 months'));
+  const win12 = st.as_of ? '12 months to ' + fmtDay(st.as_of) : 'last 12 months';
+  if (psf != null)      dcards.push(card('Median $/sf', money(psf), 'Per square foot \u00b7 ' + intc(st.sold_12mo) + ' sales, ' + win12, true));
+  if (medPrice != null) dcards.push(card('Median price', money(medPrice), intc(st.sold_12mo) + ' sales, ' + win12));
+  if (st.sold_12mo != null) dcards.push(card('Sold (12\u202fmo)', intc(st.sold_12mo), 'Recorded sales, ' + win12 + (psf == null && Number(st.sold_12mo) > 0 ? ' \u00b7 too few for a median' : '')));
   const ls = st.last_sale;
   if (ls && ls.price != null) dcards.push(card('Last sale', money(ls.price), (ls.unit ? 'Unit ' + esc(ls.unit) + ' \u00b7 ' : '') + fmtDate(ls.date)));
   if (p.unit_count != null) dcards.push(card(countCardLabel, intc(p.unit_count), tierLabel(p.unit_count, layout)));
@@ -6305,6 +6708,7 @@ function renderBuilding(p) {
   nav.push('<a href="#about">About</a>');
   if (feats.length) nav.push('<a href="#amenities">Amenities</a>');
   if (dcards.length) nav.push('<a href="#dossier">Dossier</a>');
+  if (Array.isArray(p.recorded_sales) && p.recorded_sales.length) nav.push('<a href="#sales">Sales</a>');
   nav.push('<a href="#market">Market</a>');
   if (peers.length) nav.push('<a href="#compare">Compare</a>');
   nav.push('<a href="#mortgage">Mortgage</a>');
@@ -6323,8 +6727,42 @@ function renderBuilding(p) {
   const desc = esc(descPlain);
   const ogImg = seo.og_image ? '<meta property="og:image" content="' + esc(seo.og_image) + '">' : '';
   const canonical = esc(p.canonical_url || ('https://www.' + mkDomain + '/building/' + p.slug));
-  const jsonLd = p.json_ld
-    ? '<script type="application/ld+json">' + JSON.stringify(p.json_ld).replace(/</g, '\\u003c') + '</script>'
+  /* Visible breadcrumb matching the BreadcrumbList (S25): brand > Neighborhoods > hood > building
+     where the market has neighbourhood pages; brand > building where it does not. */
+  const conf = mkConf(mkTag);
+  const hoodHref = (conf.hubPages && p.neighborhood) ? '/neighborhood/' + hoodSlug(p.neighborhood) : '';
+  const crumbHtml = '<nav class="bc" aria-label="Breadcrumb"><a href="/">' + esc(mkBrand) + '</a>' +
+    (hoodHref ? '<span class="sep">\u203a</span><a href="/neighborhoods">Neighborhoods</a><span class="sep">\u203a</span><a href="' + hoodHref + '">' + hood + '</a>' : '') +
+    '<span class="sep">\u203a</span><span aria-current="page">' + name + '</span></nav>';
+  const moreLinks = conf.hubPages
+    ? '<div class="wrap"><p class="more-links">' + (hoodHref ? '<a href="' + hoodHref + '">More condos in ' + hood + ' \u2192</a>' : '') +
+      '<a href="/san-francisco-condo-rankings">Building rankings</a><a href="/san-francisco-condo-market-stats">Market stats</a><a href="/market-reports/">Market reports</a><a href="/san-francisco-condos">All buildings</a></p></div>\n'
+    : '';
+  let ldObj = p.json_ld ? JSON.parse(JSON.stringify(p.json_ld)) : null;
+  if (ldObj && Array.isArray(ldObj['@graph'])) {
+    if (!conf.hubPages) {
+      ldObj['@graph'].forEach(function (g) {
+        if (g && g['@type'] === 'BreadcrumbList') g.itemListElement = [
+          { '@type': 'ListItem', position: 1, name: mkBrand, item: 'https://www.' + mkDomain + '/' },
+          { '@type': 'ListItem', position: 2, name: p.name, item: 'https://www.' + mkDomain + '/building/' + p.slug }];
+      });
+    }
+    /* The recorded-sales table as a Dataset whose description is the sentence on the page (S22). */
+    if (Array.isArray(p.recorded_sales) && p.recorded_sales.length && p.recorded_sales_since) {
+      const cUrl = p.canonical_url || ('https://www.' + mkDomain + '/building/' + p.slug);
+      ldObj['@graph'].push({ '@type': 'Dataset', '@id': cUrl + '#sales', url: cUrl + '#sales',
+        name: 'Recorded condo sales at ' + p.name + ', ' + (p.city || mkRegion),
+        description: buildingSalesSentence(p) + ' One row per recorded sale (date, unit, price, square feet, price per square foot), from county records and the MLS; below-market-rate sales are listed and left out of every figure.',
+        temporalCoverage: String(p.recorded_sales_since).slice(0, 10) + '/' + String(p.recorded_sales_last || (p.stats || {}).as_of || '').slice(0, 10),
+        variableMeasured: ['Sale price', 'Price per square foot', 'Days on market'],
+        spatialCoverage: { '@type': 'Place', name: p.name, address: { '@type': 'PostalAddress', streetAddress: p.street || p.address, addressLocality: p.city || mkRegion, addressRegion: 'CA', addressCountry: 'US' } },
+        creator: { '@type': 'Organization', name: 'McMullen Properties LLC' },
+        isAccessibleForFree: true,
+        dateModified: String(p.recorded_sales_last || (p.stats || {}).as_of || '').slice(0, 10) });
+    }
+  }
+  const jsonLd = ldObj
+    ? '<script type="application/ld+json">' + JSON.stringify(ldObj).replace(/</g, '\\u003c') + '</script>'
     : '';
 
   /* assemble */
@@ -6359,19 +6797,16 @@ function renderBuilding(p) {
     '.al-card-price{font-family:\"Playfair Display\",Georgia,serif;font-size:21px;color:#22262f;font-weight:700}' +
     '.al-card-unit{font-size:12px;color:#C2410C;margin-top:3px;letter-spacing:.04em}' +
     '.al-card-spec{font-size:12px;color:#5d6575;margin-top:8px}' +
-    '</style>\n' +
+    '</style>\n' + RS_CSS + '\n' +
     '</head>\n<body>\n\n' +
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
     '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + mkTag + '</a>' +
     '<nav class="nav-meta">' +
-    '<a href="/buildings/">Buildings</a><a href="/intelligence/">Intelligence</a>' +
-    '<a href="/history/">History</a><a href="/how-it-works/">How it works</a>' +
+    '<a href="/san-francisco-condos">Buildings</a><a href="/intelligence/">Intelligence</a>' +
+    '<a href="/market-reports/">Reports</a><a href="/how-it-works/">How it works</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n' +
-    '<div class="wrap"><div class="crumb">' +
-    '<a href="/">Condo Market</a><span class="sep">/</span>' +
-    '<a href="/buildings/">Buildings</a><span class="sep">/</span>' + name +
-    '</div></div>\n\n' +
+    '<div class="wrap">' + crumbHtml + '</div>\n\n' +
     '<main>\n' +
     '<section class="hero"><div class="wrap"><div class="hero-head"><div>' +
     (hood ? '<div class="hero-kicker">' + hood + '</div>' : '') +
@@ -6393,8 +6828,11 @@ function renderBuilding(p) {
     aboutSection +
     amenitiesSection +
     dossierSection +
+    recordedSalesSection(p) +
+    unitsIndexSection(p) +
     marketSection +
     compareSection +
+    moreLinks +
     mortgageSection +
     offerSection +
     leadToolsSection(slug, name, mk) +

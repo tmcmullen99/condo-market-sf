@@ -2116,7 +2116,7 @@ img { display: block; max-width: 100%; }
       var col = document.querySelector('.atlas-map-col'); if (!col) return;
       var el = document.getElementById('cm-pin-card');
       if (!el) { el = document.createElement('div'); el.id = 'cm-pin-card'; col.appendChild(el); }
-      var href = '/building/' + encodeURIComponent(b.slug) + '/';
+      var href = '/building/' + encodeURIComponent(b.slug);
       var bits = [b.hood, b.units ? nf(b.units) + ' units' : null, b.psf != null ? '$' + nf(b.psf) + '/sf' : null].filter(Boolean).join(' \u00b7 ');
       el.innerHTML =
         '<a class="pc-body" href="' + href + '">' +
