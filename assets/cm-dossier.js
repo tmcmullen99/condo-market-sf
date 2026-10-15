@@ -92,7 +92,7 @@
         var mmm = u.mmm != null;
         var title = ulabel(u.label) + (u.sqft ? ' \u00b7 ' + nf(u.sqft) + ' sf' : '') +
           (u.price ? ' \u00b7 ' + money(u.price) : '') + (u.psf ? ' \u00b7 $' + u.psf + '/ft\u00b2' : '') +
-          (mmm ? ' \u00b7 MMM ' + money(u.mmm) : '');
+          (mmm ? ' \u00b7 Make-Me-Move' : '');
         html += '<button class="cmd-cell' + (mmm ? ' cmd-mmm' : '') + '" style="background:' + col +
           '" data-u="' + esc(u.u) + '" title="' + esc(title) + '">' + (mmm ? '<span class="cmd-dot"></span>' : '') + '</button>';
       }
@@ -181,7 +181,7 @@
       return '<button class="cmd-fl-item" data-u="' + esc(u.u) + '">' +
         '<span class="cmd-fl-unit">' + esc(ulabel(u.label)) + (mmm ? ' <span class="cmd-tag">MMM</span>' : '') + '</span>' +
         '<span class="cmd-fl-meta">' + esc(meta.join(' \u00b7 ')) + '</span>' +
-        '<span class="cmd-fl-price">' + money(mmm ? u.mmm : u.price) + '</span></button>';
+        '<span class="cmd-fl-price">' + money(u.price) + '</span></button>';
     }).join('');
     return '<button class="cmd-p-close" data-cmd-close aria-label="Close">\u00d7</button>' +
       '<div class="cmd-fl-head">Floor ' + floorNum + ' \u00b7 ' + units.length + ' unit' + (units.length === 1 ? '' : 's') + '</div>' +
@@ -215,7 +215,7 @@
       row('Recorded sales', u.sales != null ? u.sales : '\u2014');
 
     var mmmBanner = mmm
-      ? '<div class="cmd-mmm-banner">The owner has named a <b>Make-Me-Move</b> price of <b>' + money(u.mmm) + '</b>. Submit an offer at or above and we route it through a licensed agent.</div>'
+      ? '<div class="cmd-mmm-banner">The owner has named a <b>Make-Me-Move</b> price. Only vetted buyers see the number: <a href="#signin" data-cm-auth="login" style="color:#C2410C;">sign in</a> to see it, then make an offer and we route it through a licensed agent.</div>'
       : '';
 
     /* The unit label has to travel with the trigger.
@@ -227,7 +227,7 @@
        clicking a unit was lost at the last step. */
     var unitAttr = ' data-unit-label="' + esc(u.label || '') + '"';
     var cta = mmm
-      ? '<a class="cmd-cta-primary" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '"' + unitAttr + ' data-suggested-price="' + u.mmm + '">Make an offer on ' + lab + ' \u2192</a>' +
+      ? '<a class="cmd-cta-primary" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '"' + unitAttr + '>Make an offer on ' + lab + ' \u2192</a>' +
         '<a class="cmd-cta-ghost" href="' + esc(ownerLink(addr, u.label)) + '">Is ' + lab + ' yours? \u2192</a>'
       : '<a class="cmd-cta-primary" href="' + esc(ownerLink(addr, u.label)) + '">Own ' + lab + '? Name your price \u2192</a>' +
         '<a class="cmd-cta-ghost" href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '"' + unitAttr + '>Make an offer on ' + lab + ' \u2192</a>';

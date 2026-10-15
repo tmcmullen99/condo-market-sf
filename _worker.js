@@ -2938,9 +2938,30 @@ function condoActiveListingsRows(listings) {
 export default {
   async fetch(request, env) {
     CARTO_KEY = (env && env.CARTO_KEY) ? String(env.CARTO_KEY) : '';
-    return withFavicon(await handleRequest(request, env));
+    const reqUrl = new URL(request.url);
+    let reqPath = reqUrl.pathname;
+    try { reqPath = decodeURIComponent(reqPath); } catch (e) {}
+    /* A client's Comp Report was committed as a static page (SEO audit S03,
+       15 Oct 2026). It stays unreachable until the file itself is removed. */
+    if (/^\/cma\/cma-229-239-brannan/i.test(reqPath)) {
+      return new Response('Not found', { status: 404, headers: {
+        'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive' } });
+    }
+    return withRobots(reqPath, withFavicon(await handleRequest(request, env)));
   },
 };
+
+/* Pages that must never be indexed, whatever serves them (static file or
+   route). A header rather than robots.txt: Disallow would stop Google seeing
+   the noindex. */
+const NOINDEX_PATH_RE = /^\/cma(\/|$)/;
+function withRobots(path, res) {
+  if (!NOINDEX_PATH_RE.test(path)) return res;
+  const h = new Headers(res.headers);
+  h.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+}
 
 async function handleRequest(request, env) {
     const url = new URL(request.url);
@@ -6344,7 +6365,7 @@ function renderBuilding(p) {
     '<script type="module" src="/assets/cm-featured.js"></script>\n' +
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
     '<script type="module" src="/assets/cm-offer-modal.js?v=4"></script>\n' +
-    '<script type="module" src="/assets/cm-dossier.js?v=2"></script>\n' +
+    '<script type="module" src="/assets/cm-dossier.js?v=3"></script>\n' +
     '<script type="module" src="/assets/cm-market.js"></script>\n' +
     '</body>\n</html>';
 }
