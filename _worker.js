@@ -4517,7 +4517,7 @@ async function renderCondoNewsIndex(mk, kind) {
     const img = a.hero_path ? '<div class="ph"><img src="' + attr(cmNewsMedia(a.hero_path)) + '" alt="' + attr(a.hero_alt || a.headline) + '" loading="lazy"></div>' : '';
     const text = rep ? (a.kind === 'building_review' ? (a.dek || a.subhead) : (a.subhead || a.dek)) : a.dek;
     return '<a class="nw-card" href="' + cmNewsHref(base, a) + '">' + img + '<div class="bd">' +
-      '<div class="nw-kind">' + (a.kind === 'building_review' ? 'Building review' : rep ? cmReportType(a) + ' market report' : 'Local news') + '</div>' +
+      '<div class="nw-kind">' + (a.kind === 'building_review' ? 'Building market report' : rep ? cmReportType(a) + ' market report' : 'Local news') + '</div>' +
       '<h2>' + esc(a.headline) + '</h2>' + (text ? '<p>' + esc(text) + '</p>' : '') +
       '<div class="nw-meta">' + esc(cmNewsDate(a.published_at)) + (a.word_count ? ' \u00b7 ' + Math.max(1, Math.round(a.word_count / 220)) + ' min read' : '') + '</div>' +
       '</div></a>';
@@ -4529,7 +4529,7 @@ async function renderCondoNewsIndex(mk, kind) {
     const mkt = arts.filter((a) => a.kind !== 'building_review'), bldg = arts.filter((a) => a.kind === 'building_review');
     const big = mkt.filter((a) => cmReportType(a) !== 'Monthly'), monthly = mkt.filter((a) => cmReportType(a) === 'Monthly');
     list = (big.length ? '<h2 class="nw-sect">Quarterly &amp; annual reports</h2><div class="nw-list">' + big.map(card).join('') + '</div>' : '') +
-           (bldg.length ? '<h2 class="nw-sect">Building reviews</h2><div class="nw-list">' + bldg.map(card).join('') + '</div>' : '') +
+           (bldg.length ? '<h2 class="nw-sect">Building market reports</h2><div class="nw-list">' + bldg.map(card).join('') + '</div>' : '') +
            (monthly.length ? '<h2 class="nw-sect">Monthly reports</h2><div class="nw-list">' + monthly.map(card).join('') + '</div>' : '');
   } else list = '<div class="nw-list">' + arts.map(card).join('') + '</div>';
   const jsonld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, url: canonical, description: desc,
@@ -6655,6 +6655,34 @@ function renderBuilding(p) {
       + '.catch(function(){})})})();</script>\n';
   }
 
+  /* MARKET REPORT BAND — the building's latest review, sitting directly under
+     the hero so it is the first thing after the address. Opens the full report
+     on Local News. Only renders when a published building_review exists. */
+  let reportBand = '';
+  if (p.review && p.review.ok === true && p.review.slug) {
+    const rv = p.review;
+    const pe = rv.period_end ? new Date(rv.period_end + 'T12:00:00Z') : null;
+    const ps = rv.period_start ? new Date(rv.period_start + 'T12:00:00Z') : null;
+    const MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    let periodLabel = 'Market report';
+    if (pe && ps) {
+      const ytd = ps.getUTCMonth() === 0 && ps.getUTCDate() === 1 && !(pe.getUTCMonth() === 11 && pe.getUTCDate() === 31);
+      periodLabel = ytd
+        ? pe.getUTCFullYear() + ' market report · year to date through ' + MON[pe.getUTCMonth()] + ' ' + pe.getUTCDate()
+        : MON[ps.getUTCMonth()] + ' ' + ps.getUTCFullYear() + ' – ' + MON[pe.getUTCMonth()] + ' ' + pe.getUTCFullYear() + ' market report';
+    }
+    reportBand =
+      '<section class="section xb-section rb-section" id="report"><div class="wrap">'
+      + '<div class="xb-kicker">' + esc(periodLabel) + '</div>'
+      + '<h2 class="xb-title">' + esc(rv.headline) + '</h2>'
+      + (rv.dek ? '<p class="xb-line">' + esc(rv.dek) + '</p>' : '')
+      + '<div class="rb-actions">'
+      + '<a class="xb-btn" href="/news/' + esc(rv.slug) + '/" data-cm-cta="building-report">Read the full report on Local News →</a>'
+      + '<a class="rb-more" href="/market-reports/" data-cm-cta="building-report-index">All market reports</a>'
+      + '</div>'
+      + '</div></section>\n';
+  }
+
   const heroCta =
     '<div class="hero-ask">'
     + '<p class="hero-ask-line">' + heroAskLine + '</p>'
@@ -6847,7 +6875,7 @@ function renderBuilding(p) {
     '<div class="section-head"><div class="section-kicker">Market analysis</div>' +
     '<h2 class="section-title">How <em>' + name + '</em> compares</h2>' +
     '<p class="section-sub">Trailing-12-month performance against the half-mile surroundings and the broader market, plus quarter-by-quarter $/ft\u00b2 history.</p>' +
-    (p.review && p.review.slug ? '<p class="section-sub" style="margin-top:10px"><a href="/news/' + esc(p.review.slug) + '/" data-cm-cta="building-review" style="color:#C2410C;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.3)">Read the ' + esc(p.review.headline) + ' \u2192</a></p>' : '') +
+    (p.review && p.review.slug ? '<p class="section-sub" style="margin-top:10px"><a href="/news/' + esc(p.review.slug) + '/" data-cm-cta="building-review" style="color:#C2410C;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(194,65,12,.3)">Read the full ' + esc(name) + ' market report on Local News \u2192</a></p>' : '') +
     '</div>' +
     '<div id="cm-market-root"></div>' +
     '</div></section>';
@@ -6928,6 +6956,7 @@ function renderBuilding(p) {
 
   /* STICKY NAV — Market added between Dossier and Compare */
   const nav = [];
+  if (reportBand) nav.push('<a href="#report">Market report</a>');
   if (imgs.length)  nav.push('<a href="#gallery">Gallery</a>');
   nav.push('<a href="#about">About</a>');
   if (feats.length) nav.push('<a href="#amenities">Amenities</a>');
@@ -7051,6 +7080,7 @@ function renderBuilding(p) {
     (hood ? '<span class="hero-badge">' + hood + '</span>' : '') +
     heroMedia +
     '</div></div></div></section>\n' +
+    reportBand +
     exchangeBand +
     '<section class="section" id="featured-mmm"><div class="wrap">' +
     '<div data-cm-featured data-building="' + slug + '"></div>' +
@@ -7323,6 +7353,13 @@ const CSS = `
 .xb-btn { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; background: #c2410c; color: #ffffff; font-weight: 600; font-size: 14px; padding: 11px 16px; border-radius: 999px; text-decoration: none; align-self: flex-start; max-width: 100%; }
 .xb-btn:hover { filter: brightness(1.06); }
 .xb-btn:focus-visible { outline: 2px solid #e0e5ed; outline-offset: 2px; }
+.rb-section { background: #22262f; border-top: 0; border-bottom: 0; }
+.rb-section .xb-kicker { color: #d4a574; }
+.rb-section .xb-title { color: #ffffff; max-width: 30ch; }
+.rb-section .xb-line { color: #cfd5de; }
+.rb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+.rb-more { color: #d4a574; font-weight: 600; font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(212,165,116,.4); }
+.rb-more:hover { color: #ffffff; }
 @media (max-width: 560px) { .xb-card { grid-template-columns: 1fr; } .xb-shot { min-height: 190px; } .xb-lock { grid-template-columns: repeat(2, 1fr); } .xb-btn { align-self: stretch; } }
   @media (max-width: 720px) { .disc-cta-btn { width: 100%; justify-content: center; } }
   .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: #ffffff; aspect-ratio: 3/2; max-height: 460px; }
