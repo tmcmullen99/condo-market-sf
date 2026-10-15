@@ -6166,8 +6166,9 @@ function renderUnitPage(u, footerData) {
   const bUrl = '/building/' + u.slug;
   const hoodUrl = (B.neighborhood && B.hood_slug && mkConf(M.tag || 'sf').hubPages) ? '/neighborhood/' + B.hood_slug : '';
 
-  let title = addr + ', ' + city + ' · ' + (B.name || '') + ' condo sale history';
-  if (title.length > 70) title = addr + ', ' + city + ' · ' + (B.name || '');
+  const nameIsStreet = streetKey(B.name || '') === streetKey(street);
+  let title = addr + ', ' + city + ' · ' + (nameIsStreet ? 'Condo sale history' : (B.name || '') + ' condo sale history');
+  if (title.length > 70) title = addr + ', ' + city + ' · ' + (nameIsStreet ? 'Sale history' : (B.name || ''));
   const spec = [facts.beds != null ? facts.beds + ' bd' : '', facts.baths != null ? Number(facts.baths) + ' ba' : '', facts.sqft ? intc(facts.sqft) + ' sq ft' : ''].filter(Boolean).join(', ');
   const bedBath = [facts.beds != null ? facts.beds + ' bd' : '', facts.baths != null ? Number(facts.baths) + ' ba' : ''].filter(Boolean).join(', ');
   const desc = 'Unit ' + label + ' at ' + (B.name || street) + (B.name && street && B.name !== street ? ', ' + street : '') + ', ' + city + ': ' +
