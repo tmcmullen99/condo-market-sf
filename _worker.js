@@ -164,7 +164,7 @@ const CARTO_TOKEN = '__CARTO_KEY__';
    stays invisible until the cache expires. */
 const OG_VER = '3';
 
-const TRACK_VER = '2';
+const TRACK_VER = '3';
 const INTENT_VER = '24';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 

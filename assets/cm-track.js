@@ -68,6 +68,53 @@
     return fresh;
   }
 
+  // ---- 2b. Email click tokens (?e=<uuid>) — 15 Oct 2026 ---------------------
+  /* Our emails are sent by the city platform (qinuukntpyulqjzndnho), which
+     puts the send's own token on every link to this site. Until now nothing
+     here read it, so a click on an SF onboarding email arrived as an
+     anonymous pageview and the send never learned it had been clicked.
+     On the landing hop: claim the send there (link_email_landing, with the
+     page path only - never the query or #fragment), remember the token for
+     90 days so later visits stay attributable, put it on every event's meta,
+     and take ?e= off the address bar so a reload does not count twice and a
+     shared link does not carry the reader's token. No pixel, no redirect. */
+  var EM_URL = "https://qinuukntpyulqjzndnho.supabase.co/rest/v1/rpc/link_email_landing";
+  var EM_KEY = "sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2";   // that platform's public key
+  var EM_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  function emailToken() {
+    var k = "cm_em", t = new URLSearchParams(location.search).get("e");
+    if (t && EM_RE.test(t)) {
+      var o = { t: t.toLowerCase(), ts: Date.now(), fresh: true };
+      try { localStorage.setItem(k, JSON.stringify({ t: o.t, ts: o.ts })); } catch (e) {}
+      return o;
+    }
+    try {
+      var s = JSON.parse(localStorage.getItem(k) || "null");
+      if (s && s.t && Date.now() - (s.ts || 0) <= 90 * 864e5) return { t: s.t, ts: s.ts, fresh: false };
+      if (s) localStorage.removeItem(k);
+    } catch (e) {}
+    return null;
+  }
+  function emailClaim(em, visitor) {
+    if (!em || !em.fresh) return;
+    try {
+      fetch(EM_URL, {
+        method: "POST", keepalive: true,
+        headers: { "Content-Type": "application/json", apikey: EM_KEY, Authorization: "Bearer " + EM_KEY },
+        body: JSON.stringify({ p_token: em.t, p_visitor: visitor, p_path: location.pathname })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function emailStrip(em) {
+    try {
+      var p = new URLSearchParams(location.search);
+      if (!em || !em.fresh || String(p.get("e") || "").toLowerCase() !== em.t || !history.replaceState) return;
+      p.delete("e");
+      var q = p.toString();
+      history.replaceState(history.state, "", location.pathname + (q ? "?" + q : "") + location.hash);
+    } catch (e) {}
+  }
+
   // ---- 3. Building slug from path (/building/<slug>) --------------------------
   function buildingSlug() {
     var m = location.pathname.match(/\/building\/([a-z0-9-]+)/i);
@@ -78,6 +125,7 @@
   var VISITOR = persistentToken();
   var SESSION = sessionId();
   var ATTR = captureAttribution();
+  var EM = emailToken();
 
   function track(eventType, meta) {
     var payload = {
@@ -99,7 +147,7 @@
          dwell events and the best engagement signal on the site was silently
          empty. Promote it; it stays in meta as well, harmlessly. */
       dwell_seconds: (meta && meta.dwell_seconds != null) ? meta.dwell_seconds : null,
-      meta: Object.assign({}, meta || {}, ATTR.aid ? { aid: ATTR.aid } : {})
+      meta: Object.assign({}, meta || {}, ATTR.aid ? { aid: ATTR.aid } : {}, EM ? { email_token: EM.t } : {})
     };
     // keepalive so events still send during page unload
     try {
@@ -119,8 +167,11 @@
 
   // ---- 4. Auto-tracking ------------------------------------------------------
 
-  // pageview
-  track("pageview");
+  // pageview (the landing hop from an email says so in meta: track_event only
+  // knows its own event names, so this rides on the pageview, not a new type)
+  emailClaim(EM, VISITOR);
+  track("pageview", EM && EM.fresh ? { email_landing: true, page: location.pathname } : null);
+  emailStrip(EM);
 
   // dwell on unload (seconds on page)
   var start = Date.now();
