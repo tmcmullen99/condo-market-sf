@@ -41,7 +41,7 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { tag: 'sf', slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
+  sf: { tag: 'sf', dirPath: '/san-francisco-condos', slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
   sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', ogImage: 'https://www.siliconvalleycondomarket.com/og-sv.jpg', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
@@ -1882,13 +1882,13 @@ function renderListingCity(d, B, foot, reportsHtml) {
     list.map((li) => '<li>' + li + '</li>').join('') + '</ul><a class="btn btn-gold" href="' + href + '" data-cta="' + cta + '">' + label + ' &rarr;</a></div>';
   const app = 'https://app.' + domain;
   const edge = '<section class="pg"><div class="wrap"><div class="section-head"><span class="eyebrow">Before you make an offer</span>' +
-    '<h2>Get the edge <em>before you write.</em></h2><p class="sub">Two free tools that tell you what this home is really worth &mdash; and what the disclosures actually say.</p></div>' +
+    '<h2>Get the edge <em>before you write.</em></h2><p class="sub">See how this asking price compares with recorded sales in the building, and what the disclosures say.</p></div>' +
     '<div class="feat-grid">' +
     card(ICO_DOC, 'Disclosure review from Tim', 'Send Tim this listing and get a personal read within 24 hours &mdash; the fine print that matters, before you write.',
-      ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation', 'A detailed Comp Report &mdash; what it&rsquo;s really worth vs. the asking price', 'What a compelling, winning offer looks like here'],
+      ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation', 'A Comp Report: the asking price next to recorded sales in the building', 'What a compelling, winning offer looks like here'],
       'Request a disclosure review', app + '/tools/review', 'listing:request_review') +
-    card(ICO_CHART, 'Build your own Comp Report', 'Price it like an agent. Pull this home and the real comps around it for an instant value range &mdash; in two minutes.',
-      ['Search every recent San Francisco condo sale as a comp', 'An instant $/sf value range against the asking price', 'Free &mdash; save it, and Tim can sanity-check your number'],
+    card(ICO_CHART, 'Build your own Comp Report', 'Pull this home and the recorded sales around it, and set the asking price against them &mdash; in two minutes.',
+      ['Search every recent San Francisco condo sale as a comp', 'The asking $/sq ft next to recorded $/sq ft nearby', 'Free &mdash; save it, and Tim can sanity-check your number'],
       'Build a Comp Report', app + '/tools/cma', 'listing:build_cma') +
     '</div></div></section>';
 
@@ -2948,16 +2948,32 @@ export default {
         'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store',
         'X-Robots-Tag': 'noindex, nofollow, noarchive' } });
     }
-    return withRobots(reqPath, withFavicon(await handleRequest(request, env)));
+    /* withFavicon is async. Passing its promise straight to withRobots gave the
+       noindexed paths an empty 200 body (every /cma/ Comp Report link, 15 Oct
+       2026), because the promise has no .body or .status. Await it first. */
+    const res = await withFavicon(await handleRequest(request, env));
+    return withRobots(reqPath, reqUrl.hostname, res);
   },
 };
+
+/* fetch with a deadline (SEO audit S11d). A building page used to wait on four
+   RPCs with no timeout; one hung for 30 s. */
+function fetchT(url, init, ms) {
+  const ac = new AbortController();
+  const t = setTimeout(function () { ac.abort(); }, ms);
+  return fetch(url, Object.assign({}, init || {}, { signal: ac.signal })).finally(function () { clearTimeout(t); });
+}
 
 /* Pages that must never be indexed, whatever serves them (static file or
    route). A header rather than robots.txt: Disallow would stop Google seeing
    the noindex. */
-const NOINDEX_PATH_RE = /^\/cma(\/|$)/;
-function withRobots(path, res) {
-  if (!NOINDEX_PATH_RE.test(path)) return res;
+/* SEO audit S52 (15 Oct 2026): internal, account, test and token pages, served
+   as static files or routes. A header rather than robots.txt Disallow, so Google
+   can see the noindex. *.pages.dev previews are never indexed (S74). */
+const NOINDEX_PATH_RE = /^\/(?:cma|admin|tools|progress|campaigns|upload-csv|building-dashboard|account|dashboard|partners?|welcome|claim|save-10k|auth-callback|petition|hoa-pitch)(?:\/|\.html|$)|\/(?:petition|hoa-pitch|shared|unit-map)(?:\/|\.html)?$/;
+function withRobots(path, host, res) {
+  const preview = /\.pages\.dev$/i.test(String(host || ''));
+  if (!preview && !NOINDEX_PATH_RE.test(path)) return res;
   const h = new Headers(res.headers);
   h.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
@@ -3066,10 +3082,13 @@ async function handleRequest(request, env) {
         'Amazonbot', 'Bytespider', 'CCBot', 'Diffbot',
         'cohere-ai', 'omgili', 'Timpibot', 'YouBot', 'AI2Bot'
       ];
+      /* A crawler obeys only the most specific group that names it, so each AI
+         group repeats the shared Disallow lines (SEO audit S73). /rest/ paths
+         are API strings in inline scripts, never pages. */
+      const disallow = 'Disallow: /*?auth=\nDisallow: /*?address=\nDisallow: /*?offer=\nDisallow: /*?ref=\nDisallow: /*?return=\nDisallow: /rest/\n';
       const body =
-        'User-agent: *\nAllow: /\n'
-        + 'Disallow: /*?auth=\nDisallow: /*?address=\nDisallow: /*?offer=\nDisallow: /*?ref=\nDisallow: /*?return=\n\n'
-        + aiAgents.map(a => 'User-agent: ' + a + '\nAllow: /\n').join('\n')
+        'User-agent: *\nAllow: /\n' + disallow + '\n'
+        + aiAgents.map(a => 'User-agent: ' + a + '\nAllow: /\n' + disallow).join('\n')
         + '\nSitemap: https://www.' + hostMk.domain + '/sitemap.xml\n';
       return new Response(body, { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=3600' } });
     }
@@ -3278,6 +3297,8 @@ async function handleRequest(request, env) {
       '/homes': '/buildings/', '/about': '/how-it-works/', '/contact': '/how-it-works/',
       '/invest': '/san-francisco-condo-rankings',
       '/affiliate': '/how-it-works/', '/mo': '/', '/condos-in-san-francisco': '/san-francisco-condos',
+      // San Francisco is one city: its buy and sell pages are the market hubs (SEO audit S05).
+      '/buy-a-condo-in-san-francisco': '/buy', '/sell-a-condo-in-san-francisco': '/sell',
     };
     if (request.method === 'GET') {
       const clean = url.pathname.replace(/\/+$/, '') || '/';
@@ -3416,7 +3437,9 @@ async function handleRequest(request, env) {
     }
 
     // Location SEO pages: /condos-in-<city>, /buy-a-condo-in-<city>, /sell-a-condo-in-<city>
-    const cityM = url.pathname.match(/^\/(condos-in|buy-a-condo-in|sell-a-condo-in)\/?([^\/]+)\/?$/)
+    // Slash form first, and only the slash form: with an optional slash this regex
+    // took '/condos-in-campbell' as slug '-campbell' and every city page 404'd (S05).
+    const cityM = url.pathname.match(/^\/(condos-in|buy-a-condo-in|sell-a-condo-in)\/([^\/]+)\/?$/)
                || url.pathname.match(/^\/(condos-in|buy-a-condo-in|sell-a-condo-in)-([^\/]+)\/?$/);
     if (cityM) {
       const intentMap = { 'condos-in': 'browse', 'buy-a-condo-in': 'buy', 'sell-a-condo-in': 'sell' };
@@ -3466,9 +3489,9 @@ async function handleRequest(request, env) {
 
     const slug = decodeURIComponent(m[1]).trim().toLowerCase();
 
-    let payload = null;
+    let payload = null, payloadFailed = false;
     try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/building_page_payload', {
+      const res = await fetchT(SUPABASE_URL + '/rest/v1/rpc/building_page_payload', {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -3477,10 +3500,16 @@ async function handleRequest(request, env) {
           'Accept': 'application/json',
         },
         body: JSON.stringify({ p_slug: slug }),
-      });
-      if (res.ok) payload = await res.json();
+      }, 3000);
+      if (res.ok) payload = await res.json(); else payloadFailed = res.status >= 500;
     } catch (e) {
-      payload = null;
+      payload = null; payloadFailed = true;
+    }
+    /* A slow or failed database is not a missing building: say so with a 503
+       (temporary) instead of serving the 404 page for a real URL. */
+    if (payloadFailed) {
+      return new Response('<!doctype html><meta charset="utf-8"><title>Temporarily unavailable</title><p>This page is temporarily unavailable. Please try again in a moment.</p>',
+        { status: 503, headers: { 'content-type': 'text/html;charset=utf-8', 'retry-after': '30', 'cache-control': 'no-store' } });
     }
 
     if (!payload || payload.is_live !== true) {
@@ -3496,13 +3525,14 @@ async function handleRequest(request, env) {
      * and never which one: no unit address, no listing slug, no member link come
      * back, only size and the cover photo. What the page blurs is placeholder
      * text, so nothing hidden is ever in the HTML. */
+    const footP = fetchFooterData(hostMk);   // in parallel with the teasers (S11d)
     let disclosure = null;
     let exchange = null;
     let review = null;   // the building's newest published review (Tim, 13 Oct 2026)
     const aMarketId = A_MARKET_ID_BY_TAG[hostMk.tag];
     if (aMarketId) {
       const aRpc = function (fn, body) {
-        return fetch(SB_A_URL + '/rest/v1/rpc/' + fn, {
+        return fetchT(SB_A_URL + '/rest/v1/rpc/' + fn, {
           method: 'POST',
           headers: {
             'apikey': SB_A_KEY,
@@ -3511,7 +3541,7 @@ async function handleRequest(request, env) {
             'Accept': 'application/json',
           },
           body: JSON.stringify(body),
-        }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+        }, 1200).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
       };
       const both = await Promise.all([
         aRpc('building_disclosure_teaser', { p_market_id: aMarketId, p_tract_slug: slug }),
@@ -3538,7 +3568,7 @@ async function handleRequest(request, env) {
       return new Response(null, { status: 301, headers: { 'Location': target, 'Cache-Control': 'public, max-age=3600' } });
     }
 
-    payload.footerData = await fetchFooterData(hostMk);
+    payload.footerData = await footP;
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
     return new Response(bodyHtml, {
       status: 200,
@@ -3773,7 +3803,7 @@ function renderCityPage(mk, data, intent, footerData) {
   } else if (intent === 'sell') {
     kicker = 'Sell a condo in ' + cityName;
     h1 = 'Sell a condo in <em>' + cityName + '</em>';
-    lede = 'Thinking of selling in ' + cityName + '? See exactly what your building has sold for, what owners are asking, and reach buyers who are searching your building by name \u2014 without listing publicly until you choose to.';
+    lede = 'Thinking of selling in ' + cityName + '? See every recorded sale in your building and what owners are asking now, and name a price privately \u2014 without listing publicly until you choose to.';
     intentPath = 'sell-a-condo-in-';
     ctaLabel = 'Calculate your payout';
     ctaHref = '/calculate-payout-from-condo-sale';
@@ -3894,7 +3924,7 @@ function renderCityPage(mk, data, intent, footerData) {
     aboutBody = '<p>Buying a condo in ' + cityName + ' means more than scrolling active listings. On Condo Market you can see every building in ' + cityName + ', what each has sold for over the past decade, how long owners typically hold, and where prices are moving \u2014 before you ever make an offer.</p>' +
       '<p>Because every owner on the platform can name a price whether or not they\u0027re publicly listed, the inventory you can pursue in ' + cityName + ' is far larger than what shows on the MLS. Find the building you want, and make an offer on a home that was never listed.</p>';
   } else if (intent === 'sell') {
-    aboutBody = '<p>Selling a condo in ' + cityName + ' starts with knowing what your home is worth. Condo Market shows you exactly what units in your building have sold for, current asking prices, and the depth of buyer demand searching your building by name.</p>' +
+    aboutBody = '<p>Selling a condo in ' + cityName + ' starts with the record. Condo Market shows you what units in your building have sold for and what is listed now, and any buyer can make an offer on any unit here, listed or not.</p>' +
       '<p>You don\u0027t have to list publicly to test the market. Set a price, reach qualified buyers privately, and only go public when it makes sense for you. See your estimated payout, then decide.</p>';
   } else {
     aboutBody = '<p>' + cityName + ' is home to ' + intc(nBldgs) + ' condominium building' + (nBldgs === 1 ? '' : 's') + (nUnits ? ' totaling roughly ' + intc(nUnits) + ' homes' : '') + (nHoods ? ' across ' + intc(nHoods) + ' neighborhoods' : '') + '. Condo Market tracks each one with ten years of sale history, owner tenure patterns, and live market activity.</p>' +
@@ -4935,14 +4965,17 @@ function CM_FOOTER(footerData) {
   });
 
   // City link column (buy/sell intent)
+  /* A one-city market (San Francisco) has no /condos-in-<city> pages: its
+     directory, /buy and /sell are the city's pages (SEO audit S05). */
+  const oneCity = cities.length === 1;
   const cityLinks = cities.map(function (c) {
-    return '<li><a href="/condos-in-' + esc(c.slug) + '">Condos in ' + esc(c.name) + '</a></li>';
+    return '<li><a href="' + (oneCity ? esc(fd.dirPath || '/buildings/') : '/condos-in-' + esc(c.slug)) + '">Condos in ' + esc(c.name) + '</a></li>';
   }).join('');
   const buyLinks = cities.map(function (c) {
-    return '<li><a href="/buy-a-condo-in-' + esc(c.slug) + '">Buy in ' + esc(c.name) + '</a></li>';
+    return '<li><a href="' + (oneCity ? '/buy' : '/buy-a-condo-in-' + esc(c.slug)) + '">Buy in ' + esc(c.name) + '</a></li>';
   }).join('');
   const sellLinks = cities.map(function (c) {
-    return '<li><a href="/sell-a-condo-in-' + esc(c.slug) + '">Sell in ' + esc(c.name) + '</a></li>';
+    return '<li><a href="' + (oneCity ? '/sell' : '/sell-a-condo-in-' + esc(c.slug)) + '">Sell in ' + esc(c.name) + '</a></li>';
   }).join('');
 
   return '<footer class="cf"><div class="wrap">' +
@@ -5034,11 +5067,20 @@ const CM_FOOTER_CSS =
 
 // Fetch all catalogued buildings for the host market, grouped city → neighborhood,
 // plus the city list. One embedded-filter query; cached via page cache-control.
+const FOOT_DATA_CACHE = {};   // per market tag, 10 minutes; a failed or empty read is never cached
 async function fetchFooterData(hostMk) {
+  const ck = hostMk.tag, hit = FOOT_DATA_CACHE[ck];
+  if (hit && Date.now() - hit.t < 600000) return hit.v;
+  const v = await fetchFooterDataRaw(hostMk);
+  if (v && v.cities && v.cities.length) FOOT_DATA_CACHE[ck] = { t: Date.now(), v: v };
+  return v;
+}
+async function fetchFooterDataRaw(hostMk) {
+  const dirPath = hostMk.dirPath || '/buildings/';
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/buildings?select=slug,display_name,neighborhood,cities!inner(slug,display_name,domain)&is_catalogued=eq.true&slug=not.like.*-eichlers&display_name=not.ilike.*eichler*&order=display_name.asc&limit=2000',
       { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Accept': 'application/json' } });
-    if (!res.ok) return { byCityHood: {}, cities: [] };
+    if (!res.ok) return { byCityHood: {}, cities: [], dirPath: dirPath };
     const rows = await res.json();
     const byCityHood = {};
     const cityCounts = {};
@@ -5054,8 +5096,8 @@ async function fetchFooterData(hostMk) {
       cityCounts[c.slug].n++;
     });
     const cities = Object.keys(cityCounts).map(function (k) { return cityCounts[k]; }).sort(function (a, b) { return b.n - a.n; });
-    return { byCityHood: byCityHood, cities: cities };
-  } catch (e) { return { byCityHood: {}, cities: [] }; }
+    return { byCityHood: byCityHood, cities: cities, dirPath: dirPath };
+  } catch (e) { return { byCityHood: {}, cities: [], dirPath: dirPath }; }
 }
 
 
