@@ -207,6 +207,7 @@ async function renderSignedIn(user) {
     <div class="cm-nav-user-menu-sep"></div>
     <a class="cm-nav-user-menu-item" href="/buildings/">Browse buildings</a>
     <a class="cm-nav-user-menu-item" href="/dashboard/">My dashboard</a>
+    <a class="cm-nav-user-menu-item" href="/account/off-market/">Off-market listings</a>
     ${profile?.role === 'admin' ? '<a class="cm-nav-user-menu-item" href="/admin/">Admin</a>' : ''}
     <div class="cm-nav-user-menu-sep"></div>
     <button class="cm-nav-user-menu-item cm-nav-signout" type="button">Sign out</button>

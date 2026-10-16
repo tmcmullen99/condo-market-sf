@@ -278,6 +278,15 @@
         '</div>' +
         '<div class="cmd-legend"><span>Lower $/ft\u00b2</span><span class="cmd-legend-bar"></span><span>Higher</span></div>' +
       '</div>' +
+      /* Find a unit (Tim, 16 Oct 2026: "send user to dossier to search individual units in the
+         building"). Any unit can take an offer, so a unit with no sale on file still gets one. */
+      '<form class="cmd-find" role="search" data-cmd-find>' +
+        '<label for="cmd-find-in">Find a unit</label>' +
+        '<input id="cmd-find-in" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. ' + esc(ulabel((d.units[0] && (d.units[0].label || d.units[0].u)) || '12C')).replace('#', '') + '" list="cmd-ulist">' +
+        '<datalist id="cmd-ulist">' + d.units.map(function (u) { return '<option value="' + esc(String(u.label || u.u || '').replace(/^#+/, '').toUpperCase()) + '">'; }).join('') + '</datalist>' +
+        '<button type="submit">Find</button>' +
+        '<div class="cmd-find-out" role="status"></div>' +
+      '</form>' +
       '<div class="cmd-body">' +
         '<div class="cmd-views">' +
           (showTowerView ? '<div class="cmd-view cmd-view-tower">' + towerHtml + '</div>' : '') +
@@ -382,6 +391,37 @@
 
     setView(showTowerView ? 'tower' : 'table');
 
+    var findF = host.querySelector('[data-cmd-find]');
+    if (findF) findF.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var inp = findF.querySelector('input'), out = findF.querySelector('.cmd-find-out');
+      var want = String(inp.value || '').replace(/^\s*(unit|apt|#)\s*/i, '').replace(/^#+/, '').trim().toUpperCase();
+      if (!want) { out.textContent = ''; return; }
+      var found = null;
+      for (var i = 0; i < d.units.length; i++) {
+        if (String(d.units[i].label || d.units[i].u || '').replace(/^#+/, '').toUpperCase() === want) { found = d.units[i]; break; }
+      }
+      if (window.cmTrack) window.cmTrack('cta_click', { cta: 'dossier:find', found: !!found });
+      if (found) {
+        out.innerHTML = '';
+        selectUnit(found);
+        var el = host.querySelector('.cmd-view:not([hidden]) [data-u="' + found.u + '"]') || panel;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        out.innerHTML = 'No recorded sale for <b>' + esc(ulabel(want)) + '</b> on file. You can still ' +
+          '<a href="#offer" data-cm-offer-trigger data-building-slug="' + esc(SLUG) + '" data-unit-label="' + esc(want) + '">write an offer on ' + esc(ulabel(want)) + ' \u2192</a>';
+      }
+    });
+    /* Arriving at #dossier (the "write an offer on any unit" links): the section moves when it mounts,
+       so bring it into view again and, on a desk, put the cursor in the unit search. */
+    if (location.hash === '#dossier') {
+      var dsec = host.closest ? (host.closest('section') || host) : host;
+      setTimeout(function () {
+        dsec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var fi = host.querySelector('#cmd-find-in'); if (fi && window.innerWidth >= 900) try { fi.focus({ preventScroll: true }); } catch (x) {}
+      }, 80);
+    }
+
     /* /building/<slug>/#unit-711 opens that unit (Tim, 13 Oct 2026): the building watch
        emails list recent sales and each unit links straight to its record here. */
     var hm = String(location.hash || '').match(/^#unit-([A-Za-z0-9-]+)$/);
@@ -410,6 +450,12 @@
     '.cmd-toggle button{font-family:var(--ff-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#5d6575;padding:8px 18px;border:none;background:transparent;border-radius:999px;cursor:pointer;transition:all .15s;}' +
     '.cmd-toggle button.on{background:#9fb4d8;color:#ffffff;}' +
     '.cmd-legend{display:flex;align-items:center;gap:10px;font-family:var(--ff-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#5d6575;}' +
+    '.cmd-find{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 22px;}' +
+    '.cmd-find label{font-family:var(--ff-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#5d6575;}' +
+    '.cmd-find input{flex:0 1 180px;min-width:120px;border:1px solid rgba(34,38,47,0.18);border-radius:999px;padding:9px 14px;font:inherit;font-size:16px;background:#fff;color:#22262f;}' +
+    '.cmd-find input:focus{outline:none;border-color:#C2410C;}' +
+    '.cmd-find button{appearance:none;border:0;background:#C2410C;color:#fff;font-weight:600;font-size:13px;padding:10px 16px;border-radius:999px;cursor:pointer;}' +
+    '.cmd-find-out{flex-basis:100%;font-size:14px;color:#22262f;}.cmd-find-out a{color:#C2410C;font-weight:600;}' +
     '.cmd-legend-bar{width:120px;height:8px;border-radius:999px;background:linear-gradient(90deg,#4a6996,#d9a441,#d94545);}' +
     '.cmd-body{display:grid;grid-template-columns:1fr;gap:24px;}' +
     '@media(min-width:900px){.cmd-body{grid-template-columns:minmax(0,1fr) 300px;align-items:start;}}' +
