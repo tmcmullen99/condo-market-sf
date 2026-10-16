@@ -4478,6 +4478,18 @@ const CM_NEWS_CSS = '<style>' +
 '.nw-src{margin-top:30px;padding:16px 18px;border:1px solid rgba(194,65,12,.16);border-radius:12px;font-size:14px;color:#5d6575}.nw-src b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5d6575;margin-bottom:8px}.nw-src a{color:#c2410c}' +
 '.nw-share{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}.nw-share a{font-size:13px;padding:8px 14px;border:1px solid rgba(194,65,12,.16);border-radius:99px;text-decoration:none;color:#22262f}.nw-share a:hover{border-color:#C2410C}' +
 '.nw-legal{font-size:12.5px;color:#5d6575;margin-top:30px}' +
+/* building review -> building page (Tim, 15 Oct 2026) */
+'.nw-bldg{margin:0 0 26px;border:1px solid rgba(194,65,12,.22);border-radius:14px;overflow:hidden;background:#fff}' +
+'.nw-bldg-main{display:block;padding:16px 18px 15px;text-decoration:none;color:#22262f;background:linear-gradient(135deg,rgba(194,65,12,.07),rgba(194,65,12,0) 60%);transition:background .15s}.nw-bldg-main:hover{background:rgba(194,65,12,.09)}' +
+'.nw-bldg-k{display:block;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#C2410C;margin-bottom:4px}' +
+'.nw-bldg-main b{display:block;font-family:"Playfair Display",serif;font-size:22px;line-height:1.2}.nw-bldg-f{display:block;font-size:13.5px;color:#5d6575;margin-top:3px}' +
+'.nw-bldg-main em{display:inline-block;font-style:normal;font-weight:700;font-size:13.5px;color:#C2410C;margin-top:9px;border-bottom:1px solid rgba(194,65,12,.3)}' +
+'.nw-bldg-nav{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid rgba(194,65,12,.14);background:#fbfaf7}' +
+'.nw-bldg-nav a{text-decoration:none;color:#22262f;min-width:0}.nw-bldg-nav a span{display:block;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5d6575}.nw-bldg-nav a b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+'.nw-bldg-nav a[rel=next]{text-align:right}.nw-bldg-nav a:hover b{color:#C2410C}.nw-bldg-nav a.all{font-size:12px;font-weight:700;color:#C2410C;border:1px solid rgba(194,65,12,.3);border-radius:99px;padding:6px 12px;white-space:nowrap}' +
+'.nw-bldg-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 0;padding:16px 18px;border:1px solid rgba(194,65,12,.22);border-radius:14px;text-decoration:none;color:#22262f;background:#fff;transition:border-color .15s}.nw-bldg-foot:hover{border-color:#C2410C}' +
+'.nw-bldg-foot span{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5d6575}.nw-bldg-foot b{font-family:"Playfair Display",serif;font-size:19px;color:#C2410C}' +
+'@media(max-width:600px){.nw-bldg-nav{grid-template-columns:1fr 1fr}.nw-bldg-nav a.all{grid-column:1/-1;text-align:center}}' +
 '</style>';
 
 /* LOCAL NEWS vs MARKET REPORTS (Tim, 4 Oct 2026): two tabs, two pages. Reports are named by one rule
@@ -4501,12 +4513,116 @@ function cmNewsTabs(base, active, counts) {
     '<a href="' + base + '/market-reports/" class="' + (active === 'market_review' ? 'on' : '') + '">Market Reports' + (c.market_review ? '<span>' + c.market_review + '</span>' : '') + '</a></nav>';
 }
 
+/* BUILDING REPORTS BROWSER (Tim, 15 Oct 2026): every published building review on one page,
+   searchable by building, street or neighborhood, filtered by neighborhood chips, sortable, and
+   switchable between cards and a dense list. Everything is rendered server-side (163+ cards) so
+   search engines see the lot; the script only hides, shows and reorders. */
+const CM_BL_CSS = '<style>' +
+'.bl{margin:34px 0 10px;scroll-margin-top:70px}.bl-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 18px}.bl .nw-sect{margin:0}' +
+'.bl-sub{margin:0;font-size:14px;color:#5d6575}' +
+'.bl-bar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;margin:16px 0 10px}' +
+'.bl-search{position:relative;display:flex;align-items:center}.bl-search svg{position:absolute;left:13px;width:16px;height:16px;fill:none;stroke:#5d6575;stroke-width:2;stroke-linecap:round;pointer-events:none}' +
+'.bl-search input{width:100%;font:inherit;font-size:15px;padding:12px 14px 12px 38px;border:1px solid #e0e5ed;border-radius:12px;background:#fff;color:#22262f}.bl-search input:focus{outline:none;border-color:#C2410C;box-shadow:0 0 0 3px rgba(194,65,12,.12)}' +
+'.bl-bar select{font:inherit;font-size:14px;font-weight:600;padding:11px 36px 11px 14px;border:1px solid #e0e5ed;border-radius:12px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235d6575%27 stroke-width=%272%27><path d=%27M6 9l6 6 6-6%27/></svg>") no-repeat right 12px center/14px;appearance:none;color:#22262f;cursor:pointer}' +
+'.bl-view{display:flex;padding:4px;background:#fff;border:1px solid #e0e5ed;border-radius:12px}.bl-view button{font:inherit;font-size:13px;font-weight:700;padding:7px 13px;border:0;border-radius:9px;background:transparent;color:#5d6575;cursor:pointer}.bl-view button.on{background:#12151d;color:#fff}' +
+'.bl-hoods{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.bl-hoods button{font:inherit;font-size:12.5px;font-weight:600;padding:6px 11px;border:1px solid #e0e5ed;border-radius:99px;background:#fff;color:#22262f;cursor:pointer;white-space:nowrap}' +
+'.bl-hoods button span{font:600 10.5px ui-monospace,Menlo,monospace;color:#5d6575;margin-left:5px}.bl-hoods button:hover{border-color:#C2410C}.bl-hoods button.on{background:#C2410C;border-color:#C2410C;color:#fff}.bl-hoods button.on span{color:rgba(255,255,255,.8)}' +
+'.bl-count{font-size:12.5px;color:#5d6575;margin:0 0 12px;font-variant-numeric:tabular-nums}.bl-count b{color:#22262f}' +
+'.bl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 0 30px}@media(max-width:900px){.bl-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.bl-grid{grid-template-columns:1fr}}' +
+'.bl-card{display:flex;flex-direction:column;border:1px solid rgba(194,65,12,.16);border-radius:12px;overflow:hidden;text-decoration:none;color:#22262f;background:#fff;transition:border-color .15s,transform .15s,box-shadow .15s}.bl-card:hover{border-color:#C2410C;transform:translateY(-2px);box-shadow:0 12px 28px rgba(18,21,29,.08)}' +
+'.bl-ph{height:140px;background:#e9e3d6 center/cover no-repeat;display:flex;align-items:flex-end;padding:10px 12px;font-family:"Playfair Display",serif;font-size:22px;color:#8a4a1f}.bl-ph.has{color:transparent}.bl-ph:not(.has){height:96px;background-image:linear-gradient(135deg,#efe9dd,#e2d9c7)}' +
+'.bl-bd{padding:13px 15px 14px;display:flex;flex-direction:column;flex:1}' +
+'.bl-hood{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C2410C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+'.bl-name{font-family:"Playfair Display",serif;font-size:19px;line-height:1.2;margin:5px 0 6px}' +
+'.bl-line{color:#5d6575;font-size:13.5px;line-height:1.5;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}' +
+'.bl-meta{font-size:12px;color:#5d6575;margin-top:auto;padding-top:10px}' +
+'.bl-grid.list{display:flex;flex-direction:column;gap:0;border:1px solid rgba(194,65,12,.16);border-radius:12px;overflow:hidden;background:#fff}' +
+'.bl-grid.list .bl-card{flex-direction:row;align-items:center;gap:14px;border:0;border-bottom:1px solid rgba(34,38,47,.08);border-radius:0;padding:9px 12px;transform:none;box-shadow:none}.bl-grid.list .bl-card:last-child{border-bottom:0}.bl-grid.list .bl-card:hover{background:rgba(194,65,12,.04)}' +
+'.bl-grid.list .bl-ph{width:56px;height:42px;flex:0 0 56px;border-radius:7px;padding:0;font-size:0}' +
+'.bl-grid.list .bl-bd{padding:0;flex-direction:row;align-items:center;gap:14px;min-width:0}' +
+'.bl-grid.list .bl-name{font-size:15.5px;margin:0;flex:0 0 220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bl-grid.list .bl-hood{flex:0 0 150px;order:2}' +
+'.bl-grid.list .bl-line{-webkit-line-clamp:1;flex:1;order:3;font-size:13px}.bl-grid.list .bl-meta{order:4;padding:0;flex:0 0 auto;white-space:nowrap}' +
+'.bl-card[hidden]{display:none}.bl-empty{border:1px dashed rgba(194,65,12,.3);border-radius:12px;padding:22px;color:#5d6575;text-align:center;margin:0 0 30px}.bl-empty button{font:inherit;font-weight:700;color:#C2410C;background:none;border:0;cursor:pointer;text-decoration:underline}' +
+'@media(max-width:720px){.bl-bar{grid-template-columns:1fr 1fr}.bl-search{grid-column:1/-1}.bl-view{justify-content:center}.bl-hoods{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}' +
+'.bl-grid.list .bl-name{flex:1 1 auto}.bl-grid.list .bl-hood,.bl-grid.list .bl-line{display:none}}' +
+'</style>';
+async function cmBuildingReportsBrowser(mk, base, bldg) {
+  const dir = await catalogueCached(mk);
+  const bySlug = {}; dir.forEach((b) => { bySlug[b.slug] = b; });
+  const rows = bldg.map((a) => {
+    const b = bySlug[a.report_area] || null;
+    const name = b ? b.name : (a.report_area || '').replace(/-/g, ' ');
+    const addr = b && b.address && b.address !== b.name ? String(b.address).split(',')[0] : '';
+    const hood = (b && b.neighborhood) || 'San Francisco';
+    return { a, b, name, addr, hood };
+  });
+  const hoodCounts = {};
+  rows.forEach((r) => { hoodCounts[r.hood] = (hoodCounts[r.hood] || 0) + 1; });
+  const hoods = Object.keys(hoodCounts).sort((p, q) => hoodCounts[q] - hoodCounts[p] || p.localeCompare(q));
+  const card = (r) => {
+    const a = r.a;
+    const img = a.hero_path ? cmNewsMedia(a.hero_path) : '';
+    const q = [r.name, r.addr, r.hood, a.headline].join(' ').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ');
+    const t = a.published_at ? Math.round(new Date(a.published_at).getTime() / 1000) : 0;
+    return '<a class="bl-card" href="' + cmNewsHref(base, a) + '" data-q="' + attr(q) + '" data-hood="' + attr(r.hood) + '" data-az="' + attr(r.name) + '" data-t="' + t + '">' +
+      '<div class="bl-ph' + (img ? ' has' : '') + '"' + (img ? ' style="background-image:url(\'' + attr(img) + '\')"' : '') + ' aria-hidden="true">' + esc(String(r.name).split(' ').slice(0, 2).join(' ')) + '</div>' +
+      '<div class="bl-bd"><div class="bl-hood">' + esc(r.hood) + (r.addr ? ' \u00b7 ' + esc(r.addr) : '') + '</div>' +
+      '<h3 class="bl-name">' + esc(r.name) + '</h3>' +
+      '<p class="bl-line">' + esc(a.headline) + '</p>' +
+      '<div class="bl-meta">' + esc(cmNewsDate(a.published_at)) + (a.word_count ? ' \u00b7 ' + Math.max(1, Math.round(a.word_count / 220)) + ' min' : '') + '</div>' +
+      '</div></a>';
+  };
+  const n = rows.length;
+  return CM_BL_CSS +
+    '<section class="bl" id="buildings" data-bl>' +
+    '<div class="bl-head"><h2 class="nw-sect">Building market reports</h2><p class="bl-sub">' + n + ' buildings with a 2026 closing, one report each. Search a building or street, or pick a neighborhood.</p></div>' +
+    '<div class="bl-bar">' +
+    '<label class="bl-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>' +
+    '<input type="search" placeholder="Search a building, street or neighborhood" aria-label="Search building reports" data-bl-q autocomplete="off"></label>' +
+    '<select data-bl-sort aria-label="Sort"><option value="new">Newest first</option><option value="az">A to Z</option><option value="hood">By neighborhood</option></select>' +
+    '<div class="bl-view" role="group" aria-label="View"><button type="button" class="on" data-bl-view="cards">Cards</button><button type="button" data-bl-view="list">List</button></div>' +
+    '</div>' +
+    '<div class="bl-hoods" role="group" aria-label="Neighborhood"><button type="button" class="on" data-bl-hood="">All<span>' + n + '</span></button>' +
+    hoods.map((h) => '<button type="button" data-bl-hood="' + attr(h) + '">' + esc(h) + '<span>' + hoodCounts[h] + '</span></button>').join('') + '</div>' +
+    '<div class="bl-count" data-bl-count>Showing <b>' + n + '</b> of ' + n + ' buildings</div>' +
+    '<div class="bl-grid" data-bl-grid>' + rows.map(card).join('') + '</div>' +
+    '<div class="bl-empty" data-bl-empty hidden>No building matches that. <button type="button" data-bl-reset>Clear the search</button></div>' +
+    '</section>' +
+    '<script>(function(){var R=document.querySelector("[data-bl]");if(!R)return;' +
+    'var G=R.querySelector("[data-bl-grid]"),Q=R.querySelector("[data-bl-q]"),S=R.querySelector("[data-bl-sort]"),C=R.querySelector("[data-bl-count]"),E=R.querySelector("[data-bl-empty]");' +
+    'var cards=[].slice.call(G.querySelectorAll(".bl-card")),total=cards.length,hood="",view="cards";' +
+    'function norm(s){return String(s||"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").replace(/\\s+/g," ").trim()}' +
+    'function apply(){var q=norm(Q.value),terms=q?q.split(" "):[],shown=0;' +
+    'cards.forEach(function(c){var ok=(!hood||c.getAttribute("data-hood")===hood);if(ok&&terms.length){var hay=" "+c.getAttribute("data-q")+" ";ok=terms.every(function(t){return hay.indexOf(t)!==-1})}' +
+    'c.hidden=!ok;if(ok)shown++});' +
+    'C.innerHTML="Showing <b>"+shown+"</b> of "+total+" buildings"+(hood?" in "+hood:"")+(q?" matching \\u201c"+Q.value.replace(/[<>&]/g,"")+"\\u201d":"");E.hidden=shown>0;' +
+    'var u=new URL(location.href);["q","hood","sort","view"].forEach(function(k){u.searchParams.delete(k)});' +
+    'if(Q.value)u.searchParams.set("q",Q.value);if(hood)u.searchParams.set("hood",hood);if(S.value!=="new")u.searchParams.set("sort",S.value);if(view!=="cards")u.searchParams.set("view",view);' +
+    'u.hash="buildings";try{history.replaceState(null,"",u.toString())}catch(e){}}' +
+    'function sort(){var m=S.value,arr=cards.slice();arr.sort(function(a,b){if(m==="az")return a.getAttribute("data-az").localeCompare(b.getAttribute("data-az"),"en",{numeric:true});' +
+    'if(m==="hood"){var h=a.getAttribute("data-hood").localeCompare(b.getAttribute("data-hood"));return h||a.getAttribute("data-az").localeCompare(b.getAttribute("data-az"),"en",{numeric:true})}' +
+    'return (+b.getAttribute("data-t"))-(+a.getAttribute("data-t"))||a.getAttribute("data-az").localeCompare(b.getAttribute("data-az"),"en",{numeric:true})});' +
+    'arr.forEach(function(c){G.appendChild(c)})}' +
+    'function setView(v){view=v;G.classList.toggle("list",v==="list");R.querySelectorAll("[data-bl-view]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-bl-view")===v)});try{localStorage.setItem("cm_bl_view",v)}catch(e){}}' +
+    'function setHood(h){hood=h;R.querySelectorAll("[data-bl-hood]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-bl-hood")===h)})}' +
+    'var t;Q.addEventListener("input",function(){clearTimeout(t);t=setTimeout(apply,120)});' +
+    'S.addEventListener("change",function(){sort();apply()});' +
+    'R.querySelectorAll("[data-bl-hood]").forEach(function(b){b.addEventListener("click",function(){setHood(b.getAttribute("data-bl-hood"));apply()})});' +
+    'R.querySelectorAll("[data-bl-view]").forEach(function(b){b.addEventListener("click",function(){setView(b.getAttribute("data-bl-view"));apply()})});' +
+    'R.querySelector("[data-bl-reset]").addEventListener("click",function(){Q.value="";setHood("");apply();Q.focus()});' +
+    'var p=new URL(location.href).searchParams,v0=p.get("view");try{v0=v0||localStorage.getItem("cm_bl_view")}catch(e){}' +
+    'if(p.get("q"))Q.value=p.get("q");if(p.get("hood"))setHood(p.get("hood"));if(p.get("sort"))S.value=p.get("sort");if(v0==="list")setView("list");' +
+    'sort();apply();' +
+    'if(p.get("q")||p.get("hood")||location.hash==="#buildings")R.scrollIntoView({block:"start"});' +
+    '})();</script>';
+}
+
 async function renderCondoNewsIndex(mk, kind) {
   const rep = kind === 'market_review';
   const marketId = A_MARKET_ID_BY_TAG[mk.tag] || 5;
   const base = 'https://www.' + mk.domain;
   const canonical = base + (rep ? '/market-reports/' : '/news/');
-  const data = await aNewsRpc('get_news_index', { p_market_id: marketId, p_limit: rep ? 60 : 30, p_offset: 0, p_kind: rep ? 'market_review' : 'local_news' });
+  const data = await aNewsRpc('get_news_index', { p_market_id: marketId, p_limit: rep ? 400 : 30, p_offset: 0, p_kind: rep ? 'market_review' : 'local_news' });
   const arts = (data && data.ok && Array.isArray(data.articles)) ? data.articles : [];
   const counts = (data && data.counts) || {};
   const title = rep ? mk.region + ' Condo Market Reports \u2014 ' + mk.brand : mk.region + ' condo news \u2014 ' + mk.brand;
@@ -4529,7 +4645,7 @@ async function renderCondoNewsIndex(mk, kind) {
     const mkt = arts.filter((a) => a.kind !== 'building_review'), bldg = arts.filter((a) => a.kind === 'building_review');
     const big = mkt.filter((a) => cmReportType(a) !== 'Monthly'), monthly = mkt.filter((a) => cmReportType(a) === 'Monthly');
     list = (big.length ? '<h2 class="nw-sect">Quarterly &amp; annual reports</h2><div class="nw-list">' + big.map(card).join('') + '</div>' : '') +
-           (bldg.length ? '<h2 class="nw-sect">Building market reports</h2><div class="nw-list">' + bldg.map(card).join('') + '</div>' : '') +
+           (bldg.length ? await cmBuildingReportsBrowser(mk, base, bldg) : '') +
            (monthly.length ? '<h2 class="nw-sect">Monthly reports</h2><div class="nw-list">' + monthly.map(card).join('') + '</div>' : '');
   } else list = '<div class="nw-list">' + arts.map(card).join('') + '</div>';
   const jsonld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, url: canonical, description: desc,
@@ -4589,8 +4705,43 @@ async function renderCondoNewsArticle(mk, slug, area) {
     '<a href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(canonical) + '" target="_blank" rel="noopener">LinkedIn</a></div>';
   const title = a.meta_title || a.headline;
   const desc = a.meta_description || a.dek || '';
+  const dir = await catalogueCached(mk);
+  /* A building review links to its building (Tim, 15 Oct 2026): a strip under the byline naming
+     the building, with the previous and next building reports alphabetically, so a reader can
+     step between buildings; and a closing line back to the building page. */
+  let bldgStrip = '', bldgFoot = '';
+  if (a.kind === 'building_review' && a.report_area) {
+    const b = dir.find((x) => x.slug === a.report_area) || null;
+    const bHref = base + '/building/' + esc(a.report_area);
+    const bName = b ? b.name : a.report_area.replace(/-/g, ' ');
+    const facts = b ? [b.address && b.address !== b.name ? String(b.address).split(',')[0] : null, b.neighborhood, b.units ? b.units + ' units' : null, b.year ? 'built ' + b.year : null].filter(Boolean) : [];
+    let nav = '';
+    try {
+      const all = (await newsIndexCached(mk)).filter((x) => x.kind === 'building_review' && x.report_area);
+      const named = all.map((x) => ({ a: x, b: dir.find((d) => d.slug === x.report_area) })).filter((x) => x.b)
+        .sort((p, q) => String(p.b.name).localeCompare(String(q.b.name), 'en', { numeric: true }));
+      const i = named.findIndex((x) => x.a.slug === a.slug);
+      if (i !== -1 && named.length > 1) {
+        const pv = named[(i - 1 + named.length) % named.length], nx = named[(i + 1) % named.length];
+        nav = '<div class="nw-bldg-nav">'
+          + '<a href="' + cmNewsHref(base, pv.a) + '" rel="prev"><span>‹ Previous building</span><b>' + esc(pv.b.name) + '</b></a>'
+          + '<a href="' + base + '/market-reports/#buildings" class="all">All ' + named.length + ' building reports</a>'
+          + '<a href="' + cmNewsHref(base, nx.a) + '" rel="next"><span>Next building ›</span><b>' + esc(nx.b.name) + '</b></a>'
+          + '</div>';
+      }
+    } catch (e) { nav = ''; }
+    bldgStrip = '<div class="nw-bldg">'
+      + '<a class="nw-bldg-main" href="' + bHref + '" data-cm-cta="report-building">'
+      + '<span class="nw-bldg-k">This report covers</span>'
+      + '<b>' + esc(bName) + '</b>'
+      + (facts.length ? '<span class="nw-bldg-f">' + esc(facts.join(' · ')) + '</span>' : '')
+      + '<em>Open the building page: every unit, sale and listing →</em>'
+      + '</a>' + nav + '</div>';
+    bldgFoot = '<a class="nw-bldg-foot" href="' + bHref + '" data-cm-cta="report-building-foot">'
+      + '<span>Back to the building</span><b>' + esc(bName) + ' →</b></a>';
+  }
   /* Buildings in this story (S25): every catalogued building the article names, linked. */
-  const inB = buildingsInText([a.headline, a.subhead, a.dek, a.body_md].join('\n'), await catalogueCached(mk), 12);
+  const inB = buildingsInText([a.headline, a.subhead, a.dek, a.body_md].join('\n'), dir, 12);
   const inStory = inB.length ? '<div class="nw-src"><b>Buildings in this story</b><ul>' +
     inB.map(function (b) { return '<li><a href="' + base + '/building/' + esc(b.slug) + '">' + esc(b.name) + '</a>' + (b.address && b.address !== b.name ? ' \u00b7 ' + esc(String(b.address).split(',')[0]) : '') + (b.neighborhood ? ' \u00b7 ' + esc(b.neighborhood) : '') + '</li>'; }).join('') +
     '</ul></div>' : '';
@@ -4603,7 +4754,7 @@ async function renderCondoNewsArticle(mk, slug, area) {
     '<p class="nw-crumb"><a href="' + base + '/">' + esc(mk.brand) + '</a> \u203a ' + (rep ? '<a href="' + base + '/market-reports/">Market reports</a>' : '<a href="' + base + '/news/">News</a>') + '</p>' +
     '<h1>' + esc(a.headline) + '</h1>' + (rep && a.subhead ? '<p class="nw-sub">' + esc(a.subhead) + '</p>' : '') + (a.dek ? '<p class="nw-dek">' + esc(a.dek) + '</p>' : '') +
     '<div class="nw-by">' + (au.name ? 'By ' + esc(au.name) + ' \u00b7 ' : '') + esc(cmNewsDate(a.published_at)) + '</div>' +
-    hero + '<div class="nw-body">' + bodyHtml + '</div>' + src + share +
+    bldgStrip + hero + '<div class="nw-body">' + bodyHtml + '</div>' + bldgFoot + src + share +
     '<p class="nw-legal">' + (au.name ? esc(au.name) + (au.dre ? ', CA DRE #' + esc(au.dre) : '') + '. ' : '') +
       (au.brokerage ? 'Real estate services provided by ' + esc(au.brokerage) + (au.brokerage_dre ? ', CA DRE #' + esc(au.brokerage_dre) : '') + '. ' : '') +
       'Figures are from recorded sales; nothing here is an opinion of the value of any home.</p>' +
@@ -6420,7 +6571,7 @@ const NEWS_CACHE = {};
 async function newsIndexCached(mk) {
   const hit = NEWS_CACHE[mk.tag];
   if (hit && Date.now() - hit.t < 600000) return hit.v;
-  const idx = await aNewsRpc('get_news_index', { p_market_id: A_MARKET_ID_BY_TAG[mk.tag] || 5, p_limit: 100, p_offset: 0 });
+  const idx = await aNewsRpc('get_news_index', { p_market_id: A_MARKET_ID_BY_TAG[mk.tag] || 5, p_limit: 400, p_offset: 0 });   // every building review (163+), not a page of them
   const v = (idx && idx.ok && Array.isArray(idx.articles)) ? idx.articles : [];
   if (v.length) NEWS_CACHE[mk.tag] = { t: Date.now(), v: v };
   return v;
@@ -6671,16 +6822,57 @@ function renderBuilding(p) {
         ? pe.getUTCFullYear() + ' market report · year to date through ' + MON[pe.getUTCMonth()] + ' ' + pe.getUTCDate()
         : MON[ps.getUTCMonth()] + ' ' + ps.getUTCFullYear() + ' – ' + MON[pe.getUTCMonth()] + ' ' + pe.getUTCFullYear() + ' market report';
     }
+    /* The report in miniature (Tim, 15 Oct 2026): a cream paper beside the copy,
+       like the Comp Report preview on a listing, carrying the report's own
+       headline numbers from its first table. The whole paper is the link. */
+    const st = rv.stats || {};
+    const num = (s) => { const n = parseInt(String(s || '').replace(/[^0-9]/g, ''), 10); return isNaN(n) ? null : n; };
+    const short$ = (s) => { const n = num(s); if (n == null) return null;
+      return n >= 1e6 ? '$' + (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? '$' + Math.round(n / 1e3) + 'K' : '$' + n; };
+    const c26 = num(st.closings_26), c25 = num(st.closings_25), f26 = num(st.ppsf_26), f25 = num(st.ppsf_25);
+    const href = '/news/' + esc(rv.slug) + '/';
+    const yr = pe ? pe.getUTCFullYear() : new Date().getUTCFullYear();
+    const tiles = [];
+    if (c26 != null) tiles.push(['Closings', String(c26)]);
+    if (st.median_26) tiles.push(['Median', short$(st.median_26) || esc(st.median_26)]);
+    if (st.ppsf_26) tiles.push(['Per sq ft', esc(st.ppsf_26)]);
+    if (st.dom_26) tiles.push(['Days', esc(st.dom_26)]);
+    else if (st.volume_26) tiles.push(['Volume', short$(st.volume_26) || esc(st.volume_26)]);
+    const bar = (label, a, b, fmt) => {
+      if (a == null && b == null) return '';
+      const mx = Math.max(a || 0, b || 0, 1);
+      const w = (v) => Math.max(6, Math.round((v || 0) / mx * 100));
+      return '<div class="rbp-cmp"><span class="rbp-lbl">' + label + '</span>'
+        + '<div class="rbp-bar"><i style="width:' + w(a) + '%"></i><b>' + (yr - 1) + ' · ' + (a == null ? '—' : fmt(a)) + '</b></div>'
+        + '<div class="rbp-bar now"><i style="width:' + w(b) + '%"></i><b>' + yr + ' · ' + (b == null ? '—' : fmt(b)) + '</b></div></div>';
+    };
+    const paper =
+      '<a class="rbp" href="' + href + '" data-cm-cta="building-report-paper" aria-label="Open the ' + name + ' market report">'
+      + '<div class="rbp-head"><span class="rbp-kind">Building market report</span><span class="rbp-ok">Published</span></div>'
+      + '<div class="rbp-name">' + name + '</div>'
+      + '<div class="rbp-by">' + esc(periodLabel.replace(/ market report.*$/i, '')) + ' · Prepared by Tim McMullen · DRE #02016832</div>'
+      + (tiles.length ? '<div class="rbp-tiles">' + tiles.map((t) => '<div><span>' + t[0] + '</span><b>' + t[1] + '</b></div>').join('') + '</div>' : '')
+      + bar('Closings, same window', c25, c26, (v) => String(v))
+      + bar('Median per sq ft', f25, f26, (v) => '$' + v.toLocaleString('en-US'))
+      + '<div class="rbp-veil">' + [78, 64].map((w) => '<div class="rbp-row"><i style="width:' + w + '%"></i><b></b></div>').join('') + '</div>'
+      + '<span class="rbp-open">Read the full report →</span>'
+      + '</a>';
     reportBand =
-      '<section class="section xb-section rb-section" id="report"><div class="wrap">'
+      '<section class="section xb-section rb-section" id="report"><div class="wrap rb-grid">'
+      + '<div class="rb-copy">'
       + '<div class="xb-kicker">' + esc(periodLabel) + '</div>'
       + '<h2 class="xb-title">' + esc(rv.headline) + '</h2>'
       + (rv.dek ? '<p class="xb-line">' + esc(rv.dek) + '</p>' : '')
       + '<div class="rb-actions">'
-      + '<a class="xb-btn" href="/news/' + esc(rv.slug) + '/" data-cm-cta="building-report">Read the full report on Local News →</a>'
-      + '<a class="rb-more" href="/market-reports/" data-cm-cta="building-report-index">All market reports</a>'
-      + '</div>'
-      + '</div></section>\n';
+      + '<a class="xb-btn" href="' + href + '" data-cm-cta="building-report">Read the full report on Local News →</a>'
+      + '<a class="rb-more" href="/market-reports/" data-cm-cta="building-report-index">All building reports</a>'
+      + '</div></div>'
+      + '<div class="rb-vis">' + paper + '</div>'
+      + '</div></section>\n'
+      + '<script>(function(){var p=document.querySelector(".rbp");if(!p||matchMedia("(prefers-reduced-motion: reduce)").matches)return;'
+      + 'p.addEventListener("pointermove",function(e){var r=p.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;'
+      + 'p.style.setProperty("--ry",(x*8)+"deg");p.style.setProperty("--rx",(-y*8)+"deg");p.style.setProperty("--cx",(x+.5)*100+"%");p.style.setProperty("--cy",(y+.5)*100+"%")});'
+      + 'p.addEventListener("pointerleave",function(){p.style.removeProperty("--ry");p.style.removeProperty("--rx")})})();</script>\n';
   }
 
   const heroCta =
@@ -7353,13 +7545,50 @@ const CSS = `
 .xb-btn { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; background: #c2410c; color: #ffffff; font-weight: 600; font-size: 14px; padding: 11px 16px; border-radius: 999px; text-decoration: none; align-self: flex-start; max-width: 100%; }
 .xb-btn:hover { filter: brightness(1.06); }
 .xb-btn:focus-visible { outline: 2px solid #e0e5ed; outline-offset: 2px; }
-.rb-section { background: #22262f; border-top: 0; border-bottom: 0; }
+.rb-section { background: #22262f; border-top: 0; border-bottom: 0; position: relative; overflow: hidden; }
+.rb-section:before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(640px 320px at 85% 60%, rgba(194,65,12,.18), transparent 65%), radial-gradient(520px 260px at 10% 0%, rgba(212,165,116,.08), transparent 60%); }
+.rb-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: 20px 48px; align-items: center; }
 .rb-section .xb-kicker { color: #d4a574; }
 .rb-section .xb-title { color: #ffffff; max-width: 30ch; }
 .rb-section .xb-line { color: #cfd5de; }
 .rb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
 .rb-more { color: #d4a574; font-weight: 600; font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(212,165,116,.4); }
 .rb-more:hover { color: #ffffff; }
+/* the report in miniature: one cream paper, tilted, the whole thing a link */
+.rb-vis { display: flex; justify-content: center; align-items: center; padding: 10px 0; perspective: 1100px; }
+.rbp { position: relative; display: block; width: min(380px, 100%); background: #fbf8f2; color: #1a1f2e; border-radius: 14px; padding: 14px 16px 46px; text-decoration: none; overflow: hidden;
+  box-shadow: 0 26px 60px rgba(0,0,0,.45), 0 2px 0 rgba(255,255,255,.6) inset;
+  transform: rotate(-2deg) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease; will-change: transform; }
+.rbp:before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .35s ease; z-index: 2;
+  background: radial-gradient(320px circle at var(--cx, 50%) var(--cy, 50%), rgba(255,255,255,.65), transparent 55%); mix-blend-mode: soft-light; }
+.rbp:hover { transform: rotate(-1deg) translateY(-6px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); box-shadow: 0 36px 70px rgba(0,0,0,.5), 0 2px 0 rgba(255,255,255,.6) inset; }
+.rbp:hover:before { opacity: 1; }
+.rbp:focus-visible { outline: 3px solid #d4a574; outline-offset: 4px; }
+.rbp-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.rbp-kind { font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase; color: #8a4a1f; }
+.rbp-ok { font-size: 10.5px; font-weight: 700; color: #245f3d; background: rgba(47,122,79,.12); border-radius: 999px; padding: 3px 8px; white-space: nowrap; }
+.rbp-name { font-family: 'Playfair Display', Georgia, serif; font-size: 1.25rem; line-height: 1.15; margin: 7px 0 2px; }
+.rbp-by { font-size: 11px; color: #6b7180; }
+.rbp-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 8px; }
+.rbp-tiles div { background: #f1ebdf; border-radius: 8px; padding: 5px 4px 5px; text-align: center; min-width: 0; }
+.rbp-tiles span { display: block; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: #5d6575; white-space: nowrap; }
+.rbp-tiles b { display: block; margin-top: 2px; font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: #1a1f2e; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rbp-cmp { margin: 6px 0 0; }
+.rbp-lbl { display: block; font-family: var(--cm-ff-mono, 'JetBrains Mono', monospace); font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: #5d6575; margin-bottom: 4px; }
+.rbp-bar { position: relative; height: 14px; margin: 2px 0; border-radius: 4px; background: #efe9dc; overflow: hidden; }
+.rbp-bar i { position: absolute; inset: 0 auto 0 0; background: #cfc7b8; border-radius: 4px; }
+.rbp-bar.now i { background: #c2410c; }
+.rbp-bar b { position: relative; z-index: 1; display: block; line-height: 14px; padding: 0 7px; font-size: 10px; font-weight: 600; color: #1a1f2e; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rbp-bar.now b { color: #1a1f2e; }
+.rbp-veil { padding: 6px 0 0; filter: blur(3px); -webkit-mask-image: linear-gradient(#000 30%, transparent); mask-image: linear-gradient(#000 30%, transparent); user-select: none; }
+.rbp-row { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+.rbp-row i { display: block; height: 8px; border-radius: 4px; background: #cfc7b8; }
+.rbp-row b { display: block; width: 52px; height: 8px; border-radius: 4px; background: #1a1f2e; margin-left: auto; }
+.rbp-open { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 3; white-space: nowrap; background: #1a1f2e; color: #fff; font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 8px 14px; box-shadow: 0 10px 24px rgba(0,0,0,.35); transition: background .2s ease; }
+.rbp:hover .rbp-open { background: #c2410c; }
+@media (max-width: 860px) { .rb-grid { grid-template-columns: 1fr; gap: 10px; } .rb-vis { padding: 14px 0 4px; } .rbp { transform: rotate(-1.2deg); width: min(400px, 100%); } }
+@media (max-width: 560px) { .rbp { padding: 13px 14px 58px; } .rbp-name { font-size: 1.15rem; } .rbp-tiles { gap: 5px; } .rbp-tiles b { font-size: 13.5px; } .rbp-veil { display: none; } }
+@media (prefers-reduced-motion: reduce) { .rbp, .rbp:before { transition: none; } .rbp:hover { transform: rotate(-2deg); } }
 @media (max-width: 560px) { .xb-card { grid-template-columns: 1fr; } .xb-shot { min-height: 190px; } .xb-lock { grid-template-columns: repeat(2, 1fr); } .xb-btn { align-self: stretch; } }
   @media (max-width: 720px) { .disc-cta-btn { width: 100%; justify-content: center; } }
   .hero-img-wrap { position: relative; border-radius: 12px; overflow: hidden; background: #ffffff; aspect-ratio: 3/2; max-height: 460px; }
