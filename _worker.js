@@ -511,7 +511,7 @@ function cityNav(active) {
     '    <div class="nav-links">\n' +
     '      ' + a('/active-listings/', '<span class="live-dot"></span>For sale', 'forsale') + '\n' +
     '      ' + a('/off-market/', 'Off market', 'offmarket') + '\n' +
-    '      ' + a('/san-francisco-condos', 'Buildings', 'buildings') + '\n' +
+    '      ' + a('/#atlas', 'Buildings', 'buildings') + '\n' +
     '      ' + a('/market-reports/', 'Reports', 'reports') + '\n' +
     '      ' + a('/intelligence/', 'Intelligence', 'intelligence') + '\n' +
     '      ' + a('/how-it-works/', 'How it works', 'how') + '\n' +
@@ -550,7 +550,7 @@ function cityFooter(payload) {
     '    <div class="foot-grid">\n' +
     '      <div><a class="wordmark" href="/" style="--bs:1.00"><b>Condo</b> Market<span class="tag">SF</span></a>\n' +
     '        <p style="color:var(--slate-dim);font-size:.84rem;margin-top:12px;max-width:36ch">The complete record of San Francisco condominiums.</p></div>\n' +
-    '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/san-francisco-condos">Buildings</a>' +
+    '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/#atlas">Buildings</a>' +
     (payload.hubPages === false ? '' : '<a href="/neighborhoods">Neighborhoods</a><a href="/san-francisco-condo-market-stats">Market stats</a><a href="/san-francisco-condo-rankings">Rankings</a>') +
     '<a href="/market-reports/">Market reports</a><a href="/news/">News</a>' +
     '<a href="/intelligence/">Intelligence</a><a href="/how-it-works/">How it works</a><a href="/investor-exchange/">Investor Exchange</a></div>\n' +
@@ -4808,7 +4808,7 @@ function nbChrome(title, desc, canonical, jsonld, base, body, opts) {
 '.method{color:#5d6575;font-size:13px;max-width:760px;margin-top:26px}' +
 '</style></head><body>' +
 '<header class="cm"><div class="wrap"><a class="wm" href="' + base + '/">Condo <b>Market</b> · sf</a>' +
-'<nav class="nav"><a href="' + base + '/san-francisco-condos">Buildings</a><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a href="' + base + '/market-reports/">Reports</a><a href="' + base + '/news/">News</a></nav></div></header>' +
+'<nav class="nav"><a href="' + base + '/#atlas">Buildings</a><a href="' + base + '/neighborhoods">Neighborhoods</a><a href="' + base + '/san-francisco-condo-rankings">Rankings</a><a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a href="' + base + '/market-reports/">Reports</a><a href="' + base + '/news/">News</a></nav></div></header>' +
 body + (opts.footer || '') + '</body></html>';
 }
 
@@ -7256,7 +7256,7 @@ function renderBuilding(p) {
     '<header class="masthead"><div class="wrap"><div class="masthead-row">' +
     '<a href="/" class="wordmark">Condo <em>Market</em> \u00b7 ' + mkTag + '</a>' +
     '<nav class="nav-meta">' +
-    '<a href="/san-francisco-condos">Buildings</a><a href="/intelligence/">Intelligence</a>' +
+    '<a href="/#atlas">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/market-reports/">Reports</a><a href="/how-it-works/">How it works</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n' +
