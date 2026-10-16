@@ -589,7 +589,7 @@ function cityTail(scripts) {
    signed listing agreement) are pinned on every layer and carded in the panel.
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
-const OM_VER = '2';
+const OM_VER = '3';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -681,8 +681,11 @@ function renderOffMarket(payload) {
     const spec = omSpec({ bd: f.beds, ba: f.baths, sf: f.sqft }) + (f.hoa_fee_monthly ? ' · HOA $' + num(Math.round(f.hoa_fee_monthly)) + '/mo' : '');
     const lease = f.tenant ? 'Tenant in place' + (f.lease_terms_note ? ', ' + String(f.lease_terms_note).toLowerCase() : '') : '';
     const item = { type: 'ex', ref: 'ex:' + f.token, key: f.token, title: f.street || f.address, building: b.slug || null, bname: b.name || null };
+    /* The building's hero photo shows at once; the listing's own cover (private bucket, signed in the page) replaces it. */
+    const bImg = bySlug[b.slug] && bySlug[b.slug].img;
     return '<div class="omf" data-om-feat="' + cityEsc(f.token) + '" data-om-item="' + cityEsc(JSON.stringify(item)) + '">' +
-      '<div class="omf-ph"' + (f.photos && f.photos[0] ? ' data-om-cover="' + cityEsc(f.photos[0]) + '"' : '') + '><span class="omf-badge">Featured</span>' +
+      '<div class="omf-ph"' + (bImg ? ' style="background-image:url(\'' + cityEsc(bImg).replace(/'/g, '%27') + '\')"' : '') +
+      (f.photos && f.photos[0] ? ' data-om-cover="' + cityEsc(f.photos[0]) + '"' : '') + '><span class="omf-badge">Featured</span>' +
       (f.photo_count > 1 ? '<span class="omf-n">' + num(f.photo_count) + ' photos</span>' : '') + '</div>' +
       '<div class="omf-b"><div class="omf-k">Investor Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '') + '</div>' +
       '<div class="omf-t">' + cityEsc(f.street || f.address) + '</div>' +

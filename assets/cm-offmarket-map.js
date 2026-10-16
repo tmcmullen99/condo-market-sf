@@ -22,7 +22,10 @@
   var panel = document.getElementById('omPanel'), side = document.getElementById('omSide');
   var tabs = document.querySelectorAll('[data-om-layer]');
 
-  var map = L.map(el, { scrollWheelZoom: false, zoomControl: true }).setView([37.772, -122.43], 12);
+  /* Two-finger trackpad scroll and pinch zoom the map (Tim, 16 Oct 2026). Trackpads send many small wheel
+     steps, so zoom moves in quarter levels and needs more travel per level than a mouse wheel's click. */
+  var map = L.map(el, { scrollWheelZoom: true, wheelPxPerZoomLevel: 110, wheelDebounceTime: 25, zoomSnap: 0.25, zoomDelta: 0.5,
+    zoomControl: true }).setView([37.772, -122.43], 12);
   var k = (document.querySelector('meta[name="carto-key"]') || {}).content || '';
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' + (k && k.indexOf('__') !== 0 ? '?key=' + encodeURIComponent(k) : ''),
     { attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
