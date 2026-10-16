@@ -589,7 +589,7 @@ function cityTail(scripts) {
    signed listing agreement) are pinned on every layer and carded in the panel.
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
-const OM_VER = '4';
+const OM_VER = '5';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -649,7 +649,12 @@ function renderOffMarket(payload) {
     '.om-row{appearance:none;display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;font:inherit;color:var(--ink)}' +
     '.om-row:hover{border-color:#C2410C}.om-row b{display:block;font-size:.92rem}.om-row span{font-size:.8rem;color:var(--slate)}' +
     '.leaflet-div-icon.om-di{background:none;border:0}' +
-    '.om-pin{display:inline-block;transform:translate(-50%,-50%);border-radius:999px;font:600 9.5px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;padding:5px 7px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer}' +
+    '.om-pin{display:inline-block;transform:translate(-50%,-50%);border-radius:999px;font:600 9.5px/1 "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 7px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer}' +
+    '.om-pin b{display:inline-block;margin-left:5px;padding:1px 5px;border-radius:999px;background:#C2410C;color:#fff;font-weight:600}.om-pin.on b{background:#12151d}' +
+    '.om-pin.cs.st{font-family:"DM Sans",system-ui,sans-serif;font-size:11px;letter-spacing:0;text-transform:none;padding:5px 9px}' +
+    '.om-bhero{position:relative;height:130px;border-radius:12px;background:#e8ebf1 center/cover no-repeat;margin:10px 0 6px}' +
+    '.om-bhero span{position:absolute;left:8px;bottom:8px;background:rgba(18,21,29,.8);color:#fff;font:600 11px/1 "DM Sans",system-ui,sans-serif;padding:6px 9px;border-radius:999px}' +
+    '.om-bhero i{position:absolute;right:8px;bottom:8px;width:54px;height:54px;border-radius:8px;border:2px solid #fff;background:#ccc center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.3)}' +
     '.om-pin.cs{background:#12151d;color:#fff;border:2px solid #C2410C}.om-pin.mm{background:#fff;color:#12151d;border:2px solid #12151d}' +
     '.om-pin.ex{background:#fff;color:#9a360c;border:2px solid #C2410C}.om-pin.ft{background:#C2410C;color:#fff;border:2px solid #fff;font-size:10.5px;padding:6px 9px;box-shadow:0 4px 14px rgba(194,65,12,.45)}' +
     '.om-pin.on{background:#C2410C;border-color:#fff;color:#fff}' +
@@ -680,6 +685,8 @@ function renderOffMarket(payload) {
     '.om-doors{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}' +
     '.om-cs-ph{height:96px;border-radius:10px;margin:0 0 14px;background:linear-gradient(135deg,rgba(236,231,219,.10),rgba(236,231,219,.03));display:flex;align-items:flex-end;padding:8px 10px;box-sizing:border-box}' +
     '.om-cs-ph span{font-family:"JetBrains Mono",monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--chrome-soft)}' +
+    '.om-cs-ph.om-cs-b{height:130px;background-size:cover;background-position:center;position:relative}' +
+    '.om-cs-ph.om-cs-b span{background:rgba(18,21,29,.78);color:#fff;padding:5px 8px;border-radius:999px;font-size:.62rem}' +
     '.om-card .om-tag{display:inline-block;margin-bottom:6px}' +
     '.om-open{appearance:none;border:1px solid #C2410C;background:#C2410C;color:#fff;font:600 .82rem "DM Sans",system-ui,sans-serif;padding:8px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}' +
     '.om-open:hover{background:#9a360c;border-color:#9a360c}' +
@@ -730,7 +737,7 @@ function renderOffMarket(payload) {
     '</div>\n' +
     '    <div class="omap-frame"><div class="mact-grid">\n' +
     '      <div class="mact-map"><div id="cbmap" role="region" aria-label="Map of off-market and coming-soon condos"></div>\n' +
-    '        <p class="map-note">Building locations from public records. Coming-soon pins sit near the home until you sign in &mdash; see <a href="/methodology/">methodology</a>.</p>' +
+    '        <p class="map-note">Pins are labelled by street. A coming-soon home outside a catalogued building sits near its address until you sign in &mdash; see <a href="/methodology/">methodology</a>.</p>' +
     '<button type="button" class="om-reopen" data-om-open hidden aria-controls="omPanel">Show the list</button></div>\n' +
     '      <aside class="mact-side"><div class="mact-card" id="omPanel">\n' +
     '        <button type="button" class="om-x" data-om-close aria-label="Close this panel and see the whole map" title="See the whole map">&times;</button>\n' +
@@ -738,7 +745,8 @@ function renderOffMarket(payload) {
     '        <div class="om-pane" data-pane="cs">' +
     (csN
       ? '<div class="act-k">Coming soon &middot; ' + num(csN) + '</div><h3 class="mact-h">Before the listing sites</h3>' +
-        '<p class="mact-lede">Entered on the MLS as coming soon. Click a pin: the neighbourhood and size are open, the address, price and photos open with a free account.</p>' +
+        '<p class="mact-lede" data-om-anon>Entered on the MLS as coming soon. Pins are labelled by street; the size and the building are open, the unit, price and photos open with a free account.</p>' +
+        '<p class="mact-lede" data-om-mem hidden>Entered on the MLS as coming soon. Click a pin or a home below for the address, price and requests.</p>' +
         '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-cs" style="margin-top:12px;width:100%">See them free &rarr;</button>' +
         '<div id="omCsList"></div>'
       : '<div class="act-k">Coming soon</div><h3 class="mact-h">No coming-soon condos right now</h3>' +
@@ -770,11 +778,13 @@ function renderOffMarket(payload) {
     '    </div></div>\n  </div>\n</section>\n';
 
   /* ---- below the map: the counts and the cards ---- */
+  /* A listing in a catalogued building shows that building's hero photo and name (Tim, 16 Oct 2026). */
   const csCard = (c) => '<div class="om-card om-cs" id="cs-' + cityEsc(c.t) + '">' +
-    '<div class="om-cs-ph"><span>Photos for members</span></div>' +
+    (c.img ? '<div class="om-cs-ph om-cs-b" style="background-image:url(\'' + cityEsc(c.img).replace(/'/g, '%27') + '\')"><span>' + cityEsc(c.bn || '') + '</span></div>'
+           : '<div class="om-cs-ph"><span>Photos for members</span></div>') +
     '<span class="om-tag">Coming soon' + (c.h ? ' &middot; ' + cityEsc(c.h) : '') + '</span>' +
-    '<div class="om-ad">' + cityEsc(omSpec(c) || 'A San Francisco condo') + '</div>' +
-    '<div class="om-sp">First seen ' + omDay(c.since) + ' &middot; address for members</div>' +
+    '<div class="om-ad">' + cityEsc([c.st, omSpec(c)].filter(Boolean).join(' \u00b7 ') || 'A San Francisco condo') + '</div>' +
+    '<div class="om-sp">' + (c.bn ? 'In ' + cityEsc(c.bn) + ' &middot; ' : '') + 'first seen ' + omDay(c.since) + ' &middot; ' + (c.bn ? 'unit' : 'address') + ' and price for members</div>' +
     '<div class="om-lock"><span class="om-blur">$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>' +
     '<button type="button" class="om-open" data-om-signup="' + cityEsc(c.t) + '" data-cta="offmarket:cs-card">See it free &rarr;</button></div></div>';
   /* One locked card per owner who has a number open: a real count, never padding. */
@@ -827,7 +837,8 @@ function renderOffMarket(payload) {
   const featTok = {}; feat.forEach((f) => { featTok[f.token] = 1; });
   const data = {
     b: (payload.buildings || []).filter((b) => b.la != null && b.lo != null).map((b) => [b.s, b.n, b.u, b.la, b.lo]),
-    cs: cs.filter((c) => c.y != null && c.x != null).map((c) => [c.t, c.y, c.x, c.h || '', c.bd, c.ba, c.sf, c.since || '']),
+    /* [token, y, x, neighbourhood, beds, baths, sq ft, first seen, street, building slug, building name, building hero] */
+    cs: cs.filter((c) => c.y != null && c.x != null).map((c) => [c.t, c.y, c.x, c.h || '', c.bd, c.ba, c.sf, c.since || '', c.st || '', c.b || null, c.bn || null, c.img || null]),
     ex: exAll.map((x) => { const sl = x.building && x.building.slug, bb = sl && bySlug[sl];
       return [x.token, sl || null, (x.building && x.building.name) || null, bb ? bb.la : null, bb ? bb.lo : null, x.beds, x.baths, x.sqft, featTok[x.token] ? 1 : 0]; }),
   };

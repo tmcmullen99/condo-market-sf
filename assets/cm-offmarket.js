@@ -55,7 +55,9 @@
   function norm(type, x) {
     if (type === 'cs') return { type: 'cs', ref: 'cs:' + x.t, key: x.t, title: x.address || 'Coming soon',
       sub: [x.building_name, x.h].filter(Boolean).join(' \u00b7 '), price: x.price, plab: 'Price',
-      photo: (x.photos && x.photos[0]) || x.hero || '', nPhotos: (x.photos || []).length, spec: spec(x.bd, x.ba, x.sf),
+      /* in a catalogued building: the building's hero photo, so the building is clear; the home's own photo inset */
+      photo: (x.building && x.hero) || (x.photos && x.photos[0]) || x.hero || '', bimg: x.building ? (x.hero || '') : '',
+      unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, spec: spec(x.bd, x.ba, x.sf),
       since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
     if (type === 'mmm') return { type: 'mmm', ref: 'mmm:' + x.id, key: x.id, unit: x.unit,
       title: (x.unit ? 'Unit ' + x.unit : 'A unit') + (x.building_name ? ', ' + x.building_name : ''),
@@ -80,6 +82,8 @@
       '.omx-ph .omx-n{position:absolute;right:10px;bottom:10px;background:rgba(18,21,29,.75);color:#fff;font:500 11px/1 "JetBrains Mono",monospace;padding:5px 8px;border-radius:999px}' +
       '.omx-tag{position:absolute;left:10px;top:10px;background:#12151d;color:#fff;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border-radius:999px}' +
       '.omx-tag.cs{background:#C2410C}' +
+      '.omx-bn{position:absolute;left:10px;bottom:10px;background:rgba(18,21,29,.8);color:#fff;font:600 11.5px/1 "DM Sans",system-ui,sans-serif;padding:6px 9px;border-radius:999px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '.omx-inset{position:absolute;right:10px;bottom:10px;width:58px;height:58px;border-radius:9px;border:2px solid #fff;background:#ccc center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.3)}' +
       '.omx-b{padding:16px 18px 18px;display:flex;flex-direction:column;gap:3px;flex:1}' +
       '.omx-plab{font:500 10px/1.4 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#5d6575}' +
       '.omx-price{font-family:"Playfair Display",Georgia,serif;font-size:1.45rem;font-weight:600;line-height:1.15}' +
@@ -135,7 +139,9 @@
     var ex = it.type === 'ex' && it.exUrl ? '<div class="omx-sub"><a href="' + esc(it.exUrl) + '" style="color:#C2410C;font-weight:600;text-decoration:none">Full listing on the Investor Exchange \u2192</a></div>' : '';
     return '<article class="omx-card" id="' + it.type + '-' + esc(it.key) + '" data-om-ref="' + esc(it.ref) + '">' +
       '<div class="omx-ph"' + photo + (it.cover ? ' data-om-cover="' + esc(it.cover) + '"' : '') + '><span class="omx-tag' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>' +
-      (it.nPhotos > 1 ? '<span class="omx-n">' + it.nPhotos + ' photos</span>' : '') + '</div>' +
+      (it.bimg && it.bname ? '<span class="omx-bn">' + esc(it.bname) + '</span>' : '') +
+      (it.bimg && it.unitPhoto ? '<i class="omx-inset" style="background-image:url(\'' + esc(it.unitPhoto).replace(/'/g, '%27') + '\')" title="This home' + (it.nPhotos > 1 ? ', ' + it.nPhotos + ' photos' : '') + '"></i>'
+        : (it.nPhotos > 1 ? '<span class="omx-n">' + it.nPhotos + ' photos</span>' : '')) + '</div>' +
       '<div class="omx-b">' +
       (it.price ? '<div class="omx-plab">' + esc(it.plab) + '</div><div class="omx-price">' + money(it.price) + '</div>' : '') +
       (it.type === 'ex' ? '<div class="omx-fp" data-om-fprice="' + esc(it.key) + '" data-om-fstyle="card" hidden></div>' : '') +
