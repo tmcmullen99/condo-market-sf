@@ -125,7 +125,7 @@
         ? '<a class="omx-act pri" href="/building/' + encodeURIComponent(it.building) + '#unit-' + encodeURIComponent(String(it.unit).replace(/^#+/, '')) + '" data-cta="offmarket:mmm-offer">Make an offer \u2192</a>'
         : '<button type="button" class="omx-act pri" data-om-act="tour">Schedule a tour</button>') +
       '<button type="button" class="omx-act" data-om-act="disclosures">Disclosures</button>' +
-      '<button type="button" class="omx-act" data-om-act="comps">Comp Report</button>' +
+      (it.type === 'ex' ? '' : '<button type="button" class="omx-act" data-om-act="comps">Comp Report</button>') +
       (it.type === 'mmm' ? '<button type="button" class="omx-act" data-om-act="tour">Tour</button>' : '') +
       '<button type="button" class="omx-act" data-om-act="question">Ask ' + esc(agentFirst()) + '</button>' +
       '</div>';
@@ -138,6 +138,7 @@
       (it.nPhotos > 1 ? '<span class="omx-n">' + it.nPhotos + ' photos</span>' : '') + '</div>' +
       '<div class="omx-b">' +
       (it.price ? '<div class="omx-plab">' + esc(it.plab) + '</div><div class="omx-price">' + money(it.price) + '</div>' : '') +
+      (it.type === 'ex' ? '<div class="omx-fp" data-om-fprice="' + esc(it.key) + '" data-om-fstyle="card" hidden></div>' : '') +
       '<div class="omx-addr">' + esc(it.title) + '</div>' +
       (it.spec ? '<div class="omx-sub">' + esc(it.spec) + '</div>' : '') +
       (it.sub ? '<div class="omx-sub">' + esc(it.sub) + '</div>' : '') +
@@ -203,13 +204,14 @@
     }
     css();
     kind = KIND[kind] ? kind : 'tour';
+    if (it.type === 'ex' && kind === 'comps') kind = 'question';
     track('offmarket:sheet-' + kind, { ref_type: it.type });
     var v = document.createElement('div'); v.className = 'omx-veil';
     v.innerHTML = '<div class="omx-sheet" role="dialog" aria-modal="true" aria-labelledby="omxH">' +
       '<button type="button" class="omx-x" aria-label="Close">\u00d7</button>' +
       '<div class="omx-k">' + TYPE[it.type] + ' \u00b7 ' + esc(it.title) + '</div>' +
       '<h3 class="omx-h" id="omxH"></h3>' +
-      '<div class="omx-kinds">' + Object.keys(KIND).map(function (k) { return '<button type="button" class="omx-kind" data-k="' + k + '">' + KIND[k].b + '</button>'; }).join('') + '</div>' +
+      '<div class="omx-kinds">' + Object.keys(KIND).filter(function (k) { return !(it.type === 'ex' && k === 'comps'); }).map(function (k) { return '<button type="button" class="omx-kind" data-k="' + k + '">' + KIND[k].b + '</button>'; }).join('') + '</div>' +
       '<p class="omx-what"></p>' +
       '<form class="omx-f"><div class="omx-times"><label for="omxT">Times that work</label><input id="omxT" name="times" maxlength="300" placeholder="e.g. Saturday morning, or weekday evenings"></div>' +
       '<label for="omxN" class="omx-nl"></label><textarea id="omxN" name="note" maxlength="1000"></textarea>' +
@@ -293,6 +295,30 @@
   function publish() {
     try { window.dispatchEvent(new CustomEvent('om-member', { detail: S.member })); } catch (e) {}
     mountAll();
+    fillPrices();
+  }
+  /* Featured Exchange listings: the asking price comes from the city platform, for a member only
+     (offmarket-featured checks the session). Filled into every [data-om-fprice="<token>"]. */
+  function fillPrices() {
+    if (!S.member || !document.querySelector('[data-om-fprice]')) return;
+    var go = function (list) {
+      (list || []).forEach(function (x) {
+        if (x.price == null) return;
+        document.querySelectorAll('[data-om-fprice="' + x.token + '"]').forEach(function (el) {
+          el.hidden = false;
+          el.innerHTML = el.getAttribute('data-om-fstyle') === 'card'
+            ? '<div class="omx-plab">Asking</div><div class="omx-price">' + money(x.price) + '</div>' + (x.rent ? '<div class="omx-sub">Rent ' + money(Math.round(x.rent)) + '/mo, tenant in place</div>' : '')
+            : '<b>' + money(x.price) + '</b>' + (x.rent ? ' <span class="omf-rent">\u00b7 rent ' + money(Math.round(x.rent)) + '/mo</span>' : '');
+        });
+      });
+    };
+    if (S.feat) { go(S.feat); return; }
+    whenCM(function (CM) {
+      CM.client.functions.invoke('offmarket-featured', { body: { domain: DOMAIN } }).then(function (r) {
+        if (r.error || !r.data || !r.data.ok) { console.warn('[cm-offmarket] featured price', (r.error && r.error.message) || (r.data && r.data.error)); return; }
+        S.feat = r.data.listings || []; go(S.feat);
+      }, function (e) { console.warn('[cm-offmarket] featured price', e); });
+    });
   }
 
   /* --------------------------------- mounts ---------------------------------- */
@@ -359,7 +385,7 @@
         var items = (d.listings || []).map(function (x) { return norm('ex', x); });
         if (n) n.textContent = items.length;
         if (!items.length) { box.innerHTML = '<div class="omx-empty">Nothing on the Exchange right now.</div>'; return; }
-        box.className = 'omx-grid'; render(box, items);
+        box.className = 'omx-grid'; render(box, items); fillPrices();
       });
   }
 
@@ -371,6 +397,12 @@
     e.preventDefault();
     if (S.member) { var t = b.getAttribute('data-om-signup'); var el = t && document.getElementById('cs-' + t); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     signup(b.getAttribute('data-om-signup') || null);
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-om-act]'); if (!b) return;
+    var host = b.closest('[data-om-item]'); if (!host) return;
+    var it; try { it = JSON.parse(host.getAttribute('data-om-item')); } catch (x) { return; }
+    e.preventDefault(); act(it, b.getAttribute('data-om-act'));
   });
   window.addEventListener('cm-auth-change', function (e) { load(e.detail && e.detail.session); });
   whenCM(function (CM) {
