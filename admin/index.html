@@ -159,6 +159,7 @@ a{color:inherit;text-decoration:none}
       <div class="nav-sub">
         <div class="sub-item" data-route="email/dashboard"><span class="sub-dot"></span>Dashboard</div>
         <div class="sub-item" data-route="email/queue"><span class="sub-dot"></span>Queue</div>
+        <div class="sub-item" data-route="email/approvals"><span class="sub-dot"></span>Approvals</div>
       </div>
     </div>
     <div class="nav-section" data-section="buyers">
@@ -279,11 +280,11 @@ function handleHashChange() {
   if (topEl) { topEl.classList.add('open'); topEl.querySelector('[data-route]').classList.add('active'); }
   if (subSection) { const subEl = document.querySelector(`[data-route="${topSection}/${subSection}"]`); if (subEl) subEl.classList.add('active'); }
  const sectionName = { dashboard:'Dashboard', approvals:'Approvals', analytics:'Analytics', platform:'Platform', listings:'Listings', email:'Email', buyers:'Buyers', partnerships:'Partnerships', acquisition:'Acquisition', ops:'Operations' }[topSection] || 'Admin';
-  const subLabels = { 'analytics/overview':'Overview', 'analytics/funnel':'Signup funnel', 'analytics/pages':'Pages & CTAs', 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'platform/overview':'Overview', 'platform/leads':'Hot leads', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
+  const subLabels = { 'analytics/overview':'Overview', 'analytics/funnel':'Signup funnel', 'analytics/pages':'Pages & CTAs', 'listings/pipeline':'Pipeline', 'listings/owners':'Owners', 'listings/clients':'Clients', 'listings/active':'Active deals', 'listings/events':'Funnel events', 'email/dashboard':'Dashboard', 'email/queue':'Queue', 'email/approvals':'Approvals', 'platform/overview':'Overview', 'platform/leads':'Hot leads', 'buyers/pool':'Pool', 'buyers/watchlists':'Watchlists', 'buyers/offers':'Offers', 'buyers/appointments':'Appointments', 'partnerships/pipeline':'Pipeline', 'partnerships/buildings':'Building outreach', 'partnerships/petitions':'Petitions', 'partnerships/events':'Events', 'acquisition/campaigns':'Campaigns', 'acquisition/just-sold':'Just-sold', 'acquisition/reputation':'Reputation', 'ops/tasks':'Tasks', 'ops/automation':'Automation', 'ops/config':'System config', 'ops/claude':'Claude log' };
   const subName = subSection ? subLabels[`${topSection}/${subSection}`] : null;
   document.getElementById('crumbs').innerHTML = subName ? `<span>${sectionName}</span><span class="sep">/</span><span class="current">${subName}</span>` : `<span class="current">${sectionName}</span>`;
   document.getElementById('content').innerHTML = '<div class="empty">Loading…</div>';
-  const renderers = { 'dashboard':renderDashboard, 'approvals':renderApprovals, 'analytics':()=>{location.hash='#analytics/overview'}, 'analytics/overview':renderAnalyticsOverview, 'analytics/funnel':renderAnalyticsFunnel, 'analytics/pages':renderAnalyticsPages, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
+  const renderers = { 'dashboard':renderDashboard, 'approvals':renderApprovals, 'analytics':()=>{location.hash='#analytics/overview'}, 'analytics/overview':renderAnalyticsOverview, 'analytics/funnel':renderAnalyticsFunnel, 'analytics/pages':renderAnalyticsPages, 'listings':()=>{location.hash='#listings/pipeline'}, 'listings/pipeline':renderListingsPipeline, 'listings/owners':renderListingsOwners, 'listings/clients':renderClients, 'listings/active':renderListingsActive, 'listings/events':renderListingsEvents, 'email':()=>{location.hash='#email/dashboard'}, 'email/dashboard':renderEmailDashboard, 'email/queue':renderEmailQueue, 'email/approvals':renderEmailApprovals, 'platform':()=>{location.hash='#platform/overview'}, 'platform/overview':renderPlatformOverview, 'platform/leads':renderPlatformLeads, 'buyers':()=>{location.hash='#buyers/pool'}, 'buyers/pool':renderBuyersPool, 'buyers/watchlists':renderBuyersWatchlists, 'buyers/offers':renderBuyersOffers, 'buyers/appointments':renderBuyersAppointments, 'partnerships':()=>{location.hash='#partnerships/pipeline'}, 'partnerships/pipeline':renderPartnersPipeline, 'partnerships/buildings':renderPartnersBuildings, 'partnerships/petitions':renderPartnersPetitions, 'partnerships/events':renderPartnersEvents, 'acquisition':()=>{location.hash='#acquisition/campaigns'}, 'acquisition/campaigns':renderAcqCampaigns, 'acquisition/just-sold':renderAcqJustSold, 'acquisition/reputation':renderAcqReputation, 'ops':()=>{location.hash='#ops/tasks'}, 'ops/tasks':renderOpsTasks, 'ops/automation':renderOpsAutomation, 'ops/config':renderOpsConfig, 'ops/claude':renderOpsClaude };
   (renderers[hash] || renderers['dashboard'])();
 }
 
@@ -296,7 +297,8 @@ const actionTypeMeta = {
   mmm_no_listing:     { icon:'💰', label:'MMM' },
   campaign_due:       { icon:'📨', label:'Campaign' },
   partner_action_due: { icon:'🤝', label:'Partner' },
-  new_account:        { icon:'✨', label:'Signup' }
+  new_account:        { icon:'✨', label:'Signup' },
+  email_approval:     { icon:'✉️', label:'Email' }
 };
 
 // Cache of building display_name (lowercased) → slug, so a lead's building NAME
@@ -2380,6 +2382,118 @@ function renderQueueCard(c) {
     <div class="row-actions"><div class="age">${escapeHtml(whenStr)}</div><div class="action-row"><a href="/admin/campaigns.html" class="btn primary">Fire (legacy) →</a></div></div>
   </div>`;
 }
+
+// ---------- EMAIL · APPROVALS (the docket) ----------
+// Every pending_email_notifications row in awaiting_approval, except the just-sold
+// family, which has its own page. Approve → status pending; "send now" also runs
+// process_pending_notifications so the email leaves within a minute instead of at
+// the next :00/:30. Discard → skipped ("discarded in admin"); watch_welcome_run
+// then marks that watcher stopped.
+window._cmEmailApprovals = window._cmEmailApprovals || [];
+async function renderEmailApprovals() {
+  document.getElementById('content').innerHTML = `
+    <div class="section-head">
+      <div class="eyebrow" style="margin-bottom:6px">Email · Approvals</div>
+      <h1>Emails waiting for your approval</h1>
+      <div class="desc">Welcome, onboarding and other one-to-one emails staged by the platform. Preview each one, then approve or discard. Everything goes out from <strong>tim@sanfranciscocondomarket.com</strong>. Auto-refreshes every 60 seconds.</div>
+    </div>
+    <div class="filters">
+      <button class="btn success" id="ea-approve-all">Approve all &amp; send now</button>
+      <button class="btn" id="ea-refresh">Refresh</button>
+      <div class="filter-spacer"></div><div class="filter-meta" id="ea-count">—</div>
+    </div>
+    <div id="ea-list"><div class="empty">Loading…</div></div>`;
+  document.getElementById('ea-refresh').addEventListener('click', loadEmailApprovals);
+  document.getElementById('ea-approve-all').addEventListener('click', async () => {
+    const ids = (window._cmEmailApprovals || []).map(x => x.id);
+    if (!ids.length) return toast('Nothing waiting.', 'info');
+    if (!confirm(`Approve and send ${ids.length} email${ids.length === 1 ? '' : 's'} now?`)) return;
+    await decideEmails(ids, 'approve', true);
+  });
+  await loadEmailApprovals();
+  sectionRefreshTimer = setInterval(loadEmailApprovals, 60000);
+}
+
+async function loadEmailApprovals() {
+  const list = document.getElementById('ea-list');
+  if (!list) return;
+  const { data, error } = await sb.rpc('email_approvals_list');
+  if (error) { list.innerHTML = `<div class="empty">Could not load approvals: ${escapeHtml(error.message)}</div>`; return; }
+  const items = (data && Array.isArray(data.items)) ? data.items : [];
+  window._cmEmailApprovals = items;
+  const js = (data && data.just_sold_awaiting) || 0;
+  document.getElementById('ea-count').textContent = `${items.length} waiting${js ? ` · ${js} just-sold rows on their own page` : ''}`;
+  const jsNote = js ? `<div style="margin-bottom:12px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:rgba(232,227,216,0.55)">${js} just-sold notification${js===1?'':'s'} are staged separately — review them at <a href="/admin/just-sold.html" style="color:var(--gold);text-decoration:underline">Just-Sold Pipeline</a>.</div>` : '';
+  if (!items.length) { list.innerHTML = jsNote + '<div class="empty">Nothing waiting for approval.</div>'; setUpdated(); return; }
+  list.innerHTML = jsNote + `<div class="row-list">${items.map(renderEmailApprovalRow).join('')}</div>`;
+  setUpdated();
+}
+
+function renderEmailApprovalRow(it) {
+  const bldgs = Array.isArray(it.buildings) && it.buildings.length ? it.buildings.join(', ') : (it.building_name || '');
+  const kind = it.template_name || it.template_slug || 'Email';
+  const stepStr = it.step ? ` · step ${escapeHtml(it.step)}${it.track ? ' · ' + escapeHtml(it.track) : ''}` : '';
+  const srcStr = it.trigger_source ? ` · ${escapeHtml(it.trigger_source)}` : '';
+  const pre = it.preheader ? `<div class="details" style="margin-top:4px"><span>${escapeHtml(it.preheader)}</span></div>` : '';
+  return `<div class="row pending" data-ea-id="${escapeHtml(it.id)}">
+    <div class="row-badge"><div class="row-badge-icon">✉️</div><div class="row-badge-text" style="color:var(--warn)">${escapeHtml(kind)}</div></div>
+    <div class="row-main">
+      <h3>${escapeHtml(it.subject || '(no subject)')}<span class="meta">→ ${escapeHtml(it.email)}</span></h3>
+      <div class="sub">${escapeHtml(it.template_slug || '')}${srcStr}${stepStr}${bldgs ? ' · ' + escapeHtml(bldgs) : ''} · from ${escapeHtml(it.from_address || '—')}</div>
+      ${pre}
+      <div class="ea-preview" style="display:none;margin-top:12px;border:1px solid rgba(232,227,216,0.14);border-radius:10px;overflow:hidden;background:#f4f1ea"></div>
+    </div>
+    <div class="row-actions"><div class="age">staged ${fmtAge(it.created_at)}</div>
+      <div class="action-row">
+        <button type="button" class="btn" data-ea-act="preview">Preview</button>
+        <button type="button" class="btn success" data-ea-act="approve">Approve &amp; send now</button>
+        <button type="button" class="btn danger" data-ea-act="discard">Discard</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function decideEmails(ids, action, sendNow) {
+  const { data, error } = await sb.rpc('email_approval_decide', { p_ids: ids, p_action: action, p_send_now: !!sendNow });
+  if (error) return toast(`${action} failed: ${error.message}`, 'error');
+  const n = (data && data.rows) || 0;
+  const disp = data && data.pipeline && typeof data.pipeline.rows_dispatched === 'number' ? data.pipeline.rows_dispatched : null;
+  toast(action === 'approve'
+    ? `Approved ${n} · ${disp === null ? 'queued' : disp + ' handed to Resend'}${disp !== null && disp < n ? ' (the rest wait on the send gates)' : ''}`
+    : `Discarded ${n}`, action === 'approve' ? 'success' : 'info');
+  await loadEmailApprovals();
+  loadActionQueue();
+}
+
+document.addEventListener('click', async function(e) {
+  const btn = e.target.closest('[data-ea-act]');
+  if (!btn) return;
+  const row = btn.closest('[data-ea-id]');
+  if (!row) return;
+  const id = row.getAttribute('data-ea-id');
+  const act = btn.getAttribute('data-ea-act');
+  if (act === 'preview') {
+    const box = row.querySelector('.ea-preview');
+    const it = (window._cmEmailApprovals || []).find(x => x.id === id);
+    if (!it) return;
+    if (box.style.display === 'none') {
+      if (!box.firstChild) {
+        const f = document.createElement('iframe');
+        f.setAttribute('sandbox', '');
+        f.style.cssText = 'width:100%;height:760px;border:0;background:#f4f1ea';
+        f.srcdoc = it.html || '<p style="font-family:sans-serif;padding:20px">No preview available.</p>';
+        box.appendChild(f);
+      }
+      box.style.display = 'block'; btn.textContent = 'Hide preview';
+    } else { box.style.display = 'none'; btn.textContent = 'Preview'; }
+    return;
+  }
+  if (act === 'approve') { btn.disabled = true; await decideEmails([id], 'approve', true); return; }
+  if (act === 'discard') {
+    if (!confirm('Discard this email? It will not be sent and will not be re-staged.')) return;
+    btn.disabled = true; await decideEmails([id], 'discard', false);
+  }
+});
   // ---------- PLATFORM · OVERVIEW ----------
 async function renderPlatformOverview() {
   document.getElementById('content').innerHTML = `
