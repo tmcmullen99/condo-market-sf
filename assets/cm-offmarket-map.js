@@ -52,8 +52,23 @@
     });
     return m;
   }
+  /* The panel can be closed to see the whole map (Tim, 16 Oct 2026); a pin, a tab or "Show the list" opens it again. */
+  var grid = panel.closest('.mact-grid'), reopen = document.querySelector('[data-om-open]'), aside = panel.closest('.mact-side');
+  function openPanel() { if (grid) grid.classList.remove('om-closed'); if (reopen) reopen.hidden = true; }
+  function closePanel() {
+    if (grid) grid.classList.add('om-closed'); if (reopen) reopen.hidden = false;
+    if (ON) { ON.classList.remove('on'); ON = null; }
+    track('offmarket:panel-close');
+  }
+  panel.addEventListener('click', function (ev) { if (ev.target.closest('[data-om-close]')) { ev.preventDefault(); closePanel(); } });
+  if (reopen) reopen.addEventListener('click', function () { openPanel(); pane(cur || 'cs'); track('offmarket:panel-open'); });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && grid && !grid.classList.contains('om-closed') && !document.querySelector('.omx-veil') && document.activeElement && panel.contains(document.activeElement)) closePanel();
+  });
   function pane(name) {
+    openPanel();
     panel.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.getAttribute('data-pane') !== name; });
+    if (aside) aside.scrollTop = 0;
     if (ON && name !== 'item') { ON.classList.remove('on'); ON = null; }
   }
   function fit(group) {

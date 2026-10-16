@@ -589,7 +589,7 @@ function cityTail(scripts) {
    signed listing agreement) are pinned on every layer and carded in the panel.
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
-const OM_VER = '3';
+const OM_VER = '4';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -632,7 +632,16 @@ function renderOffMarket(payload) {
     '.omt-tab i.cs{background:#12151d;border:2px solid #C2410C}.omt-tab i.ex{background:#fff;border:2px solid #C2410C}.omt-tab i.mm{background:#fff;border:2px solid #12151d}.omt-tab i.b{width:10px;background:#5d6575}' +
     '.omt-tab.on i.cs{border-color:#f28c63}.omt-tab.on i.mm{border-color:#fff}' +
     '.om-top #cbmap{height:clamp(420px,calc(100vh - 290px),640px)}' +
-    '.om-top .mact-side{width:min(370px,42%)}' +
+    /* the panel sits inside the map and scrolls inside it; an X closes it to show the whole map (Tim, 16 Oct 2026) */
+    '.om-top .mact-side{top:12px;right:12px;width:min(340px,40%);max-height:calc(100% - 24px);overflow:auto;border-radius:14px;scrollbar-width:thin}' +
+    '.om-top .mact-card{position:relative;padding:18px 18px 16px;border-radius:14px;background:#fff}' +
+    '.om-top .mact-h{font-size:1.15rem;line-height:1.25;margin-top:6px;padding-right:28px}.om-top .mact-lede{font-size:.84rem;margin-top:6px}' +
+    '.om-top .act-k{padding-right:34px}' +
+    '.om-x{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;border:0;background:#f1f3f6;color:#1a1f2e;font-size:19px;line-height:30px;text-align:center;cursor:pointer;z-index:3;padding:0}' +
+    '.om-x:hover{background:#12151d;color:#fff}' +
+    '.om-closed .mact-side{display:none!important}' +
+    '.om-reopen{position:absolute;top:12px;right:12px;z-index:1000;appearance:none;border:0;background:#12151d;color:#fff;font:600 .84rem "DM Sans",system-ui,sans-serif;padding:9px 14px;border-radius:999px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25)}' +
+    '.om-reopen[hidden]{display:none}.om-reopen:hover{background:#C2410C}' +
     '.om-pane[hidden]{display:none}' +
     '.om-pane .mact-lede b{color:var(--ink)}' +
     '.om-find{display:flex;gap:8px;margin-top:14px}.om-find input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}' +
@@ -644,7 +653,12 @@ function renderOffMarket(payload) {
     '.om-pin.cs{background:#12151d;color:#fff;border:2px solid #C2410C}.om-pin.mm{background:#fff;color:#12151d;border:2px solid #12151d}' +
     '.om-pin.ex{background:#fff;color:#9a360c;border:2px solid #C2410C}.om-pin.ft{background:#C2410C;color:#fff;border:2px solid #fff;font-size:10.5px;padding:6px 9px;box-shadow:0 4px 14px rgba(194,65,12,.45)}' +
     '.om-pin.on{background:#C2410C;border-color:#fff;color:#fff}' +
-    '.om-sc-ph{height:150px;border-radius:12px;background:#e8ebf1 center/cover no-repeat;margin:10px 0 4px}' +
+    '.om-sc-ph{height:120px;border-radius:12px;background:#e8ebf1 center/cover no-repeat;margin:10px 0 4px}' +
+    /* the featured card, compact inside the map panel */
+    '.omf-c{display:grid;grid-template-columns:96px minmax(0,1fr);margin-top:14px}' +
+    '.omf-c .omf-ph{height:auto;min-height:118px}.omf-c .omf-badge{left:6px;top:6px;font-size:8.5px;padding:4px 6px}.omf-c .omf-n,.omf-c .omf-up{display:none}' +
+    '.omf-c .omf-b{padding:10px 12px 12px}.omf-c .omf-t{font-size:1rem;margin:2px 0}.omf-c .omf-s{font-size:.78rem}.omf-c .omf-p{font-size:.84rem;margin-top:4px}.omf-c .omf-p b{font-size:1.05rem}' +
+    '.omf-c .omf-acts{margin-top:8px;gap:5px}.omf-c .omf-go,.omf-c .omf-btn{padding:6px 10px;font-size:11.5px}' +
     '.om-sc-blur{filter:blur(5px);user-select:none}.mact-card .om-sc-note{font-size:.8rem;color:var(--slate);margin-top:10px;line-height:1.5}' +
     '#omPanel .act-k{color:#9a360c}#omPanel .mact-prop{border-color:rgba(194,65,12,.28);background:rgba(194,65,12,.05)}' +
     /* the featured listing card */
@@ -670,12 +684,12 @@ function renderOffMarket(payload) {
     '.om-open{appearance:none;border:1px solid #C2410C;background:#C2410C;color:#fff;font:600 .82rem "DM Sans",system-ui,sans-serif;padding:8px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}' +
     '.om-open:hover{background:#9a360c;border-color:#9a360c}' +
     '.om-empty{grid-column:1/-1}.om-empty .om-sp{line-height:1.6;margin-top:8px}' +
-    '.om-below{padding-top:64px!important}' +
-    '@media(max-width:900px){.om-top{padding-top:84px!important}.om-top .mact-side{width:auto}.om-top #cbmap{height:400px}}' +
+    '.om-below{padding-top:64px!important}.om-more{margin:16px 0 0;text-align:center}.om-more a{color:#f28c63;font-weight:600;text-decoration:none}' +
+    '@media(max-width:900px){.om-top{padding-top:84px!important}.om-top .mact-side{width:auto;max-height:none;overflow:visible;top:auto;right:auto}.om-top #cbmap{height:400px}.om-reopen{top:10px;right:10px}}' +
     '</style>\n';
 
   /* ---- the featured listing card (premium distribution + a signed listing agreement, from the city platform) ---- */
-  const featCard = (f) => {
+  const featCard = (f, compact) => {
     const b = f.building || {};
     const hood = (bySlug[b.slug] && bySlug[b.slug].h) || '';
     const spec = omSpec({ bd: f.beds, ba: f.baths, sf: f.sqft }) + (f.hoa_fee_monthly ? ' · HOA $' + num(Math.round(f.hoa_fee_monthly)) + '/mo' : '');
@@ -683,25 +697,26 @@ function renderOffMarket(payload) {
     const item = { type: 'ex', ref: 'ex:' + f.token, key: f.token, title: f.street || f.address, building: b.slug || null, bname: b.name || null };
     /* The building's hero photo shows at once; the listing's own cover (private bucket, signed in the page) replaces it. */
     const bImg = bySlug[b.slug] && bySlug[b.slug].img;
-    return '<div class="omf" data-om-feat="' + cityEsc(f.token) + '" data-om-item="' + cityEsc(JSON.stringify(item)) + '">' +
+    return '<div class="omf' + (compact ? ' omf-c' : '') + '" data-om-feat="' + cityEsc(f.token) + '" data-om-item="' + cityEsc(JSON.stringify(item)) + '">' +
       '<div class="omf-ph"' + (bImg ? ' style="background-image:url(\'' + cityEsc(bImg).replace(/'/g, '%27') + '\')"' : '') +
       (f.photos && f.photos[0] ? ' data-om-cover="' + cityEsc(f.photos[0]) + '"' : '') + '><span class="omf-badge">Featured</span>' +
       (f.photo_count > 1 ? '<span class="omf-n">' + num(f.photo_count) + ' photos</span>' : '') + '</div>' +
-      '<div class="omf-b"><div class="omf-k">Investor Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '') + '</div>' +
+      '<div class="omf-b"><div class="omf-k">' + (compact ? 'Featured &middot; Exchange' : 'Investor Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '')) + '</div>' +
       '<div class="omf-t">' + cityEsc(f.street || f.address) + '</div>' +
       '<div class="omf-s">' + cityEsc(spec) + '</div>' +
-      (lease ? '<div class="omf-s">' + cityEsc(lease) + '</div>' : '') +
+      (lease && !compact ? '<div class="omf-s">' + cityEsc(lease) + '</div>' : '') +
       '<div class="omf-p">Asking <span data-om-fprice="' + cityEsc(f.token) + '"><span class="omf-lock">&middot; price for members</span></span></div>' +
       '<div class="omf-acts">' +
-      '<button type="button" class="omf-go" data-om-anon data-om-signup="" data-cta="offmarket:featured-signup">See the price free &rarr;</button>' +
-      '<button type="button" class="omf-go" data-om-mem hidden data-om-act="tour" data-cta="offmarket:featured-tour">Schedule a tour</button>' +
+      '<button type="button" class="omf-go" data-om-anon data-om-signup="" data-cta="offmarket:featured-signup">' + (compact ? 'See the price' : 'See the price free') + ' &rarr;</button>' +
+      '<button type="button" class="omf-go" data-om-mem hidden data-om-act="tour" data-cta="offmarket:featured-tour">' + (compact ? 'Tour' : 'Schedule a tour') + '</button>' +
       '<button type="button" class="omf-btn" data-om-mem hidden data-om-act="disclosures" data-cta="offmarket:featured-disclosures">Disclosures</button>' +
-      (f.url ? '<a class="omf-btn" href="' + cityEsc(f.url) + '" data-cta="offmarket:featured-listing">Full listing &rarr;</a>' : '') +
+      (f.url ? '<a class="omf-btn" href="' + cityEsc(f.url) + '" data-cta="offmarket:featured-listing">' + (compact ? 'Listing' : 'Full listing') + ' &rarr;</a>' : '') +
       '</div>' +
       (b.slug ? '<a class="omf-up" href="/building/' + cityEsc(b.slug) + '#dossier" data-cta="offmarket:featured-any-unit">Every unit in ' + cityEsc(b.name || 'the building') + ', and an offer on any &rarr;</a>' : '') +
       '</div></div>';
   };
-  const featHtml = feat.map(featCard).join('');
+  const featHtml = feat.map((f) => featCard(f, false)).join('');
+  const featMini = feat.map((f) => featCard(f, true)).join('');
 
   /* ---- first fold: the map, on Coming soon ---- */
   const tab = (k, label, n, on) => '<button type="button" role="tab" class="omt-tab' + (on ? ' on' : '') + '" aria-selected="' + (on ? 'true' : 'false') + '" data-om-layer="' + k + '">' +
@@ -715,22 +730,24 @@ function renderOffMarket(payload) {
     '</div>\n' +
     '    <div class="omap-frame"><div class="mact-grid">\n' +
     '      <div class="mact-map"><div id="cbmap" role="region" aria-label="Map of off-market and coming-soon condos"></div>\n' +
-    '        <p class="map-note">Building locations from public records. Coming-soon pins sit near the home until you sign in &mdash; see <a href="/methodology/">methodology</a>.</p></div>\n' +
+    '        <p class="map-note">Building locations from public records. Coming-soon pins sit near the home until you sign in &mdash; see <a href="/methodology/">methodology</a>.</p>' +
+    '<button type="button" class="om-reopen" data-om-open hidden aria-controls="omPanel">Show the list</button></div>\n' +
     '      <aside class="mact-side"><div class="mact-card" id="omPanel">\n' +
+    '        <button type="button" class="om-x" data-om-close aria-label="Close this panel and see the whole map" title="See the whole map">&times;</button>\n' +
     /* coming soon */
     '        <div class="om-pane" data-pane="cs">' +
     (csN
       ? '<div class="act-k">Coming soon &middot; ' + num(csN) + '</div><h3 class="mact-h">Before the listing sites</h3>' +
         '<p class="mact-lede">Entered on the MLS as coming soon. Click a pin: the neighbourhood and size are open, the address, price and photos open with a free account.</p>' +
-        '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-cs" style="margin-top:12px;width:100%">Create a free account to see them &rarr;</button>' +
+        '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-cs" style="margin-top:12px;width:100%">See them free &rarr;</button>' +
         '<div id="omCsList"></div>'
       : '<div class="act-k">Coming soon</div><h3 class="mact-h">No coming-soon condos right now</h3>' +
         '<p class="mact-lede">New ones appear here first, as soon as they are entered as coming soon on the MLS. The list is checked twice a day.</p><div id="omCsList"></div>') +
-    featHtml + '</div>\n' +
+    featMini + '</div>\n' +
     /* the exchange */
     '        <div class="om-pane" data-pane="ex" hidden><div class="act-k">Investor Exchange &middot; ' + num(exN) + '</div>' +
     '<h3 class="mact-h">Offered privately, to investors</h3><p class="mact-lede">Investor-owned condos for sale without a public listing, often with the tenant in place.</p>' +
-    featHtml +
+    featMini +
     (exN > feat.length ? '<a class="mp-rec" href="/account/off-market/#investor-exchange" data-cta="offmarket:pane-ex-more">' + num(exN - feat.length) + ' more on the Exchange, for members &rarr;</a>' : '') +
     '</div>\n' +
     /* owners' numbers */
@@ -765,7 +782,9 @@ function renderOffMarket(payload) {
     '<div class="om-ad">An owner&rsquo;s private number</div><div class="om-sp">Building, unit and price for members</div>' +
     '<div class="om-lock"><span class="om-blur">$&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>' +
     '<button type="button" class="om-open" data-om-signup="" data-cta="offmarket:mmm-card">See it free &rarr;</button></div></div>';
-  const cards = cs.map(csCard).join('') + Array.from({ length: Math.min(mmm, 12) }, () => mmCard).join('');
+  const CS_SHOWN = 12;
+  const cards = cs.slice(0, CS_SHOWN).map(csCard).join('') + Array.from({ length: Math.min(mmm, 12) }, () => mmCard).join('');
+  const csMore = csN > CS_SHOWN ? '<p class="om-more"><a href="#map" data-om-goto="cs">' + num(csN - CS_SHOWN) + ' more coming soon on the map &uarr;</a></p>' : '';
   const emptyCard = '<div class="om-card om-empty"><div class="om-ad">No coming-soon condos right now.</div>' +
     '<p class="om-sp">New ones appear here as soon as they are entered as coming soon on the MLS; the list is checked twice a day.</p></div>';
   const door = (n, label, body) => '      <div class="om-door"><div class="om-door-n">' + num(n) + '</div><div class="om-door-l">' + label + '</div><p class="om-door-b">' + body + '</p></div>\n';
@@ -781,7 +800,7 @@ function renderOffMarket(payload) {
     (featHtml ? '    <div class="om-grid-head"><span class="om-gh-k">Featured</span></div>\n    <div class="om-feat-row reveal">' + featHtml + '</div>\n' : '') +
     '    <div class="om-grid-head"><span class="om-gh-k">Coming soon &middot; owners&rsquo; private numbers</span>' +
     '<a class="om-soon" href="/account/off-market/" data-om-mem hidden>Your off-market list &rarr;</a></div>\n' +
-    '    <div class="om-grid reveal" id="omGrid" data-om-grid>' + (cards || emptyCard) + '</div>\n' +
+    '    <div class="om-grid reveal" id="omGrid" data-om-grid>' + (cards || emptyCard) + '</div>\n' + csMore +
     '    <div class="reveal" style="text-align:center;margin-top:30px">\n' +
     '      <button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:combined-signup">Create a free account to see addresses, prices and photos &rarr;</button>\n' +
     '    </div>\n  </div>\n</section>\n';
@@ -7129,8 +7148,14 @@ function renderBuilding(p) {
   const imgs = Array.isArray(p.images) ? p.images.filter(function (i) { return i && i.url && i.role !== 'og'; }) : [];
   /* ACTIVE LISTINGS in this building (from building_page_payload: active_count, active_listings) */
   let activeSection = '';
-  const activeCount = (p.active_count != null) ? Number(p.active_count) : 0;
-  const activeArr = Array.isArray(p.active_listings) ? p.active_listings : [];
+  /* A listing on the coming-soon list shows once, in the Coming soon section above (Tim, 16 Oct 2026: the
+     coming-soon portals also carry listings the active feeds have). building_coming_soon_public names only
+     those that are live here already. */
+  const csMls = {};
+  (Array.isArray(p.coming_soon) ? p.coming_soon : []).forEach(function (c) { if (c && c.m) csMls[String(c.m).toUpperCase()] = 1; });
+  const activeAll = Array.isArray(p.active_listings) ? p.active_listings : [];
+  const activeArr = activeAll.filter(function (a) { return !csMls[String(a.mls || '').toUpperCase()]; });
+  const activeCount = Math.max(0, ((p.active_count != null) ? Number(p.active_count) : 0) - (activeAll.length - activeArr.length));
   if (activeCount > 0 && activeArr.length) {
     const cards = activeArr.map(function (a) {
       const aMls   = esc(a.mls || '');

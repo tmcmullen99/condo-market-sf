@@ -329,10 +329,16 @@
     document.querySelectorAll('[data-om-mem]').forEach(function (el) { el.hidden = !m; el.style.display = m ? '' : 'none'; });
     document.querySelectorAll('[data-om-grid]').forEach(function (box) {
       if (!m) return;
-      var items = (m.coming_soon || []).map(function (x) { return norm('cs', x); }).concat((m.mmm || []).map(function (x) { return norm('mmm', x); }));
+      /* the newest twelve coming soon here; the rest are on the map and in the member's list */
+      var csAll = m.coming_soon || [], t = new URLSearchParams(location.search).get('cs');
+      var csShow = csAll.slice(0, 12);
+      if (t && !csShow.some(function (x) { return x.t === t; })) { var hit = csAll.filter(function (x) { return x.t === t; })[0]; if (hit) csShow.unshift(hit); }
+      var items = csShow.map(function (x) { return norm('cs', x); }).concat((m.mmm || []).map(function (x) { return norm('mmm', x); }));
       if (!items.length) return;   // the honest empty state the page rendered stays
       render(box, items);
       box.classList.add('omx-grid'); box.classList.remove('om-grid');
+      var more = document.querySelector('.om-more');
+      if (more) more.innerHTML = csAll.length > csShow.length ? '<a href="/account/off-market/#coming-soon">All ' + csAll.length + ' coming soon in your off-market list &rarr;</a>' : '';
       focusDeepLink();
     });
     document.querySelectorAll('[data-om-bcs]').forEach(function (sec) {
