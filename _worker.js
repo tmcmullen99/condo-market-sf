@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '9';
+const OM_VER = '10';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -711,6 +711,7 @@ function renderOffMarket(payload) {
     '.om-pk-tag{position:absolute;left:10px;top:10px;z-index:2;pointer-events:none;background:#12151d;color:#fff;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border-radius:999px}' +
     '.om-pk-tag.cs,.om-pk-tag.ft{background:#C2410C}.om-pk-tag.mmm{background:#fff;color:#12151d}' +
     '.om-pk-b{position:relative;padding:11px 46px 13px 14px}' +
+    '.om-pk-bare .om-pk-b{padding-top:13px}.om-pk-bare .om-pk-tag{position:static;display:inline-block;margin:0 0 8px}' +
     '.om-pk-p{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-family:"Playfair Display",Georgia,serif;font-size:1.5rem;font-weight:600;line-height:1.15;color:#1a1f2e}' +
     '.om-pk-p small{font:500 10px/1.3 "JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:#5d6575}' +
     '.om-pk-lock span{filter:blur(6px);user-select:none}' +

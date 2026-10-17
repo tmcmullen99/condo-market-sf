@@ -93,12 +93,16 @@
     if (sf) bits.push('<b>' + fmt(sf) + '</b> sq ft'); if (extra) bits.push(e(extra));
     return bits.join('<i>|</i>');
   }
+  /* No photo, no photo area (Tim, 17 Oct 2026: "If the coming soon listing is not within one of our buildings OR
+     does not have a hero image, don't show the image section"). The card is then just the facts, with the tag on top. */
   function pk(o) {
     var img = o.img ? ' style="background-image:url(\'' + e(o.img).replace(/'/g, '%27') + '\')"' : '';
-    return '<article class="om-pk" tabindex="0" role="button" aria-label="Open ' + e(o.title) + '">' +
-      '<div class="om-pk-media">' + (o.strip || '<div class="om-pk-ph"' + img + '>' + (o.inset ? '<i style="background-image:url(\'' + e(o.inset).replace(/'/g, '%27') + '\')"></i>' : '') + '</div>') +
-      '<span class="om-pk-tag ' + (o.tagCls || '') + '">' + e(o.tag) + '</span></div>' +
-      '<div class="om-pk-b">' +
+    var tag = '<span class="om-pk-tag ' + (o.tagCls || '') + '">' + e(o.tag) + '</span>';
+    var media = o.strip || o.img
+      ? '<div class="om-pk-media">' + (o.strip || '<div class="om-pk-ph"' + img + '>' + (o.inset ? '<i style="background-image:url(\'' + e(o.inset).replace(/'/g, '%27') + '\')"></i>' : '') + '</div>') + tag + '</div>'
+      : '';
+    return '<article class="om-pk' + (media ? '' : ' om-pk-bare') + '" tabindex="0" role="button" aria-label="Open ' + e(o.title) + '">' + media +
+      '<div class="om-pk-b">' + (media ? '' : tag) +
       (o.price ? '<div class="om-pk-p">' + e(o.price) + (o.plab ? '<small>' + e(o.plab) + '</small>' : '') + '</div>'
                : '<div class="om-pk-p om-pk-lock"><span>$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span><small>' + e(o.lock || 'Price for members') + '</small></div>') +
       (o.spec ? '<div class="om-pk-s">' + o.spec + '</div>' : '') +
@@ -287,7 +291,7 @@
   }
   function memPeek(it) {
     var O = window.OM, strip = O && O.hasStrip && O.hasStrip(it) ? O.strip(it, { panel: true }) : '';
-    return pk({ strip: strip, img: it.building && it.bimg ? it.bimg : it.photo, inset: it.building && it.bimg ? it.unitPhoto : '',
+    return pk({ strip: strip, img: it.building && it.bimg ? it.bimg : (it.type === 'mmm' ? it.photo : it.unitPhoto) || '', inset: it.building && it.bimg ? it.unitPhoto : '',
       tag: it.type === 'cs' ? 'Coming soon' : it.type === 'ex' ? 'Investor Exchange' : 'Owner\u2019s number', tagCls: it.type,
       price: it.price ? money(it.price) : '', plab: it.type === 'mmm' ? 'Owner\u2019s number' : '',
       spec: it.type === 'mmm' ? e(it.spec || '') : specLine(it.bd, it.ba, it.sf) || e(it.spec || ''), title: it.title,
