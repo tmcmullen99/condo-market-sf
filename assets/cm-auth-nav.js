@@ -12,8 +12,8 @@
  *   2. Finds the existing "Sign in" button on the page and wires its click
  *      to open the Condo Market auth modal (signup/sign-in/magic-link).
  *   3. Watches auth state: when the user is signed in, it replaces the
- *      button contents with "Hi, [FirstName]" and shows a tiny dropdown
- *      with Sign out + admin link (if applicable).
+ *      button with "Hi, [FirstName]" and an account menu (who is signed in,
+ *      buildings, dashboard, off-market list, Admin for agents, Sign out).
  *   4. Handles a stray magic-link token if it lands on this page.
  *
  * How it finds the Sign in button (priority order):
@@ -35,30 +35,96 @@ window.CM = CM;
 
 // ---- Styles (scoped under .cm-nav-*) -------------------------------------
 const CSS = `
+  /* Account menu (Tim, 17 Oct 2026: "Redesign drop down menu UI from building
+     pages"). The menu is inserted where the Sign in button was, so it inherits
+     whatever nav it lands in: on the building pages that is .nav-meta, whose
+     link rule (cream at 64%, uppercase mono) made every link but Sign out
+     near-invisible on the old white card. Everything below is scoped to the
+     menu's id, so a page's link rules can't reach it, and every property a nav
+     might set is stated rather than inherited. */
   .cm-nav-user-wrap { position: relative; display: inline-block; }
-  .cm-nav-user-menu {
-    position: absolute; top: calc(100% + 6px); right: 0;
-    background: #fff; color: #1a1f2e; min-width: 200px;
-    border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
-    padding: 6px 0; font-family: 'DM Sans', system-ui, sans-serif;
-    font-size: 14px; z-index: 9999; display: none;
-    border: 1px solid rgba(26, 31, 46, 0.08);
+  .cm-nav-user-wrap > .cm-acct-btn.cm-acct-btn { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+  .cm-acct-chev { width: 9px; height: 9px; flex: 0 0 auto; transition: transform .18s ease; }
+  .cm-acct-btn[aria-expanded="true"] .cm-acct-chev { transform: rotate(180deg); }
+  #cm-acct-menu, #cm-acct-menu * { box-sizing: border-box; text-transform: none; letter-spacing: normal; }
+  #cm-acct-menu {
+    position: absolute; top: calc(100% + 12px); right: 0; z-index: 9999;
+    width: 308px; max-width: calc(100vw - 24px); padding: 6px;
+    background: #161a24; color: #ece7db; text-align: left;
+    border: 1px solid rgba(236, 231, 219, 0.12); border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(10, 13, 18, 0.42), 0 2px 8px rgba(10, 13, 18, 0.25);
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.35;
+    white-space: normal; visibility: hidden; opacity: 0; transform: translateY(-6px);
+    transition: opacity .16s ease, transform .16s ease, visibility 0s linear .16s;
   }
-  .cm-nav-user-menu.cm-open { display: block; }
-  .cm-nav-user-menu-item {
-    display: block; width: 100%; padding: 9px 16px;
-    background: transparent; border: none; text-align: left;
-    font-family: inherit; font-size: 14px; color: #1a1f2e;
-    cursor: pointer; text-decoration: none;
+  #cm-acct-menu.cm-open { visibility: visible; opacity: 1; transform: none; transition: opacity .16s ease, transform .16s ease; }
+  #cm-acct-menu::before {
+    content: ''; position: absolute; top: -6px; right: var(--cm-caret, 26px); width: 11px; height: 11px;
+    background: #161a24; transform: rotate(45deg);
+    border-left: 1px solid rgba(236, 231, 219, 0.12); border-top: 1px solid rgba(236, 231, 219, 0.12);
   }
-  .cm-nav-user-menu-item:hover { background: #f4f0e8; }
-  .cm-nav-user-menu-sep {
-    height: 1px; background: rgba(26, 31, 46, 0.08); margin: 4px 0;
+  #cm-acct-menu .cm-acct-id { display: flex; align-items: center; gap: 12px; padding: 12px 12px 14px; }
+  #cm-acct-menu .cm-acct-av {
+    width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #C2410C; color: #fff; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; font-weight: 500;
   }
-  .cm-nav-user-menu-sub {
-    display: block; padding: 9px 16px 10px; font-size: 11px;
-    color: #888; letter-spacing: 0.02em; word-break: break-all;
-    font-family: 'JetBrains Mono', Menlo, monospace;
+  #cm-acct-menu .cm-acct-who { min-width: 0; flex: 1; }
+  #cm-acct-menu .cm-acct-name { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 15px; font-weight: 600; }
+  #cm-acct-menu .cm-acct-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #cm-acct-menu .cm-acct-role {
+    flex: 0 0 auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; font-weight: 500;
+    letter-spacing: .12em; text-transform: uppercase; color: #f28c63;
+    border: 1px solid rgba(242, 140, 99, 0.4); border-radius: 999px; padding: 2px 7px;
+  }
+  #cm-acct-menu .cm-acct-mail {
+    display: block; margin-top: 3px; color: rgba(236, 231, 219, 0.58);
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #cm-acct-menu .cm-acct-sep { height: 1px; background: rgba(236, 231, 219, 0.1); margin: 4px 6px; }
+  #cm-acct-menu .cm-acct-item {
+    display: flex; align-items: center; gap: 12px; width: 100%; margin: 0; padding: 9px 10px;
+    background: transparent; border: 0; border-radius: 11px; cursor: pointer;
+    color: #f3efe6; font: inherit; text-align: left; text-decoration: none; outline: none;
+    transition: background .14s ease;
+  }
+  #cm-acct-menu .cm-acct-item:hover, #cm-acct-menu .cm-acct-item:focus-visible { background: rgba(236, 231, 219, 0.07); color: #fff; }
+  #cm-acct-menu .cm-acct-item:focus-visible { box-shadow: inset 0 0 0 1px rgba(242, 140, 99, 0.55); }
+  #cm-acct-menu .cm-acct-ico {
+    width: 34px; height: 34px; flex: 0 0 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(236, 231, 219, 0.06); color: rgba(236, 231, 219, 0.78);
+    transition: background .14s ease, color .14s ease;
+  }
+  #cm-acct-menu .cm-acct-ico svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  #cm-acct-menu .cm-acct-item:hover .cm-acct-ico, #cm-acct-menu .cm-acct-item:focus-visible .cm-acct-ico { background: rgba(232, 93, 42, 0.16); color: #f28c63; }
+  #cm-acct-menu .cm-acct-txt { display: block; min-width: 0; flex: 1; }
+  #cm-acct-menu .cm-acct-t { display: block; font-size: 14px; font-weight: 500; color: inherit; }
+  #cm-acct-menu .cm-acct-s { display: block; margin-top: 1px; font-size: 12px; color: rgba(236, 231, 219, 0.52); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #cm-acct-menu .cm-acct-go { flex: 0 0 auto; color: #f28c63; opacity: 0; transform: translateX(-4px); transition: opacity .14s ease, transform .14s ease; font-size: 15px; }
+  #cm-acct-menu .cm-acct-item:hover .cm-acct-go, #cm-acct-menu .cm-acct-item:focus-visible .cm-acct-go { opacity: 1; transform: none; }
+  #cm-acct-menu .cm-acct-out { color: rgba(236, 231, 219, 0.72); padding-top: 8px; padding-bottom: 8px; }
+  #cm-acct-menu .cm-acct-out .cm-acct-ico { background: transparent; }
+  #cm-acct-menu .cm-acct-out[disabled] { opacity: .6; cursor: default; }
+  @media (prefers-reduced-motion: reduce) {
+    #cm-acct-menu, #cm-acct-menu.cm-open, .cm-acct-chev, #cm-acct-menu .cm-acct-go { transition: none; }
+  }
+  /* Phones (the building pages' collapsed masthead): the account pill stays
+     beside the burger like the Sign in pill does, instead of hiding with the
+     links. With the burger open, the account rows sit inline at the foot of
+     the same dark panel rather than as a popover inside it. */
+  .masthead-row.cm-nav-collapsed .nav-meta > .cm-nav-user-wrap.cm-nav-user-wrap { display: inline-block; }
+  .masthead-row.cm-nav-collapsed.is-open .nav-meta > .cm-nav-user-wrap.cm-nav-user-wrap { display: block; padding: 6px 8px 10px; }
+  .masthead-row.cm-nav-collapsed.is-open .cm-nav-user-wrap > .cm-acct-btn { display: none !important; }
+  .masthead-row.cm-nav-collapsed.is-open #cm-acct-menu {
+    position: static; width: auto; max-width: none; visibility: visible; opacity: 1; transform: none;
+    background: transparent; border: 0; box-shadow: none; padding: 0; transition: none;
+  }
+  .masthead-row.cm-nav-collapsed.is-open #cm-acct-menu::before { display: none; }
+  @media (max-width: 720px) {
+    #cm-acct-menu { width: min(320px, calc(100vw - 24px)); }
+    #cm-acct-menu .cm-acct-item { padding: 11px 10px; }
   }
   /* Hide signed-out-only elements when the user is authenticated.
      Targets both: (1) any element opting in via .cm-hide-when-signed-in
@@ -153,6 +219,7 @@ function getFirstName(profile, user) {
 }
 
 function restoreSignInButton() {
+  renderedFor = null;
   if (!signInBtn) return;
   if (userMenuWrap && userMenuWrap.parentNode) {
     userMenuWrap.parentNode.replaceChild(signInBtn, userMenuWrap);
@@ -177,65 +244,151 @@ function renderSignedOut() {
   restoreSignInButton();
 }
 
+const ICONS = {
+  buildings: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 9h5a1 1 0 0 1 1 1v11M2.5 21h19M8 8h2M8 12h2M8 16h2M17 13h.01M17 17h.01"/></svg>',
+  dashboard: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="8.5" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.6"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.6"/><rect x="3.5" y="15" width="7" height="5.5" rx="1.6"/></svg>',
+  offmarket: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8 20 3M16.5 6.5l2.5 2.5M14 9l2 2"/></svg>',
+  admin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>',
+  out: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg>'
+};
+const CHEV = '<svg class="cm-acct-chev" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function menuItem(href, icon, title, sub) {
+  return '<a class="cm-acct-item" role="menuitem" href="' + href + '">'
+    + '<span class="cm-acct-ico">' + ICONS[icon] + '</span>'
+    + '<span class="cm-acct-txt"><span class="cm-acct-t">' + title + '</span><span class="cm-acct-s">' + sub + '</span></span>'
+    + '<span class="cm-acct-go" aria-hidden="true">→</span></a>';
+}
+
+/* renderSignedIn runs for getSession() and again for INITIAL_SESSION, often
+   while the first call is still waiting on the profile. The first version built
+   a second menu each time: the one on the page stayed, the variable pointed at a
+   detached copy, so a sign-out from another tab could not restore the button.
+   One menu per user now; a repeat call for the same user is a no-op. */
+let renderedFor = null;
+let docWired = false;
+
 async function renderSignedIn(user) {
   document.body.classList.remove('cm-signed-out');
   document.body.classList.add('cm-signed-in');
-  if (!signInBtn) return;
+  if (!signInBtn || !user) return;
+  if (renderedFor === user.id && (!userMenuWrap || userMenuWrap.isConnected)) return;
+  renderedFor = user.id;
 
   let profile = null;
   try { profile = await CM.getMyProfile(); } catch (e) {}
+  if (renderedFor !== user.id) return;   // signed out (or switched) while we waited
   const firstName = getFirstName(profile, user);
+  const fullName = (profile?.full_name || user?.user_metadata?.full_name || '').trim() || firstName;
+  const isAdmin = profile?.role === 'admin';
 
   const wrap = document.createElement('div');
   wrap.className = 'cm-nav-user-wrap';
 
   const tagName = signInBtn.tagName.toLowerCase();
-  const userBtn = document.createElement(tagName === 'a' ? 'a' : tagName);
-  userBtn.className = signInBtn.className;
-  if (tagName === 'a') {
-    userBtn.setAttribute('href', '#account');
-  } else {
-    userBtn.setAttribute('type', 'button');
-  }
-  userBtn.textContent = `Hi, ${firstName}`;
-  userBtn.style.cursor = 'pointer';
+  const userBtn = document.createElement(tagName === 'a' ? 'a' : 'button');
+  userBtn.className = (signInBtn.className ? signInBtn.className + ' ' : '') + 'cm-acct-btn';
+  if (tagName === 'a') { userBtn.setAttribute('href', '#account'); userBtn.setAttribute('role', 'button'); }
+  else userBtn.setAttribute('type', 'button');
+  userBtn.setAttribute('aria-haspopup', 'menu');
+  userBtn.setAttribute('aria-expanded', 'false');
+  userBtn.setAttribute('aria-controls', 'cm-acct-menu');
+  userBtn.innerHTML = '<span>Hi, ' + escapeHtml(firstName) + '</span>' + CHEV;
 
   const menu = document.createElement('div');
   menu.className = 'cm-nav-user-menu';
-  menu.innerHTML = `
-    <span class="cm-nav-user-menu-sub">${escapeHtml(user.email || '')}</span>
-    <div class="cm-nav-user-menu-sep"></div>
-    <a class="cm-nav-user-menu-item" href="/buildings/">Browse buildings</a>
-    <a class="cm-nav-user-menu-item" href="/dashboard/">My dashboard</a>
-    <a class="cm-nav-user-menu-item" href="/account/off-market/">Off-market listings</a>
-    ${profile?.role === 'admin' ? '<a class="cm-nav-user-menu-item" href="/admin/">Admin</a>' : ''}
-    <div class="cm-nav-user-menu-sep"></div>
-    <button class="cm-nav-user-menu-item cm-nav-signout" type="button">Sign out</button>
-  `;
+  menu.id = 'cm-acct-menu';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Your account');
+  menu.innerHTML =
+    '<div class="cm-acct-id" role="presentation">'
+    + '<span class="cm-acct-av" aria-hidden="true">' + escapeHtml((fullName || '?').charAt(0).toUpperCase()) + '</span>'
+    + '<span class="cm-acct-who"><span class="cm-acct-name"><span>' + escapeHtml(fullName) + '</span>'
+    + (isAdmin ? '<em class="cm-acct-role" style="font-style:normal">Agent</em>' : '') + '</span>'
+    + '<span class="cm-acct-mail" title="' + escapeHtml(user.email || '') + '">' + escapeHtml(user.email || '') + '</span></span>'
+    + '</div>'
+    + '<div class="cm-acct-sep" role="separator"></div>'
+    + menuItem('/buildings/', 'buildings', 'Browse buildings', 'Every building we track')
+    + menuItem('/dashboard/', 'dashboard', 'My dashboard', 'Your listings, offers and alerts')
+    + menuItem('/account/off-market/', 'offmarket', 'Off-market listings', 'Coming soon and Exchange homes')
+    + (isAdmin ? menuItem('/admin/', 'admin', 'Admin', 'Agent desk') : '')
+    + '<div class="cm-acct-sep" role="separator"></div>'
+    + '<button class="cm-acct-item cm-acct-out cm-nav-signout" role="menuitem" type="button">'
+    + '<span class="cm-acct-ico">' + ICONS.out + '</span><span class="cm-acct-txt"><span class="cm-acct-t">Sign out</span></span></button>';
 
   wrap.appendChild(userBtn);
   wrap.appendChild(menu);
 
-  if (signInBtn.parentNode) {
-    signInBtn.parentNode.replaceChild(wrap, signInBtn);
-  }
+  // Replace whatever stands in the nav now: the Sign in button, or a menu
+  // left over from an earlier render.
+  const current = (userMenuWrap && userMenuWrap.isConnected) ? userMenuWrap : signInBtn;
+  if (current.parentNode) current.parentNode.replaceChild(wrap, current);
   userMenuWrap = wrap;
+
+  const items = () => Array.prototype.slice.call(menu.querySelectorAll('.cm-acct-item'));
+  const isOpen = () => menu.classList.contains('cm-open');
+  /* Anchored under the pill's right edge, then nudged back inside the
+     viewport: on a phone the pill sits left of the burger, and a 320px card
+     hung from it ran off the left edge. The caret follows the nudge. */
+  const place = () => {
+    if (menu.style.position === 'static' || getComputedStyle(menu).position === 'static') return;
+    menu.style.right = ''; menu.style.removeProperty('--cm-caret');
+    const r = menu.getBoundingClientRect(), b = userBtn.getBoundingClientRect(), vw = document.documentElement.clientWidth, pad = 12;
+    let shift = 0;
+    if (r.left < pad) shift = r.left - pad;                        // negative right: move right
+    else if (r.right > vw - pad) shift = r.right - (vw - pad);      // positive right: move left
+    if (shift) menu.style.right = shift + 'px';
+    const mr = r.right - shift;                                     // menu's right edge after the nudge
+    const caret = Math.max(16, Math.min(r.width - 28, mr - (b.left + b.width / 2) - 5.5));
+    menu.style.setProperty('--cm-caret', caret + 'px');
+  };
+  const setOpen = (open, focusFirst) => {
+    if (open) place();
+    menu.classList.toggle('cm-open', open);
+    userBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open && focusFirst) { const f = items()[0]; if (f) setTimeout(() => f.focus(), 20); }
+  };
 
   userBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    menu.classList.toggle('cm-open');
+    // A click from the keyboard (Enter/Space reports detail 0) moves focus in.
+    setOpen(!isOpen(), e.detail === 0);
+  });
+  userBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true, true); }
+  });
+  menu.addEventListener('keydown', (e) => {
+    const list = items(); const i = list.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); setOpen(false); userBtn.focus(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); (list[(i + 1) % list.length] || list[0]).focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); (list[(i - 1 + list.length) % list.length] || list[0]).focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); list[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); list[list.length - 1].focus(); }
+    else if (e.key === 'Tab') { setOpen(false); }
   });
 
-  document.addEventListener('click', (e) => {
-    if (!wrap.contains(e.target)) menu.classList.remove('cm-open');
-  });
+  if (!docWired) {
+    docWired = true;
+    document.addEventListener('click', (e) => {
+      const w = userMenuWrap; if (!w || w.contains(e.target)) return;
+      const m = w.querySelector('#cm-acct-menu'), b = w.querySelector('.cm-acct-btn');
+      if (m && m.classList.contains('cm-open')) { m.classList.remove('cm-open'); if (b) b.setAttribute('aria-expanded', 'false'); }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const w = userMenuWrap; if (!w) return;
+      const m = w.querySelector('#cm-acct-menu'), b = w.querySelector('.cm-acct-btn');
+      if (m && m.classList.contains('cm-open')) { m.classList.remove('cm-open'); if (b) { b.setAttribute('aria-expanded', 'false'); b.focus(); } }
+    });
+  }
 
   const signoutBtn = menu.querySelector('.cm-nav-signout');
   signoutBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-    signoutBtn.textContent = 'Signing out…';
-    await CM.signOut();
+    signoutBtn.disabled = true;
+    signoutBtn.querySelector('.cm-acct-t').textContent = 'Signing out…';
+    try { await CM.signOut(); } catch (err) { console.warn('[cm-auth-nav] sign out failed', err); }
     window.location.reload();
   });
 }

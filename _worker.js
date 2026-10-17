@@ -564,7 +564,7 @@ function cityFooter(payload) {
 
 function cityTail(scripts) {
   return (scripts || '') +
-    '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
+    '<script type="module" src="/assets/cm-auth-nav.js?v=' + NAV_VER + '"></script>\n' +
     '<script>(function(){var b=document.getElementById("burger"),n=document.querySelector(".nav");if(b&&n)b.addEventListener("click",function(){var o=n.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});' +
     'var io="IntersectionObserver" in window?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px"}):null;' +
     'document.querySelectorAll(".reveal").forEach(function(el){io?io.observe(el):el.classList.add("in");});})();</script>\n' +
@@ -589,6 +589,8 @@ function cityTail(scripts) {
    signed listing agreement) are pinned on every layer and carded in the panel.
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
+/* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
+const NAV_VER = '2';
 const OM_VER = '6';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
@@ -5607,7 +5609,7 @@ function CM_FOOTER(footerData) {
     'Condo Market SF is a marketing platform and is not a real estate brokerage. ' +
     '<a href="/methodology/">Methodology</a> \u00b7 <a href="/how-it-works/">How it works</a> \u00b7 <a href="tel:+14156919272">415-691-9272</a></div>' +
     '</div></footer>\n' +
-    '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
+    '<script type="module" src="/assets/cm-auth-nav.js?v=' + NAV_VER + '"></script>\n' +
     CM_FOOTER_CSS;
 }
 
@@ -7132,6 +7134,90 @@ function buildingOffMarketSection(p, slug, name) {
     '</div></section>\n' + (ex.some(function (l) { return l.cover; }) ? exCover : '');
 }
 
+/* Building page section menu (Tim, 17 Oct 2026: "create a horizontal interactive page menu
+   to scroll to content on the page, similar to how we've done on the CMA pages"). The same
+   shape as the strategy pages' menu on the city markets: a dark bar under the masthead,
+   numbered stops, the section you are reading lit as a pill, sticky once the masthead
+   scrolls away. It replaces the grey link row that used to sit mid-page under the
+   listings, which had no "you are here" and arrived after the first two folds.
+
+   Built from the finished page, so a stop exists only when its section rendered: a
+   building with no report, no listings or no recorded sales gets a shorter menu, never
+   a link to nothing. Each stop can name fallbacks ("gallery|about"): the first section
+   that rendered is the target, and the sections between two stops belong to the earlier
+   one (units and news light Sales; compare lights Market).
+
+   A click scrolls without writing the hash: /building/<slug>/#offer opens the offer form
+   on arrival (cm-offer-modal.js), so a reload after tapping "Make an offer" must not.
+   Clicks are counted as cta_click "building-nav:<section>" through cm-track's data-cm-cta
+   wiring; a new event name would be dropped by track_event's allowlist and the
+   site_events CHECK. */
+const BNAV_STOPS = [
+  ['report', 'Report'],
+  ['off-market', 'Off market'],
+  ['active', 'For sale'],
+  ['gallery|about', 'The building'],
+  ['dossier', 'Dossier'],
+  ['sales|units', 'Sales'],
+  ['market|compare', 'Market'],
+  ['mortgage', 'Mortgage'],
+  ['offer', 'Make an offer'],
+];
+const BNAV_CSS =
+  '.bnav{position:sticky;top:0;z-index:60;background:#161a24;border-bottom:1px solid rgba(232,227,216,.12);transition:box-shadow .2s ease}' +
+  '.bnav.stuck{box-shadow:0 10px 26px rgba(10,13,18,.28)}' +
+  '.bnav-in{position:relative;max-width:var(--page-max,1280px);margin:0 auto;padding:8px var(--gutter,20px);display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}' +
+  '.bnav-in::-webkit-scrollbar{display:none}' +
+  /* centred when it fits, scrollable from the first stop when it does not (justify-content:center clips the start) */
+  '.bnav-in>a:first-child{margin-left:auto}.bnav-in>a:last-of-type{margin-right:auto}' +
+  '.bnav.ovf .bnav-in{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 28px),transparent)}' +
+  '.bnav a{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;white-space:nowrap;border-radius:999px;padding:8px 15px;' +
+    'font-family:var(--ff-body);font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;color:rgba(232,227,216,.68);text-decoration:none;transition:background .15s,color .15s}' +
+  '.bnav a b{font-family:var(--ff-mono);font-size:10.5px;font-weight:500;letter-spacing:.02em;color:rgba(232,227,216,.38);transition:color .15s}' +
+  '.bnav a:hover{color:#fff;background:rgba(255,255,255,.06)}' +
+  '.bnav a:focus-visible{outline:2px solid #e85d2a;outline-offset:1px}' +
+  '.bnav a.on{background:rgba(232,227,216,.11);color:#fff}.bnav a.on b{color:#f28c63}' +
+  '.bnav a[hidden]{display:none}' +
+  'main section[id]{scroll-margin-top:66px}' +
+  '@media(max-width:720px){.bnav-in{padding:7px 14px;gap:2px}.bnav a{padding:7px 12px;font-size:13px;gap:6px}.bnav a b{font-size:10px}main section[id]{scroll-margin-top:60px}}' +
+  '@media print{.bnav{display:none}}';
+const BNAV_JS = '<script>(function(){' +
+  'var nav=document.querySelector(".bnav");if(!nav)return;var bar=nav.querySelector(".bnav-in");' +
+  'var L=[].slice.call(nav.querySelectorAll("a[data-t]"));' +
+  'var S=[];var calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;' +
+  /* The menu is parsed before the sections it points at, so they are looked up when the
+     page is ready, not here. A stop whose section is missing or hidden drops out. */
+  'function live(){S=L.map(function(a){return document.getElementById(a.getAttribute("data-t"));});' +
+  'L.forEach(function(a,i){var s=S[i];a.hidden=!s||getComputedStyle(s).display==="none";});' +
+  'nav.classList.toggle("ovf",bar.scrollWidth>bar.clientWidth+2);}' +
+  'var raf=0;function spy(){raf=0;var line=nav.getBoundingClientRect().bottom+90,k=-1;' +
+  'S.forEach(function(s,i){if(s&&!L[i].hidden&&s.getBoundingClientRect().top<=line)k=i;});' +
+  'L.forEach(function(a,i){var on=i===k,was=a.classList.contains("on");a.classList.toggle("on",on);' +
+  'if(on)a.setAttribute("aria-current","location");else a.removeAttribute("aria-current");' +
+  'if(on&&!was&&bar.scrollWidth>bar.clientWidth){var x=a.offsetLeft-(bar.clientWidth-a.offsetWidth)/2;' +
+  'try{bar.scrollTo({left:x,behavior:calm?"auto":"smooth"});}catch(e){bar.scrollLeft=x;}}});' +
+  'nav.classList.toggle("stuck",nav.getBoundingClientRect().top<=0.5&&window.scrollY>0);}' +
+  'function req(){if(!raf)raf=requestAnimationFrame(spy);}' +
+  'L.forEach(function(a,i){a.addEventListener("click",function(e){var s=S[i]||document.getElementById(a.getAttribute("data-t"));if(!s)return;e.preventDefault();' +
+  's.scrollIntoView({behavior:calm?"auto":"smooth",block:"start"});});});' +
+  'window.addEventListener("scroll",req,{passive:true});window.addEventListener("resize",function(){live();req();});' +
+  'function go(){live();spy();}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();' +
+  'window.addEventListener("load",go);' +
+  '})();<\/script>';
+function buildingPageNav(html) {
+  const has = (id) => new RegExp('<section\\b[^>]*\\sid="' + id.replace(/[-]/g, '\\-') + '"').test(html);
+  const stops = [];
+  BNAV_STOPS.forEach(([ids, label]) => {
+    const id = ids.split('|').find(has);
+    if (id) stops.push([id, label]);
+  });
+  if (stops.length < 3) return '';
+  return '<style>' + BNAV_CSS + '</style>' +
+    '<nav class="bnav" aria-label="On this page"><div class="bnav-in">' +
+    stops.map(([id, label], i) => '<a href="#' + id + '" data-t="' + id + '" data-cm-cta="building-nav:' + id + '"><b>' + String(i + 1).padStart(2, '0') + '</b>' + label + '</a>').join('') +
+    '</div></nav>' + BNAV_JS;
+}
+
 function renderBuilding(p) {
   const name = esc(p.name);
   const slug = esc(p.slug);
@@ -7585,20 +7671,8 @@ function renderBuilding(p) {
     '<p style="margin-top:24px;font-size:13px;color:#5d6575;">All offers require a free account. <a href="#signin" data-cm-auth="login" style="color:#C2410C;">Already have one? Sign in.</a></p>' +
     '</div></section>';
 
-  /* STICKY NAV — Market added between Dossier and Compare */
-  const nav = [];
-  if (reportBand) nav.push('<a href="#report">Market report</a>');
-  if (imgs.length)  nav.push('<a href="#gallery">Gallery</a>');
-  nav.push('<a href="#about">About</a>');
-  if (feats.length) nav.push('<a href="#amenities">Amenities</a>');
-  if (dcards.length) nav.push('<a href="#dossier">Dossier</a>');
-  if (Array.isArray(p.recorded_sales) && p.recorded_sales.length) nav.push('<a href="#sales">Sales</a>');
-  nav.push('<a href="#market">Market</a>');
-  if (peers.length) nav.push('<a href="#compare">Compare</a>');
-  nav.push('<a href="#mortgage">Mortgage</a>');
-  nav.push('<a href="#offer">Buy or sell</a>');
-  const stickyNav =
-    '<div class="sticky-nav"><div class="wrap"><div class="sticky-nav-row">' + nav.join('') + '</div></div></div>';
+  /* The section menu lives under the masthead now (buildingPageNav, below): it is built from
+     the sections that actually rendered, so it needs the finished page. */
 
   /* SEO */
   const seo = p.seo || {};
@@ -7659,7 +7733,7 @@ function renderBuilding(p) {
     : '';
 
   /* assemble */
-  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+  const pageHtml = '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
     '<meta charset="UTF-8">\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + title + '</title>\n' +
@@ -7674,7 +7748,7 @@ function renderBuilding(p) {
     '<link rel="preconnect" href="https://fonts.googleapis.com">\n' +
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
-    '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
+    '<script type="module" src="/assets/cm-auth-nav.js?v=' + NAV_VER + '"></script>\n' +
     '<script src="/assets/cm-track.js?v=' + TRACK_VER + '" defer></script>\n' +
     '<script src="/assets/cm-watch-prompt.js?v=' + TRACK_VER + 'w" defer></script>\n' +
     jsonLd + '\n' +
@@ -7698,7 +7772,8 @@ function renderBuilding(p) {
     '<a href="/#atlas">Buildings</a><a href="/intelligence/">Intelligence</a>' +
     '<a href="/market-reports/">Reports</a><a href="/how-it-works/">How it works</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
-    '</nav></div></div></header>\n\n' +
+    '</nav></div></div></header>\n' +
+    '<!--cm-bnav-->\n' +
     '<div class="wrap">' + crumbHtml + '</div>\n\n' +
     '<main>\n' +
     '<section class="hero"><div class="wrap"><div class="hero-head"><div>' +
@@ -7714,7 +7789,6 @@ function renderBuilding(p) {
     reportBand +
     offMarketSection +
     activeSection +
-    stickyNav + '\n' +
     gallerySection +
     aboutSection +
     amenitiesSection +
@@ -7740,6 +7814,7 @@ function renderBuilding(p) {
     '<script type="module" src="/assets/cm-market.js"></script>\n' +
     '<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' +
     '</body>\n</html>';
+  return pageHtml.replace('<!--cm-bnav-->', buildingPageNav(pageHtml));
 }
 
 /* additive styles */
