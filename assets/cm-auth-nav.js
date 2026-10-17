@@ -281,6 +281,9 @@ async function openFromLink() {
     const qs = u.searchParams.toString();
     history.replaceState(history.state, '', u.pathname + (qs ? '?' + qs : '') + u.hash);
   } catch (e) { return; }
+  // They came from an email, so we know who they are: don't also ask the
+  // own-or-looking question this visit (cm-intent.js reads this key).
+  try { sessionStorage.setItem('cm_prompt_asked', '1'); } catch (e) {}
   try {
     const session = await CM.getSession();
     if (session && session.user) return;
