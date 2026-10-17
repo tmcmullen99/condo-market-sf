@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '11';
+const OM_VER = '12';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -1003,7 +1003,8 @@ function renderAccountOffMarket(payload) {
     '<a class="btn btn-gold" href="/off-market/#map" data-cta="account-offmarket:any-unit">Pick a building &rarr;</a></div>\n' +
     '</div></section>\n';
   return cityHead(title, desc, canonical, head) + cityNav('offmarket') + body + cityFooter(payload) +
-    cityTail('<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n');
+    cityTail('<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' +
+      '<script src="/assets/cm-offmarket-explore.js?v=' + OM_VER + '"></script>\n');
 }
 
 

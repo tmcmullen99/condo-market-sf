@@ -58,6 +58,7 @@
       /* in a catalogued building: the building's hero photo, so the building is clear; the home's own photo inset */
       photo: (x.building && x.hero) || (x.photos && x.photos[0]) || x.hero || '', bimg: x.building ? (x.hero || '') : '',
       unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, photos: x.photos || [], spec: spec(x.bd, x.ba, x.sf), bd: x.bd, ba: x.ba, sf: x.sf,
+      hood: x.h || '', zip: x.zip || '', yb: x.yb || null,
       since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
     if (type === 'mmm') return { type: 'mmm', ref: 'mmm:' + x.id, key: x.id, unit: x.unit,
       title: (x.unit ? 'Unit ' + x.unit : 'A unit') + (x.building_name ? ', ' + x.building_name : ''),
@@ -84,6 +85,10 @@
       '.omx-tag.cs{background:#C2410C}' +
       /* phones: a card with no photo drops the empty photo area and carries its tag in the body */
       '.omx-tag-in{display:none}' +
+      '.omx-jump{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 30px;padding:2px}.omx-jump::-webkit-scrollbar{display:none}' +
+      '.omx-jump a{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(26,31,46,.14);background:#fff;color:#1a1f2e;font:600 .86rem "DM Sans",system-ui,sans-serif;padding:9px 14px;border-radius:999px;text-decoration:none}' +
+      '.omx-jump a:hover{border-color:#C2410C;color:#9a360c}.omx-jump b{font:500 .74rem "JetBrains Mono",monospace;color:#5d6575;background:#f1f3f6;border-radius:999px;padding:2px 7px}' +
+      '.omx-sec{scroll-margin-top:calc(var(--nav-h,56px) + 16px)}' +
       '@media(max-width:720px){.omx-ph.omx-noimg{display:none}.omx-tag-in{display:inline-block;position:static;align-self:flex-start;margin:0 0 8px}' +
       '.omx-ph{height:200px}.omx-b{padding:14px 16px 16px}.omx-acts{gap:8px}.omx-act{padding:10px 13px;font-size:13px}}' +
       '.omx-bn{position:absolute;left:10px;bottom:10px;background:rgba(18,21,29,.8);color:#fff;font:600 11.5px/1 "DM Sans",system-ui,sans-serif;padding:6px 9px;border-radius:999px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
@@ -695,13 +700,20 @@
       return '<div class="omx-sec" id="' + id + '"><h2>' + title + '<span>' + n + '</span></h2><p class="omx-lede">' + lede + '</p>' +
         (items.length ? '<div class="omx-grid" data-om-list="' + id + '"></div>' : '<div class="omx-empty">' + empty + '</div>') + '</div>';
     }
+    /* a jump bar across the three lists (Tim, 17 Oct 2026: "include map based function, toggles") */
     body.innerHTML =
+      '<nav class="omx-jump" aria-label="Your off-market lists">' +
+      '<a href="#coming-soon">Coming soon <b>' + cs.length + '</b></a>' +
+      '<a href="#make-me-move">Owners\u2019 numbers <b>' + mm.length + '</b></a>' +
+      '<a href="#investor-exchange">Investor Exchange <b data-om-exn></b></a></nav>' +
       sec('coming-soon', 'Coming soon', cs.length, 'San Francisco condos entered as coming soon and not yet on the listing sites. Ask for the disclosures, a Comp Report or a tour, and ' + a + ' takes it from there.', cs,
         'No coming-soon condos right now. New ones appear here as soon as they are entered; the list is checked twice a day.') +
       sec('make-me-move', 'Owners\u2019 private numbers', mm.length, 'Owners who named the price that would make them move, with no listing. An offer at or near the number goes to the owner through ' + a + '.', mm,
         'No owner has a private number open right now.') +
       '<div class="omx-sec" id="investor-exchange"><h2>Investor Exchange<span data-om-exn></span></h2><p class="omx-lede">Investor-owned units offered privately, between members.</p><div data-om-ex><div class="omx-empty">Loading the Exchange\u2026</div></div></div>';
-    var g1 = body.querySelector('[data-om-list="coming-soon"]'); if (g1) render(g1, cs);
+    /* Coming soon gets the browse tools (filters, sort, the map) from cm-offmarket-explore.js when it is on the page. */
+    var g1 = body.querySelector('[data-om-list="coming-soon"]');
+    if (g1) { if (window.OMCS && window.OMCS.mount) window.OMCS.mount(g1, cs); else render(g1, cs); }
     var g2 = body.querySelector('[data-om-list="make-me-move"]'); if (g2) render(g2, mm);
     loadExchange(body.querySelector('[data-om-ex]'), body.querySelector('[data-om-exn]'));
     focusDeepLink();
@@ -713,13 +725,14 @@
       .then(function (items) {
         if (!items) { box.innerHTML = '<div class="omx-empty">The Exchange didn\u2019t load. Refresh the page to try again.</div>'; return; }
         if (n) n.textContent = items.length;
+        document.querySelectorAll('[data-om-exn]').forEach(function (el) { el.textContent = items.length; });
         if (!items.length) { box.innerHTML = '<div class="omx-empty">Nothing on the Exchange right now.</div>'; return; }
         box.className = 'omx-grid'; render(box, items); fillPrices();
       });
   }
 
   window.OM = { signup: signup, act: act, member: function () { return S.member; }, norm: norm, card: cardHtml, css: css,
-    hasStrip: hasStrip, strip: stripHtml, photoNote: photoNote };
+    hasStrip: hasStrip, strip: stripHtml, photoNote: photoNote, render: render, money: money };
 
   /* Signed-out buttons anywhere on the page: data-om-signup="<token or empty>". */
   document.addEventListener('click', function (e) {
