@@ -3570,6 +3570,75 @@ async function handleRequest(request, env) {
       return renderNeighborhoodDetail(hostMk, decodeURIComponent(nbM[1]));
     }
 
+    /* Build A Page pages (17 Oct 2026). An agent builds them on the Agent Desk (/admin/pages/); they are kept
+       in the City Markets database (market_pages, market 5 for this site) and drawn by the city worker. This
+       site had no route for them, so the wizard's preview of an SF page opened this site's 404. The city
+       worker now draws them at /_ooa/m<id>/<kind>/<slug>/ with this market's name and agent, as it does for
+       mcmullenresidential.com: one renderer. Here: this site's header on top, the accent in this site's
+       orange, the City Markets link lists hidden, and the page's booking calls answered for this market.
+       Unlisted pages: noindex, no-store, never in a sitemap. */
+    const BAP_MARKET = ({ sf: 5 })[hostMk.tag] || 0;
+    const BAP_ORIGIN = 'https://campbellrealestatemarket.com';
+    const bapM = BAP_MARKET ? url.pathname.match(/^\/(showing|value|strategy|offering|disclosures)\/([a-z0-9][a-z0-9-]{3,120})\/?$/) : null;
+    if (bapM && request.method === 'GET') {
+      if (!url.pathname.endsWith('/')) return new Response(null, { status: 301, headers: { 'Location': url.pathname + '/' + url.search } });
+      const pv = (url.searchParams.get('preview') || '').slice(0, 64);
+      let html = '';
+      try {
+        const up = await fetch(BAP_ORIGIN + '/_ooa/m' + BAP_MARKET + '/' + bapM[1] + '/' + bapM[2] + '/' + (pv ? '?preview=' + encodeURIComponent(pv) : ''),
+          { headers: { 'User-Agent': 'condo-market-page-proxy' }, cf: { cacheTtl: 0 } });
+        if (up.ok) html = await up.text();
+      } catch (e) { html = ''; }
+      if (!html || html.length < 500) return wrapStaticWithSwaps(request, env, hostMk);
+      /* scripts, styles and Street View images are root-relative for the city domains */
+      html = html.replace(/(=["'])\/(assets\/|sv\?)/g, '$1' + BAP_ORIGIN + '/$2');
+      const base = 'https://' + url.host;
+      const css = '<style id="cmpx-css">'
+        + ':root{--apricot:' + hostMk.accent + ';--apricot-soft:#e85d2a}'
+        + '.btn-gold,.sh .btn-gold{background:' + hostMk.accent + '!important;color:#fff!important}.btn-gold:hover{background:' + hostMk.accentDeep + '!important}'
+        + '.seo-foot{display:none!important}'
+        + '.cmpx{position:sticky;top:0;z-index:950;background:#12151d;border-bottom:1px solid rgba(' + hostMk.accentRgb + ',.35);font-family:"DM Sans",system-ui,-apple-system,sans-serif}'
+        + '.cmpx,.cmpx *{box-sizing:border-box}.cmpx-in{max-width:1180px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px}'
+        + '.cmpx-wm{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-size:20px;color:#e8e3d8;text-decoration:none;white-space:nowrap}.cmpx-wm b{color:#e85d2a;font-style:normal;font-weight:700}'
+        + '.cmpx-nav{display:flex;align-items:center;gap:20px}.cmpx-nav a{color:#8893a6;text-decoration:none;font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}.cmpx-nav a:hover{color:#e85d2a}'
+        + '.cmpx-ph{color:#e8e3d8!important;letter-spacing:0!important;text-transform:none!important;font-size:14px!important}'
+        + '@media(max-width:720px){.cmpx-in{height:52px;padding:0 16px}.cmpx-wm{font-size:17px}.cmpx-nav a:not(.cmpx-ph){display:none}}'
+        /* the city page reserves its own fixed nav (cut): this header is the nav now */
+        + ':root{--nav-h:58px}@media(max-width:720px){:root{--nav-h:52px}}.spnav-page{padding-top:0!important}.spnav{margin-top:0!important}'
+        + '.sh-preview{background:' + hostMk.accent + '!important}'
+        + '</style>';
+      const ag = (hostMk.agentPhone || '(415) 691-9272');
+      const hdr = '<header class="cmpx"><div class="cmpx-in"><a class="cmpx-wm" href="' + base + '/">Condo <b>Market</b> · ' + esc(hostMk.tag) + '</a>'
+        + '<nav class="cmpx-nav"><a href="' + base + '/#atlas">Buildings</a><a href="' + base + '/neighborhoods">Neighborhoods</a>'
+        + '<a href="' + base + '/san-francisco-condo-market-stats">Stats</a><a class="cmpx-ph" href="tel:+14156919272">' + esc(ag) + '</a></nav></div></header>';
+      /* the marker keeps ensureIntent from adding the visitor pop-up to a page prepared for one person;
+         cm-track.js (page views on this site) is still added */
+      html = html.replace('</head>', css + '<!-- cm-intent.js: none on a Build A Page page -->' + '</head>');
+      const bodyTag = html.match(/<body[^>]*>/);
+      html = bodyTag ? html.replace(bodyTag[0], bodyTag[0] + hdr) : hdr + html;
+      return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive', 'Referrer-Policy': 'no-referrer' } });
+    }
+    /* The booking on those pages: a meeting with the agent (book-page-meeting) or, for a listing active on
+       the MLS, a private tour (book-tour), both for this site's market, as the city worker answers them. */
+    if (BAP_MARKET && /^\/api\/(page-meet-slots|page-meet-book|tour-slots|book-tour)$/.test(url.pathname)) {
+      const meet = /page-meet/.test(url.pathname), slots = /slots$/.test(url.pathname);
+      const FN = 'https://qinuukntpyulqjzndnho.supabase.co/functions/v1/' + (meet ? 'book-page-meeting' : 'book-tour');
+      const H = { 'x-cbm-key': 'sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2', 'Content-Type': 'application/json' };
+      const jr = (body, status) => new Response(body, { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+      try {
+        let up;
+        if (slots) up = await fetch(FN + '?action=slots&market=' + BAP_MARKET + '&date=' + encodeURIComponent(url.searchParams.get('date') || ''), { headers: H });
+        else {
+          if (request.method !== 'POST') return jr('{"error":"method"}', 405);
+          const txt = await request.text();
+          if (meet) { let b = {}; try { b = JSON.parse(txt); } catch (e) {} up = await fetch(FN, { method: 'POST', headers: H, body: JSON.stringify(Object.assign({}, b, { market: BAP_MARKET })) }); }
+          else up = await fetch(FN + '?action=book', { method: 'POST', headers: H, body: txt });
+        }
+        return jr(await up.text(), up.status);
+      } catch (e) { return jr('{"error":"upstream"}', 502); }
+    }
+
     /* /pending/<slug>/ — proxied, not rendered.
        I first wrote a second pending page here. It was 5KB against the city
        page's 130KB: no nav, no photographs, no seven-day terms, no commission
