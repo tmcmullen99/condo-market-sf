@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '10';
+const OM_VER = '11';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -735,6 +735,40 @@ function renderOffMarket(payload) {
     '.om-sheet-body .omp.omp-panel{height:230px;margin:12px -18px 8px;border-radius:0}.om-sheet-body .om-bhero{height:200px}' +
     '.om-sheet-body .omf{margin-top:4px;border:0}.om-sheet-body .omf-ph{height:230px;margin:0 -18px}.om-sheet-body .omf-b{padding:14px 0 0}' +
     '.om-sheet-back{display:block;margin-top:18px}' +
+    /* PHONES (Tim, 17 Oct 2026: "Optimize UI for mobile"). The map runs edge to edge like an app; the panel under it
+       loses its box-in-a-box; the counts become a 2 by 2; a locked card with a building photo becomes a compact row;
+       the Ask bar steps aside while the map fills the screen. */
+    '@media(max-width:720px){' +
+      '.om-top .omap-frame{margin:0 -24px;border-radius:0;border-left:0;border-right:0;box-shadow:none}' +
+      '.om-top .omt-tabs{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent);padding-right:28px}' +
+      '.om-top .omt-sub{font-size:.9rem}' +
+      '.om-top .mact-side{padding:0!important;background:transparent!important}' +
+      '.om-top .mact-card{border:0!important;border-radius:0;padding:18px 24px 8px;box-shadow:none!important;background:#fff}' +
+      '.om-top .om-x{display:none}' +
+      '.om-top .map-note{padding:8px 24px 0!important;font-size:.72rem}' +
+      '.om-top .omf-c{display:block}.om-top .omf-c .omf-ph{height:170px;min-height:0}.om-top .omf-c .omf-n{display:block}' +
+      '.om-top .omf-c .omf-badge{left:10px;top:10px;font-size:10px;padding:6px 9px}.om-top .omf-c .omf-b{padding:12px 14px 14px}' +
+      '.om-top .omf-c .omf-t{font-size:1.15rem}.om-top .omf-c .omf-s{font-size:.84rem}' +
+      '.om-top .omf-c .omf-go,.om-top .omf-c .omf-btn{padding:9px 13px;font-size:12.5px}' +
+      '.om-doors{grid-template-columns:1fr 1fr!important;gap:10px!important}.om-door{padding:14px 14px 12px!important}' +
+      '.om-door-n{font-size:1.9rem!important}.om-door-l{font-size:.86rem;line-height:1.3}' +
+      '.om-door-b{font-size:.74rem!important;line-height:1.45!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}' +
+      '.om-grid{gap:10px!important}' +
+      '.om-card{padding:14px 16px!important}.om-card .om-lock{margin-top:10px!important;padding-top:10px!important}.om-card .om-blur{font-size:1.25rem}' +
+      '.om-card.om-cs .om-cs-ph:not(.om-cs-b){display:none}' +
+      '.om-card.om-cs:has(.om-cs-b){display:grid;grid-template-columns:96px minmax(0,1fr);column-gap:14px;align-items:start}' +
+      '.om-card.om-cs:has(.om-cs-b) .om-cs-ph{grid-row:1/span 3;height:100%;min-height:96px;margin:0;border-radius:10px;padding:6px}' +
+      '.om-card.om-cs:has(.om-cs-b) .om-cs-ph span{font-size:.52rem;padding:4px 6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '.om-card.om-cs:has(.om-cs-b) .om-lock{grid-column:1/-1}' +
+      '.om-card .om-ad{font-size:1.05rem}' +
+      /* the featured card is already under the map; no second copy a screen later */
+      '.om-below .om-grid-head:has(+ .om-feat-row),.om-below .om-feat-row{display:none}' +
+    '}' +
+    '@media(max-width:900px){body.om-map-view .cmi-launch,body.om-map-view .cmi-prompt{display:none!important}}' +
+    /* list rows in the panel: a photo when there is one (members) */
+    '.om-row.om-row-ph{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px}' +
+    '.om-row-th{flex:0 0 64px;width:64px;height:56px;border-radius:8px;background:#e8ebf1 center/cover no-repeat}' +
+    '.om-row-tx{min-width:0;flex:1}.om-row-tx b,.om-row-tx span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
     '</style>\n';
 
   /* ---- the featured listing card (premium distribution + a signed listing agreement, from the city platform) ---- */

@@ -82,6 +82,10 @@
       '.omx-ph .omx-n{position:absolute;right:10px;bottom:10px;background:rgba(18,21,29,.75);color:#fff;font:500 11px/1 "JetBrains Mono",monospace;padding:5px 8px;border-radius:999px}' +
       '.omx-tag{position:absolute;left:10px;top:10px;background:#12151d;color:#fff;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border-radius:999px}' +
       '.omx-tag.cs{background:#C2410C}' +
+      /* phones: a card with no photo drops the empty photo area and carries its tag in the body */
+      '.omx-tag-in{display:none}' +
+      '@media(max-width:720px){.omx-ph.omx-noimg{display:none}.omx-tag-in{display:inline-block;position:static;align-self:flex-start;margin:0 0 8px}' +
+      '.omx-ph{height:200px}.omx-b{padding:14px 16px 16px}.omx-acts{gap:8px}.omx-act{padding:10px 13px;font-size:13px}}' +
       '.omx-bn{position:absolute;left:10px;bottom:10px;background:rgba(18,21,29,.8);color:#fff;font:600 11.5px/1 "DM Sans",system-ui,sans-serif;padding:6px 9px;border-radius:999px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '.omx-inset{position:absolute;right:10px;bottom:10px;width:58px;height:58px;border-radius:9px;border:2px solid #fff;background:#ccc center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.3)}' +
       '.omx-b{padding:16px 18px 18px;display:flex;flex-direction:column;gap:3px;flex:1}' +
@@ -252,11 +256,12 @@
     var ex = it.type === 'ex' && it.exUrl ? '<div class="omx-sub"><a href="' + esc(it.exUrl) + '" style="color:#C2410C;font-weight:600;text-decoration:none">Full listing on the Investor Exchange \u2192</a></div>' : '';
     return '<article class="omx-card" id="' + it.type + '-' + esc(it.key) + '" data-om-ref="' + esc(it.ref) + '">' +
       (hasStrip(it) ? stripHtml(it) :
-      '<div class="omx-ph"' + photo + (it.cover ? ' data-om-cover="' + esc(it.cover) + '"' : '') + '><span class="omx-tag' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>' +
+      '<div class="omx-ph' + (photo || it.cover ? '' : ' omx-noimg') + '"' + photo + (it.cover ? ' data-om-cover="' + esc(it.cover) + '"' : '') + '><span class="omx-tag' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>' +
       (it.bimg && it.bname ? '<span class="omx-bn">' + esc(it.bname) + '</span>' : '') +
       (it.bimg && it.unitPhoto ? '<i class="omx-inset" style="background-image:url(\'' + esc(it.unitPhoto).replace(/'/g, '%27') + '\')" title="This home' + (it.nPhotos > 1 ? ', ' + it.nPhotos + ' photos' : '') + '"></i>'
         : (it.nPhotos > 1 ? '<span class="omx-n">' + it.nPhotos + ' photos</span>' : '')) + '</div>') +
       '<div class="omx-b">' +
+      (!hasStrip(it) && !it.photo && !it.cover ? '<span class="omx-tag omx-tag-in' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>' : '') +
       (it.price ? '<div class="omx-plab">' + esc(it.plab) + '</div><div class="omx-price">' + money(it.price) + '</div>' : '') +
       (it.type === 'ex' ? '<div class="omx-fp" data-om-fprice="' + esc(it.key) + '" data-om-fstyle="card" hidden></div>' : '') +
       '<div class="omx-addr">' + esc(it.title) + '</div>' +

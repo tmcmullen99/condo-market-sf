@@ -183,6 +183,10 @@
     });
   })();
   map.on('click', function () { if (PHONE.matches) hidePeek(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) { es.forEach(function (en) { document.body.classList.toggle('om-map-view', en.intersectionRatio >= 0.55); }); },
+      { threshold: [0, 0.3, 0.55, 0.8, 1] }).observe(el);
+  }
   if (PHONE.addEventListener) PHONE.addEventListener('change', function () { hidePhone(); side = deskSide; });
 
   function pane(name) {
@@ -353,7 +357,11 @@
     function list(id, items, type) {
       var box = document.getElementById(id); if (!box) return;
       box.innerHTML = items.map(function (x, i) { var it = N(type, x);
-        return '<button type="button" class="om-row" data-i="' + i + '"><b>' + e(it.title) + '</b><span>' + (it.price ? money(it.price) + ' \u00b7 ' : '') + e(it.spec || it.sub) + '</span></button>'; }).join('');
+        /* a photo beside the row when there is one: the home's own first photo, else its building's */
+        var th = it.unitPhoto || it.bimg || (it.type === 'mmm' ? it.photo : '');
+        var tx = '<b>' + e(it.title) + '</b><span>' + (it.price ? money(it.price) + ' \u00b7 ' : '') + e(it.spec || it.sub) + '</span>';
+        return th ? '<button type="button" class="om-row om-row-ph" data-i="' + i + '"><i class="om-row-th" style="background-image:url(\'' + e(th).replace(/'/g, '%27') + '\')"></i><span class="om-row-tx">' + tx + '</span></button>'
+                  : '<button type="button" class="om-row" data-i="' + i + '">' + tx + '</button>'; }).join('');
       box.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () {
         var x = items[+b.getAttribute('data-i')], it = N(type, x); memCard(it, PHONE.matches ? 'open' : undefined); if (x.y != null) map.setView([x.y, x.x], 16); }); });
     }
