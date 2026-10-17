@@ -128,13 +128,15 @@
 
   /* ------------------------------------------------------------------ state */
   var F, ALL = [], ROOT = null, GRID = null, mapObj = null, layer = null, pins = {}, userMove = false, lastFit = '', docWired = false;
-  function fresh() { return { q: '', min: 0, max: 0, bd: 0, ba: 0, sf: 0, h: [], ph: false, inb: false, wk: false, sort: 'new', view: 'grid', move: true, at: null, bounds: null }; }
+  /* The map is the default (Tim, 17 Oct 2026: "NOT SEEING THE MAP" - it opened on Grid): Map + list on a wide
+     screen, the map above the list on anything narrower. Grid is one tap away. */
+  function fresh() { return { q: '', min: 0, max: 0, bd: 0, ba: 0, sf: 0, h: [], ph: false, inb: false, wk: false, sort: 'new', view: 'split', move: true, at: null, bounds: null }; }
   function fromUrl() {
     var f = fresh(), u = new URLSearchParams(location.search);
     f.q = u.get('q') || ''; f.min = +u.get('min') || 0; f.max = +u.get('max') || 0; f.bd = +u.get('bd') || 0; f.ba = +u.get('ba') || 0; f.sf = +u.get('sf') || 0;
     f.h = (u.get('hood') || '').split(',').filter(Boolean); f.ph = u.get('photos') === '1'; f.inb = u.get('tracked') === '1'; f.wk = u.get('new') === '1';
     f.sort = u.get('sort') || store('csx_sort') || 'new'; if (!SORTS.some(function (x) { return x[0] === f.sort; })) f.sort = 'new';
-    f.view = u.get('view') || store('csx_view') || 'grid'; if (!VIEWS.some(function (x) { return x[0] === f.view; })) f.view = 'grid';
+    f.view = u.get('view') || store('csx_view2') || 'split'; if (!VIEWS.some(function (x) { return x[0] === f.view; })) f.view = 'split';
     return f;
   }
   function toUrl() {
@@ -143,11 +145,11 @@
       ['q', 'min', 'max', 'bd', 'ba', 'sf', 'hood', 'photos', 'tracked', 'new', 'sort', 'view'].forEach(function (k) { p.delete(k); });
       if (F.q) p.set('q', F.q); if (F.min) p.set('min', F.min); if (F.max) p.set('max', F.max); if (F.bd) p.set('bd', F.bd); if (F.ba) p.set('ba', F.ba);
       if (F.sf) p.set('sf', F.sf); if (F.h.length) p.set('hood', F.h.join(',')); if (F.ph) p.set('photos', '1'); if (F.inb) p.set('tracked', '1'); if (F.wk) p.set('new', '1');
-      if (F.sort !== 'new') p.set('sort', F.sort); if (F.view !== 'grid') p.set('view', F.view);
+      if (F.sort !== 'new') p.set('sort', F.sort); if (F.view !== 'split') p.set('view', F.view);
       var qs = p.toString();
       history.replaceState(history.state, '', u.pathname + (qs ? '?' + qs : '') + u.hash);
     } catch (z) {}
-    store('csx_sort', F.sort); store('csx_view', F.view);
+    store('csx_sort', F.sort); store('csx_view2', F.view);   // a new key: an earlier visit's stored "grid" must not hide the map
   }
   function view() { return F.view === 'split' && !WIDE.matches ? 'map' : F.view; }
 
