@@ -2280,7 +2280,8 @@ function renderActiveListingsCity(M, AL, foot) {
     var pend=isPend(l), pd=pend?pendDays(l):null;
     var domTxt = (l.dom==null) ? '' :
       (l.dom<=1 ? 'New today' : (l.dom<=7 ? l.dom+' days on market' : l.dom+' days on market'));
-    var domBadge = (pend || !domTxt) ? ''
+    var domBadge = l.featured ? '<span class="al-dom al-feat">Featured</span>'
+      : (pend || !domTxt) ? ''
       : ('<span class="al-dom'+(l.dom<=7?' fresh':'')+'">'+domTxt+'</span>');
     var inner='<div class="ph al-cardphoto">'+domBadge+(img?('<img loading="lazy" onerror="this.parentNode.querySelector(\\'.price-chip\\')&&0;this.remove()" src="'+img+'" alt="'+l.address_raw+', ${M.city} CA">'):'')+
       '<span class="price-chip'+(pend?' pending':'')+'"><span class="dot"></span>'+money(l.price)+'</span>'+
@@ -2289,16 +2290,16 @@ function renderActiveListingsCity(M, AL, foot) {
       '<div class="bd"><div class="ad">'+l.address_raw+'</div>'+(l.building?'<div class="al-bldg">in '+l.building+'</div>':'')+
       '<div class="sp">'+specsOf(l)+(pend?(' \u00b7 in contract'+(pd!=null?(' '+pd+'d'):'')):'')+'</div>'+
       (rv?'<div class="tr rv-cta" data-cta="grid:reviewed_card">'+rvCta(rv)+' \u2192</div>':'<div class="tr">View listing \u2192</div>')+'</div>';
-    var href='/listing/'+l.mls_number+''+(rv?'#reviewed':'');
+    var href=l.fturl ? l.fturl : '/listing/'+l.mls_number+''+(rv?'#reviewed':'');
     return '<a data-mls="'+l.mls_number+'" class="listing-card'+(rv?' listing-card--rv':'')+(pend?' listing-card--pend':'')+'" style="animation-delay:'+Math.min(i*60,420)+'ms" href="'+href+'">'+inner+'</a>';
   }
   function spotlightHtml(l){
     var img=photoOf(l,'900x600');
     var rv=RV[l.mls_number];
-    return '<a class="al-spot'+(rv?' listing-card--rv':'')+'" href="/listing/'+l.mls_number+''+(rv?'#reviewed':'')+'">'+
+    return '<a class="al-spot'+(rv?' listing-card--rv':'')+'" href="'+(l.fturl?l.fturl:'/listing/'+l.mls_number+''+(rv?'#reviewed':''))+'">'+
       '<div class="ph">'+(img?('<img src="'+img+'" alt="'+l.address_raw+', ${M.city} CA">'):'')+
       rvBadges(rv)+'</div>'+
-      '<div class="bd"><div class="fk">\u25cf Featured \u00b7 highest ask in ${M.city}</div>'+
+      '<div class="bd"><div class="fk">\u25cf '+(l.featured?'Featured listing':'Featured \u00b7 highest ask in ${M.city}')+'</div>'+
       '<div class="pr">'+money(l.price)+'</div>'+
       '<div class="ad">'+l.address_raw+', ${M.city}</div>'+
       '<div class="sp">'+specsOf(l)+'</div>'+
@@ -2334,10 +2335,11 @@ function renderActiveListingsCity(M, AL, foot) {
        set — the count line says how many those are. */
     if(BOUNDS){
       rows = rows.filter(function(l){
-        return l.lat!=null && l.lng!=null && BOUNDS.contains([l.lat,l.lng]);
+        return l.featured || (l.lat!=null && l.lng!=null && BOUNDS.contains([l.lat,l.lng]));
       });
     }
     rows.sort(function(a,b){
+      if(!!a.featured!==!!b.featured) return a.featured?-1:1;
       /* Default: disclosures reviewed first, then price high to low. The
          reviewed ones are the whole point of the platform, so they lead. */
       if(SORT==='reviewed_price'){
@@ -2750,7 +2752,7 @@ function renderActiveListingsCity(M, AL, foot) {
                 rehosted_url:x.photo, photos:x.photos,
                 lat:x.lat, lng:x.lng, dom:x.dom, pending_days:x.pending_days,
                 reviewed:!!x.reviewed, has_cma:!!x.has_cma, risk_level:x.risk,
-                building:x.bldg, building_slug:x.bslug};
+                building:x.bldg, building_slug:x.bslug, featured:!!x.feat, fturl:x.furl||null};
       });
       ALL.forEach(function(l){ if(l.reviewed||l.has_cma) RV[l.mls_number]={risk_level:l.risk_level,sheet:l.reviewed,cma:l.has_cma}; });
       render();
@@ -2870,6 +2872,7 @@ function renderActiveListingsCity(M, AL, foot) {
   color:#20242e;border-radius:6px;padding:4px 9px;font-size:11.5px;font-weight:600;
   box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .al-dom.fresh{background:#12151d;color:#fff}
+.al-dom.al-feat{background:#12151d;color:#fff;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px}
 .al-cardphoto{position:relative}
 
 /* filter bar */
@@ -3164,6 +3167,20 @@ function condoActiveListingsRows(listings) {
     dom: l.listed_at ? Math.max(0, Math.round((now - Date.parse(l.listed_at)) / 86400000)) : null, pending_days: null,
     reviewed: false, has_cma: false, risk: null, bldg: l.building_name || null, bslug: l.building_slug || null,
   }));
+}
+
+/* A Featured listing the feed carries is that row, marked; one it does not carry (off-MLS) is added from the
+   agent's listing and links to its listing page. Featured rows sit first on the page whatever the sort. */
+function condoMergeFeatured(rows, feat) {
+  (Array.isArray(feat) ? feat : []).forEach((f) => {
+    const m = String(f.mls || '').toUpperCase();
+    const hit = m ? rows.find((r) => String(r.mls || '').toUpperCase() === m) : null;
+    if (hit) { hit.feat = true; return; }
+    rows.push({ mls: 'lm-' + esc(f.slug), addr: esc(f.address || ''), slug: null, price: f.price, beds: f.beds, baths: f.baths, sqft: f.sqft, lot: null,
+      year: null, type: f.type || 'Condominium', status: 'Active', photo: f.cover || null, photos: null, lat: f.lat, lng: f.lng, dom: null, pending_days: null,
+      reviewed: false, has_cma: false, risk: null, bldg: null, bslug: null, feat: true, furl: esc(f.url || '') });
+  });
+  return rows;
 }
 
 export default {
@@ -3712,6 +3729,16 @@ async function handleRequest(request, env) {
       } catch (e) { listings = []; }
       const foot = await cityFooterData(hostMk.domain);
       const rows = condoActiveListingsRows(listings);
+      /* My Listings (Tim, 16 Oct 2026): what the agent Featured on this market (Platform A). */
+      const aMk = A_MARKET_ID_BY_TAG[hostMk.tag] || 0;
+      if (aMk) {
+        try {
+          const fr = await fetchT(SB_A_URL + '/rest/v1/rpc/lm_featured_public', { method: 'POST',
+            headers: { 'apikey': SB_A_KEY, 'Authorization': 'Bearer ' + SB_A_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ p_market_id: aMk }) }, 2000);
+          if (fr.ok) condoMergeFeatured(rows, await fr.json());
+        } catch (e) { /* the page renders without them */ }
+      }
       const html = applyMarketSwaps(renderActiveListingsCity(condoActiveListingsMarket(hostMk, rows, foot), rows, foot), hostMk);
       return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=120' } });
     }

@@ -1453,6 +1453,60 @@ img { display: block; max-width: 100%; }
     font-family: 'Playfair Display', Georgia, serif; font-size: 16px;
   }
 </style>
+<!-- ═══ FEATURED (My Listings, Tim, 16 Oct 2026) ═══
+     The listings the agent Featured on this market, from the agent desk's My Listings. Hidden unless there is
+     one. A listing the MLS feed carries opens its /listing/ page here; an off-MLS one opens its own page. -->
+<style>
+#featured .cmf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+#featured .cmf-card{display:block;background:#fff;border:1px solid rgba(34,38,47,.12);border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;transition:box-shadow .15s,transform .15s}
+#featured .cmf-card:hover{box-shadow:0 10px 28px rgba(18,21,29,.10);transform:translateY(-2px)}
+#featured .cmf-ph{position:relative;aspect-ratio:16/10;background:linear-gradient(165deg,#ffffff 0%,#eef1f6 72%)}
+#featured .cmf-ph img{width:100%;height:100%;object-fit:cover;display:block}
+#featured .cmf-tag{position:absolute;top:12px;left:12px;background:#12151d;color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:5px 9px}
+#featured .cmf-bd{padding:16px 18px 18px}
+#featured .cmf-pr{font-family:'Playfair Display',Georgia,serif;font-size:24px;line-height:1.1}
+#featured .cmf-ad{font-weight:600;margin-top:6px}
+#featured .cmf-sp{font-size:13.5px;color:#5d6575;margin-top:4px}
+#featured .cmf-go{display:inline-block;margin-top:12px;font-weight:600;font-size:14px;color:#C2410C}
+</style>
+<section class="cm-section cm-section-light" id="featured" hidden style="padding-top: 72px;">
+  <div class="cm-container">
+    <div class="cm-section-head">
+      <p class="cm-eyebrow">Featured</p>
+      <h2 class="cm-h">For sale <em>now.</em></h2>
+      <p>Featured listings, with the photos and every detail.</p>
+    </div>
+    <div class="cmf-grid" id="featured-grid"></div>
+  </div>
+</section>
+<script>
+(function(){
+  var h = location.hostname.replace(/^www\./, '');
+  var id = /siliconvalleycondomarket/.test(h) ? 6 : (/sanfrancisco/.test(h) ? 5 : 0);
+  if (!id) return;
+  var K = 'sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2';
+  function e(t){ return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function m(n){ return n == null ? '' : '$' + Math.round(Number(n)).toLocaleString('en-US'); }
+  fetch('https://qinuukntpyulqjzndnho.supabase.co/rest/v1/rpc/lm_featured_public', { method: 'POST',
+    headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_market_id: id }) })
+  .then(function(r){ return r.ok ? r.json() : []; })
+  .then(function(rows){
+    if (!Array.isArray(rows) || !rows.length) return;
+    var g = document.getElementById('featured-grid'), sec = document.getElementById('featured');
+    if (!g || !sec) return;
+    g.innerHTML = rows.slice(0, 6).map(function(f){
+      var sp = [f.beds ? f.beds + ' bd' : '', f.baths ? f.baths + ' ba' : '', f.sqft ? Number(f.sqft).toLocaleString('en-US') + ' sf' : ''].filter(Boolean).join(' \u00b7 ');
+      var href = f.mls ? '/listing/' + encodeURIComponent(String(f.mls).toUpperCase()) : (f.url || '#');
+      return '<a class="cmf-card" href="' + e(href) + '"><div class="cmf-ph">' + (f.cover ? '<img loading="lazy" src="' + e(f.cover) + '" alt="' + e(f.address) + '" onerror="this.remove()">' : '') +
+        '<span class="cmf-tag">Featured</span></div><div class="cmf-bd"><div class="cmf-pr">' + m(f.price) + '</div>' +
+        '<div class="cmf-ad">' + e(f.address) + (f.city ? ', ' + e(f.city) : '') + '</div>' + (sp ? '<div class="cmf-sp">' + sp + '</div>' : '') +
+        '<span class="cmf-go">View listing \u2192</span></div></a>';
+    }).join('');
+    sec.hidden = false;
+  }).catch(function(){});
+})();
+</script>
+
 <!-- ═══ ATLAS ═══ -->
 
 <section class="cm-section cm-section-light" id="atlas" style="padding-top: 72px;">
