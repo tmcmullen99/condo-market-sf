@@ -166,12 +166,16 @@
     var anyUnit = it.building ? '<a class="mp-rec" href="/building/' + encodeURIComponent(it.building) + '#dossier" data-cta="offmarket:any-unit">Write an offer on any unit in ' + e(it.bname || 'the building') + ' &rarr;</a><br>' : '';
     var offer = it.type === 'mmm' && it.building && it.unit
       ? '<a class="mact-choice" href="/building/' + encodeURIComponent(it.building) + '#unit-' + encodeURIComponent(String(it.unit).replace(/^#+/, '')) + '" data-cta="offmarket:mmm-offer"><span class="mc-t">Make an offer</span><span class="mc-s">' + e(a) + ' presents it to the owner</span></a>' : '';
-    var pic = it.building && it.bimg ? bhero(it.bimg, it.bname, it.unitPhoto)
+    var O = window.OM; if (O && O.css) O.css();
+    /* the home's own photos as a sideways strip when it has two or more; otherwise the building's photo and a note */
+    var pic = O && O.hasStrip && O.hasStrip(it) ? O.strip(it, { panel: true })
+      : it.building && it.bimg ? bhero(it.bimg, it.bname, it.unitPhoto)
       : (it.photo ? '<div class="om-sc-ph" style="background-image:url(\'' + e(it.photo).replace(/'/g, '%27') + '\')"></div>' : '');
+    var note = O && O.photoNote ? O.photoNote(it, null) : '';   // the Schedule a tour choice sits right under it
     side.innerHTML = '<div class="act-k">' + (it.type === 'cs' ? 'Coming soon' : 'Make Me Move') + (it.sub ? ' \u00b7 ' + e(it.sub) : '') + '</div>' + pic +
       '<h3 class="mact-h">' + e(it.title) + '</h3><p class="mact-lede">' +
       (it.price ? '<b>' + (it.type === 'mmm' ? 'Owner\u2019s number ' : '') + money(it.price) + '</b>' + (it.spec ? ' \u00b7 ' : '') : '') + e(it.spec) +
-      (it.since ? '<br>' + (it.type === 'mmm' ? 'Named ' : 'First seen ') + dd(it.since) : '') + '</p>' +
+      (it.since ? '<br>' + (it.type === 'mmm' ? 'Named ' : 'First seen ') + dd(it.since) : '') + '</p>' + note +
       '<div class="mact-choose">' + offer +
       '<button type="button" class="mact-choice" data-om-k="tour"><span class="mc-t">Schedule a tour</span><span class="mc-s">Pick two times, 48 hours or more out</span></button>' +
       '<button type="button" class="mact-choice" data-om-k="disclosures"><span class="mc-t">Request the disclosures</span><span class="mc-s">' + (it.type === 'cs' ? 'From the listing agent, sent to you' : 'Sent to you, or a plain answer if they aren\u2019t available') + '</span></button>' +

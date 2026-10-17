@@ -57,7 +57,7 @@
       sub: [x.building_name, x.h].filter(Boolean).join(' \u00b7 '), price: x.price, plab: 'Price',
       /* in a catalogued building: the building's hero photo, so the building is clear; the home's own photo inset */
       photo: (x.building && x.hero) || (x.photos && x.photos[0]) || x.hero || '', bimg: x.building ? (x.hero || '') : '',
-      unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, spec: spec(x.bd, x.ba, x.sf),
+      unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, photos: x.photos || [], spec: spec(x.bd, x.ba, x.sf),
       since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
     if (type === 'mmm') return { type: 'mmm', ref: 'mmm:' + x.id, key: x.id, unit: x.unit,
       title: (x.unit ? 'Unit ' + x.unit : 'A unit') + (x.building_name ? ', ' + x.building_name : ''),
@@ -65,7 +65,7 @@
       since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
     var b = x.building || {};
     return { type: 'ex', ref: 'ex:' + x.token, key: x.token, title: x.address || (b.name ? 'A unit at ' + b.name : 'An Investor Exchange listing'),
-      sub: [x.area, x.property_type].filter(Boolean).join(' \u00b7 '), price: null, plab: '', cover: x.cover, nPhotos: x.photo_count || 0,
+      sub: [x.area, x.property_type].filter(Boolean).join(' \u00b7 '), price: null, plab: '', cover: x.cover, nPhotos: x.photo_count || 0, exPhotos: [],
       spec: spec(x.beds, x.baths, x.sqft) + (x.hoa_fee_monthly ? ' \u00b7 HOA ' + money(Math.round(x.hoa_fee_monthly)) + '/mo' : ''),
       since: String(x.published_at || '').slice(0, 10), building: b.slug, bname: b.name, exUrl: x.member_url };
   }
@@ -152,9 +152,86 @@
       '.omx-pick button:hover{background:rgba(194,65,12,.1)}' +
       '.omx-hint{font-size:.8rem;color:#6b7180;margin:8px 0 0;min-height:1.2em}.omx-hint.warn{color:#a8431f}' +
       '.omx-addnote{appearance:none;border:0;background:none;color:#9a360c;font:600 13.5px "DM Sans",system-ui,sans-serif;padding:4px 0;margin:12px 0 0;cursor:pointer}' +
-      '@media(max-width:400px){.omx-slot{font-size:12px}.omx-pick span{font-size:12.5px}}';
+      '@media(max-width:400px){.omx-slot{font-size:12px}.omx-pick span{font-size:12.5px}}' +
+      /* photos: a sideways strip when the home has them, a "photo day" note when it doesn't */
+      '.omp{padding:0;overflow:hidden}' +
+      '.omp-s{display:flex;gap:4px;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;outline:none}' +
+      '.omp-s::-webkit-scrollbar{display:none}' +
+      '.omp-s>*{flex:0 0 86%;width:86%;height:100%;scroll-snap-align:start;object-fit:cover;display:block;background:#dde1e8 center/cover no-repeat;border:0}' +
+      '.omp-s>:last-child{scroll-snap-align:end}' +
+      '.omp-s:focus-visible{box-shadow:inset 0 0 0 2px #C2410C}' +
+      '.omp-b{position:relative}.omp-b span{position:absolute;left:10px;bottom:10px;background:rgba(18,21,29,.8);color:#fff;font:600 11.5px/1 "DM Sans",system-ui,sans-serif;padding:6px 9px;border-radius:999px}' +
+      '.omp-s>.omp-more{flex-basis:46%;width:46%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 14px;background:#12151d;color:#fff;font:600 13px/1.35 "DM Sans",system-ui,sans-serif;text-decoration:none}' +
+      '.omp .omx-tag,.omp .omf-badge,.omp-n{pointer-events:none;z-index:1}' +
+      '.omp-n{position:absolute;right:10px;top:10px;background:rgba(18,21,29,.75);color:#fff;font:500 11px/1 "JetBrains Mono",monospace;padding:5px 8px;border-radius:999px}' +
+      '.omp-p{position:absolute;top:50%;left:8px;margin-top:-17px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#1a1f2e;font:600 21px/1 "DM Sans",system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.25);cursor:pointer;opacity:0;transition:opacity .15s;padding:0 0 3px}' +
+      '.omp-p.nx{left:auto;right:8px}.omp:hover .omp-p,.omp-p:focus-visible{opacity:1}.omp-p[disabled]{opacity:0!important;pointer-events:none}' +
+      '@media(hover:none){.omp-p{display:none}}' +
+      '.omp.omp-panel{position:relative;height:168px;border-radius:12px;margin:10px 0 6px;background:#e8ebf1}' +
+      '.omp-note{display:flex;gap:11px;align-items:flex-start;background:#fff6ef;border:1px solid #f2d2bd;border-radius:12px;padding:11px 13px;margin:10px 0 2px;text-align:left}' +
+      '.omp-note svg{flex:0 0 22px;width:22px;height:22px;fill:none;stroke:#C2410C;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}' +
+      '.omp-note b{display:block;font:700 .9rem/1.3 "DM Sans",system-ui,sans-serif;color:#1a1f2e}' +
+      '.omp-note p{margin:2px 0 0;font-size:.84rem;color:#4a5160;line-height:1.45}' +
+      '.omp-note button{appearance:none;border:0;background:none;padding:0;margin-top:6px;color:#C2410C;font:700 13px/1.3 "DM Sans",system-ui,sans-serif;cursor:pointer}' +
+      '.omp-note button:hover{text-decoration:underline}';
     document.head.appendChild(s);
   }
+
+  /* -------------------------------- photos ----------------------------------- */
+  /* Tim, 17 Oct 2026: "If the listing has images, they need to be displayed on the card in a scroll menu. If no
+     images, or only a hero image, explain to the user that most off-market properties haven't had their photo day
+     yet, images coming soon, see it before then." Two or more of the home's own photos make a sideways strip (the
+     building's photo last, for a coming-soon home in a catalogued building). One photo or none gets the note and a
+     tour button. The note says "often", not "most": of the 54 coming-soon condos on 17 Oct, 43 had six or more
+     photos. An owner's private number is never a listing, so its note says that instead of promising photos. */
+  function ownPhotos(it) { return it.type === 'ex' ? (it.exPhotos || []) : it.type === 'cs' ? (it.photos || []) : []; }
+  function hasStrip(it) { return ownPhotos(it).length >= 2; }
+  function needsPhotoNote(it) {
+    return it.type === 'mmm' || (it.type === 'cs' && (it.photos || []).length <= 1) || (it.type === 'ex' && (it.nPhotos || 0) <= 1);
+  }
+  function stripHtml(it, opt) {
+    opt = opt || {};
+    var own = ownPhotos(it), slides = [];
+    own.forEach(function (u, i) {
+      slides.push(it.type === 'ex'
+        ? '<img data-om-sign="' + esc(u) + '" alt="Photo ' + (i + 1) + '" loading="lazy" decoding="async">'
+        : '<img src="' + esc(u) + '" alt="Photo ' + (i + 1) + ' of ' + own.length + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" decoding="async">');
+    });
+    if (it.type === 'cs' && it.bimg) slides.push('<div class="omp-b" role="img" aria-label="' + esc(it.bname || 'The building') + '" style="background-image:url(\'' + esc(it.bimg).replace(/'/g, '%27') + '\')"><span>' + esc(it.bname || 'The building') + '</span></div>');
+    var total = it.type === 'ex' ? Math.max(it.nPhotos || 0, own.length) : own.length;
+    if (it.type === 'ex' && total > own.length && it.exUrl) slides.push('<a class="omp-more" href="' + esc(it.exUrl) + '" data-cta="offmarket:ex-all-photos">All ' + total + ' photos on the full listing \u2192</a>');
+    return '<div class="omx-ph omp' + (opt.panel ? ' omp-panel' : '') + '" data-omp-total="' + total + '">' +
+      '<div class="omp-s" tabindex="0" role="group" aria-label="' + total + ' photos of this home. Scroll sideways for more.">' + slides.join('') + '</div>' +
+      (opt.panel ? '' : '<span class="omx-tag' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>') +
+      '<span class="omp-n">1 / ' + total + '</span>' +
+      '<button type="button" class="omp-p" data-omp-dir="-1" aria-label="Previous photo" disabled>\u2039</button>' +
+      '<button type="button" class="omp-p nx" data-omp-dir="1" aria-label="Next photo">\u203a</button></div>';
+  }
+  function photoNote(it, btn) {
+    if (!needsPhotoNote(it)) return '';
+    var mmm = it.type === 'mmm';
+    return '<div class="omp-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.2A1.5 1.5 0 0 1 9.8 5h4.4a1.5 1.5 0 0 1 1.2.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.4"/></svg><div>' +
+      '<b>' + (mmm ? 'No listing photos' : 'Photos coming soon') + '</b>' +
+      '<p>' + (mmm ? 'This owner named a price without listing it, so there\u2019s been no photo day. See it in person first.'
+                   : 'Off-market homes often haven\u2019t had their photo day yet. See this one before then.') + '</p>' +
+      (btn ? '<button type="button" ' + btn + ' data-cta="offmarket:photo-day-tour">Schedule a tour \u2192</button>' : '') + '</div></div>';
+  }
+  function ompSync(sc) {
+    var box = sc.parentNode, first = sc.firstElementChild; if (!box || !first) return;
+    var w = first.getBoundingClientRect().width + 4, i = Math.round(sc.scrollLeft / (w || 1)), tot = +box.getAttribute('data-omp-total') || sc.children.length;
+    var n = box.querySelector('.omp-n'); if (n) n.textContent = Math.min(i + 1, tot) + ' / ' + tot;
+    var p = box.querySelector('.omp-p:not(.nx)'), nx = box.querySelector('.omp-p.nx');
+    if (p) p.disabled = sc.scrollLeft < 4;
+    if (nx) nx.disabled = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 4;
+  }
+  /* scroll does not bubble, so listen in the capture phase: one listener for every strip on the page */
+  document.addEventListener('scroll', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('omp-s')) ompSync(t); }, true);
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-omp-dir]'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    var sc = b.parentNode.querySelector('.omp-s'), first = sc && sc.firstElementChild; if (!first) return;
+    sc.scrollBy({ left: (+b.getAttribute('data-omp-dir')) * (first.getBoundingClientRect().width + 4), behavior: 'smooth' });
+  });
 
   /* --------------------------------- cards ----------------------------------- */
   function cardHtml(it, opt) {
@@ -174,10 +251,11 @@
       : '';
     var ex = it.type === 'ex' && it.exUrl ? '<div class="omx-sub"><a href="' + esc(it.exUrl) + '" style="color:#C2410C;font-weight:600;text-decoration:none">Full listing on the Investor Exchange \u2192</a></div>' : '';
     return '<article class="omx-card" id="' + it.type + '-' + esc(it.key) + '" data-om-ref="' + esc(it.ref) + '">' +
+      (hasStrip(it) ? stripHtml(it) :
       '<div class="omx-ph"' + photo + (it.cover ? ' data-om-cover="' + esc(it.cover) + '"' : '') + '><span class="omx-tag' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>' +
       (it.bimg && it.bname ? '<span class="omx-bn">' + esc(it.bname) + '</span>' : '') +
       (it.bimg && it.unitPhoto ? '<i class="omx-inset" style="background-image:url(\'' + esc(it.unitPhoto).replace(/'/g, '%27') + '\')" title="This home' + (it.nPhotos > 1 ? ', ' + it.nPhotos + ' photos' : '') + '"></i>'
-        : (it.nPhotos > 1 ? '<span class="omx-n">' + it.nPhotos + ' photos</span>' : '')) + '</div>' +
+        : (it.nPhotos > 1 ? '<span class="omx-n">' + it.nPhotos + ' photos</span>' : '')) + '</div>') +
       '<div class="omx-b">' +
       (it.price ? '<div class="omx-plab">' + esc(it.plab) + '</div><div class="omx-price">' + money(it.price) + '</div>' : '') +
       (it.type === 'ex' ? '<div class="omx-fp" data-om-fprice="' + esc(it.key) + '" data-om-fstyle="card" hidden></div>' : '') +
@@ -186,7 +264,7 @@
       (it.sub ? '<div class="omx-sub">' + esc(it.sub) + '</div>' : '') +
       (it.since ? '<div class="omx-sub">' + (it.type === 'mmm' ? 'Named ' : it.type === 'ex' ? 'On the Exchange since ' : 'First seen ') + day(it.since) + '</div>' : '') +
       (it.building && opt.buildingLink !== false ? '<div class="omx-sub"><a href="/building/' + encodeURIComponent(it.building) + '" style="color:inherit">The building record \u2192</a></div>' : '') +
-      ex + acts + up + '</div></article>';
+      ex + photoNote(it, 'data-om-act="tour"') + acts + up + '</div></article>';
   }
   /* Cards are wired once per container: a click on an action opens the sheet. */
   function wire(box, items) {
@@ -201,6 +279,13 @@
   }
   function signCovers(box) {
     if (!A_URL || !A_KEY) return;
+    box.querySelectorAll('img[data-om-sign]').forEach(function (el) {
+      fetch(A_URL + '/storage/v1/object/sign/exchange-photos/' + encodeURI(el.getAttribute('data-om-sign')), {
+        method: 'POST', headers: { apikey: A_KEY, Authorization: 'Bearer ' + A_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ expiresIn: 3600 }) })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (x) { if (x && x.signedURL) el.src = A_URL + '/storage/v1' + x.signedURL; })
+        .catch(function () {});
+    });
     box.querySelectorAll('[data-om-cover]').forEach(function (el) {
       fetch(A_URL + '/storage/v1/object/sign/exchange-photos/' + encodeURI(el.getAttribute('data-om-cover')), {
         method: 'POST', headers: { apikey: A_KEY, Authorization: 'Bearer ' + A_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ expiresIn: 3600 }) })
@@ -561,8 +646,10 @@
   }
   /* The Exchange listings in one building, for a member: the public teaser, with the featured listing's
      street and page where it has one (exchange_featured_public). The asking price is filled by fillPrices. */
-  function exchangeFor(slug) {
-    if (!A_URL || !A_KEY || !A_MKT) return Promise.resolve([]);
+  /* The market's Exchange listings: the public teaser, with the featured ones' street, page and first photos
+     (exchange_featured_public) merged in. null when the teaser could not be read. */
+  function exchangeAll() {
+    if (!A_URL || !A_KEY || !A_MKT) return Promise.resolve(null);
     function post(fn) {
       return fetch(A_URL + '/rest/v1/rpc/' + fn, { method: 'POST',
         headers: { apikey: A_KEY, Authorization: 'Bearer ' + A_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_market_id: A_MKT }) })
@@ -571,13 +658,20 @@
     S.ex = S.ex || post('exchange_public_teaser');
     S.exf = S.exf || post('exchange_featured_public');
     return Promise.all([S.ex, S.exf]).then(function (r) {
+      if (!r[0]) return null;
       var f = {}; (Array.isArray(r[1]) ? r[1] : []).forEach(function (x) { if (x && x.token) f[x.token] = x; });
-      return ((r[0] && r[0].listings) || []).filter(function (x) { return x.building && x.building.slug === slug; }).map(function (x) {
+      return (r[0].listings || []).map(function (x) {
         var it = norm('ex', x), fx = f[x.token];
-        if (fx) { it.title = fx.street || fx.address || it.title; if (fx.url) it.exUrl = fx.url; }
+        if (fx) {
+          it.title = fx.street || fx.address || it.title; if (fx.url) it.exUrl = fx.url;
+          it.exPhotos = Array.isArray(fx.photos) ? fx.photos : []; if (fx.photo_count) it.nPhotos = fx.photo_count;
+        }
         return it;
       });
     });
+  }
+  function exchangeFor(slug) {
+    return exchangeAll().then(function (items) { return (items || []).filter(function (it) { return it.building === slug; }); });
   }
 
   function mountAccount(root) {
@@ -610,19 +704,17 @@
   function loadExchange(box, n) {
     if (!box) return;
     if (!A_URL || !A_KEY || !A_MKT) { box.innerHTML = '<div class="omx-empty">The Investor Exchange isn\u2019t open in this market.</div>'; return; }
-    (S.ex || (S.ex = fetch(A_URL + '/rest/v1/rpc/exchange_public_teaser', { method: 'POST',
-      headers: { apikey: A_KEY, Authorization: 'Bearer ' + A_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_market_id: A_MKT }) })
-      .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })))
-      .then(function (d) {
-        if (!d) { box.innerHTML = '<div class="omx-empty">The Exchange didn\u2019t load. Refresh the page to try again.</div>'; return; }
-        var items = (d.listings || []).map(function (x) { return norm('ex', x); });
+    exchangeAll()
+      .then(function (items) {
+        if (!items) { box.innerHTML = '<div class="omx-empty">The Exchange didn\u2019t load. Refresh the page to try again.</div>'; return; }
         if (n) n.textContent = items.length;
         if (!items.length) { box.innerHTML = '<div class="omx-empty">Nothing on the Exchange right now.</div>'; return; }
         box.className = 'omx-grid'; render(box, items); fillPrices();
       });
   }
 
-  window.OM = { signup: signup, act: act, member: function () { return S.member; }, norm: norm, card: cardHtml, css: css };
+  window.OM = { signup: signup, act: act, member: function () { return S.member; }, norm: norm, card: cardHtml, css: css,
+    hasStrip: hasStrip, strip: stripHtml, photoNote: photoNote };
 
   /* Signed-out buttons anywhere on the page: data-om-signup="<token or empty>". */
   document.addEventListener('click', function (e) {

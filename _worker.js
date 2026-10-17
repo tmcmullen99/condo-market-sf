@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '7';
+const OM_VER = '8';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -706,15 +706,33 @@ function renderOffMarket(payload) {
     const item = { type: 'ex', ref: 'ex:' + f.token, key: f.token, title: f.street || f.address, building: b.slug || null, bname: b.name || null };
     /* The building's hero photo shows at once; the listing's own cover (private bucket, signed in the page) replaces it. */
     const bImg = bySlug[b.slug] && bySlug[b.slug].img;
+    const fp = Array.isArray(f.photos) ? f.photos.filter(Boolean) : [];
+    const total = Math.max(Number(f.photo_count) || 0, fp.length);
+    const strip = !compact && fp.length >= 2;
+    /* One photo or none: the photo-day note (same words as the member cards in cm-offmarket.js). */
+    const photoDay = !compact && total <= 1
+      ? '<div class="omp-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.2A1.5 1.5 0 0 1 9.8 5h4.4a1.5 1.5 0 0 1 1.2.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.4"/></svg><div>' +
+        '<b>Photos coming soon</b><p>Off-market homes often haven&rsquo;t had their photo day yet. See this one before then.</p>' +
+        '<button type="button" data-om-act="tour" data-cta="offmarket:photo-day-tour">Schedule a tour &rarr;</button></div></div>'
+      : '';
     return '<div class="omf' + (compact ? ' omf-c' : '') + '" data-om-feat="' + cityEsc(f.token) + '" data-om-item="' + cityEsc(JSON.stringify(item)) + '">' +
-      '<div class="omf-ph"' + (bImg ? ' style="background-image:url(\'' + cityEsc(bImg).replace(/'/g, '%27') + '\')"' : '') +
+      (strip
+        /* Tim, 17 Oct 2026: a listing's photos on the card, in a sideways strip (cm-offmarket.js styles and drives it;
+           the page signs each photo). The first six come from exchange_featured_public; the rest are on the listing. */
+        ? '<div class="omf-ph omp" data-omp-total="' + total + '"><div class="omp-s" tabindex="0" role="group" aria-label="' + total + ' photos of this home. Scroll sideways for more.">' +
+          fp.map((p, i) => '<img data-om-sign="' + cityEsc(p) + '" alt="Photo ' + (i + 1) + ' of ' + total + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" decoding="async">').join('') +
+          (total > fp.length && f.url ? '<a class="omp-more" href="' + cityEsc(f.url) + '" data-cta="offmarket:featured-all-photos">All ' + num(total) + ' photos on the full listing &rarr;</a>' : '') +
+          '</div><span class="omf-badge">Featured</span><span class="omp-n">1 / ' + total + '</span>' +
+          '<button type="button" class="omp-p" data-omp-dir="-1" aria-label="Previous photo" disabled>&lsaquo;</button><button type="button" class="omp-p nx" data-omp-dir="1" aria-label="Next photo">&rsaquo;</button></div>'
+        : '<div class="omf-ph"' + (bImg ? ' style="background-image:url(\'' + cityEsc(bImg).replace(/'/g, '%27') + '\')"' : '') +
       (f.photos && f.photos[0] ? ' data-om-cover="' + cityEsc(f.photos[0]) + '"' : '') + '><span class="omf-badge">Featured</span>' +
-      (f.photo_count > 1 ? '<span class="omf-n">' + num(f.photo_count) + ' photos</span>' : '') + '</div>' +
+      (f.photo_count > 1 ? '<span class="omf-n">' + num(f.photo_count) + ' photos</span>' : '') + '</div>') +
       '<div class="omf-b"><div class="omf-k">' + (compact ? 'Featured &middot; Exchange' : 'Investor Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '')) + '</div>' +
       '<div class="omf-t">' + cityEsc(f.street || f.address) + '</div>' +
       '<div class="omf-s">' + cityEsc(spec) + '</div>' +
       (lease && !compact ? '<div class="omf-s">' + cityEsc(lease) + '</div>' : '') +
       '<div class="omf-p">Asking <span data-om-fprice="' + cityEsc(f.token) + '"><span class="omf-lock">&middot; price for members</span></span></div>' +
+      photoDay +
       '<div class="omf-acts">' +
       '<button type="button" class="omf-go" data-om-anon data-om-signup="" data-cta="offmarket:featured-signup">' + (compact ? 'See the price' : 'See the price free') + ' &rarr;</button>' +
       '<button type="button" class="omf-go" data-om-mem hidden data-om-act="tour" data-cta="offmarket:featured-tour">' + (compact ? 'Tour' : 'Schedule a tour') + '</button>' +
@@ -854,7 +872,11 @@ function renderOffMarket(payload) {
     '<script>(function(){document.querySelectorAll("[data-om-goto]").forEach(function(a){a.addEventListener("click",function(ev){' +
     'if(!window.OMMAP)return;ev.preventDefault();window.OMMAP.setLayer(a.getAttribute("data-om-goto"));document.getElementById("map").scrollIntoView({behavior:"smooth"});});});' +
     /* Featured covers live in the city platform\'s private bucket: sign the ones on the page. */
+    'if(window.OM&&window.OM.css)window.OM.css();' +
     'var A=document.getElementById("map"),U=A&&A.getAttribute("data-om-a-url"),K=A&&A.getAttribute("data-om-a-key");if(!U||!K)return;var done={};' +
+    'function sg(p){return done[p]||(done[p]=fetch(U+"/storage/v1/object/sign/exchange-photos/"+encodeURI(p),{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})})' +
+    '.then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}));}' +
+    'document.querySelectorAll(".omf img[data-om-sign]").forEach(function(el){sg(el.getAttribute("data-om-sign")).then(function(x){if(x&&x.signedURL)el.src=U+"/storage/v1"+x.signedURL;});});' +
     'document.querySelectorAll(".omf-ph[data-om-cover]").forEach(function(el){var p=el.getAttribute("data-om-cover");' +
     '(done[p]||(done[p]=fetch(U+"/storage/v1/object/sign/exchange-photos/"+encodeURI(p),{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})})' +
     '.then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}))).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")";});});' +
