@@ -24,8 +24,10 @@
  *     said no does not want to be asked on the next building either
  */
 
-const SB_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
+/* Named WP_*: the building page declares `var SB_URL` in a classic script, and a second top-level
+   `const SB_URL` here was a SyntaxError that stopped this whole file from running (17 Oct 2026). */
+const WP_SB_URL = 'https://kfqphwerygccpzntbbif.supabase.co';
+const WP_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg';
 
 const SEEN_KEY    = 'cm_watch_prompt_seen';     // per building
 const SNOOZE_KEY  = 'cm_watch_prompt_snooze';   // site-wide, timestamp
@@ -142,10 +144,10 @@ function show(slug) {
     msg.textContent = 'Saving…';
     msg.className = 'cm-wp-msg';
     try {
-      const r = await fetch(SB_URL + '/rest/v1/rpc/watch_building', {
+      const r = await fetch(WP_SB_URL + '/rest/v1/rpc/watch_building', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: SB_KEY,
-                   Authorization: 'Bearer ' + SB_KEY },
+        headers: { 'Content-Type': 'application/json', apikey: WP_SB_KEY,
+                   Authorization: 'Bearer ' + WP_SB_KEY },
         body: JSON.stringify({ p_building_slug: slug, p_email: email,
                                p_visitor_token: visitorToken(),
                                p_source: 'read_to_end_prompt' })

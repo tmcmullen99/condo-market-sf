@@ -347,16 +347,56 @@
       if (more) more.innerHTML = csAll.length > csShow.length ? '<a href="/account/off-market/#coming-soon">All ' + csAll.length + ' coming soon in your off-market list &rarr;</a>' : '';
       focusDeepLink();
     });
-    document.querySelectorAll('[data-om-bcs]').forEach(function (sec) {
-      if (!m) return;
-      var slug = sec.getAttribute('data-om-bcs');
-      var items = (m.coming_soon || []).filter(function (x) { return x.building === slug; }).map(function (x) { return norm('cs', x); });
-      var box = sec.querySelector('[data-om-bcs-grid]'); if (!box || !items.length) return;
-      render(box, items, { upsell: false, buildingLink: false });
-      box.classList.add('omx-grid');
-      focusDeepLink();
-    });
+    document.querySelectorAll('[data-om-bcs]').forEach(mountBuilding);
     document.querySelectorAll('[data-om-account]').forEach(mountAccount);
+  }
+
+  /* A building page's off-market section (Tim, 17 Oct 2026): this building's coming soon, its Investor
+     Exchange listings and owners' private numbers, as the member's cards; or, with none, the member's
+     "nothing here today" panel in place of the visitor's call to action. */
+  function mountBuilding(sec) {
+    var m = S.member; if (!m) return;
+    var slug = sec.getAttribute('data-om-bcs');
+    var box = sec.querySelector('[data-om-bcs-grid]'), none = sec.querySelector('[data-om-bnone]');
+    var cs = (m.coming_soon || []).filter(function (x) { return x.building === slug; }).map(function (x) { return norm('cs', x); });
+    var mm = (m.mmm || []).filter(function (x) { return x.building === slug; }).map(function (x) { return norm('mmm', x); });
+    function draw(ex) {
+      var items = cs.concat(ex || [], mm);
+      if (!box) return;
+      if (!items.length) {
+        if (ex === null) return;                    // wait for the Exchange before saying "nothing"
+        box.hidden = true; box.style.display = 'none';
+        if (none) { none.hidden = false; none.style.display = ''; }
+        return;
+      }
+      if (none) { none.hidden = true; none.style.display = 'none'; }
+      box.hidden = false; box.style.display = '';
+      render(box, items, { upsell: false, buildingLink: false });
+      box.classList.add('omx-grid'); box.classList.remove('obm-grid');
+      fillPrices(); focusDeepLink();
+    }
+    draw(null);
+    exchangeFor(slug).then(draw, function () { draw([]); });
+  }
+  /* The Exchange listings in one building, for a member: the public teaser, with the featured listing's
+     street and page where it has one (exchange_featured_public). The asking price is filled by fillPrices. */
+  function exchangeFor(slug) {
+    if (!A_URL || !A_KEY || !A_MKT) return Promise.resolve([]);
+    function post(fn) {
+      return fetch(A_URL + '/rest/v1/rpc/' + fn, { method: 'POST',
+        headers: { apikey: A_KEY, Authorization: 'Bearer ' + A_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_market_id: A_MKT }) })
+        .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    }
+    S.ex = S.ex || post('exchange_public_teaser');
+    S.exf = S.exf || post('exchange_featured_public');
+    return Promise.all([S.ex, S.exf]).then(function (r) {
+      var f = {}; (Array.isArray(r[1]) ? r[1] : []).forEach(function (x) { if (x && x.token) f[x.token] = x; });
+      return ((r[0] && r[0].listings) || []).filter(function (x) { return x.building && x.building.slug === slug; }).map(function (x) {
+        var it = norm('ex', x), fx = f[x.token];
+        if (fx) { it.title = fx.street || fx.address || it.title; if (fx.url) it.exUrl = fx.url; }
+        return it;
+      });
+    });
   }
 
   function mountAccount(root) {

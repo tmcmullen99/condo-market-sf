@@ -589,7 +589,7 @@ function cityTail(scripts) {
    signed listing agreement) are pinned on every layer and carded in the panel.
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
-const OM_VER = '5';
+const OM_VER = '6';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -3917,6 +3917,14 @@ async function handleRequest(request, env) {
       headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ p_slug: payload.slug }),
     }, 1200).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+    /* The off-market section (Tim, 17 Oct 2026): owners' numbers here (a count; unit and number are
+       members-only) and the market's totals for the empty state. */
+    const omPubP = fetchT(SUPABASE_URL + '/rest/v1/rpc/building_offmarket_public', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_slug: payload.slug }),
+    }, 1200).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    let exMarketN = 0;
     let disclosure = null;
     let exchange = null;
     let review = null;   // the building's newest published review (Tim, 13 Oct 2026)
@@ -3938,10 +3946,12 @@ async function handleRequest(request, env) {
         aRpc('building_disclosure_teaser', { p_market_id: aMarketId, p_tract_slug: slug }),
         aRpc('building_exchange_teaser', { p_market_id: aMarketId, p_slug: slug }),
         aRpc('building_review_latest', { p_market_id: aMarketId, p_slug: slug }),
+        aRpc('exchange_public_teaser', { p_market_id: aMarketId }),
       ]);
       if (both[0] && both[0].has_review === true) disclosure = both[0];
       if (both[1] && Array.isArray(both[1].listings) && both[1].listings.length) exchange = both[1];
       if (both[2] && both[2].ok === true && both[2].slug) review = both[2];
+      if (both[3] && Array.isArray(both[3].listings)) exMarketN = both[3].listings.length;
     }
     payload.disclosure = disclosure;
     payload.exchange = exchange;
@@ -3961,6 +3971,7 @@ async function handleRequest(request, env) {
 
     payload.footerData = await footP;
     payload.coming_soon = await csP;
+    payload.omPub = Object.assign({ mmm: 0, market_cs: 0, market_cs_buildings: 0, market_mmm: 0 }, (await omPubP) || {}, { market_ex: exMarketN });
     payload.om = { domain: hostMk.domain, aMarket: A_MARKET_ID_BY_TAG[hostMk.tag] || 0 };
     try { payload.news = newsAbout(await newsIndexCached(hostMk), payload.name, payload.street, payload.slug, 3); } catch (e) { payload.news = []; }
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
@@ -6996,6 +7007,131 @@ function nearbyHoods(blds, hood, n) {
     .sort(function (a, b) { return a.d - b.d; }).slice(0, n || 5).map(function (x) { return x.h; });
 }
 
+/* The building page's off-market section (Tim, 17 Oct 2026): "this section on the building page should be a
+   display of the Coming Soon/Off Market properties available in the building. If no coming soon listings in
+   the building, design a sleek ui section CTA: Create an account to see off-market properties", and members
+   also see the building's Investor Exchange and Make Me Move listings here.
+   Nothing gated is in the HTML: a visitor's cards carry size and date only (coming soon), size and the cover
+   photo (Exchange), or the fact that an owner here named a number (Make Me Move). cm-offmarket.js replaces
+   them with the member's cards: unit, price, photos and the request sheet. */
+function buildingOffMarketSection(p, slug, name) {
+  const cs = Array.isArray(p.coming_soon) ? p.coming_soon : [];
+  const ex = (p.exchange && Array.isArray(p.exchange.listings)) ? p.exchange.listings : [];
+  const pub = p.omPub || {};
+  const mm = Math.max(0, Number(pub.mmm || 0));
+  const n = cs.length + ex.length + mm;
+  const hero = p.hero_url || (Array.isArray(p.images) && p.images[0] && p.images[0].url) || '';
+  const bg = hero ? ' style="background-image:url(\'' + esc(hero).replace(/'/g, '%27') + '\')"' : '';
+  const blur = '<span class="obm-blur" aria-hidden="true">$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>';
+  const CSS = '<style>' +
+    '.obm{scroll-margin-top:80px}.obm-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 40px;flex-wrap:wrap;margin:0 0 24px}' +
+    '.obm-k{font:500 11px/1.4 "JetBrains Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:#C2410C}' +
+    '.obm-h{font-family:"Playfair Display",Georgia,serif;font-weight:600;font-size:clamp(28px,3.4vw,40px);line-height:1.1;margin:10px 0 0;color:#1a1f2e}.obm-h em{color:#C2410C}' +
+    '.obm-sub{color:#5d6575;font-size:15px;line-height:1.55;max-width:60ch;margin:12px 0 0}' +
+    '.obm-chips{display:flex;gap:8px;flex-wrap:wrap}.obm-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(26,31,46,.12);border-radius:999px;padding:8px 13px;font:600 13px "DM Sans",system-ui,sans-serif;color:#1a1f2e}' +
+    '.obm-chip b{font:500 12px "JetBrains Mono",monospace;background:#f1f3f6;border-radius:999px;padding:2px 8px}.obm-chip i{width:9px;height:9px;border-radius:50%;background:#C2410C}.obm-chip i.ex{background:#12151d}.obm-chip i.mm{background:#fff;border:2px solid #12151d}' +
+    '.obm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}' +
+    '.obm-card{background:#fff;border:1px solid rgba(26,31,46,.1);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;scroll-margin-top:90px}' +
+    '.obm-ph{position:relative;height:178px;background:#e8ebf1 center/cover no-repeat}.obm-ph:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,21,29,0) 45%,rgba(18,21,29,.55))}' +
+    '.obm-tag{position:absolute;z-index:1;left:10px;top:10px;color:#fff;background:#C2410C;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border-radius:999px}' +
+    '.obm-tag.ex{background:#12151d}.obm-tag.mm{background:#fff;color:#12151d}' +
+    '.obm-lock{position:absolute;z-index:1;left:12px;bottom:10px;color:#fff;font:500 10px "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.9}' +
+    '.obm-b{padding:16px 18px 18px;display:flex;flex-direction:column;gap:3px;flex:1}' +
+    '.obm-plab{font:500 10px/1.4 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#5d6575}' +
+    '.obm-price{font-family:"Playfair Display",Georgia,serif;font-size:1.45rem;font-weight:600;line-height:1.15;color:#1a1f2e}.obm-blur{filter:blur(5px);color:#8a92a0;user-select:none}' +
+    '.obm-t{font-weight:600;font-size:1rem;line-height:1.35;margin-top:4px;color:#1a1f2e}.obm-s{font-size:.86rem;color:#5d6575;line-height:1.45}' +
+    '.obm-go{margin-top:auto;align-self:flex-start;appearance:none;border:0;background:#C2410C;color:#fff;font:600 13px "DM Sans",system-ui,sans-serif;padding:10px 15px;border-radius:999px;cursor:pointer}.obm-go:hover{background:#9a360c}' +
+    '.obm-b .obm-go{margin-top:14px}' +
+    '.obm-bar{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;background:#12151d;color:#e9ebf0;border-radius:16px;padding:16px 20px}' +
+    '.obm-bar p{margin:0;font-size:14.5px;line-height:1.5}.obm-bar b{color:#fff}.obm-bar .obm-acts{margin:0}' +
+    '.obm-acts{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-top:22px}' +
+    '.obm-pri{appearance:none;border:0;background:#C2410C;color:#fff;font:600 15px "DM Sans",system-ui,sans-serif;padding:13px 22px;border-radius:999px;cursor:pointer;text-decoration:none}.obm-pri:hover{background:#9a360c}' +
+    '.obm-sec{color:inherit;font:600 14.5px "DM Sans",system-ui,sans-serif;text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:1px;opacity:.85}.obm-sec:hover{opacity:1}' +
+    '.obm-up{margin:16px 0 0;font-size:14.5px;color:#5d6575}.obm-up a{color:#C2410C;font-weight:600;text-decoration:none}.obm-up a:hover{text-decoration:underline}' +
+    '.obm-cta{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:28px 44px;align-items:center;background:#12151d;color:#e9ebf0;border-radius:22px;padding:clamp(28px,4.5vw,52px)}' +
+    '.obm-cta:before{content:"";position:absolute;right:-120px;top:-140px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(194,65,12,.38),rgba(194,65,12,0) 68%);pointer-events:none}' +
+    '.obm-cta>*{position:relative}.obm-cta .obm-k{color:#f08a5d}.obm-cta h2{font-family:"Playfair Display",Georgia,serif;font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.08;margin:12px 0 0;color:#fff}.obm-cta h2 em{color:#f08a5d}' +
+    '.obm-cta p{margin:14px 0 0;color:#b8bfcc;font-size:15.5px;line-height:1.6;max-width:52ch}.obm-cta .obm-sec{color:#fff}' +
+    '.obm-stats{display:grid;gap:10px}.obm-stat{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px}' +
+    '.obm-stat b{font-family:"Playfair Display",Georgia,serif;font-size:30px;line-height:1;color:#fff;min-width:2.2ch}.obm-stat span{font-size:13.5px;line-height:1.4;color:#b8bfcc}.obm-stat span strong{display:block;color:#fff;font-size:14.5px;font-weight:600}' +
+    '.obm-none{background:#fff;border:1px solid rgba(26,31,46,.1);border-radius:18px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px 28px;flex-wrap:wrap}' +
+    '.obm-none h3{font-family:"Playfair Display",Georgia,serif;font-size:22px;margin:0;color:#1a1f2e}.obm-none p{margin:4px 0 0;color:#5d6575;font-size:14.5px}.obm-none .obm-acts{margin:0}.obm-none .obm-sec{color:#C2410C}' +
+    '@media(max-width:820px){.obm-cta{grid-template-columns:1fr}.obm-head{align-items:flex-start}.obm-chips{width:100%}}@media(max-width:640px){.obm-chips{display:none}}' +
+    '</style>';
+  const nf = (x) => Number(x || 0).toLocaleString('en-US');
+  const exCover = '<script>(function(){var U="' + SB_A_URL + '",K="' + SB_A_KEY + '";' +
+    'document.querySelectorAll("[data-obm-cover]").forEach(function(el){' +
+    'fetch(U+"/storage/v1/object/sign/exchange-photos/"+encodeURI(el.getAttribute("data-obm-cover")),{method:"POST",' +
+    'headers:{"apikey":K,"Authorization":"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})})' +
+    '.then(function(r){return r.ok?r.json():null}).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")"})' +
+    '.catch(function(){})})})();</script>\n';
+  /* the member's version when nothing is here today (cm-offmarket shows it, and hides the visitor's) */
+  const memberNone = '<div class="obm-none" data-om-bnone hidden style="display:none"><div><h3>Nothing off market in ' + name + ' today.</h3>' +
+    '<p>Your full off-market list has every coming-soon condo, owner’s number and Exchange listing in San Francisco.</p></div>' +
+    '<div class="obm-acts"><a class="obm-pri" href="/account/off-market/" data-cta="building:om-account">Your off-market list &rarr;</a>' +
+    '<a class="obm-sec" href="#dossier" data-cta="building:om-any-unit">Write an offer on any unit here</a></div></div>';
+
+  if (!n) {
+    const stats = [
+      pub.market_cs ? [nf(pub.market_cs), 'Coming soon', 'entered on the MLS, not yet on the market' + (pub.market_cs_buildings ? ', ' + nf(pub.market_cs_buildings) + ' in catalogued buildings' : '')] : null,
+      pub.market_ex ? [nf(pub.market_ex), 'On the Investor Exchange', 'rented units offered by their owners'] : null,
+      pub.market_mmm ? [nf(pub.market_mmm), (Number(pub.market_mmm) === 1 ? 'Owner’s number' : 'Owners’ numbers'), 'the price that would make them move, no listing'] : null,
+    ].filter(Boolean);
+    return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
+      '<div class="obm-cta" data-om-anon><div>' +
+        '<div class="obm-k">Off market &middot; San Francisco</div>' +
+        '<h2>See condos <em>before</em> they reach the listing sites.</h2>' +
+        '<p>Coming-soon listings, owners’ private numbers and the Investor Exchange, with the unit, price and photos of each. Nothing in ' + name + ' is off market today; a free account shows you everything that is.</p>' +
+        '<div class="obm-acts"><button type="button" class="obm-pri" data-om-signup="" data-cta="building:om-signup-empty">Create an account to see off-market properties &rarr;</button>' +
+        '<a class="obm-sec" href="/off-market/" data-cta="building:om-browse">Browse the off-market map</a></div></div>' +
+        (stats.length ? '<div class="obm-stats">' + stats.map(function (x) { return '<div class="obm-stat"><b>' + x[0] + '</b><span><strong>' + x[1] + '</strong>' + x[2] + '</span></div>'; }).join('') + '</div>' : '') +
+      '</div>' + memberNone +
+      '<div class="obm-grid" data-om-bcs-grid hidden></div>' +
+      '</div></section>\n';
+  }
+
+  const csCards = cs.map(function (c) {
+    return '<div class="obm-card" id="cs-' + esc(c.t) + '"><div class="obm-ph"' + bg + '><span class="obm-tag">Coming soon</span><span class="obm-lock">Unit and photos for members</span></div>' +
+      '<div class="obm-b"><div class="obm-plab">Price</div><div class="obm-price">' + blur + '</div>' +
+      '<div class="obm-t">' + esc(omSpec(c) || 'A home in ' + p.name) + '</div>' +
+      '<div class="obm-s">Entered as coming soon' + (c.since ? ' ' + omDay(c.since) : '') + ', not yet on the market</div>' +
+      '<button type="button" class="obm-go" data-om-signup="' + esc(c.t) + '" data-cta="building:coming-soon">See it free &rarr;</button></div></div>';
+  }).join('');
+  const exCards = ex.map(function (l) {
+    const facts = [];
+    if (l.beds != null) facts.push(l.beds + ' bd');
+    if (l.baths) facts.push(l.baths + ' ba');
+    if (l.sqft) facts.push(intc(l.sqft) + ' sq ft');
+    return '<div class="obm-card"><div class="obm-ph"' + (l.cover ? ' data-obm-cover="' + esc(l.cover) + '"' : bg) + '><span class="obm-tag ex">Investor Exchange</span>' +
+      '<span class="obm-lock">' + (l.photo_count ? nf(l.photo_count) + ' photos for members' : 'Photos for members') + '</span></div>' +
+      '<div class="obm-b"><div class="obm-plab">Asking</div><div class="obm-price">' + blur + '</div>' +
+      '<div class="obm-t">' + esc(facts.join(' · ') || 'A unit in ' + p.name) + '</div>' +
+      '<div class="obm-s">A rented unit offered by its owner. Unit, price and rent for members</div>' +
+      '<button type="button" class="obm-go" data-om-signup="" data-cta="building:exchange">See it free &rarr;</button></div></div>';
+  }).join('');
+  const mmCards = Array.from({ length: Math.min(mm, 6) }, function () {
+    return '<div class="obm-card"><div class="obm-ph"' + bg + '><span class="obm-tag mm">Make Me Move</span><span class="obm-lock">Not listed anywhere</span></div>' +
+      '<div class="obm-b"><div class="obm-plab">Owner’s number</div><div class="obm-price">' + blur + '</div>' +
+      '<div class="obm-t">An owner here named their price</div>' +
+      '<div class="obm-s">The number that would make them move, with no listing. Unit and number for members</div>' +
+      '<button type="button" class="obm-go" data-om-signup="" data-cta="building:mmm">See it free &rarr;</button></div></div>';
+  }).join('');
+  const parts = [cs.length ? cs.length + ' coming soon' : '', ex.length ? ex.length + ' on the Investor Exchange' : '',
+    mm ? mm + (mm === 1 ? ' owner’s private number' : ' owners’ private numbers') : ''].filter(Boolean);
+  const chip = (cls, label, k) => k ? '<span class="obm-chip"><i' + (cls ? ' class="' + cls + '"' : '') + '></i>' + label + ' <b>' + k + '</b></span>' : '';
+  return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
+    '<div class="obm-head"><div><div class="obm-k">Off market &middot; before the listing sites</div>' +
+    '<h2 class="obm-h">' + (n === 1 ? 'A home off market in' : n + ' homes off market in') + ' <em>this building</em></h2>' +
+    '<p class="obm-sub">' + esc(parts.join(', ')) + ' in ' + name + '.<span data-om-anon> The unit, price and photos open with a free account, with disclosures, a Comp Report and a tour a click away.</span></p></div>' +
+    '<div class="obm-chips">' + chip('', 'Coming soon', cs.length) + chip('ex', 'Investor Exchange', ex.length) + chip('mm', 'Make Me Move', mm) + '</div></div>' +
+    '<div class="obm-grid" data-om-bcs-grid>' + csCards + exCards + mmCards + '</div>' + memberNone +
+    '<div class="obm-bar" data-om-anon><p><b>Members see the unit, price and photos</b> of every off-market home in San Francisco. Free, and it takes a minute.</p>' +
+      '<div class="obm-acts"><button type="button" class="obm-pri" data-om-signup="" data-cta="building:om-signup">Create a free account &rarr;</button>' +
+      '<a class="obm-sec" href="/off-market/" style="color:#fff">How off market works</a></div></div>' +
+    '<p class="obm-up">Not the one you want? <a href="#dossier" data-cta="building:cs-any-unit">Write an offer on any unit in ' + name + ' &rarr;</a></p>' +
+    '</div></section>\n' + (ex.some(function (l) { return l.cover; }) ? exCover : '');
+}
+
 function renderBuilding(p) {
   const name = esc(p.name);
   const slug = esc(p.slug);
@@ -7097,46 +7233,6 @@ function renderBuilding(p) {
    * account: which unit, the asking price, the rent and the cap rate. The
    * blurred values are placeholders; the real ones are never sent to this page
    * (building_exchange_teaser does not return them). */
-  let exchangeBand = '';
-  if (p.exchange && Array.isArray(p.exchange.listings) && p.exchange.listings.length) {
-    const xl = p.exchange.listings;
-    const xn = xl.length;
-    const xCta = esc(p.exchange.cta_url || '#signup');
-    const xCards = xl.map(function (l) {
-      const facts = [];
-      if (l.beds != null) facts.push(l.beds + (l.beds === 1 ? ' bed' : ' beds'));
-      if (l.baths) facts.push(l.baths + (Number(l.baths) === 1 ? ' bath' : ' baths'));
-      if (l.sqft) facts.push(intc(l.sqft) + ' sq ft');
-      if (l.photo_count) facts.push(l.photo_count + (l.photo_count === 1 ? ' photo' : ' photos'));
-      return '<div class="xb-card">'
-        + '<div class="xb-shot"' + (l.cover ? ' data-xb-cover="' + esc(l.cover) + '"' : '') + ' role="img" aria-label="Unit photograph"></div>'
-        + '<div class="xb-body">'
-        +   '<div class="xb-facts">' + facts.join(' \u00b7 ') + '</div>'
-        +   '<div class="xb-lock" role="group" aria-label="Unit number, asking price, rent and cap rate are shown to investor accounts">'
-        +     '<div><span>Unit</span><b aria-hidden="true">#0000</b></div>'
-        +     '<div><span>Asking</span><b aria-hidden="true">$000,000</b></div>'
-        +     '<div><span>Rent</span><b aria-hidden="true">$0,000</b></div>'
-        +     '<div><span>Cap rate</span><b aria-hidden="true">0.00%</b></div>'
-        +   '</div>'
-        +   '<a class="xb-btn" href="' + xCta + '" data-cta="building-exchange-signup">Create a free account to see this listing \u2192</a>'
-        + '</div></div>';
-    }).join('');
-    exchangeBand =
-      '<section class="section xb-section" id="exchange"><div class="wrap">'
-      + '<div class="xb-kicker">On the Investor Exchange</div>'
-      + '<h2 class="xb-title">' + (xn === 1 ? 'A unit' : xn + ' units') + ' in ' + name + ' ' + (xn === 1 ? 'is' : 'are') + ' for sale to investors.</h2>'
-      + '<p class="xb-line">Rentals offered by their owners, each with a licensed agent\u2019s signed opinion of value. '
-      + 'Which unit, the price, the rent and the cap rate open with a free investor account.</p>'
-      + '<div class="xb-grid">' + xCards + '</div>'
-      + '</div></section>\n'
-      + '<script>(function(){var U="' + SB_A_URL + '",K="' + SB_A_KEY + '";'
-      + 'document.querySelectorAll("[data-xb-cover]").forEach(function(el){'
-      + 'fetch(U+"/storage/v1/object/sign/exchange-photos/"+encodeURI(el.getAttribute("data-xb-cover")),{method:"POST",'
-      + 'headers:{"apikey":K,"Authorization":"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})})'
-      + '.then(function(r){return r.ok?r.json():null}).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")"})'
-      + '.catch(function(){})})})();</script>\n';
-  }
-
   /* MARKET REPORT BAND — the building's latest review, sitting directly under
      the hero so it is the first thing after the address. Opens the full report
      on Local News. Only renders when a published building_review exists. */
@@ -7292,38 +7388,11 @@ function renderBuilding(p) {
       '</div></section>\n';
   }
 
-  /* COMING SOON in this building, ahead of the active listings (Tim, 16 Oct 2026). Size and date only in
-     the HTML; cm-offmarket.js swaps in the unit, price, photos and requests for a signed-in member. */
-  let comingSoonSection = '';
-  const csB = Array.isArray(p.coming_soon) ? p.coming_soon : [];
-  if (csB.length) {
-    const csCards = csB.map(function (c) {
-      return '<div class="bcs-card" id="cs-' + esc(c.t) + '">' +
-        '<div class="bcs-ph"><span class="bcs-tag">Coming soon</span><span class="bcs-phl">Photos for members</span></div>' +
-        '<div class="bcs-b"><div class="bcs-price"><span class="bcs-blur">$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span></div>' +
-        '<div class="bcs-spec">' + esc(omSpec(c) || 'A home in ' + p.name) + '</div>' +
-        '<div class="bcs-sub">First seen ' + omDay(c.since) + ' &middot; unit and price for members</div>' +
-        '<button type="button" class="bcs-go" data-om-signup="' + esc(c.t) + '" data-cta="building:coming-soon">See it free &rarr;</button></div></div>';
-    }).join('');
-    const n = csB.length;
-    comingSoonSection =
-      '<section class="section bcs" id="coming-soon" data-om-bcs="' + esc(slug) + '"' + omCfgAttrs(p.om) + '><div class="wrap">' +
-      '<style>.bcs .bcs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}' +
-      '.bcs-card{background:#fff;border:1px solid rgba(34,38,47,.1);border-radius:14px;overflow:hidden;scroll-margin-top:90px}' +
-      '.bcs-ph{position:relative;height:150px;background:linear-gradient(135deg,#e8ebf1,#f4f6f9)}' +
-      '.bcs-tag{position:absolute;left:10px;top:10px;background:#C2410C;color:#fff;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border-radius:999px}' +
-      '.bcs-phl{position:absolute;left:12px;bottom:10px;font:500 10px "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#5d6575}' +
-      '.bcs-b{padding:15px 17px 17px}.bcs-price{font-family:"Playfair Display",Georgia,serif;font-size:22px;color:#22262f;font-weight:700}' +
-      '.bcs-blur{filter:blur(5px);user-select:none}.bcs-spec{font-size:14px;color:#22262f;margin-top:4px}.bcs-sub{font-size:12.5px;color:#5d6575;margin-top:3px}' +
-      '.bcs-go{margin-top:12px;appearance:none;border:0;background:#C2410C;color:#fff;font:600 13px "DM Sans",system-ui,sans-serif;padding:9px 14px;border-radius:999px;cursor:pointer}' +
-      '.bcs-go:hover{background:#9a360c}.bcs-up{margin-top:18px;font-size:14px}.bcs-up a{color:#C2410C;font-weight:600;text-decoration:none}</style>' +
-      '<div class="section-head"><div class="section-kicker">Coming soon &middot; before the listing sites</div>' +
-      '<h2 class="section-title">' + n + ' ' + (n === 1 ? 'home' : 'homes') + ' coming soon in <em>this building</em></h2>' +
-      '<p class="section-sub">Entered on the MLS as coming soon, not yet on the market. The unit, price and photos open with a free account, with disclosures, a Comp Report and a tour a click away.</p></div>' +
-      '<div class="bcs-grid" data-om-bcs-grid>' + csCards + '</div>' +
-      '<p class="bcs-up">Not the one you want? <a href="#dossier" data-cta="building:cs-any-unit">Write an offer on any unit in ' + name + ' &rarr;</a></p>' +
-      '</div></section>\n';
-  }
+  /* OFF MARKET IN THIS BUILDING (Tim, 17 Oct 2026): the second fold. Coming soon, the Investor Exchange and
+     owners' private numbers in this building, gated for visitors and live for members (cm-offmarket.js); a
+     sign-up call to action when there are none. Replaces the coming-soon section, the Exchange band and the
+     old "Private marketplace" widget (cm-featured.js). */
+  const offMarketSection = buildingOffMarketSection(p, slug, name);
 
   let gallerySection = '';
   if (imgs.length === 1) {
@@ -7607,7 +7676,7 @@ function renderBuilding(p) {
     '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
     '<script type="module" src="/assets/cm-auth-nav.js"></script>\n' +
     '<script src="/assets/cm-track.js?v=' + TRACK_VER + '" defer></script>\n' +
-    '<script src="/assets/cm-watch-prompt.js?v=' + TRACK_VER + '" defer></script>\n' +
+    '<script src="/assets/cm-watch-prompt.js?v=' + TRACK_VER + 'w" defer></script>\n' +
     jsonLd + '\n' +
     '<style>' + CSS + '</style>\n' +
     '<style>' + EXTRA_CSS + '</style>\n' +
@@ -7643,11 +7712,7 @@ function renderBuilding(p) {
     heroMedia +
     '</div></div></div></section>\n' +
     reportBand +
-    comingSoonSection +
-    exchangeBand +
-    '<section class="section" id="featured-mmm"><div class="wrap">' +
-    '<div data-cm-featured data-building="' + slug + '"></div>' +
-    '</div></section>\n' +
+    offMarketSection +
     activeSection +
     stickyNav + '\n' +
     gallerySection +
@@ -7669,12 +7734,11 @@ function renderBuilding(p) {
     '<script>var SB_URL=' + JSON.stringify(SUPABASE_URL)
       + ',SB_KEY=' + JSON.stringify(SUPABASE_ANON_KEY) + ';</script>\n' +
     '<script>' + WATCH_JS + '</script>\n' +
-    '<script type="module" src="/assets/cm-featured.js"></script>\n' +
     '<script type="module" src="/assets/cm-actions.js"></script>\n' +
     '<script type="module" src="/assets/cm-offer-modal.js?v=4"></script>\n' +
     '<script type="module" src="/assets/cm-dossier.js?v=4"></script>\n' +
     '<script type="module" src="/assets/cm-market.js"></script>\n' +
-    (comingSoonSection ? '<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' : '') +
+    '<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' +
     '</body>\n</html>';
 }
 
