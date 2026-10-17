@@ -116,7 +116,43 @@
       '.omx-go{margin-top:16px;width:100%;appearance:none;border:0;background:#C2410C;color:#fff;font:700 15px "DM Sans",system-ui,sans-serif;padding:14px;border-radius:12px;cursor:pointer}' +
       '.omx-go[disabled]{opacity:.6;cursor:default}' +
       '.omx-msg{margin:10px 0 0;font-size:.92rem;line-height:1.5}.omx-msg.err{color:#a8431f}.omx-msg.ok{color:#245f3d}' +
-      '.omx-done{text-align:left}.omx-done p{margin:8px 0 0;line-height:1.55}';
+      '.omx-done{text-align:left}.omx-done p{margin:8px 0 0;line-height:1.55}' +
+      /* the tour calendar: two picks, nothing inside 48 hours (see tourPicker) */
+      '.omx-sheet{transition:max-width .2s ease}@media(min-width:760px){.omx-sheet.wide{max-width:740px}}' +
+      '.omx-cal-grid{display:grid;gap:14px;margin-top:14px}' +
+      '@media(min-width:760px){.omx-sheet.wide .omx-cal-grid{grid-template-columns:292px minmax(0,1fr);gap:22px;align-items:start}}' +
+      '.omx-mo{background:#fff;border:1px solid rgba(26,31,46,.12);border-radius:14px;padding:8px 8px 6px}' +
+      '.omx-mo-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 4px}' +
+      '.omx-mo-h b{font:600 14px "DM Sans",system-ui,sans-serif;color:#1a1f2e}' +
+      '.omx-mo-nav{appearance:none;border:0;background:none;width:34px;height:34px;border-radius:9px;cursor:pointer;color:#1a1f2e;font:500 18px/1 "DM Sans",system-ui,sans-serif}' +
+      '.omx-mo-nav:hover:not([disabled]){background:#f4efe7}.omx-mo-nav[disabled]{opacity:.22;cursor:default}' +
+      '.omx-dow,.omx-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}' +
+      '.omx-dow span{font:500 9.5px/2 "JetBrains Mono",monospace;letter-spacing:.08em;color:#8a8f9a;text-align:center}' +
+      '.omx-day{appearance:none;border:0;background:none;height:36px;border-radius:9px;font:500 14px "DM Sans",system-ui,sans-serif;color:#1a1f2e;cursor:pointer;position:relative;padding:0}' +
+      '.omx-day:hover:not([disabled]):not(.on){background:#f6eee4}' +
+      '.omx-day[disabled]{color:#c3c6cc;cursor:default}' +
+      '.omx-day.on{background:#1a1f2e;color:#fff}' +
+      '.omx-day.has:after{content:"";position:absolute;left:50%;bottom:4px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#C2410C}' +
+      '.omx-day.on.has:after{background:#f28c63}' +
+      '.omx-day:focus-visible,.omx-slot:focus-visible,.omx-mo-nav:focus-visible{outline:2px solid #C2410C;outline-offset:1px}' +
+      '.omx-sl-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 8px}' +
+      '.omx-sl-h b{font-size:.9rem;font-weight:600;color:#1a1f2e}.omx-sl-h span{font-size:.76rem;color:#6b7180;white-space:nowrap}' +
+      '.omx-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}' +
+      '.omx-slot{appearance:none;border:1px solid rgba(26,31,46,.16);background:#fff;border-radius:10px;padding:10px 2px;font:600 13px "DM Sans",system-ui,sans-serif;color:#1a1f2e;cursor:pointer;white-space:nowrap;position:relative}' +
+      '.omx-slot:hover:not([disabled]):not(.on){border-color:#C2410C;color:#9a360c}' +
+      '.omx-slot[disabled]{opacity:.4;cursor:default;background:transparent}' +
+      '.omx-slot.on{background:#C2410C;border-color:#C2410C;color:#fff}' +
+      '.omx-slot sup{position:absolute;top:-7px;right:-5px;background:#1a1f2e;color:#fff;font:600 9.5px/16px "DM Sans",system-ui,sans-serif;min-width:16px;height:16px;border-radius:8px;padding:0 3px}' +
+      '.omx-picks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}' +
+      '.omx-pick{display:flex;align-items:center;gap:6px;min-height:52px;border:1px dashed rgba(26,31,46,.24);border-radius:12px;padding:7px 6px 7px 12px;min-width:0}' +
+      '.omx-pick.set{border:1px solid #C2410C;background:#fff3ec}' +
+      '.omx-pick div{min-width:0}.omx-pick i{display:block;font:500 9.5px/1.5 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#9a360c;font-style:normal}' +
+      '.omx-pick span{display:block;font-size:13.5px;font-weight:600;color:#1a1f2e;line-height:1.3}.omx-pick span.e{font-weight:400;color:#8a8f9a}' +
+      '.omx-pick button{margin-left:auto;flex:0 0 auto;appearance:none;border:0;background:none;color:#9a360c;font-size:20px;line-height:1;width:30px;height:30px;border-radius:8px;cursor:pointer}' +
+      '.omx-pick button:hover{background:rgba(194,65,12,.1)}' +
+      '.omx-hint{font-size:.8rem;color:#6b7180;margin:8px 0 0;min-height:1.2em}.omx-hint.warn{color:#a8431f}' +
+      '.omx-addnote{appearance:none;border:0;background:none;color:#9a360c;font:600 13.5px "DM Sans",system-ui,sans-serif;padding:4px 0;margin:12px 0 0;cursor:pointer}' +
+      '@media(max-width:400px){.omx-slot{font-size:12px}.omx-pick span{font-size:12.5px}}';
     document.head.appendChild(s);
   }
 
@@ -186,6 +222,134 @@
     setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 120);
   }
 
+  /* ------------------------------ tour calendar ------------------------------ */
+  /* Tim, 17 Oct 2026: "Make schedule a tour a calendar function. Cannot book a tour within 48 hours.
+     User selects two times, due to the agent having to request those times from owner, most off market
+     properties mean the owner/tenant needs notice." So: a month calendar and hourly start times, every
+     time inside 48 hours greyed out, and exactly two picks, sent as instants. offmarket-request checks
+     the same rules again. Every time is Pacific, because the homes are: a visitor in New York sees
+     "10 AM" meaning 10 AM in San Francisco, and the line under the times says so. */
+  var TOUR = { notice: 48, days: 30, first: 9, last: 18 };   // start times 9 AM to 6 PM, on the hour
+  function tourParty(it) {
+    return it && it.type === 'cs' ? 'the listing agent' : it && it.type === 'ex' ? 'the owner (and the tenant, if it’s rented)' : 'the owner';
+  }
+  var PTF = null, PTL = null;
+  function ptParts(d) {
+    if (!PTF) PTF = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+    var o = {}; PTF.formatToParts(d).forEach(function (p) { o[p.type] = p.value; });
+    return { y: +o.year, m: +o.month - 1, d: +o.day, h: (+o.hour) % 24, mi: +o.minute };
+  }
+  /* The instant that is h:00 on that Pacific calendar day (DST included): start from the UTC reading
+     and correct by the Pacific offset at that instant, twice so a guess across a DST change settles. */
+  function ptTime(y, m, d, h) {
+    var guess = Date.UTC(y, m, d, h), t = guess;
+    for (var i = 0; i < 2; i++) { var p = ptParts(new Date(t)); t = guess - (Date.UTC(p.y, p.m, p.d, p.h, p.mi) - t); }
+    return new Date(t);
+  }
+  function slotLabel(t) {
+    if (!PTL) PTL = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric' });
+    return PTL.format(t);
+  }
+  function hourLabel(h) { return (h % 12 || 12) + (h < 12 ? ' AM' : ' PM'); }
+  var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  function tourPicker(root, hint) {
+    var picks = [];                        // [{t: Date, k: 'y-m-d', h}], in the order chosen: 1st, then 2nd choice
+    var cutoff, days = [], byKey = {}, sel = null, view = null;
+    function key(y, m, d) { return y + '-' + m + '-' + d; }
+    function build() {
+      cutoff = Date.now() + TOUR.notice * 3600e3;
+      var today = ptParts(new Date()); days = []; byKey = {};
+      for (var i = 0; i <= TOUR.days + 2; i++) {
+        var u = new Date(Date.UTC(today.y, today.m, today.d + i));
+        var y = u.getUTCFullYear(), m = u.getUTCMonth(), d = u.getUTCDate(), hrs = [];
+        for (var h = TOUR.first; h <= TOUR.last; h++) { var t = ptTime(y, m, d, h); hrs.push({ h: h, t: t, ok: t.getTime() >= cutoff }); }
+        var day = { y: y, m: m, d: d, dow: u.getUTCDay(), k: key(y, m, d), hrs: hrs, ok: i <= TOUR.days + 2 && hrs.some(function (x) { return x.ok; }) };
+        days.push(day); byKey[day.k] = day;
+      }
+      /* the window is TOUR.days of bookable days from the first one, so it never shrinks to 28 */
+      var first = days.filter(function (x) { return x.ok; })[0];
+      if (first) { var n = 0; days.forEach(function (x) { if (x.ok) { n++; if (n > TOUR.days) x.ok = false; } }); }
+      if (!sel || !byKey[sel] || !byKey[sel].ok) sel = first ? first.k : null;
+      if (!view && first) view = { y: first.y, m: first.m };
+    }
+    function months() {
+      var ok = days.filter(function (x) { return x.ok; });
+      return ok.length ? { a: ok[0].y * 12 + ok[0].m, b: ok[ok.length - 1].y * 12 + ok[ok.length - 1].m } : null;
+    }
+    function picked(t) { for (var i = 0; i < picks.length; i++) if (picks[i].t.getTime() === t.getTime()) return i; return -1; }
+    function render() {
+      var r = months(); if (!r || !view) { root.innerHTML = '<p class="omx-hint">No times to offer right now. Ask a question instead and ' + esc(agentFirst()) + ' will reply.</p>'; return; }
+      var vm = view.y * 12 + view.m;
+      var start = new Date(Date.UTC(view.y, view.m, 1)), lead = start.getUTCDay(), dim = new Date(Date.UTC(view.y, view.m + 1, 0)).getUTCDate();
+      var cells = '';
+      for (var b = 0; b < lead; b++) cells += '<span></span>';
+      for (var d = 1; d <= dim; d++) {
+        var k = key(view.y, view.m, d), day = byKey[k], ok = !!(day && day.ok);
+        var has = picks.some(function (p) { return p.k === k; });
+        cells += '<button type="button" class="omx-day' + (k === sel ? ' on' : '') + (has ? ' has' : '') + '" data-day="' + k + '"' + (ok ? '' : ' disabled')
+          + ' aria-pressed="' + (k === sel) + '" aria-label="' + DOW[new Date(Date.UTC(view.y, view.m, d)).getUTCDay()] + ', ' + MON[view.m] + ' ' + d + (has ? ', one of your times' : '') + (ok ? '' : ', not available') + '">' + d + '</button>';
+      }
+      var sd = sel && byKey[sel];
+      var slots = sd ? sd.hrs.map(function (x) {
+        var i = picked(x.t);
+        return '<button type="button" class="omx-slot' + (i > -1 ? ' on' : '') + '" data-t="' + x.t.getTime() + '"' + (x.ok ? '' : ' disabled')
+          + ' aria-pressed="' + (i > -1) + '" aria-label="' + hourLabel(x.h) + (x.ok ? '' : ', less than 48 hours away') + (i > -1 ? ', your ' + (i ? 'second' : 'first') + ' choice' : '') + '">'
+          + hourLabel(x.h) + (i > -1 ? '<sup>' + (i + 1) + '</sup>' : '') + '</button>';
+      }).join('') : '';
+      var tz = '';
+      try { var z = Intl.DateTimeFormat().resolvedOptions().timeZone; if (z && z !== 'America/Los_Angeles') tz = 'Pacific time'; } catch (e) {}
+      root.innerHTML =
+        '<div class="omx-cal-grid"><div class="omx-mo">' +
+          '<div class="omx-mo-h"><button type="button" class="omx-mo-nav" data-mo="-1" aria-label="Previous month"' + (vm <= r.a ? ' disabled' : '') + '>‹</button>' +
+          '<b>' + MON[view.m] + ' ' + view.y + '</b>' +
+          '<button type="button" class="omx-mo-nav" data-mo="1" aria-label="Next month"' + (vm >= r.b ? ' disabled' : '') + '>›</button></div>' +
+          '<div class="omx-dow" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>' +
+          '<div class="omx-days">' + cells + '</div></div>' +
+        '<div class="omx-sl">' +
+          '<div class="omx-sl-h"><b>' + (sd ? DOW[sd.dow] + ', ' + MON[sd.m].slice(0, 3) + ' ' + sd.d : 'Pick a day') + '</b>' + (tz ? '<span>' + tz + '</span>' : '') + '</div>' +
+          '<div class="omx-slots">' + slots + '</div>' +
+          '<div class="omx-picks">' + [0, 1].map(function (i) {
+            var p = picks[i];
+            return '<div class="omx-pick' + (p ? ' set' : '') + '"><div><i>' + (i ? '2nd choice' : '1st choice') + '</i>' +
+              (p ? '<span>' + esc(slotLabel(p.t)) + '</span>' : '<span class="e">' + (i && picks.length ? 'Pick another time' : 'Pick a time') + '</span>') + '</div>' +
+              (p ? '<button type="button" data-rm="' + i + '" aria-label="Remove ' + (i ? '2nd' : '1st') + ' choice">×</button>' : '') + '</div>';
+          }).join('') + '</div>' +
+        '</div></div>';
+    }
+    function say(t, warn) { if (hint) { hint.textContent = t || ''; hint.className = 'omx-hint' + (warn ? ' warn' : ''); } }
+    root.addEventListener('click', function (e) {
+      var el = e.target.closest('button'); if (!el || el.disabled) return;
+      if (el.hasAttribute('data-mo')) { var n = view.y * 12 + view.m + (+el.getAttribute('data-mo')); view = { y: Math.floor(n / 12), m: n % 12 };
+        var f = days.filter(function (x) { return x.ok && x.y === view.y && x.m === view.m; })[0]; if (f && (!byKey[sel] || byKey[sel].m !== view.m)) sel = f.k; render(); return; }
+      if (el.hasAttribute('data-day')) { sel = el.getAttribute('data-day'); render(); var b = root.querySelector('.omx-slot:not([disabled])'); if (b && window.innerWidth < 760) b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+      if (el.hasAttribute('data-rm')) { picks.splice(+el.getAttribute('data-rm'), 1); say(''); render(); return; }
+      if (el.hasAttribute('data-t')) {
+        var t = new Date(+el.getAttribute('data-t')), i = picked(t);
+        if (i > -1) { picks.splice(i, 1); say(''); }
+        else if (picks.length >= 2) { say('You have two times. Remove one to choose a different time.', true); return; }
+        else { picks.push({ t: t, k: sel }); say(picks.length === 1 ? 'Now pick a second time. A different day gives ' + agentFirst() + ' the best chance of a yes.' : ''); }
+        render();
+        var again = root.querySelector('[data-t="' + t.getTime() + '"]'); if (again) again.focus();
+      }
+    });
+    build(); render();
+    return {
+      /* null when both picks are good; otherwise what to tell them. A pick that has slipped inside 48
+         hours while the sheet sat open is dropped and named. */
+      check: function () {
+        var lim = Date.now() + TOUR.notice * 3600e3, late = picks.filter(function (p) { return p.t.getTime() < lim; });
+        if (late.length) { picks = picks.filter(function (p) { return p.t.getTime() >= lim; }); build(); render();
+          return slotLabel(late[0].t) + ' is now less than 48 hours away. Pick a later time.'; }
+        if (picks.length < 2) return picks.length ? 'Pick a second time. ' + agentFirst() + ' asks for both, in case one doesn’t work.' : 'Pick two times on the calendar.';
+        return null;
+      },
+      iso: function () { return picks.map(function (p) { return p.t.toISOString(); }); },
+      text: function () { return picks.map(function (p, i) { return (i ? '2nd choice ' : '1st choice ') + slotLabel(p.t); }).join('; ') + ' (Pacific)'; },
+      labels: function () { return picks.map(function (p) { return slotLabel(p.t); }); }
+    };
+  }
+
   /* --------------------------------- the sheet ------------------------------- */
   var KIND = {
     disclosures: { b: 'Disclosures', h: 'Request the disclosures',
@@ -193,14 +357,14 @@
     comps: { b: 'Comp Report', h: 'Request a Comp Report',
       w: function () { return 'Recorded sales chosen one by one for this home, with the arithmetic shown, delivered to your inbox within 24 hours.'; } },
     tour: { b: 'Schedule a tour', h: 'Schedule a tour',
-      w: function () { return agentFirst() + ' confirms a time with you by email. Say what works for you.'; } },
+      w: function (it) { return 'Pick two times. ' + agentFirst() + ' asks ' + tourParty(it) + ' which one works, then confirms it with you by email. Off-market homes are lived in, so the earliest time is 48 hours from now.'; } },
     question: { b: 'Ask a question', h: 'Ask a question',
       w: function () { return agentFirst() + ' replies to you directly, by email.'; } },
   };
   var DONE = {
     disclosures: function (it) { return agentFirst() + ' will ask ' + (it.type === 'cs' ? 'the listing agent ' : '') + 'for the disclosure package and send it to you, or tell you plainly if it isn\u2019t available yet.'; },
     comps: function () { return 'Your Comp Report will be in your inbox within 24 hours.'; },
-    tour: function () { return agentFirst() + ' will confirm a time with you by email.'; },
+    tour: function (it) { return agentFirst() + ' will ask ' + tourParty(it) + ' which of your two times works and confirm one with you by email. Nothing is booked until then.'; },
     question: function () { return agentFirst() + ' will reply to you directly, by email.'; },
   };
   function act(it, kind) {
@@ -219,32 +383,48 @@
       '<h3 class="omx-h" id="omxH"></h3>' +
       '<div class="omx-kinds">' + Object.keys(KIND).filter(function (k) { return !(it.type === 'ex' && k === 'comps'); }).map(function (k) { return '<button type="button" class="omx-kind" data-k="' + k + '">' + KIND[k].b + '</button>'; }).join('') + '</div>' +
       '<p class="omx-what"></p>' +
-      '<form class="omx-f"><div class="omx-times"><label for="omxT">Times that work</label><input id="omxT" name="times" maxlength="300" placeholder="e.g. Saturday morning, or weekday evenings"></div>' +
-      '<label for="omxN" class="omx-nl"></label><textarea id="omxN" name="note" maxlength="1000"></textarea>' +
+      '<form class="omx-f"><div class="omx-times"><div class="omx-cal"></div><p class="omx-hint" aria-live="polite"></p></div>' +
+      '<button type="button" class="omx-addnote">+ Add a note for ' + esc(agentFirst()) + ' (optional)</button>' +
+      '<div class="omx-nw"><label for="omxN" class="omx-nl"></label><textarea id="omxN" name="note" maxlength="1000"></textarea></div>' +
       '<button type="submit" class="omx-go">Send to ' + esc(agentFirst()) + ' \u2192</button><p class="omx-msg" role="status"></p></form></div>';
     document.body.appendChild(v);
     var sheet = v.querySelector('.omx-sheet'), f = v.querySelector('form'), msg = v.querySelector('.omx-msg'), go = v.querySelector('.omx-go');
+    var picker = null, noteOpen = false;
+    function goLabel() { return kind === 'tour' ? 'Send both times to ' + agentFirst() + ' \u2192' : 'Send to ' + agentFirst() + ' \u2192'; }
     function setKind(k) {
       kind = k;
       v.querySelectorAll('.omx-kind').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-k') === k); });
       v.querySelector('.omx-h').textContent = k === 'question' ? 'Ask ' + agentFirst() + ' a question' : KIND[k].h;
       v.querySelector('.omx-what').textContent = KIND[k].w(it);
       v.querySelector('.omx-times').style.display = k === 'tour' ? '' : 'none';
+      if (k === 'tour' && !picker) picker = tourPicker(v.querySelector('.omx-cal'), v.querySelector('.omx-times .omx-hint'));
+      sheet.classList.toggle('wide', k === 'tour');
+      /* the calendar is the tour form; the note waits behind a link so the sheet stays one screen */
+      var hideNote = k === 'tour' && !noteOpen && !f.note.value;
+      v.querySelector('.omx-nw').style.display = hideNote ? 'none' : '';
+      v.querySelector('.omx-addnote').style.display = hideNote ? '' : 'none';
       v.querySelector('.omx-nl').textContent = k === 'question' ? 'Your question' : 'Anything ' + agentFirst() + ' should know? (optional)';
+      go.textContent = goLabel();
       msg.textContent = ''; msg.className = 'omx-msg';
     }
     function close() { v.remove(); document.removeEventListener('keydown', onKey); }
     function onKey(e) { if (e.key === 'Escape') close(); }
     document.addEventListener('keydown', onKey);
-    v.addEventListener('click', function (e) { if (e.target === v || e.target.closest('.omx-x')) close(); var kb = e.target.closest('.omx-kind'); if (kb) setKind(kb.getAttribute('data-k')); });
+    v.addEventListener('click', function (e) { if (e.target === v || e.target.closest('.omx-x')) close(); var kb = e.target.closest('.omx-kind'); if (kb) setKind(kb.getAttribute('data-k'));
+      if (e.target.closest('.omx-addnote')) { noteOpen = true; setKind(kind); f.note.focus(); } });
     setKind(kind);
     f.addEventListener('submit', function (e) {
       e.preventDefault();
-      var note = f.note.value.trim(), times = f.times.value.trim();
+      var note = f.note.value.trim(), body = { kind: kind, ref: it.ref, note: note, times: '', domain: DOMAIN }, chosen = null;
       if (kind === 'question' && !note) { msg.className = 'omx-msg err'; msg.textContent = 'Write your question first.'; return; }
+      if (kind === 'tour') {
+        var bad = picker ? picker.check() : 'Pick two times on the calendar.';
+        if (bad) { msg.className = 'omx-msg err'; msg.textContent = bad; return; }
+        body.slots = picker.iso(); body.times = picker.text(); chosen = picker.labels();
+      }
       go.disabled = true; go.textContent = 'Sending\u2026'; msg.textContent = ''; msg.className = 'omx-msg';
       whenCM(function (CM) {
-        CM.client.functions.invoke('offmarket-request', { body: { kind: kind, ref: it.ref, note: note, times: kind === 'tour' ? times : '', domain: DOMAIN } })
+        CM.client.functions.invoke('offmarket-request', { body: body })
           .then(function (r) {
             if (r.error) {
               var ctx = r.error.context;
@@ -257,6 +437,7 @@
             track('offmarket:request-' + kind, { ref_type: it.type });
             sheet.innerHTML = '<button type="button" class="omx-x" aria-label="Close">\u00d7</button>' +
               '<div class="omx-done"><div class="omx-k">Sent</div><h3 class="omx-h">' + esc(d.agent || agentFirst()) + ' has your request.</h3>' +
+              (chosen ? '<p><b>Your times</b><br>1st choice: ' + esc(chosen[0]) + '<br>2nd choice: ' + esc(chosen[1]) + ' <span style="color:#6b7180">(Pacific)</span></p>' : '') +
               '<p>' + esc(DONE[kind](it)) + '</p>' +
               (d.confirmed ? '<p>A confirmation is on its way to your inbox. Reply to it any time to reach ' + esc(d.agent || agentFirst()) + '.</p>' : '') +
               (it.building ? '<p><a href="/building/' + encodeURIComponent(it.building) + '#dossier" style="color:#C2410C;font-weight:600">While you wait: every unit in ' + esc(it.bname || 'the building') + ', and an offer on any of them \u2192</a></p>' : '') +
@@ -264,13 +445,13 @@
             sheet.querySelector('[data-close]').addEventListener('click', close);
           })
           .catch(function (err) {
-            go.disabled = false; go.textContent = 'Send to ' + agentFirst() + ' \u2192';
+            go.disabled = false; go.textContent = goLabel();
             msg.className = 'omx-msg err'; msg.textContent = (err && err.message) || 'The request did not go through. Try again.';
             if (window.console) console.warn('[cm-offmarket] request failed', err);
           });
       });
     });
-    setTimeout(function () { var i = kind === 'tour' ? f.times : f.note; if (i && window.innerWidth >= 640) i.focus(); }, 30);
+    setTimeout(function () { if (kind !== 'tour' && window.innerWidth >= 640) f.note.focus(); }, 30);
   }
 
   /* --------------------------------- auth ------------------------------------ */

@@ -173,7 +173,7 @@
       (it.price ? '<b>' + (it.type === 'mmm' ? 'Owner\u2019s number ' : '') + money(it.price) + '</b>' + (it.spec ? ' \u00b7 ' : '') : '') + e(it.spec) +
       (it.since ? '<br>' + (it.type === 'mmm' ? 'Named ' : 'First seen ') + dd(it.since) : '') + '</p>' +
       '<div class="mact-choose">' + offer +
-      '<button type="button" class="mact-choice" data-om-k="tour"><span class="mc-t">Schedule a tour</span><span class="mc-s">' + e(a) + ' confirms a time with you</span></button>' +
+      '<button type="button" class="mact-choice" data-om-k="tour"><span class="mc-t">Schedule a tour</span><span class="mc-s">Pick two times, 48 hours or more out</span></button>' +
       '<button type="button" class="mact-choice" data-om-k="disclosures"><span class="mc-t">Request the disclosures</span><span class="mc-s">' + (it.type === 'cs' ? 'From the listing agent, sent to you' : 'Sent to you, or a plain answer if they aren\u2019t available') + '</span></button>' +
       '<button type="button" class="mact-choice" data-om-k="comps"><span class="mc-t">Request a Comp Report</span><span class="mc-s">In your inbox within 24 hours</span></button></div>' +
       anyUnit + '<a class="mp-rec" href="/account/off-market/' + (it.type === 'cs' ? '?cs=' + encodeURIComponent(it.key) : '#make-me-move') + '">Open in your off-market list &rarr;</a>';

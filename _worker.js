@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '6';
+const OM_VER = '7';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
