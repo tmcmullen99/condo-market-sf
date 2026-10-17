@@ -4655,7 +4655,7 @@ async function renderNeighborhoodDetail(mk, rawSlug) {
     description: nbSentence + ' Medians exclude below-market-rate sales and are shown only from five or more sales.',
     spatialCoverage: { '@type': 'Place', name: hood + ', San Francisco, CA' },
     variableMeasured: ['Recorded sales', 'Median price per square foot', 'Median sale price'],
-    creator: { '@type': 'Organization', name: 'McMullen Properties LLC' } };
+    creator: { '@type': 'Organization', name: 'McMullen Properties LLC' }, license: dataLicense(canonical), isAccessibleForFree: true };
   const hoodListings = (alL || []).filter(function (l) { return l && l.neighborhood === hood && l.mls; }).slice(0, 8);
   const listBlock = hoodListings.length ? '<section><h2>For sale now in ' + esc(hood) + '</h2><table><thead><tr><th>Address</th><th class="num">Beds</th><th class="num">Sq ft</th><th class="num">Asking</th></tr></thead><tbody>' +
     hoodListings.map(function (l) { return '<tr><td><a href="' + base + '/listing/' + esc(l.mls) + '">' + esc(l.unit_address || l.building_name || l.mls) + '</a></td><td class="num">' + (l.beds != null ? l.beds : '\u2014') + '</td><td class="num">' + (l.sqft ? intc(l.sqft) : '\u2014') + '</td><td class="num">' + (money(l.price) || '\u2014') + '</td></tr>'; }).join('') +
@@ -5433,7 +5433,7 @@ async function renderStatsHub(mk) {
     name: 'San Francisco Condo Market Statistics',
     description: 'Trailing-twelve-month sales volume, median price, and median price per square foot for cataloged San Francisco condos, with year-over-year comparison.',
     url: canonical, dateModified: updated,
-    creator: { '@type': 'RealEstateAgent', name: 'McMullen Properties LLC' }
+    creator: { '@type': 'Organization', name: 'McMullen Properties LLC' }, license: dataLicense(canonical), isAccessibleForFree: true
   };
 
   const title = 'San Francisco Condo Market Stats — Sales Volume, Median Price & $/Sq Ft';
@@ -5816,7 +5816,7 @@ async function renderRankingsHub(mk) {
     '@graph': [
       { '@type': 'Dataset', name: 'San Francisco Condo Market Rankings',
         description: 'Median price per square foot by neighborhood, most-active buildings, and lowest-turnover buildings across cataloged San Francisco condo buildings, based on recorded sales over the trailing twelve months.',
-        url: canonical, dateModified: updated, creator: { '@type': 'RealEstateAgent', name: 'McMullen Properties LLC' } },
+        url: canonical, dateModified: updated, creator: { '@type': 'Organization', name: 'McMullen Properties LLC' }, license: dataLicense(canonical), isAccessibleForFree: true },
       { '@type': 'ItemList', name: 'Most Active San Francisco Condo Buildings', itemListElement: itemListEls }
     ]
   };
@@ -5915,6 +5915,11 @@ async function renderRankingsHub(mk) {
 }
 
 
+/* Every Dataset names the terms it is shared under (Search Console, 17 Oct 2026: 'Missing field "license"'):
+   the "Using these figures" section of the market's own methodology page. */
+function dataLicense(u) {
+  try { return new URL(u).origin + '/methodology/#data-use'; } catch (e) { return 'https://www.sanfranciscocondomarket.com/methodology/#data-use'; }
+}
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -7576,7 +7581,7 @@ function renderBuilding(p) {
         variableMeasured: ['Sale price', 'Price per square foot', 'Days on market'],
         spatialCoverage: { '@type': 'Place', name: p.name, address: { '@type': 'PostalAddress', streetAddress: p.street || p.address, addressLocality: p.city || mkRegion, addressRegion: 'CA', addressCountry: 'US' } },
         creator: { '@type': 'Organization', name: 'McMullen Properties LLC' },
-        isAccessibleForFree: true,
+        isAccessibleForFree: true, license: dataLicense(cUrl),
         dateModified: String(p.recorded_sales_last || (p.stats || {}).as_of || '').slice(0, 10) });
     }
   }
