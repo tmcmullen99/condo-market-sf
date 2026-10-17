@@ -7074,7 +7074,7 @@ function buildingOffMarketSection(p, slug, name) {
   if (!n) {
     const stats = [
       pub.market_cs ? [nf(pub.market_cs), 'Coming soon', 'entered on the MLS, not yet on the market' + (pub.market_cs_buildings ? ', ' + nf(pub.market_cs_buildings) + ' in catalogued buildings' : '')] : null,
-      pub.market_ex ? [nf(pub.market_ex), 'On the Investor Exchange', 'rented units offered by their owners'] : null,
+      pub.market_ex ? [nf(pub.market_ex), 'On the Investor Exchange', Number(pub.market_ex) === 1 ? 'a rented unit offered by its owner' : 'rented units offered by their owners'] : null,
       pub.market_mmm ? [nf(pub.market_mmm), (Number(pub.market_mmm) === 1 ? 'Owner’s number' : 'Owners’ numbers'), 'the price that would make them move, no listing'] : null,
     ].filter(Boolean);
     return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
