@@ -57,7 +57,7 @@
       sub: [x.building_name, x.h].filter(Boolean).join(' \u00b7 '), price: x.price, plab: 'Price',
       /* in a catalogued building: the building's hero photo, so the building is clear; the home's own photo inset */
       photo: (x.building && x.hero) || (x.photos && x.photos[0]) || x.hero || '', bimg: x.building ? (x.hero || '') : '',
-      unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, photos: x.photos || [], spec: spec(x.bd, x.ba, x.sf),
+      unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, photos: x.photos || [], spec: spec(x.bd, x.ba, x.sf), bd: x.bd, ba: x.ba, sf: x.sf,
       since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
     if (type === 'mmm') return { type: 'mmm', ref: 'mmm:' + x.id, key: x.id, unit: x.unit,
       title: (x.unit ? 'Unit ' + x.unit : 'A unit') + (x.building_name ? ', ' + x.building_name : ''),

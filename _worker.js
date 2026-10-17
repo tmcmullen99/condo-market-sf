@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '8';
+const OM_VER = '9';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -694,7 +694,46 @@ function renderOffMarket(payload) {
     '.om-open:hover{background:#9a360c;border-color:#9a360c}' +
     '.om-empty{grid-column:1/-1}.om-empty .om-sp{line-height:1.6;margin-top:8px}' +
     '.om-below{padding-top:64px!important}.om-more{margin:16px 0 0;text-align:center}.om-more a{color:#f28c63;font-weight:600;text-decoration:none}' +
-    '@media(max-width:900px){.om-top{padding-top:84px!important}.om-top .mact-side{width:auto;max-height:none;overflow:visible;top:auto;right:auto}.om-top #cbmap{height:400px}.om-reopen{top:10px;right:10px}}' +
+    '@media(max-width:900px){.om-top{padding-top:84px!important}.om-top .mact-side{width:auto;max-height:none;overflow:visible;top:auto;right:auto}' +
+    '.om-top #cbmap{height:calc(100vh - 210px);height:calc(100svh - 210px);min-height:420px;max-height:620px}.om-reopen{top:10px;right:10px}}' +
+    /* phones: a tapped pin brings its home up over the map, Zillow's way (cm-offmarket-map.js) */
+    '.om-peek{position:fixed;padding:0;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:10020;max-width:520px;margin:0 auto;animation:omPkUp .22s cubic-bezier(.2,.8,.2,1)}' +
+    '.om-peek[hidden]{display:none}@keyframes omPkUp{from{transform:translateY(26px);opacity:0}to{transform:none;opacity:1}}' +
+    '.om-peek-x{position:absolute;top:-13px;right:-3px;z-index:3;width:32px;height:32px;border-radius:50%;border:2px solid #fff;background:#12151d;color:#fff;font-size:19px;line-height:28px;padding:0;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer}' +
+    '.om-peek-k{display:inline-block;margin:0 0 7px 2px;background:#12151d;color:#fff;font:600 11.5px/1 "DM Sans",system-ui,sans-serif;padding:7px 11px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.25)}' +
+    '.om-peek-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;padding:2px 0 4px}' +
+    '.om-peek-row::-webkit-scrollbar{display:none}' +
+    '.om-pk{position:relative;flex:0 0 100%;scroll-snap-align:center;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 14px 40px rgba(10,13,18,.32);cursor:pointer;text-align:left;outline:none;-webkit-tap-highlight-color:transparent}' +
+    '.om-peek-row.many .om-pk{flex-basis:calc(100% - 34px)}.om-pk:focus-visible{box-shadow:0 0 0 3px #C2410C,0 14px 40px rgba(10,13,18,.32)}' +
+    '.om-pk-media{position:relative}.om-pk-ph{position:relative;height:150px;background:#dfe3ea center/cover no-repeat}' +
+    '.om-pk-ph i{position:absolute;right:10px;bottom:10px;width:56px;height:56px;border-radius:9px;border:2px solid #fff;background:#ccc center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.3)}' +
+    '.om-pk .omp.omp-panel{height:150px;margin:0;border-radius:0}' +
+    '.om-pk-tag{position:absolute;left:10px;top:10px;z-index:2;pointer-events:none;background:#12151d;color:#fff;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border-radius:999px}' +
+    '.om-pk-tag.cs,.om-pk-tag.ft{background:#C2410C}.om-pk-tag.mmm{background:#fff;color:#12151d}' +
+    '.om-pk-b{position:relative;padding:11px 46px 13px 14px}' +
+    '.om-pk-p{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-family:"Playfair Display",Georgia,serif;font-size:1.5rem;font-weight:600;line-height:1.15;color:#1a1f2e}' +
+    '.om-pk-p small{font:500 10px/1.3 "JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:#5d6575}' +
+    '.om-pk-lock span{filter:blur(6px);user-select:none}' +
+    '.om-pk-s{font-size:.92rem;color:#1a1f2e;margin-top:3px}.om-pk-s b{font-weight:700}.om-pk-s i{font-style:normal;color:#b6bbc5;margin:0 7px}' +
+    '.om-pk-a{font-size:.92rem;color:#1a1f2e;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.om-pk-m{font-size:.78rem;color:#5d6575;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.om-pk-go{position:absolute;right:12px;top:50%;margin-top:-15px;width:30px;height:30px;border-radius:50%;background:#f1f3f6;color:#1a1f2e;font:600 21px/28px "DM Sans",system-ui,sans-serif;text-align:center}' +
+    'body.om-peek-on .cmi-launch,body.om-peek-on .cmi-prompt,body.om-sheet-on .cmi-launch,body.om-sheet-on .cmi-prompt{display:none!important}' +
+    'body.om-sheet-on{overflow:hidden}' +
+    '.om-sheet{position:fixed;inset:0;padding:0;margin:0;z-index:10040}.om-sheet[hidden]{display:none}' +
+    '.om-sheet-bg{position:absolute;inset:0;background:rgba(18,21,29,.5);opacity:0;transition:opacity .22s}.om-sheet.on .om-sheet-bg{opacity:1}' +
+    '.om-sheet-card{position:absolute;left:0;right:0;bottom:0;max-height:92vh;max-height:92svh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;color:var(--ink);' +
+      'border-radius:20px 20px 0 0;padding:0 18px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 40px rgba(10,13,18,.3)}' +
+    '.om-sheet.on .om-sheet-card{transform:none}' +
+    '@media(min-width:600px){.om-sheet-card{left:50%;right:auto;width:560px;margin-left:-280px}}' +
+    '.om-sheet-grab{position:sticky;top:0;z-index:4;display:flex;justify-content:center;padding:9px 0 12px;margin:0 -18px;background:#fff}' +
+    '.om-sheet-grab i{width:42px;height:5px;border-radius:3px;background:#d4d8df}' +
+    '.om-sheet-x{position:absolute;top:8px;right:12px;width:34px;height:34px;border-radius:50%;border:0;background:#f1f3f6;color:#1a1f2e;font-size:22px;line-height:34px;padding:0;cursor:pointer}' +
+    '.om-sheet-body .act-k{color:#9a360c;padding-right:44px}.om-sheet-body .mact-h{font-size:1.4rem;line-height:1.2;margin-top:6px}.om-sheet-body .mact-lede{font-size:.9rem}' +
+    '.om-sheet-body .mact-prop{border:1px solid rgba(194,65,12,.28);background:rgba(194,65,12,.05);border-radius:12px;padding:12px 14px;margin-top:12px}' +
+    '.om-sheet-body .omp.omp-panel{height:230px;margin:12px -18px 8px;border-radius:0}.om-sheet-body .om-bhero{height:200px}' +
+    '.om-sheet-body .omf{margin-top:4px;border:0}.om-sheet-body .omf-ph{height:230px;margin:0 -18px}.om-sheet-body .omf-b{padding:14px 0 0}' +
+    '.om-sheet-back{display:block;margin-top:18px}' +
     '</style>\n';
 
   /* ---- the featured listing card (premium distribution + a signed listing agreement, from the city platform) ---- */

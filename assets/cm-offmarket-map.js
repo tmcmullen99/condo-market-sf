@@ -40,7 +40,7 @@
 
   var L_ = { cs: L.layerGroup(), ex: L.layerGroup(), mm: L.layerGroup(), b: L.layerGroup() };
   var FEAT = L.layerGroup().addTo(map);
-  var cur = null, MEM = null, ON = null;
+  var cur = null, MEM = null, ON = null, lastLL = null;
 
   function pin(group, y, x, cls, label, fn, title) {
     var m = L.marker([y, x], { icon: L.divIcon({ className: 'om-di', html: '<span class="om-pin ' + cls + '">' + label + '</span>', iconSize: [0, 0] }),
@@ -48,6 +48,7 @@
     m.on('click', function () {
       var p = m.getElement() && m.getElement().querySelector('.om-pin');
       if (ON) ON.classList.remove('on'); ON = p; if (ON) ON.classList.add('on');
+      lastLL = m.getLatLng();
       fn();
     });
     return m;
@@ -65,7 +66,124 @@
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape' && grid && !grid.classList.contains('om-closed') && !document.querySelector('.omx-veil') && document.activeElement && panel.contains(document.activeElement)) closePanel();
   });
+  /* ---- phones: Zillow's pattern (Tim, 17 Oct 2026: "When I click a tab on the map, I need to be able to see the
+     property card. Mirror Zillow and consider it best-in-class.") ----
+     On a phone the panel sits under the map, so a tapped pin used to change something off screen. Now a tap
+     slides a card up over the bottom of the screen: photos, price, beds, baths, size, address. The map pans
+     so the pin sits in the clear space above it. Tapping the card opens the whole home in a sheet (photos,
+     the photo-day note, Schedule a tour, disclosures, Comp Report); a pin shared by several homes gives a row
+     of cards to swipe. A tap on the map, the X, a layer tab or Escape puts it away. The list under the map
+     stays where it was. Desktop is unchanged. */
+  var PHONE = window.matchMedia ? window.matchMedia('(max-width: 900px)') : { matches: false };
+  var deskSide = side, peekCards = [];
+  /* asides, not divs: the page pads "body > div:first-of-type" for the fixed nav, and these hang off body */
+  var peek = document.createElement('aside'); peek.className = 'om-peek'; peek.hidden = true;
+  peek.setAttribute('role', 'region'); peek.setAttribute('aria-label', 'Selected home');
+  var sheet = document.createElement('aside'); sheet.className = 'om-sheet'; sheet.hidden = true;
+  sheet.innerHTML = '<div class="om-sheet-bg" data-om-sheet-x></div>' +
+    '<div class="om-sheet-card" role="dialog" aria-modal="true" aria-label="Home details">' +
+    '<div class="om-sheet-grab"><i aria-hidden="true"></i><button type="button" class="om-sheet-x" data-om-sheet-x aria-label="Close">×</button></div>' +
+    '<div class="om-sheet-body"></div>' +
+    '<button type="button" class="mact-back om-sheet-back" data-om-sheet-x>← Back to the map</button></div>';
+  document.body.appendChild(peek); document.body.appendChild(sheet);
+  var sheetBody = sheet.querySelector('.om-sheet-body'), sheetCard = sheet.querySelector('.om-sheet-card');
+  function specLine(bd, ba, sf, extra) {
+    var bits = [];
+    if (bd != null && bd !== '') bits.push('<b>' + e(bd) + '</b> bd'); if (ba != null && ba !== '') bits.push('<b>' + e(ba) + '</b> ba');
+    if (sf) bits.push('<b>' + fmt(sf) + '</b> sq ft'); if (extra) bits.push(e(extra));
+    return bits.join('<i>|</i>');
+  }
+  function pk(o) {
+    var img = o.img ? ' style="background-image:url(\'' + e(o.img).replace(/'/g, '%27') + '\')"' : '';
+    return '<article class="om-pk" tabindex="0" role="button" aria-label="Open ' + e(o.title) + '">' +
+      '<div class="om-pk-media">' + (o.strip || '<div class="om-pk-ph"' + img + '>' + (o.inset ? '<i style="background-image:url(\'' + e(o.inset).replace(/'/g, '%27') + '\')"></i>' : '') + '</div>') +
+      '<span class="om-pk-tag ' + (o.tagCls || '') + '">' + e(o.tag) + '</span></div>' +
+      '<div class="om-pk-b">' +
+      (o.price ? '<div class="om-pk-p">' + e(o.price) + (o.plab ? '<small>' + e(o.plab) + '</small>' : '') + '</div>'
+               : '<div class="om-pk-p om-pk-lock"><span>$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span><small>' + e(o.lock || 'Price for members') + '</small></div>') +
+      (o.spec ? '<div class="om-pk-s">' + o.spec + '</div>' : '') +
+      '<div class="om-pk-a">' + e(o.title) + '</div>' +
+      (o.meta ? '<div class="om-pk-m">' + e(o.meta) + '</div>' : '') +
+      '<span class="om-pk-go" aria-hidden="true">›</span></div></article>';
+  }
+  function hidePeek() {
+    if (peek.hidden) return;
+    peek.hidden = true; peek.innerHTML = ''; peekCards = [];
+    document.body.classList.remove('om-peek-on');
+    if (ON) { ON.classList.remove('on'); ON = null; }
+  }
+  function closeSheet() {
+    if (sheet.hidden) return;
+    sheet.classList.remove('on'); document.body.classList.remove('om-sheet-on');
+    sheetCard.style.transform = '';
+    setTimeout(function () { if (!sheet.classList.contains('on')) { sheet.hidden = true; side = deskSide; } }, 220);
+  }
+  function openSheet() {
+    sheet.hidden = false; sheetCard.scrollTop = 0;
+    requestAnimationFrame(function () { sheet.classList.add('on'); });
+    document.body.classList.add('om-sheet-on');
+    var x = sheet.querySelector('.om-sheet-x'); if (x) setTimeout(function () { try { x.focus({ preventScroll: true }); } catch (z) {} }, 60);
+    track('offmarket:phone-sheet');
+  }
+  function hidePhone() { closeSheet(); hidePeek(); }
+  /* the pin into the clear space between the header and the card */
+  function clearOfPeek(ll) {
+    if (!ll) return;
+    var r = el.getBoundingClientRect(), ph = peek.getBoundingClientRect().height + 16;
+    var top = Math.max(r.top, 72), bottom = Math.min(r.bottom, window.innerHeight - ph);
+    if (bottom - top < 90) return;
+    var pt = map.latLngToContainerPoint(ll);
+    map.panBy([r.left + pt.x - (r.left + r.width / 2), r.top + pt.y - (top + bottom) / 2], { animate: true, duration: 0.35 });
+  }
+  /* mode: undefined = a pin was tapped (show the card); 'quiet' = only fill the sheet; 'open' = card and sheet */
+  function phoneCards(cards, mode) {
+    if (!PHONE.matches || mode === 'quiet') return;
+    peekCards = cards;
+    peek.innerHTML = '<button type="button" class="om-peek-x" aria-label="Close">×</button>' +
+      (cards.length > 1 ? '<div class="om-peek-k">' + cards.length + ' homes here · swipe</div>' : '') +
+      '<div class="om-peek-row' + (cards.length > 1 ? ' many' : '') + '">' + cards.map(function (c) { return c.h; }).join('') + '</div>';
+    peek.hidden = false; document.body.classList.add('om-peek-on');
+    if (window.OM && window.OM.css) window.OM.css();
+    if (mode === 'open') openSheet(); else { closeSheet(); clearOfPeek(lastLL); }
+    lastLL = null;
+  }
+  peek.addEventListener('click', function (ev) {
+    if (ev.target.closest('.om-peek-x')) { hidePeek(); return; }
+    if (ev.target.closest('[data-omp-dir]') || ev.target.closest('a')) return;
+    var card = ev.target.closest('.om-pk'); if (!card) return;
+    var i = Array.prototype.indexOf.call(peek.querySelectorAll('.om-pk'), card), c = peekCards[i];
+    if (c) { c.open(); openSheet(); }
+  });
+  peek.addEventListener('keydown', function (ev) { if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList.contains('om-pk')) { ev.preventDefault(); ev.target.click(); } });
+  sheet.addEventListener('click', function (ev) { if (ev.target.closest('[data-om-sheet-x]')) { ev.preventDefault(); closeSheet(); } });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape' || document.querySelector('.omx-veil')) return;
+    if (!sheet.hidden) closeSheet(); else if (!peek.hidden) hidePeek();
+  });
+  /* drag the sheet down by its handle, or from the top of its content, to put it away */
+  (function () {
+    var y0 = null, dy = 0;
+    sheetCard.addEventListener('touchstart', function (ev) {
+      var onGrab = ev.target.closest('.om-sheet-grab');
+      if (!onGrab && sheetCard.scrollTop > 0) { y0 = null; return; }
+      y0 = ev.touches[0].clientY; dy = 0; sheetCard.style.transition = 'none';
+    }, { passive: true });
+    sheetCard.addEventListener('touchmove', function (ev) {
+      if (y0 == null) return; dy = ev.touches[0].clientY - y0;
+      if (dy > 0) sheetCard.style.transform = 'translateY(' + dy + 'px)'; else { y0 = null; sheetCard.style.transform = ''; }
+    }, { passive: true });
+    sheetCard.addEventListener('touchend', function () {
+      if (y0 == null) return; sheetCard.style.transition = '';
+      if (dy > 90) closeSheet(); else sheetCard.style.transform = '';
+      y0 = null;
+    });
+  })();
+  map.on('click', function () { if (PHONE.matches) hidePeek(); });
+  if (PHONE.addEventListener) PHONE.addEventListener('change', function () { hidePhone(); side = deskSide; });
+
   function pane(name) {
+    if (name === 'item' && PHONE.matches) { side = sheetBody; return; }   // phones: the home opens over the map; the list stays
+    side = deskSide; hidePhone();
     openPanel();
     panel.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.getAttribute('data-pane') !== name; });
     if (aside) aside.scrollTop = 0;
@@ -138,7 +256,12 @@
     rows.forEach(function (r) { var k = keyOf(r); if (!by[k]) { by[k] = []; out.push(by[k]); } by[k].push(r); });
     return out;
   }
-  function anonCard(c) {
+  function anonPeek(c) {
+    return pk({ img: c[11], tag: 'Coming soon', tagCls: 'cs', lock: 'Price, unit and photos for members',
+      spec: specLine(c[4], c[5], c[6]), title: [c[8], c[10]].filter(Boolean).join(' \u00b7 ') || 'A San Francisco condo',
+      meta: [c[3], c[7] ? 'First seen ' + dd(c[7]) : ''].filter(Boolean).join(' \u00b7 ') });
+  }
+  function anonCard(c, mode) {
     pane('item');
     var inB = !!c[9];
     side.innerHTML = '<div class="act-k">Coming soon' + (c[3] ? ' \u00b7 ' + e(c[3]) : '') + '</div>' +
@@ -149,8 +272,9 @@
       '<button class="btn btn-gold" data-om-signup="' + e(c[0]) + '" data-cta="offmarket:map-cs" style="margin-top:14px;width:100%">See it free &rarr;</button>' +
       (inB ? '<a class="mp-rec" href="/building/' + encodeURIComponent(c[9]) + '">The ' + e(c[10]) + ' record &rarr;</a>'
            : '<p class="om-sc-note">Until you sign in, the pin sits near the home rather than on it.</p>');
+    phoneCards([{ h: anonPeek(c), open: function () { anonCard(c, 'quiet'); } }], mode);
   }
-  function anonGroup(list) {
+  function anonGroup(list, mode) {
     pane('item');
     var c0 = list[0];
     side.innerHTML = '<div class="act-k">Coming soon \u00b7 ' + list.length + ' in one building</div>' + bhero(c0[11], c0[10]) +
@@ -158,9 +282,18 @@
       list.map(function (c, i) { return '<button type="button" class="om-row" data-i="' + i + '"><b>' + e(sp(c[4], c[5], c[6]) || 'A home') + '</b><span>' + e(c[8]) + ' \u00b7 first seen ' + dd(c[7]) + '</span></button>'; }).join('') +
       '<button class="btn btn-gold" data-om-signup="' + e(c0[0]) + '" data-cta="offmarket:map-cs-group" style="margin-top:12px;width:100%">See them free &rarr;</button>' +
       (c0[9] ? '<a class="mp-rec" href="/building/' + encodeURIComponent(c0[9]) + '">The ' + e(c0[10]) + ' record &rarr;</a>' : '');
-    side.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () { anonCard(list[+b.getAttribute('data-i')]); }); });
+    side.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () { anonCard(list[+b.getAttribute('data-i')], PHONE.matches ? 'quiet' : undefined); }); });
+    phoneCards(list.map(function (c) { return { h: anonPeek(c), open: function () { anonCard(c, 'quiet'); } }; }), mode);
   }
-  function memCard(it) {
+  function memPeek(it) {
+    var O = window.OM, strip = O && O.hasStrip && O.hasStrip(it) ? O.strip(it, { panel: true }) : '';
+    return pk({ strip: strip, img: it.building && it.bimg ? it.bimg : it.photo, inset: it.building && it.bimg ? it.unitPhoto : '',
+      tag: it.type === 'cs' ? 'Coming soon' : it.type === 'ex' ? 'Investor Exchange' : 'Owner\u2019s number', tagCls: it.type,
+      price: it.price ? money(it.price) : '', plab: it.type === 'mmm' ? 'Owner\u2019s number' : '',
+      spec: it.type === 'mmm' ? e(it.spec || '') : specLine(it.bd, it.ba, it.sf) || e(it.spec || ''), title: it.title,
+      meta: [it.sub, it.since ? (it.type === 'mmm' ? 'Named ' : 'First seen ') + dd(it.since) : ''].filter(Boolean).join(' \u00b7 ') });
+  }
+  function memCard(it, mode) {
     pane('item');
     var a = (MEM && MEM.agent && MEM.agent.first) || 'Tim';
     var anyUnit = it.building ? '<a class="mp-rec" href="/building/' + encodeURIComponent(it.building) + '#dossier" data-cta="offmarket:any-unit">Write an offer on any unit in ' + e(it.bname || 'the building') + ' &rarr;</a><br>' : '';
@@ -182,15 +315,17 @@
       '<button type="button" class="mact-choice" data-om-k="comps"><span class="mc-t">Request a Comp Report</span><span class="mc-s">In your inbox within 24 hours</span></button></div>' +
       anyUnit + '<a class="mp-rec" href="/account/off-market/' + (it.type === 'cs' ? '?cs=' + encodeURIComponent(it.key) : '#make-me-move') + '">Open in your off-market list &rarr;</a>';
     side.querySelectorAll('[data-om-k]').forEach(function (b) { b.addEventListener('click', function () { if (window.OM) window.OM.act(it, b.getAttribute('data-om-k')); }); });
+    phoneCards([{ h: memPeek(it), open: function () { memCard(it, 'quiet'); } }], mode);
   }
-  function memGroup(items) {
+  function memGroup(items, mode) {
     pane('item');
     var i0 = items[0];
     side.innerHTML = '<div class="act-k">Coming soon \u00b7 ' + items.length + ' in one building</div>' + bhero(i0.bimg, i0.bname) +
       '<h3 class="mact-h">' + e(i0.bname || i0.title) + '</h3><p class="mact-lede">' + items.length + ' homes here are coming soon, before the listing sites.</p>' +
       items.map(function (it, i) { return '<button type="button" class="om-row" data-i="' + i + '"><b>' + e(it.title) + '</b><span>' + (it.price ? money(it.price) + ' \u00b7 ' : '') + e(it.spec) + '</span></button>'; }).join('') +
       (i0.building ? '<a class="mp-rec" href="/building/' + encodeURIComponent(i0.building) + '#dossier">Write an offer on any unit in ' + e(i0.bname || 'the building') + ' &rarr;</a>' : '');
-    side.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () { memCard(items[+b.getAttribute('data-i')]); }); });
+    side.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () { memCard(items[+b.getAttribute('data-i')], PHONE.matches ? 'quiet' : undefined); }); });
+    phoneCards(items.map(function (it) { return { h: memPeek(it), open: function () { memCard(it, 'quiet'); } }; }), mode);
   }
   function drawAnon() {
     L_.cs.clearLayers(); L_.mm.clearLayers();
@@ -216,14 +351,14 @@
       box.innerHTML = items.map(function (x, i) { var it = N(type, x);
         return '<button type="button" class="om-row" data-i="' + i + '"><b>' + e(it.title) + '</b><span>' + (it.price ? money(it.price) + ' \u00b7 ' : '') + e(it.spec || it.sub) + '</span></button>'; }).join('');
       box.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () {
-        var x = items[+b.getAttribute('data-i')], it = N(type, x); memCard(it); if (x.y != null) map.setView([x.y, x.x], 16); }); });
+        var x = items[+b.getAttribute('data-i')], it = N(type, x); memCard(it, PHONE.matches ? 'open' : undefined); if (x.y != null) map.setView([x.y, x.x], 16); }); });
     }
     list('omCsList', m.coming_soon || [], 'cs');
     list('omMmList', m.mmm || [], 'mmm');
   }
 
   /* ---- the Investor Exchange, and featured listings on every layer ---- */
-  function exCard(x) {
+  function exCard(x, mode) {
     pane('item');
     side.innerHTML = '<div class="act-k">Investor Exchange' + (x[2] ? ' \u00b7 ' + e(x[2]) : '') + '</div>' +
       '<h3 class="mact-h">' + e(sp(x[5], x[6], x[7]) || 'An Exchange listing') + '</h3>' +
@@ -231,6 +366,22 @@
       (MEM ? '<a class="btn btn-gold" href="/account/off-market/#investor-exchange" style="margin-top:12px;width:100%">Open it in your off-market list &rarr;</a>'
            : '<button class="btn btn-gold" data-om-signup="" data-cta="offmarket:map-ex" style="margin-top:12px;width:100%">Create a free account to see it &rarr;</button>') +
       (x[1] ? '<a class="mp-rec" href="/building/' + encodeURIComponent(x[1]) + '#dossier">Every unit in ' + e(x[2] || 'the building') + ' &rarr;</a>' : '');
+    phoneCards([{ h: pk({ tag: 'Investor Exchange', tagCls: 'ex', lock: MEM ? 'Price in your off-market list' : 'Price for members', spec: specLine(x[5], x[6], x[7]),
+      title: x[2] ? 'A condo in ' + x[2] : 'An Investor Exchange listing', meta: 'Offered privately, often with the tenant in place' }),
+      open: function () { exCard(x, 'quiet'); } }], mode);
+  }
+  /* a featured listing: its card from the page, as the card and the sheet */
+  function featPhone(token) {
+    var full = document.querySelector('.om-feat-row [data-om-feat="' + token + '"]') || panel.querySelector('[data-om-feat="' + token + '"]');
+    if (!full) return false;
+    var q = function (sel) { var n = full.querySelector(sel); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; };
+    var pr = full.querySelector('[data-om-fprice]'), price = pr && !pr.querySelector('.omf-lock') ? (pr.querySelector('b') || pr).textContent.trim() : '';
+    var stripEl = full.querySelector('.omp'), ph = full.querySelector('.omf-ph'), bg = ph && ph.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);
+    var spec = q('.omf-s'), title = q('.omf-t');
+    phoneCards([{ h: pk({ strip: stripEl ? stripEl.outerHTML.replace('omf-ph omp', 'omx-ph omp omp-panel') : '', img: bg ? bg[1] : '', tag: 'Featured', tagCls: 'ft',
+      price: price, plab: price ? 'Asking' : '', lock: 'Asking price for members', spec: e(spec), title: title, meta: 'Investor Exchange' }),
+      open: function () { side = sheetBody; sheetBody.innerHTML = ''; var c = full.cloneNode(true); c.classList.remove('omf-c', 'omf-hit'); sheetBody.appendChild(c); } }]);
+    return true;
   }
   function showFeatured(token) {
     setLayer('ex', { noFit: true });
@@ -239,7 +390,10 @@
   }
   (D.ex || []).forEach(function (x) {
     if (x[3] == null || x[4] == null) return;
-    if (x[8]) pin(FEAT, x[3], x[4], 'ft', 'Featured', function () { track('offmarket:map-featured'); showFeatured(x[0]); }, 'Featured listing');
+    if (x[8]) pin(FEAT, x[3], x[4], 'ft', 'Featured', function () {
+      track('offmarket:map-featured');
+      if (PHONE.matches) { var ll = lastLL; setLayer('ex', { noFit: true, keepPane: false }); lastLL = ll; if (featPhone(x[0])) return; }
+      showFeatured(x[0]); }, 'Featured listing');
     else pin(L_.ex, x[3], x[4], 'ex', 'Exchange', function () { exCard(x); }, 'Investor Exchange');
   });
 
@@ -250,9 +404,9 @@
   function openQ() {
     Q = new URLSearchParams(location.search).get('cs'); if (!Q) return;
     if (MEM) { var x = (MEM.coming_soon || []).filter(function (r) { return r.t === Q; })[0];
-      if (x && window.OM) { setLayer('cs', { keepPane: true, noFit: true }); memCard(window.OM.norm('cs', x)); if (x.y != null) map.setView([x.y, x.x], 16); } return; }
+      if (x && window.OM) { setLayer('cs', { keepPane: true, noFit: true }); if (x.y != null) map.setView([x.y, x.x], 16); memCard(window.OM.norm('cs', x), PHONE.matches ? 'open' : undefined); } return; }
     var c = (D.cs || []).filter(function (r) { return r[0] === Q; })[0];
-    if (c) { setLayer('cs', { keepPane: true, noFit: true }); anonCard(c); map.setView([c[1], c[2]], 15); }
+    if (c) { setLayer('cs', { keepPane: true, noFit: true }); map.setView([c[1], c[2]], 15); anonCard(c, PHONE.matches ? 'open' : undefined); }
   }
   drawAnon();
   var start = (location.hash.match(/^#layer-(cs|ex|mm|b)$/) || [])[1] || 'cs';
