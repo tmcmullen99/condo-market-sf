@@ -3302,6 +3302,58 @@ async function handleRequest(request, env) {
       }
     }
 
+    /* Unsubscribe (16 Oct 2026). Email sent for this market from the agent desk (Platform A's
+       send-email: the onboarding and watch series, emails to every lead) carries
+       https://<this domain>/unsubscribe/?t=<token> in its footer and in its List-Unsubscribe
+       header. Until today the path did not exist here: the footer link opened a 404 and Gmail's
+       one-click unsubscribe silently failed. POST answers the one-click; GET serves a page whose
+       script unsubscribes, so a mail scanner prefetching the link cannot unsubscribe anyone.
+       Both call Platform A's public_unsubscribe; the cross-platform suppression sync carries the
+       address to this platform's own lists. */
+    if (url.pathname === '/unsubscribe' || url.pathname === '/unsubscribe/') {
+      const UNSUB_SB = 'https://qinuukntpyulqjzndnho.supabase.co';
+      const UNSUB_KEY = 'sb_publishable_1CzH1AWkEzy1WjMvZqwlhA_xiay_wJ2';
+      if (request.method === 'POST') {
+        let ok = false;
+        try {
+          const tok = url.searchParams.get('t') || url.searchParams.get('token') || '';
+          const r = await fetch(UNSUB_SB + '/rest/v1/rpc/public_unsubscribe', {
+            method: 'POST',
+            headers: { apikey: UNSUB_KEY, Authorization: 'Bearer ' + UNSUB_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_token: tok }),
+          });
+          const j = await r.json();
+          ok = !!(j && j.ok);
+        } catch (e) { ok = false; }
+        return new Response(ok ? 'Unsubscribed.' : 'Unknown or expired link.',
+          { status: ok ? 200 : 400, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+      }
+      if (url.pathname === '/unsubscribe') return Response.redirect(url.origin + '/unsubscribe/' + url.search, 301);
+      const unsubHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">' +
+        '<title>Unsubscribe</title><style>' +
+        'body{margin:0;background:#f7f5f0;color:#1a1f2e;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;line-height:1.6}' +
+        '.box{max-width:520px;margin:12vh auto 0;padding:0 22px;text-align:center}' +
+        '.wm{font:700 12px/1 Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#1a1f2e;margin-bottom:26px}' +
+        '.wm b{color:#C2410C}h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:600;line-height:1.2;margin:0}' +
+        'p{margin:12px 0 0;color:rgba(26,31,46,.66);font-size:16px}a{color:#C2410C}</style></head><body>' +
+        '<div class="box"><div class="wm">' + (url.host.indexOf('siliconvalley') !== -1 ? 'Silicon Valley' : 'San Francisco') +
+        ' Condo Market <b>&middot;</b></div><h1 id="h">Unsubscribing&hellip;</h1><p id="p"></p>' +
+        '<p><a href="/">Back to the site</a></p></div><script>(function(){' +
+        'var SB=' + JSON.stringify(UNSUB_SB) + ',KEY=' + JSON.stringify(UNSUB_KEY) + ';' +
+        'var q=new URLSearchParams(location.search),token=q.get("t")||q.get("token")||"";' +
+        'var h=document.getElementById("h"),p=document.getElementById("p");' +
+        'function done(t,b){h.textContent=t;p.textContent=b;}' +
+        'if(!token){done("This link is incomplete.","Reply to the email with the word “unsubscribe” and you will be removed.");return;}' +
+        'fetch(SB+"/rest/v1/rpc/public_unsubscribe",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({p_token:token})})' +
+        '.then(function(r){return r.json();}).then(function(d){' +
+        'if(d&&d.ok)done("You are unsubscribed.",(d.email?d.email+" will":"You will")+" not receive any more emails from us.");' +
+        'else done("This link has expired.","Reply to the email with the word “unsubscribe” and you will be removed.");' +
+        '}).catch(function(){done("Something went wrong.","Please try the link again, or reply to the email with the word “unsubscribe”.");});' +
+        '})();</script></body></html>';
+      return new Response(unsubHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
+    }
+
     // robots.txt — per-host, points at this host's sitemap.
     if (url.pathname === '/robots.txt') {
       // Open to AI training and answer engines by design — this is a public
