@@ -264,6 +264,30 @@ function forwardStrayMagicLink() {
 }
 
 // ---- Bootstrap -----------------------------------------------------------
+// Email deep links (Tim, 16 Oct 2026): ?signin=1 opens the sign-in form, ?join=1
+// the free-account form, so a link in an email lands on the page with the door
+// already open. The flag comes off the address bar first: the return path the
+// modal remembers is the clean page, and a reload does not reopen it. Someone
+// already signed in just sees the page, unlocked.
+async function openFromLink() {
+  let mode = null;
+  try {
+    const u = new URL(window.location.href);
+    if (u.searchParams.has('signin')) mode = 'login';
+    else if (u.searchParams.has('join')) mode = 'signup';
+    if (!mode) return;
+    u.searchParams.delete('signin');
+    u.searchParams.delete('join');
+    const qs = u.searchParams.toString();
+    history.replaceState(history.state, '', u.pathname + (qs ? '?' + qs : '') + u.hash);
+  } catch (e) { return; }
+  try {
+    const session = await CM.getSession();
+    if (session && session.user) return;
+  } catch (e) { /* no session check: open the form anyway */ }
+  openAuthModal(mode);
+}
+
 async function bootstrap() {
   injectStyles();
 
@@ -274,6 +298,8 @@ async function bootstrap() {
   if (window.location.pathname === '/auth-callback.html') return;
 
   if (forwardStrayMagicLink()) return;
+
+  openFromLink();
 
   signInBtn = findSignInButton();
   if (!signInBtn) {
