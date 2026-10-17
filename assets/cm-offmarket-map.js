@@ -253,6 +253,8 @@
     if (m && m[1].trim()) return /^\d+(st|nd|rd|th)$/i.test(m[1]) ? m[1].toLowerCase() + ' ' + ({ street: 'St', st: 'St', avenue: 'Ave', ave: 'Ave' }[m[2].toLowerCase()] || m[2]) : m[1].trim();
     return s;
   }
+  /* "The Harrison record", never "The The Harrison record" */
+  function theRecord(name) { return (/^the\s/i.test(String(name || '')) ? '' : 'The ') + e(name) + ' record'; }
   function label(street, n) { return e(street || 'Soon') + (n > 1 ? '<b>' + n + '</b>' : ''); }
   function bhero(img, name, inset) {
     return img ? '<div class="om-bhero" style="background-image:url(\'' + e(img).replace(/'/g, '%27') + '\')">' + (name ? '<span>' + e(name) + '</span>' : '') +
@@ -277,8 +279,8 @@
       '<h3 class="mact-h">' + e([c[8], sp(c[4], c[5], c[6])].filter(Boolean).join(' \u00b7 ') || 'A San Francisco condo') + '</h3>' +
       '<p class="mact-lede">' + (inB ? 'In ' + e(c[10]) + '. ' : '') + 'First seen ' + dd(c[7]) + '. Entered on the MLS as coming soon, before the listing sites.</p>' +
       '<div class="mact-prop"><div class="mp-addr om-sc-blur">&#9608;&#9608;&#9608; ' + e(c[8] || '&#9608;&#9608;&#9608;&#9608;') + ' #&#9608;&#9608;</div><div class="mp-sub">' + (inB ? 'Unit' : 'Address') + ', price and photos for members</div></div>' +
-      '<button class="btn btn-gold" data-om-signup="' + e(c[0]) + '" data-cta="offmarket:map-cs" style="margin-top:14px;width:100%">See it free &rarr;</button>' +
-      (inB ? '<a class="mp-rec" href="/building/' + encodeURIComponent(c[9]) + '">The ' + e(c[10]) + ' record &rarr;</a>'
+      '<button class="btn btn-gold" data-om-signup="' + e(c[0]) + '" data-cta="offmarket:map-cs" style="margin-top:14px;width:100%">Create account to view &rarr;</button>' +
+      (inB ? '<a class="mp-rec" href="/building/' + encodeURIComponent(c[9]) + '">' + theRecord(c[10]) + ' &rarr;</a>'
            : '<p class="om-sc-note">Until you sign in, the pin sits near the home rather than on it.</p>');
     phoneCards([{ h: anonPeek(c), open: function () { anonCard(c, 'quiet'); } }], mode);
   }
@@ -288,8 +290,8 @@
     side.innerHTML = '<div class="act-k">Coming soon \u00b7 ' + list.length + ' in one building</div>' + bhero(c0[11], c0[10]) +
       '<h3 class="mact-h">' + e(c0[10] || c0[8]) + '</h3><p class="mact-lede">' + list.length + ' homes here are coming soon, before the listing sites. Units and prices for members.</p>' +
       list.map(function (c, i) { return '<button type="button" class="om-row" data-i="' + i + '"><b>' + e(sp(c[4], c[5], c[6]) || 'A home') + '</b><span>' + e(c[8]) + ' \u00b7 first seen ' + dd(c[7]) + '</span></button>'; }).join('') +
-      '<button class="btn btn-gold" data-om-signup="' + e(c0[0]) + '" data-cta="offmarket:map-cs-group" style="margin-top:12px;width:100%">See them free &rarr;</button>' +
-      (c0[9] ? '<a class="mp-rec" href="/building/' + encodeURIComponent(c0[9]) + '">The ' + e(c0[10]) + ' record &rarr;</a>' : '');
+      '<button class="btn btn-gold" data-om-signup="' + e(c0[0]) + '" data-cta="offmarket:map-cs-group" style="margin-top:12px;width:100%">Create account to view &rarr;</button>' +
+      (c0[9] ? '<a class="mp-rec" href="/building/' + encodeURIComponent(c0[9]) + '">' + theRecord(c0[10]) + ' &rarr;</a>' : '');
     side.querySelectorAll('.om-row').forEach(function (b) { b.addEventListener('click', function () { anonCard(list[+b.getAttribute('data-i')], PHONE.matches ? 'quiet' : undefined); }); });
     phoneCards(list.map(function (c) { return { h: anonPeek(c), open: function () { anonCard(c, 'quiet'); } }; }), mode);
   }

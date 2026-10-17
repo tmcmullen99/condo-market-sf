@@ -591,7 +591,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '2';
-const OM_VER = '13';
+const OM_VER = '14';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -761,6 +761,7 @@ function renderOffMarket(payload) {
       '.om-card.om-cs:has(.om-cs-b) .om-cs-ph span{font-size:.52rem;padding:4px 6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '.om-card.om-cs:has(.om-cs-b) .om-lock{grid-column:1/-1}' +
       '.om-card .om-ad{font-size:1.05rem}' +
+      '.om-card .om-lock{flex-wrap:wrap;gap:10px}' +
       /* the featured card is already under the map; no second copy a screen later */
       '.om-below .om-grid-head:has(+ .om-feat-row),.om-below .om-feat-row{display:none}' +
     '}' +
@@ -808,7 +809,7 @@ function renderOffMarket(payload) {
       '<div class="omf-p">Asking <span data-om-fprice="' + cityEsc(f.token) + '"><span class="omf-lock">&middot; price for members</span></span></div>' +
       photoDay +
       '<div class="omf-acts">' +
-      '<button type="button" class="omf-go" data-om-anon data-om-signup="" data-cta="offmarket:featured-signup">' + (compact ? 'See the price' : 'See the price free') + ' &rarr;</button>' +
+      '<button type="button" class="omf-go" data-om-anon data-om-signup="" data-cta="offmarket:featured-signup">' + 'Create account to view &rarr;</button>' +
       '<button type="button" class="omf-go" data-om-mem hidden data-om-act="tour" data-cta="offmarket:featured-tour">' + (compact ? 'Tour' : 'Schedule a tour') + '</button>' +
       '<button type="button" class="omf-btn" data-om-mem hidden data-om-act="disclosures" data-cta="offmarket:featured-disclosures">Disclosures</button>' +
       (f.url ? '<a class="omf-btn" href="' + cityEsc(f.url) + '" data-cta="offmarket:featured-listing">' + (compact ? 'Listing' : 'Full listing') + ' &rarr;</a>' : '') +
@@ -841,7 +842,7 @@ function renderOffMarket(payload) {
       ? '<div class="act-k">Coming soon &middot; ' + num(csN) + '</div><h3 class="mact-h">Before the listing sites</h3>' +
         '<p class="mact-lede" data-om-anon>Entered on the MLS as coming soon. Pins are labelled by street; the size and the building are open, the unit, price and photos open with a free account.</p>' +
         '<p class="mact-lede" data-om-mem hidden>Entered on the MLS as coming soon. Click a pin or a home below for the address, price and requests.</p>' +
-        '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-cs" style="margin-top:12px;width:100%">See them free &rarr;</button>' +
+        '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-cs" style="margin-top:12px;width:100%">Create account to view &rarr;</button>' +
         '<div id="omCsList"></div>'
       : '<div class="act-k">Coming soon</div><h3 class="mact-h">No coming-soon condos right now</h3>' +
         '<p class="mact-lede">New ones appear here first, as soon as they are entered as coming soon on the MLS. The list is checked twice a day.</p><div id="omCsList"></div>') +
@@ -856,7 +857,7 @@ function renderOffMarket(payload) {
     '        <div class="om-pane" data-pane="mm" hidden><div class="act-k">Owners&rsquo; private numbers &middot; ' + num(mmm) + '</div>' +
     '<h3 class="mact-h">' + (mmm === 1 ? 'One owner has named a number' : num(mmm) + ' owners have named a number') + '</h3>' +
     '<p class="mact-lede">The price that would make them move, with no listing. An offer at or near it goes to the owner through Tim.</p>' +
-    '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-mm" style="margin-top:12px;width:100%">See the building, unit and price free &rarr;</button>' +
+    '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-mm" style="margin-top:12px;width:100%">Create account to view &rarr;</button>' +
     '<div id="omMmList"></div></div>\n' +
     /* every building */
     '        <div class="om-pane" data-pane="b" hidden><div class="act-k">Every building &middot; ' + num(T.buildings) + '</div>' +
@@ -880,12 +881,12 @@ function renderOffMarket(payload) {
     '<div class="om-ad">' + cityEsc([c.st, omSpec(c)].filter(Boolean).join(' \u00b7 ') || 'A San Francisco condo') + '</div>' +
     '<div class="om-sp">' + (c.bn ? 'In ' + cityEsc(c.bn) + ' &middot; ' : '') + 'first seen ' + omDay(c.since) + ' &middot; ' + (c.bn ? 'unit' : 'address') + ' and price for members</div>' +
     '<div class="om-lock"><span class="om-blur">$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>' +
-    '<button type="button" class="om-open" data-om-signup="' + cityEsc(c.t) + '" data-cta="offmarket:cs-card">See it free &rarr;</button></div></div>';
+    '<button type="button" class="om-open" data-om-signup="' + cityEsc(c.t) + '" data-cta="offmarket:cs-card">Create account to view &rarr;</button></div></div>';
   /* One locked card per owner who has a number open: a real count, never padding. */
   const mmCard = '<div class="om-card"><span class="om-tag">Make Me Move</span>' +
     '<div class="om-ad">An owner&rsquo;s private number</div><div class="om-sp">Building, unit and price for members</div>' +
     '<div class="om-lock"><span class="om-blur">$&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>' +
-    '<button type="button" class="om-open" data-om-signup="" data-cta="offmarket:mmm-card">See it free &rarr;</button></div></div>';
+    '<button type="button" class="om-open" data-om-signup="" data-cta="offmarket:mmm-card">Create account to view &rarr;</button></div></div>';
   const CS_SHOWN = 12;
   const cards = cs.slice(0, CS_SHOWN).map(csCard).join('') + Array.from({ length: Math.min(mmm, 12) }, () => mmCard).join('');
   const csMore = csN > CS_SHOWN ? '<p class="om-more"><a href="#map" data-om-goto="cs">' + num(csN - CS_SHOWN) + ' more coming soon on the map &uarr;</a></p>' : '';
@@ -7194,7 +7195,7 @@ function buildingOffMarketSection(p, slug, name) {
       '<div class="obm-b"><div class="obm-plab">Price</div><div class="obm-price">' + blur + '</div>' +
       '<div class="obm-t">' + esc(omSpec(c) || 'A home in ' + p.name) + '</div>' +
       '<div class="obm-s">Entered as coming soon' + (c.since ? ' ' + omDay(c.since) : '') + ', not yet on the market</div>' +
-      '<button type="button" class="obm-go" data-om-signup="' + esc(c.t) + '" data-cta="building:coming-soon">See it free &rarr;</button></div></div>';
+      '<button type="button" class="obm-go" data-om-signup="' + esc(c.t) + '" data-cta="building:coming-soon">Create account to view &rarr;</button></div></div>';
   }).join('');
   const exCards = ex.map(function (l) {
     const facts = [];
@@ -7206,14 +7207,14 @@ function buildingOffMarketSection(p, slug, name) {
       '<div class="obm-b"><div class="obm-plab">Asking</div><div class="obm-price">' + blur + '</div>' +
       '<div class="obm-t">' + esc(facts.join(' · ') || 'A unit in ' + p.name) + '</div>' +
       '<div class="obm-s">A rented unit offered by its owner. Unit, price and rent for members</div>' +
-      '<button type="button" class="obm-go" data-om-signup="" data-cta="building:exchange">See it free &rarr;</button></div></div>';
+      '<button type="button" class="obm-go" data-om-signup="" data-cta="building:exchange">Create account to view &rarr;</button></div></div>';
   }).join('');
   const mmCards = Array.from({ length: Math.min(mm, 6) }, function () {
     return '<div class="obm-card"><div class="obm-ph"' + bg + '><span class="obm-tag mm">Make Me Move</span><span class="obm-lock">Not listed anywhere</span></div>' +
       '<div class="obm-b"><div class="obm-plab">Owner’s number</div><div class="obm-price">' + blur + '</div>' +
       '<div class="obm-t">An owner here named their price</div>' +
       '<div class="obm-s">The number that would make them move, with no listing. Unit and number for members</div>' +
-      '<button type="button" class="obm-go" data-om-signup="" data-cta="building:mmm">See it free &rarr;</button></div></div>';
+      '<button type="button" class="obm-go" data-om-signup="" data-cta="building:mmm">Create account to view &rarr;</button></div></div>';
   }).join('');
   const parts = [cs.length ? cs.length + ' coming soon' : '', ex.length ? ex.length + ' on the Investor Exchange' : '',
     mm ? mm + (mm === 1 ? ' owner’s private number' : ' owners’ private numbers') : ''].filter(Boolean);
