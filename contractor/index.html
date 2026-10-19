@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{--ink:#22262f;--ink-2:#5d6575;--ink-3:#8b93a1;--line:#e3e6ec;--bg:#f5f7fa;--card:#fff;--accent:#C2410C;--accent-soft:rgba(194,65,12,.08);
   --ok:#1f7a4d;--ok-soft:rgba(31,122,77,.1);--warn:#8a5a2b;--warn-soft:rgba(212,165,116,.18);--bad:#b42318;--bad-soft:rgba(180,35,24,.08);
@@ -98,6 +100,51 @@ tr:last-child td{border-bottom:0}
 .agentbar b{color:var(--accent)}
 details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--ink-2)}
 details[open] summary{margin-bottom:10px}
+/* allowance chart (the Docket's, in the partner's colours) */
+.fullspd{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
+.fshead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.fshead b{font-family:var(--serif);font-size:1.25rem;font-weight:600;display:block}.fshead span{color:var(--ink-2);font-size:13px}.fshead em{font-style:normal;color:var(--accent);font-weight:700}
+.rampchart{display:flex;gap:4px;align-items:flex-end;height:150px;margin:16px 0 6px;overflow-x:auto;padding-bottom:2px}
+.rc{flex:1 1 0;min-width:28px;display:flex;flex-direction:column;align-items:center;height:100%;position:relative}
+.rc .rccol{flex:1;width:100%;position:relative;border-radius:6px 6px 0 0;overflow:hidden}
+.rc .rcallow{position:absolute;left:0;right:0;bottom:0;background:#eceef2;border-radius:6px 6px 0 0}
+.rc.now .rcallow{background:#f3e9d5;outline:2px solid var(--accent);outline-offset:-2px}
+.rc .rcallow.plan{background:repeating-linear-gradient(135deg,#eef0f4 0 6px,#f7f8fa 6px 12px);border:1px dashed #cfd4dd;border-bottom:0}
+.rc .rcfill{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column-reverse}
+.rc .rcfill i{display:block;width:100%}
+.rc span{font-size:11px;font-weight:700;margin-top:6px;white-space:nowrap}.rc span small{font-weight:500;color:var(--ink-3)}
+.rc em{font-style:normal;font-size:10.5px;color:var(--ink-3);white-space:nowrap}.rc.now em{color:var(--accent);font-weight:700}
+.caplegend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin-top:8px}
+.caplegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}.caplegend i.allow{background:#eceef2;border:1px solid #d9dce3}
+.capbig{font-size:1.15rem;margin-top:14px}.capbig b{font-size:1.6rem}.capbig .ok{color:var(--ok)}.capbig .no{color:var(--bad)}
+.capbar{height:10px;border-radius:99px;background:#eceef2;overflow:hidden;display:flex;margin-top:8px}.capbar i{display:block;height:100%}
+/* the schedule */
+.emday{display:flex;align-items:center;gap:10px;margin:18px 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink-2)}
+.emday .n{background:#eef1f6;border-radius:999px;padding:1px 8px;font-size:12px;letter-spacing:0;text-transform:none}
+.emgrp{border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px;overflow:hidden}
+.emgrp.sent{opacity:.85}
+.emgrph{display:flex;align-items:center;gap:12px;padding:12px 14px;width:100%;text-align:left;background:none;border:0;cursor:pointer}
+.emgrph .t{flex:1;min-width:0;font-size:14.5px}.emgrph .t b{display:block}.emgrph .t span{color:var(--ink-2);font-size:13px}
+.emgrpb{border-top:1px solid var(--line);padding:12px 14px}
+.emp{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #f1f3f7;font-size:14px}.emp:last-child{border-bottom:0}
+.emp .who b{display:block}.emp .who span{color:var(--ink-3);font-size:12.5px}
+/* the neighbors map: the project and every home on the list, coloured by where each one is in the series */
+#nbmap{height:420px;border:1px solid var(--line);border-radius:14px;background:#eef0f3;margin-bottom:12px;z-index:0}
+#nbmap .leaflet-bar a{width:36px;height:36px;line-height:36px}
+.nbmapwrap{position:relative}
+.nblegend{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin:-4px 0 14px}
+.nblegend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
+.nblegend i.sq{border-radius:2px;background:#20242e;width:11px;height:11px}
+.nbpop{font-family:'DM Sans',system-ui,sans-serif;font-size:13.5px;line-height:1.4;min-width:170px}
+.nbpop b{display:block;font-size:14px}.nbpop span{color:#5d6575;display:block}.nbpop button{margin-top:8px;border:1px solid #d9dce3;background:#fff;border-radius:7px;padding:5px 9px;font:inherit;font-size:12.5px;cursor:pointer}
+.leaflet-container{font-family:'DM Sans',system-ui,sans-serif}
+tr.nbfocus td{background:var(--accent-soft)}
+@media (max-width:640px){#nbmap{height:300px}}
+/* trace panel */
+.tracebox{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;margin-bottom:12px}
+.tracebox .counts{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 10px}.tracebox .counts div{font-size:13px;color:var(--ink-2)}.tracebox .counts b{display:block;font-size:1.3rem;color:var(--ink)}
+.tracelog{font-size:12.5px;color:var(--ink-2);margin-top:8px;max-height:160px;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,monospace}
+.row.actions{gap:6px}.btn.tiny{padding:4px 8px;font-size:12px;border-radius:7px}
 .hidden{display:none !important}
 .footer{margin-top:40px;color:var(--ink-3);font-size:12.5px;text-align:center}
 </style>
@@ -141,7 +188,8 @@ const day = (d) => d ? new Date(String(d).slice(0, 10) + 'T12:00:00').toLocaleDa
 const when = (t) => t ? new Date(t).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args || {}); if (error) throw new Error(error.message); return data; };
 
-const S = { ov: null, role: null, camp: null, tab: 'overview', series: null, leads: null, replies: null, leadFilter: null, leadQ: '' };
+const S = { ov: null, role: null, camp: null, tab: 'overview', series: null, leads: null, replies: null, leadFilter: null, leadQ: '', cap: null, sched: null };
+let MAP = null, MAPLAYER = null, MAPCAMP = null;
 
 /* ---------- sign in ---------- */
 $('signinForm').addEventListener('submit', async (e) => {
@@ -170,6 +218,7 @@ async function boot() {
   S.ov = ov; S.role = ov.role;
   const hashC = (location.hash.match(/#c(\d+)/) || [])[1];
   S.camp = (ov.campaigns || []).find((c) => String(c.id) === hashC) || (ov.campaigns || [])[0] || null;
+  if (S.role === 'agent' && !S.camp) S.tab = 'partners';
   $('signin').classList.add('hidden'); $('portal').classList.remove('hidden');
   $('navRight').innerHTML = `<span>${S.role === 'agent' ? 'Agent desk' : 'Signed in as'} <b>${esc(session.user.email)}</b></span><button class="btn nav" id="outBtn">Sign out</button>`;
   $('outBtn').addEventListener('click', async () => { await sb.auth.signOut(); location.hash = ''; boot(); });
@@ -186,8 +235,9 @@ function statusPill(s) {
 function shell(inner) {
   const c = S.camp, p = c ? partnerOf(c) : (S.ov.partners || [])[0] || {};
   const camps = S.ov.campaigns || [];
-  const tabs = [['overview', 'Overview', null], ['series', 'The series', c ? `${c.copy_approved}/${c.copy_total}` : null], ['leads', 'Neighbors', c ? num(c.stats.with_email) : null],
+  const tabs = [['overview', 'Overview', null], ['emails', 'Emails', c ? num(c.stats.sent) : null], ['series', 'The series', c ? `${c.copy_approved}/${c.copy_total}` : null], ['leads', 'Neighbors', c ? num(c.stats.with_email) : null],
     ['replies', 'Replies', c ? num(c.stats.replied) : null], ['requests', 'Requests', c ? (c.open_requests ? num(c.open_requests) : null) : null]];
+  if (S.role === 'agent') tabs.push(['partners', 'Partners', num((S.ov.partners || []).length)]);
   $('portal').innerHTML = `
     <div class="hdr">
       <div class="brand">${p.logo_url ? `<img class="logo" src="${esc(p.logo_url)}" alt="${esc(p.company || '')}">` : ''}
@@ -199,7 +249,7 @@ function shell(inner) {
     <div class="tabs">${tabs.map(([k, l, n]) => `<button data-tab="${k}" class="${S.tab === k ? 'on' : ''}">${l}${n ? `<span class="c">${esc(n)}</span>` : ''}</button>`).join('')}</div>
     <div id="tabBody">${inner}</div>`;
   $('portal').querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => { S.tab = b.dataset.tab; loadTab(); }));
-  const sel = $('campSel'); if (sel) sel.addEventListener('change', () => { S.camp = camps.find((x) => String(x.id) === sel.value); location.hash = '#c' + S.camp.id; S.series = S.leads = S.replies = null; loadTab(); });
+  const sel = $('campSel'); if (sel) sel.addEventListener('change', () => { S.camp = camps.find((x) => String(x.id) === sel.value); location.hash = '#c' + S.camp.id; S.series = S.leads = S.replies = S.cap = S.sched = null; loadTab(); });
 }
 function agentBar() {
   const c = S.camp; if (!c) return '';
@@ -265,13 +315,15 @@ function renderPartnerForm(box) {
 }
 async function refreshOv() {
   const ov = await rpc('contractor_portal_overview'); if (ov && ov.ok) { S.ov = ov; S.camp = (ov.campaigns || []).find((x) => S.camp && x.id === S.camp.id) || (ov.campaigns || [])[0] || null; }
-  S.series = null; await loadTab();
+  S.series = S.cap = S.sched = null; await loadTab();
 }
 
 /* ---------- tabs ---------- */
 async function loadTab() {
-  if (!S.camp) { shell('<div class="card"><p class="note">No campaign on this account yet.</p></div>'); wireAgentBar(); return; }
+  if (S.tab === 'partners' && S.role === 'agent') { shell(partnersHtml()); wirePartners(); wireAgentBar(); return; }
+  if (!S.camp) { shell(`<div class="card"><p class="note">No campaign on this account yet.${S.role === 'agent' ? ' Add a partner and build a campaign under Partners.' : ''}</p></div>`); wireAgentBar(); return; }
   if (S.tab === 'overview') { shell(overviewHtml()); }
+  else if (S.tab === 'emails') { shell('<p class="note">Loading the allowance…</p>'); [S.cap, S.sched] = await Promise.all([rpc('contractor_send_cap', { p_campaign_id: S.camp.id }), rpc('contractor_email_schedule', { p_campaign_id: S.camp.id })]); shell(emailsHtml()); wireEmails(); }
   else if (S.tab === 'series') { shell('<p class="note">Loading the series…</p>'); S.series = S.series || await rpc('contractor_portal_series', { p_campaign_id: S.camp.id }); shell(seriesHtml()); wireSeries(); }
   else if (S.tab === 'leads') { shell('<p class="note">Loading neighbors…</p>'); S.leads = await rpc('contractor_portal_leads', { p_campaign_id: S.camp.id, p_status: S.leadFilter, p_q: S.leadQ || null, p_limit: 400, p_offset: 0 }); shell(leadsHtml()); wireLeads(); }
   else if (S.tab === 'replies') { shell('<p class="note">Loading replies…</p>'); S.replies = await rpc('contractor_portal_replies', { p_campaign_id: S.camp.id }); shell(repliesHtml()); }
@@ -375,29 +427,271 @@ function wireSeries() {
 
 /* ---------- neighbors ---------- */
 const LEAD_LABEL = { new: ['Not traced yet', ''], verifying: ['Email being checked', 'warn'], ready: ['Verified, waiting for email 1', 'acc'], queued: ['Email 1 approved', 'acc'], in_series: ['In the series', 'ok'], replied: ['Replied', 'ok'], done: ['Series finished', ''], unsubscribed: ['Unsubscribed', 'bad'], bounced: ['Bounced', 'bad'], removed: ['Removed', ''], no_email: ['No email on file', ''] };
+function tracePanelHtml() {
+  const c = S.camp, st = c.stats || {}, agent = S.role === 'agent';
+  const pending = Number(st.homes || 0) - Number(st.traced || 0);
+  return `<div class="tracebox"><div class="row sp"><h3>Skip trace &middot; DealMachine</h3><span class="fine">public records → the owner on title, their email and phone</span></div>
+    <div class="counts"><div><b>${num(st.homes)}</b>homes</div><div><b>${num(st.traced)}</b>traced</div><div><b>${num(pending)}</b>not yet traced</div><div><b>${num(st.with_email)}</b>with an owner email</div><div><b>${num(st.no_email)}</b>no email on file</div></div>
+    ${agent ? `<div class="row actions">
+      <button class="btn small" id="trRun"${pending ? '' : ' disabled'}>Trace the next ${num(Math.min(25, pending))}</button>
+      <button class="btn ghost small" id="trRes">Residents pass on trust-held homes</button>
+      <span class="note" id="trMsg"></span></div>
+      <p class="fine" style="margin-top:8px">Each run asks DealMachine for up to 25 homes (about one property credit and one or two people credits each; a repeat within the month is free). A cron does the same every two minutes while homes are untraced, so this button is for when you do not want to wait. The residents pass asks for the people living in owner-occupied homes DealMachine holds no owner person for; only a resident whose surname is on title is used.</p>
+      <div class="tracelog hidden" id="trLog"></div>` : '<p class="fine">Tracing runs on its own; the agent can run it by hand.</p>'}</div>`;
+}
 function leadsHtml() {
   const L = S.leads; if (!L || !L.ok) return `<div class="card"><p class="note">Could not load neighbors${L && L.error ? ': ' + esc(L.error) : ''}.</p></div>`;
   const counts = L.counts || {};
   const chips = [[null, 'All'], ['in_series', 'In the series'], ['ready', 'Verified'], ['queued', 'Approved'], ['verifying', 'Checking'], ['replied', 'Replied'], ['done', 'Finished'], ['no_email', 'No email']];
-  return `<div class="row sp" style="margin-bottom:12px"><div class="chips">${chips.map(([k, l]) => `<button data-f="${k || ''}" class="${S.leadFilter === k ? 'on' : ''}">${l}${k ? ` (${num(counts[k] || 0)})` : ''}</button>`).join('')}</div>
+  if (counts.new) chips.push(['new', 'Not traced']);
+  if (counts.removed) chips.push(['removed', 'Removed']);
+  const agent = S.role === 'agent';
+  const legend = [['ready', 'Verified, waiting'], ['in_series', 'In the series'], ['replied', 'Replied'], ['done', 'Finished'], ['verifying', 'Checking'], ['no_email', 'No email'], ['new', 'Not traced yet']];
+  return `${tracePanelHtml()}<div class="nbmapwrap"><div id="nbmap"></div></div>
+    <div class="nblegend"><span><i class="sq"></i>${esc((L.subject && L.subject.address) || 'The project')}</span>${legend.map(([k, l]) => `<span><i style="background:${LEAD_COLOR[k] || LEAD_COLOR.other}"></i>${l}</span>`).join('')}<span class="fine">${S.leadFilter || S.leadQ ? 'homes outside the filter are faded' : 'tap a home for who is on title'}</span></div>
+    <div class="row sp" style="margin-bottom:12px"><div class="chips">${chips.map(([k, l]) => `<button data-f="${k || ''}" class="${S.leadFilter === k ? 'on' : ''}">${l}${k ? ` (${num(counts[k] || 0)})` : ''}</button>`).join('')}</div>
       <input id="leadQ" placeholder="Search an address or a name" value="${esc(S.leadQ)}" style="max-width:280px"></div>
-    <div class="tbl"><table><thead><tr><th>#</th><th>Home</th><th>On title</th><th>Email goes to</th><th>Status</th><th>Emails</th></tr></thead><tbody>
-      ${(L.leads || []).map((l) => { const [lab, cls] = LEAD_LABEL[l.status] || [l.status, '']; return `<tr>
+    <div class="tbl"><table><thead><tr><th>#</th><th>Home</th><th>On title</th><th>Email goes to</th><th>Status</th><th>Emails</th>${agent ? '<th></th>' : ''}</tr></thead><tbody>
+      ${(L.leads || []).map((l) => { const [lab, cls] = LEAD_LABEL[l.status] || [l.status, '']; return `<tr id="nb-${l.id}">
         <td class="mono">${num(l.rank)}</td>
         <td class="addr"><b>${esc(l.address)}</b><span>${esc(l.city)} ${esc(l.zip || '')} &middot; ${l.distance_m != null ? num(l.distance_m) + ' m away' : ''}${l.year_built ? ' &middot; built ' + l.year_built : ''}${l.sqft ? ' &middot; ' + num(l.sqft) + ' sf' : ''}${l.owner_occupied ? ' &middot; owner-occupied' : ''}</span></td>
         <td>${esc(l.owner_1 || '')}${l.owner_2 ? '<br>' + esc(l.owner_2) : ''}${l.owner_is_resident === false && l.mailing_address ? `<br><span class="fine">mails to ${esc(l.mailing_address)}</span>` : ''}</td>
         <td>${l.email ? `<b>${esc(l.contact_name || '')}</b><br><span class="fine">${esc(l.email)}${l.phone ? ' &middot; ' + esc(l.phone) : ''}</span>` : '<span class="fine">' + esc(l.trace_detail ? l.trace_detail.split('.')[0] + '.' : 'no person matched') + '</span>'}</td>
         <td><span class="pill ${cls}">${esc(lab)}</span>${l.last_reply_at ? `<br><span class="fine">replied ${esc(when(l.last_reply_at))}</span>` : ''}</td>
         <td class="mono">${(l.emails || []).map((e) => `<span class="pill ${e.status === 'sent' ? 'ok' : e.status === 'approved' ? 'acc' : e.status === 'skipped' || e.status === 'suppressed' ? 'bad' : ''}" title="${esc(e.status)} ${esc(e.sent_at ? when(e.sent_at) : day(e.day))}">${e.step}</span>`).join(' ')}</td>
+        ${agent ? `<td class="mono"><div class="row actions">${l.trace_status === 'pending' || l.trace_status === 'error' || l.trace_status === 'no_match' ? `<button class="btn ghost tiny trOne" data-id="${l.id}">Trace</button>` : (l.trace_status === 'no_contact' && l.owner_occupied ? `<button class="btn ghost tiny trOneRes" data-id="${l.id}">Residents</button>` : '')}
+          ${l.status !== 'removed' ? `<button class="btn ghost tiny rmOne" data-id="${l.id}" title="Take this home off the list">Remove</button>` : `<button class="btn ghost tiny rsOne" data-id="${l.id}">Put back</button>`}</div></td>` : ''}
       </tr>`; }).join('')}
-      ${!(L.leads || []).length ? '<tr><td colspan="6" class="note">Nothing matches.</td></tr>' : ''}
+      ${!(L.leads || []).length ? '<tr><td colspan="7" class="note">Nothing matches.</td></tr>' : ''}
     </tbody></table></div>
     <p class="fine" style="margin-top:10px">${num(L.total)} homes. Owner names and addresses are public record (San Francisco assessor roll); emails and phones were matched from public records and are for this campaign only.</p>`;
 }
+const LEAD_COLOR = { new: '#9aa3b2', verifying: '#c9a24a', ready: '#2f7d4e', queued: '#2f7d4e', in_series: '#2f4262', replied: '#b06f24', done: '#8b93a1', unsubscribed: '#b42318', bounced: '#b42318', removed: '#e3e6ec', no_email: '#c4c9d2', other: '#9aa3b2' };
+function paintLeadMap() {
+  const L0 = S.leads; const el = $('nbmap'); if (!el || !window.L || !L0 || !L0.ok) return;
+  const pts = (L0.points || []).filter((p) => p.lat && p.lng);
+  const shown = new Set((L0.leads || []).map((l) => l.id)); const filtering = !!(S.leadFilter || S.leadQ);
+  if (MAP && (MAPCAMP !== S.camp.id || !document.body.contains(MAP.getContainer()))) { try { MAP.remove(); } catch (e) {} MAP = null; MAPLAYER = null; }
+  if (!MAP) {
+    MAP = L.map(el, { scrollWheelZoom: false }); MAPCAMP = S.camp.id;
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', maxZoom: 19 }).addTo(MAP);
+    const sub = L0.subject || {};
+    const all = pts.map((p) => [p.lat, p.lng]); if (sub.lat && sub.lng) all.push([sub.lat, sub.lng]);
+    if (all.length) MAP.fitBounds(L.latLngBounds(all).pad(0.08)); else MAP.setView([37.79, -122.44], 15);
+  }
+  if (MAPLAYER) { MAP.removeLayer(MAPLAYER); MAPLAYER = null; }
+  MAPLAYER = L.layerGroup();
+  const sub = L0.subject || {};
+  if (sub.lat && sub.lng) {
+    L.marker([sub.lat, sub.lng], { icon: L.divIcon({ className: '', html: '<div style="width:16px;height:16px;background:#20242e;border:2px solid #fff;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), zIndexOffset: 1000 })
+      .bindPopup(`<div class="nbpop"><b>${esc(sub.address || 'The project')}</b><span>${esc(partnerOf(S.camp).company || '')}'s project</span></div>`).addTo(MAPLAYER);
+  }
+  pts.forEach((p) => {
+    const dim = filtering && !shown.has(p.id);
+    const mk = L.circleMarker([p.lat, p.lng], { radius: dim ? 4 : 6, weight: 1.5, color: '#fff', fillColor: LEAD_COLOR[p.status] || LEAD_COLOR.other, fillOpacity: dim ? .35 : .95, opacity: dim ? .4 : 1 });
+    mk.bindPopup(() => {
+      const l = (L0.leads || []).find((x) => x.id === p.id);
+      const who = l ? ([l.owner_1, l.owner_2].filter(Boolean).join(' & ') || 'no owner on record') : 'not in the current list';
+      return `<div class="nbpop"><b>#${esc(p.rank)} · ${esc(p.address)}</b><span>${esc(who)}</span>${l && l.email ? `<span>${esc(l.contact_name || '')} · ${esc(l.email)}</span>` : ''}<span>${esc(statusLabel(p.status))}</span>${l ? `<button data-focus="${p.id}">Show in the list</button>` : ''}</div>`;
+    });
+    mk.on('popupopen', (e) => { const b = e.popup.getElement().querySelector('[data-focus]'); if (b) b.addEventListener('click', () => focusLead(Number(b.dataset.focus))); });
+    mk.addTo(MAPLAYER);
+  });
+  MAPLAYER.addTo(MAP);
+  setTimeout(() => { try { MAP.invalidateSize(); } catch (e) {} }, 120);
+}
+function statusLabel(st) { return (LEAD_LABEL[st] || [st || ''])[0]; }
+function focusLead(id) {
+  if (MAP) MAP.closePopup();
+  const tr = $('nb-' + id); if (!tr) return;
+  tr.classList.add('nbfocus'); setTimeout(() => tr.classList.remove('nbfocus'), 2400);
+  tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 function wireLeads() {
   const host = $('tabBody');
+  paintLeadMap();
   host.querySelectorAll('.chips button').forEach((b) => b.addEventListener('click', () => { S.leadFilter = b.dataset.f || null; loadTab(); }));
   const q = $('leadQ'); let t; q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { S.leadQ = q.value.trim(); loadTab(); }, 350); });
+  const log = $('trLog'), msg = $('trMsg');
+  const trace = async (opts, btn) => {
+    if (btn) { btn.disabled = true; btn.dataset.was = btn.textContent; btn.textContent = 'Asking DealMachine…'; }
+    if (msg) msg.textContent = 'This takes up to a minute.';
+    const { data, error } = await sb.functions.invoke('contractor-skiptrace', { body: Object.assign({ campaign_id: S.camp.id }, opts) });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.was; }
+    if (!res || res.ok !== true) { if (msg) msg.textContent = 'Not traced: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    const t = res.tally || {};
+    const text = res.traced ? `${num(res.traced)} traced: ${num(t.traced || 0)} with an email, ${num((t.no_owner || 0) + (t.no_contact || 0))} without, ${num(t.not_matched || 0)} not matched. Credits used: ${num((res.credits && res.credits.used) || 0)}.` : (res.note || 'Nothing to trace.');
+    const lines = (res.results || []).map((r) => `${r.address}  →  ${r.outcome}${r.email ? '  ' + r.email : ''}`).join('\n');
+    await refreshOv();   // re-renders the tab with the new counts; then put the result back on the fresh panel
+    const m2 = $('trMsg'), l2 = $('trLog');
+    if (m2) m2.textContent = text;
+    if (l2 && lines) { l2.classList.remove('hidden'); l2.textContent = lines; }
+  };
+  const run = $('trRun'); if (run) run.addEventListener('click', () => trace({ limit: 25 }, run));
+  const resB = $('trRes'); if (resB) resB.addEventListener('click', () => trace({ limit: 25, mode: 'residents' }, resB));
+  host.querySelectorAll('.trOne').forEach((b) => b.addEventListener('click', () => trace({ lead_ids: [Number(b.dataset.id)], limit: 1 }, b)));
+  host.querySelectorAll('.trOneRes').forEach((b) => b.addEventListener('click', () => trace({ lead_ids: [Number(b.dataset.id)], limit: 1, mode: 'residents' }, b)));
+  host.querySelectorAll('.rmOne, .rsOne').forEach((b) => b.addEventListener('click', async () => {
+    const restore = b.classList.contains('rsOne');
+    if (!restore && !b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Remove? Tap again'; return; }
+    b.disabled = true;
+    try { const r = await rpc('contractor_lead_remove', { p_lead_id: Number(b.dataset.id), p_reason: restore ? null : 'removed by the agent', p_restore: restore }); if (!r.ok) alert(r.error); await refreshOv(); } catch (e) { alert(e.message); b.disabled = false; }
+  }));
+}
+
+
+/* ---------- emails: the partner domain's allowance, then what is waiting to go ---------- */
+function emailsHtml() {
+  const C = S.cap, G = S.sched; const c = S.camp, agent = S.role === 'agent';
+  if (!C || !C.ok) return `<div class="card"><p class="note">Could not load the allowance${C && C.error ? ': ' + esc(C.error) : ''}.</p></div>`;
+  const cap = Number(C.cap || 0), sent = Number(C.sent_today || 0), due = Number(C.due_today || 0), left = Number(C.left_today || 0), seed = Number(C.seed_today || 0);
+  const k = C.capacity || {}, ramp = k.mode === 'ramp', off = k.mode === 'off';
+  const mx = Number(k.max || 50);
+  const dname = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2) + ' ' + new Date(d + 'T12:00:00').getDate();
+  /* while the domain is not warming yet, the chart shows the ramp as it would run from today, as a plan */
+  const planCap = (i) => off ? Math.min(mx, Number(k.start || 10) + Number(k.step || 3) * i) : null;
+  const fut = (C.days || []).map((d, i) => ({ on: d.on, cap: off ? planCap(i + 1) : Number(d.cap || 0), plan: off, x: Number(d.contractor) || 0, w: Number(d.waiting) || 0, sd: 0, due: 0 }));
+  const past = (C.past || []).slice(-Math.max(5, Math.floor(fut.length / 2))).map((d) => ({ on: d.on, cap: Number(d.cap || 0), x: Number(d.contractor) || 0, w: 0, sd: Number(d.seed) || 0, due: 0, past: true }));
+  const cols = (off ? [] : past).concat([{ on: C.today, cap: off ? planCap(0) : cap, plan: off, x: sent, w: 0, sd: seed, due, today: true }], fut);
+  const top = Math.max(mx, 1, ...cols.map((d) => d.cap), ...cols.map((d) => d.x + d.sd + d.due + d.w));
+  const h = (n) => Math.round(Math.min(n, top) / top * 100);
+  const toGo = ramp && k.full_on ? Math.max(0, Math.round((new Date(String(k.full_on).slice(0, 10) + 'T12:00:00') - new Date(String(C.today).slice(0, 10) + 'T12:00:00')) / 864e5)) : 0;
+  const allow = `<div class="card"><div class="row sp"><h3>Today’s email allowance</h3><span class="fine mono">resets at midnight Pacific</span></div>
+    <p class="note" style="margin:4px 0 12px">Sending as <b>${esc(C.from || '')}</b> &middot; ${esc(C.domain || '')}’s own allowance, separate from the market’s</p>
+    <div class="fullspd"><div class="fshead"><div><b>${off ? 'Not warming yet' : ramp ? (toGo ? toGo + ' day' + (toGo === 1 ? '' : 's') + ' to full speed' : 'At full speed') : 'Full speed'}</b>
+        <span>${esc(C.domain || '')} &middot; ${off ? `starts at ${num(k.start || 10)} a day the day the campaign starts, adds ${num(k.step || 3)} a day, to ${num(mx)}` : ramp ? num(cap) + ' today → ' + num(mx) + ' a day on ' + esc(day(k.full_on)) : num(cap) + ' a day'}${k.ceiling != null ? ' &middot; held at ' + num(k.ceiling) + (k.reason ? ' (' + esc(k.reason) + ')' : '') : ''}</span></div>
+      <em>${ramp ? Math.round(cap / mx * 100) + '% of full speed' : ''}</em></div>
+      <div class="rampchart">${cols.map((d) => { const t = d.x + d.sd; return `<div class="rc${d.today ? ' now' : ''}${d.past ? ' past' : ''}" title="${esc(d.on)}: ${d.plan ? num(d.cap) + ' a day if the campaign started today' : num(t) + (d.today || d.past ? ' sent' : ' approved') + (d.due ? ' + ' + num(d.due) + ' going today' : '') + (d.w ? ' + ' + num(d.w) + ' waiting for approval' : '') + ' of ' + num(d.cap) + ' allowed' + (d.sd ? ' (' + num(d.sd) + ' seed)' : '')}">
+          <div class="rccol"><div class="rcallow${d.plan ? ' plan' : ''}" style="height:${h(d.cap)}%"></div>
+            <div class="rcfill" style="height:${h(t + d.due + d.w)}%">${d.sd ? `<i style="flex:${d.sd};background:#e3c58a"></i>` : ''}${d.x ? `<i style="flex:${d.x};background:#2f4262"></i>` : ''}${d.due ? `<i style="flex:${d.due};background:#c9cfd9"></i>` : ''}${d.w ? `<i style="flex:${d.w};background:#eadfcb"></i>` : ''}</div></div>
+          <span>${t + d.due + d.w ? '<b>' + num(t + d.due + d.w) + '</b>' : '0'}<small>/${num(d.cap)}</small></span><em>${d.today ? 'Today' : esc(dname(d.on))}</em></div>`; }).join('')}</div>
+      <div class="caplegend"><span><i style="background:#2f4262"></i>${esc(partnerOf(c).company || 'Partner')}</span><span><i style="background:#e3c58a"></i>Seed</span>${due ? '<span><i style="background:#c9cfd9"></i>Going today</span>' : ''}<span><i style="background:#eadfcb"></i>Waiting for approval</span><span><i class="allow"></i>${off ? 'Planned allowance, from the day it starts' : 'Day’s allowance'}</span><span class="fine">${off ? 'nothing has gone out; the campaign has not started' : 'left of today: what went out &middot; right of today: what is approved'}</span></div>
+      <details style="margin-top:10px"><summary>Why the slow build is worth it</summary><p class="note" style="margin-top:8px">Gmail and Outlook decide inbox or spam by reputation, and a domain earns reputation the way a person earns credit: a short history, used steadily and without complaints. A brand-new sender that jumps to 50 emails a day looks like a spammer who bought a domain yesterday. The ramp buys two weeks of good history; our own seed inboxes open and reply alongside the real sends, and the seeds stop once the domain has sent 30 real emails a day for 14 days. A burned domain takes months to recover.</p></details></div>
+    <div class="capbig"><b>${num(sent)}</b> of ${num(cap)} sent today${due ? ' &middot; ' + num(due) + ' more going today' : ''} &middot; <b class="${left ? 'ok' : 'no'}">${num(left)} left</b></div>
+    <div class="capbar"><i style="width:${cap ? Math.min(100, sent / cap * 100) : 0}%;background:#2f4262"></i><i style="width:${cap ? Math.min(100, due / cap * 100) : 0}%;background:#c9cfd9"></i></div>
+    <div class="caplegend">${Object.entries(C.by_step || {}).sort().map(([st, n]) => `<span><i style="background:#2f4262"></i>Email ${esc(st)}: ${num(n)}</span>`).join('') || '<span class="fine">nothing sent yet today</span>'}</div></div>`;
+  /* the schedule */
+  const groups = (G && G.ok && G.groups) || [];
+  const needOk = groups.filter((g) => g.state === 'needs_ok').reduce((a, g) => a + Number(g.n || 0), 0);
+  const waiting = groups.filter((g) => g.state !== 'sent').reduce((a, g) => a + Number(g.n || 0), 0);
+  const STATE = { needs_ok: ['Needs your OK', 'warn'], verifying: ['Address still being checked', ''], follows: ['Follows email 1', ''], scheduled: ['Scheduled', 'acc'], sent: ['Sent', 'ok'] };
+  const dayName = (d) => d <= C.today ? 'Today' : new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const tm = (v) => v ? new Date(v).toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' }) : '';
+  let html = '', last = null;
+  groups.forEach((g, gi) => {
+    const sentG = g.state === 'sent';
+    const dn = sentG ? 'Sent ' + dayName(g.day).replace('Today', 'today') : dayName(g.day);
+    if (dn !== last) { html += `<div class="emday"><span>${esc(dn)}</span><span class="n">${num(groups.filter((x) => (x.state === 'sent') === sentG && x.day === g.day).reduce((a, x) => a + Number(x.n), 0))}</span></div>`; last = dn; }
+    const [lab, cls] = STATE[g.state] || [g.state, ''];
+    const lastAt = g.people.map((p) => p.sent_at).filter(Boolean).sort().pop();
+    html += `<div class="emgrp${sentG ? ' sent' : ''}" data-g="${gi}"><button type="button" class="emgrph"><span class="t"><b>Email ${esc(g.step)} of ${esc(c.steps || 6)} &middot; ${esc(g.people[0] && g.people[0].subject || '')}</b><span>${num(g.n)} ${g.n == 1 ? 'neighbor' : 'neighbors'}${lastAt ? ' &middot; last ' + esc(tm(lastAt)) : ''}</span></span><span class="pill ${cls}">${esc(lab)}</span></button>
+      <div class="emgrpb hidden">
+        ${agent && g.state === 'needs_ok' ? `<div class="row" style="margin-bottom:10px"><button class="btn small emapprove" data-g="${gi}">Approve &amp; send${g.day <= C.today ? ' now' : ' for ' + esc(dayName(g.day))}${g.n > 1 ? ' to ' + num(g.n) : ''}</button><button class="btn ghost small empreview" data-id="${esc(g.people[0].id)}">Email me a preview</button><span class="note emmsg"></span></div>`
+          : (g.people[0] && !sentG) ? `<div class="row" style="margin-bottom:10px"><button class="btn ghost small empreview" data-id="${esc(g.people[0].id)}">Email me a preview</button><span class="note emmsg"></span></div>` : ''}
+        ${g.people.map((p) => `<div class="emp"><div class="who"><b>${esc(p.name || p.email)}</b><span>${esc(p.email)}${p.address ? ' &middot; ' + esc(p.address) : ''}</span></div><span class="fine">${sentG ? 'sent ' + esc(tm(p.sent_at)) : esc(p.lead_status || '')}</span></div>`).join('')}
+      </div></div>`;
+  });
+  return `${allow}<div class="card" style="margin-top:14px"><div class="row sp"><h3>Emails waiting to go</h3><span class="note">${waiting ? num(waiting) + ' scheduled in all' : 'nothing scheduled'}${needOk ? ' &middot; ' + num(needOk) + ' need your OK' : ''}</span></div>
+    ${agent && needOk ? `<div class="row" style="margin-top:10px"><button class="btn small" id="emAll">Approve all ${num(needOk)} first email${needOk == 1 ? '' : 's'}</button><span class="note" id="emAllMsg"></span></div>` : ''}
+    ${!groups.length ? `<p class="note" style="margin-top:8px">${c.status === 'draft' || c.status === 'partner_review' || c.status === 'ready' ? 'Nothing is staged until the campaign starts.' : 'Nothing is waiting.'}</p>` : html}</div>`;
+}
+function wireEmails() {
+  const host = $('tabBody');
+  host.querySelectorAll('.emgrph').forEach((h) => h.addEventListener('click', () => h.nextElementSibling.classList.toggle('hidden')));
+  const groups = (S.sched && S.sched.groups) || [];
+  host.querySelectorAll('.emapprove').forEach((b) => b.addEventListener('click', async () => {
+    const g = groups[Number(b.dataset.g)], m = b.parentElement.querySelector('.emmsg');
+    if (!b.classList.contains('armed')) { b.classList.add('armed'); b.dataset.was = b.textContent; b.textContent = b.textContent + '? Tap again'; return; }
+    b.disabled = true; b.textContent = 'Approving…';
+    try { const r = await rpc('docket_email_approve', { p_ids: g.people.map((p) => p.id), p_without_photo: false });
+      m.textContent = r.ok ? `Approved ${num(r.approved)}${r.sending_now ? '; going out now within the allowance' : ''}.` : 'Not approved: ' + String(r.detail || r.error || '').replace(/_/g, ' ');
+      S.cap = S.sched = null; setTimeout(refreshOv, 900); } catch (e) { m.textContent = e.message; b.disabled = false; }
+  }));
+  host.querySelectorAll('.empreview').forEach((b) => b.addEventListener('click', async () => {
+    const m = b.parentElement.querySelector('.emmsg'); b.disabled = true;
+    try { const r = await rpc('contractor_email_send_preview', { p_id: Number(b.dataset.id) }); m.textContent = r.ok ? `Preview on its way to ${r.to}; the subject starts "[Preview]". Nothing went to the neighbor.` : 'No preview: ' + String(r.detail || r.error || '').replace(/_/g, ' '); }
+    catch (e) { m.textContent = e.message; } b.disabled = false;
+  }));
+  const all = $('emAll'); if (all) all.addEventListener('click', async () => {
+    const m = $('emAllMsg');
+    if (!all.classList.contains('armed')) { all.classList.add('armed'); all.dataset.was = all.textContent; all.textContent = all.textContent + '? Tap again'; return; }
+    all.disabled = true;
+    try { const r = await rpc('docket_contractor_approve_all', { p_market_id: S.camp.market.id, p_campaign_id: S.camp.id });
+      m.textContent = r.ok ? `Approved email 1 to ${num(r.approved)} neighbors${r.sending_now ? '; going out now within the allowance' : '; they go from 8am Pacific'}.${r.checking ? ' ' + num(r.checking) + ' still being verified.' : ''}` : 'Not approved: ' + r.error;
+      S.cap = S.sched = null; setTimeout(refreshOv, 900); } catch (e) { m.textContent = e.message; all.disabled = false; }
+  });
+}
+
+/* ---------- partners (agent): who is on the market, a new partner, a new campaign ---------- */
+function partnersHtml() {
+  const ps = S.ov.partners || [], camps = S.ov.campaigns || [];
+  const mk = (S.camp && S.camp.market) || {};
+  return `<div class="card"><h3>Partners on this desk</h3>
+      ${ps.length ? `<div class="tbl" style="margin-top:10px;border:0"><table><thead><tr><th>Company</th><th>Contact</th><th>Sends as</th><th>Campaigns</th><th>Portal login</th><th>Status</th></tr></thead><tbody>
+        ${ps.map((p) => `<tr><td><b>${esc(p.company)}</b></td><td>${esc(p.contact_name)}<br><span class="fine">${esc(p.email)}</span></td><td class="fine">${esc((p.from_local || 'hello') + '@' + (p.sending_domain || '—'))}<br><span class="fine">${p.domain_status ? 'domain ' + esc(p.domain_status) : 'no sending domain'}</span></td>
+          <td>${camps.filter((x) => x.partner_id === p.id).map((x) => `<a href="#c${x.id}" class="campLink" data-id="${x.id}">${esc(x.name)}</a> ${statusPill(x.status)}`).join('<br>') || '<span class="fine">none yet</span>'}</td>
+          <td>${p.has_login ? '<span class="pill ok">Created</span>' : '<span class="pill warn">Not yet</span>'}<div class="row" style="margin-top:6px;gap:6px"><input type="password" class="pwIn" data-id="${p.id}" placeholder="${p.has_login ? 'New password' : 'Password (8+)'}" autocomplete="new-password" style="width:150px;padding:6px 8px;font-size:13px"><button class="btn ghost tiny pwSet" data-id="${p.id}" data-has="${p.has_login ? 1 : 0}">${p.has_login ? 'Reset' : 'Create'}</button></div><div class="fine pwMsg" data-id="${p.id}"></div></td>
+          <td>${statusPill(p.status)}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="note" style="margin-top:6px">No partners yet.</p>'}</div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h3>Add a contractor partner</h3><p class="fine" style="margin:6px 0 12px">Their own sending domain is what keeps their mail off the market’s reputation: register it, add it in Resend (DKIM), and enter it here. Postal address and CSLB licence are needed before anything sends; they can come later.</p>
+        <div class="grid g2">
+          <div class="field"><label>Company</label><input id="npCompany" placeholder="Blu Leaf Property Solutions"></div>
+          <div class="field"><label>Contact name</label><input id="npContact" placeholder="Ashley Reese"></div>
+          <div class="field"><label>Login email (their portal sign-in)</label><input id="npEmail" type="email" placeholder="name@theirdomain.com"></div>
+          <div class="field"><label>Phone</label><input id="npPhone" placeholder="415-555-0100"></div>
+          <div class="field"><label>Sending domain</label><input id="npDomain" placeholder="bluleafsanfrancisco.com"></div>
+          <div class="field"><label>Sends as (local part)</label><input id="npLocal" placeholder="ashley"></div>
+          <div class="field"><label>Website</label><input id="npWeb" placeholder="https://"></div>
+          <div class="field"><label>Their real inbox (reply copies)</label><input id="npFwd" type="email"></div>
+          <div class="field"><label>Postal address</label><input id="npPostal" placeholder="Street, City, CA ZIP"></div>
+          <div class="field"><label>CSLB licence</label><input id="npCslb"></div>
+        </div>
+        <div class="row"><button class="btn small" id="npSave">Add the partner</button><span class="note" id="npMsg"></span></div>
+        ${(S.ov.markets || []).length > 1 ? `<div class="field" style="margin-top:10px"><label>Market</label><select id="npMarket">${(S.ov.markets || []).map((m) => `<option value="${m.id}"${mk.id === m.id ? ' selected' : ''}>${esc(m.display_name || m.city)}</option>`).join('')}</select></div>` : `<p class="fine" style="margin-top:10px">Market: <b>${esc(mk.display_name || mk.city || ((S.ov.markets || [])[0] || {}).display_name || '')}</b>.</p>`}
+        <p class="fine" style="margin-top:6px">Once added, create their portal login in the table above with a password you give them; they sign in at the market site's /contractor/ page.</p></div>
+      <div class="card"><h3>New neighbors campaign</h3><p class="fine" style="margin:6px 0 12px">The N single-family homes nearest the partner’s project, from the county roll, ranked by distance. Skip tracing and verification start on their own; the six-email series is copied in as a draft for you to edit and approve.</p>
+        <div class="field"><label>Partner</label><select id="ncPartner">${ps.map((p) => `<option value="${p.id}">${esc(p.company)}</option>`).join('')}</select></div>
+        <div class="field"><label>Project address</label><input id="ncAddr" placeholder="2630 Divisadero St, San Francisco, CA"></div>
+        <div class="grid g2"><div class="field"><label>Homes</label><input id="ncN" type="number" value="400" min="10" max="1000"></div><div class="field"><label>Days between emails</label><input id="ncCad" type="number" value="14" min="3" max="60"></div></div>
+        <div class="field"><label>Campaign name (optional)</label><input id="ncName" placeholder="Pacific Heights neighbors"></div>
+        <div class="row"><button class="btn small" id="ncBuild"${ps.length ? '' : ' disabled'}>Build the campaign</button><span class="note" id="ncMsg"></span></div></div>
+    </div>`;
+}
+function wirePartners() {
+  const host = $('tabBody');
+  host.querySelectorAll('.campLink').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); S.camp = (S.ov.campaigns || []).find((x) => String(x.id) === a.dataset.id); location.hash = '#c' + a.dataset.id; S.tab = 'overview'; S.series = S.leads = S.cap = S.sched = null; loadTab(); }));
+  const save = $('npSave'); if (save) save.addEventListener('click', async () => {
+    const m = $('npMsg'); save.disabled = true; m.textContent = 'Saving…';
+    const mk = (S.camp && S.camp.market) || {};
+    const marketId = $('npMarket') ? Number($('npMarket').value) : (mk.id || ((S.ov.partners || [])[0] || {}).market_id || ((S.ov.markets || [])[0] || {}).id);
+    try { const r = await rpc('contractor_partner_create', { p: { market_id: marketId, company: $('npCompany').value, contact_name: $('npContact').value, email: $('npEmail').value, phone: $('npPhone').value, sending_domain: $('npDomain').value, from_local: $('npLocal').value, website: $('npWeb').value, forward_email: $('npFwd').value, postal_address: $('npPostal').value, cslb_license: $('npCslb').value } });
+      if (!r.ok) { m.textContent = 'Not added: ' + String(r.error).replace(/_/g, ' '); save.disabled = false; return; }
+      await refreshOv(); const m2 = $('npMsg'); if (m2) m2.textContent = `Added ${r.company || 'the partner'}. Next: their domain in Resend (DKIM, then the root MX for replies), postal address and CSLB on the partner record, and a campaign below.`; } catch (e) { m.textContent = e.message; save.disabled = false; }
+  });
+  host.querySelectorAll('.pwSet').forEach((b) => b.addEventListener('click', async () => {
+    const id = b.dataset.id, inp = host.querySelector(`.pwIn[data-id="${id}"]`), m = host.querySelector(`.pwMsg[data-id="${id}"]`);
+    const pw = inp.value; if (pw.length < 8) { m.textContent = 'At least 8 characters.'; return; }
+    b.disabled = true; m.textContent = 'Working…';
+    const { data, error } = await sb.functions.invoke('contractor-partner-account', { body: { partner_id: Number(id), password: pw, reset: b.dataset.has === '1' } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    inp.value = '';   // the password is used once; it never stays on the page
+    b.disabled = false;
+    if (!res || res.ok !== true) { m.textContent = 'Not done: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    const text = res.created ? `Login created for ${res.email}. Give them the password; they can change it by signing in.` : (res.password_set ? `Password reset for ${res.email}.` : `Login already existed for ${res.email}; bound to this partner.`);
+    await refreshOv(); const m2 = $('tabBody').querySelector(`.pwMsg[data-id="${id}"]`); if (m2) m2.textContent = text;   // the tab re-rendered
+  }));
+  const build = $('ncBuild'); if (build) build.addEventListener('click', async () => {
+    const m = $('ncMsg'); const addr = $('ncAddr').value.trim(); if (!addr) { m.textContent = 'Type the project address.'; return; }
+    build.disabled = true; m.textContent = 'Finding the homes… this takes up to a minute.';
+    const { data, error } = await sb.functions.invoke('contractor-campaign-build', { body: { partner_id: Number($('ncPartner').value), subject_address: addr, target_count: Number($('ncN').value || 400), cadence_days: Number($('ncCad').value || 14), name: $('ncName').value } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    build.disabled = false;
+    if (!res || res.ok !== true) { m.textContent = 'Not built: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    m.textContent = `Built: ${num(res.homes)} homes within ${num(res.farthest_m)} m of ${res.subject_address}. Skip tracing starts within two minutes.`;
+    await refreshOv(); S.camp = (S.ov.campaigns || []).find((x) => x.id === res.campaign_id) || S.camp; location.hash = '#c' + res.campaign_id; S.tab = 'overview'; loadTab();
+  });
 }
 
 /* ---------- replies ---------- */
