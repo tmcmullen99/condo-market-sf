@@ -145,33 +145,85 @@ tr.nbfocus td{background:var(--accent-soft)}
 .tracebox .counts{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 10px}.tracebox .counts div{font-size:13px;color:var(--ink-2)}.tracebox .counts b{display:block;font-size:1.3rem;color:var(--ink)}
 .tracelog{font-size:12.5px;color:var(--ink-2);margin-top:8px;max-height:160px;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,monospace}
 .row.actions{gap:6px}.btn.tiny{padding:4px 8px;font-size:12px;border-radius:7px}
+/* the two doors: sign in / become a partner */
+.signin.wide{max-width:960px}
+.doors{display:flex;gap:6px;margin-bottom:16px}.doors button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-weight:600;color:var(--ink-2)}.doors button.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.pitch{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:22px;align-items:start}@media (max-width:860px){.pitch{grid-template-columns:1fr}}
+.pitch ul{margin:10px 0 0;padding-left:18px;color:var(--ink-2);line-height:1.6}.pitch li{margin:6px 0}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0}.steps li{position:relative;padding:10px 0 10px 40px;border-bottom:1px solid #f1f3f7}.steps li:last-child{border-bottom:0}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:10px;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:13px}
+.steps li b{display:block}.steps li span{color:var(--ink-2);font-size:14px}.steps li.done::before{content:'\2713';background:var(--ok-soft);color:var(--ok)}
+.brief .field label{font-weight:600}.brief .opt{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer}.brief .opt input{width:auto;margin-top:4px}.brief .opt b{display:block}.brief .opt span{color:var(--ink-2);font-size:13.5px}
+.brief .sub2{margin:4px 0 0 28px}
+.briefcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;margin-bottom:10px}
+.briefcard dl{display:grid;grid-template-columns:90px 1fr;gap:4px 12px;margin:8px 0 0;font-size:14px}.briefcard dt{color:var(--ink-3);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding-top:2px}.briefcard dd{margin:0;white-space:pre-wrap}
+.applicant{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;margin-bottom:10px}
+.applicant .meta{color:var(--ink-2);font-size:13.5px;margin-top:4px}
 .hidden{display:none !important}
 .footer{margin-top:40px;color:var(--ink-3);font-size:12.5px;text-align:center}
 </style>
 </head>
 <body>
 <nav class="nav"><div class="nav-inner">
-  <a class="wordmark" href="/"><b>Condo</b> Market<span class="tag">SF</span><span class="tag" style="color:#c9ced8">Contractor Partners</span></a>
+  <a class="wordmark" href="/" id="wordmark"><b>Condo</b> Market<span class="tag">SF</span><span class="tag" style="color:#c9ced8">Contractor Partners</span></a>
   <div class="nav-right" id="navRight"></div>
 </div></nav>
 
 <main class="wrap" id="app">
-  <section class="signin" id="signin">
+  <section class="signin wide" id="signin">
     <div class="card">
-      <h1>Partner sign in</h1>
-      <p class="sub">The account your market agent set up for you. Campaigns, the email series, your neighbors and their replies.</p>
-      <form id="signinForm" style="margin-top:18px" novalidate>
-        <div class="field"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="username" required></div>
-        <div class="field"><label for="siPass">Password</label><input id="siPass" type="password" autocomplete="current-password" required></div>
-        <button class="btn" type="submit" id="siBtn">Sign in</button>
-        <div class="msg err hidden" id="siErr"></div>
-      </form>
-      <p class="fine" style="margin-top:16px">Forgot your password? Ask your market agent to reset it.</p>
+      <div class="doors"><button type="button" id="doorIn" class="on">Sign in</button><button type="button" id="doorUp">Become a partner</button></div>
+      <div id="paneIn">
+        <h1>Partner sign in</h1>
+        <p class="sub">Your campaigns, the email series, your neighbors and their replies.</p>
+        <form id="signinForm" style="margin-top:18px;max-width:440px" novalidate>
+          <div class="field"><label for="siEmail">Email</label><input id="siEmail" type="email" autocomplete="username" required></div>
+          <div class="field"><label for="siPass">Password</label><input id="siPass" type="password" autocomplete="current-password" required></div>
+          <button class="btn" type="submit" id="siBtn">Sign in</button>
+          <div class="msg err hidden" id="siErr"></div>
+        </form>
+        <p class="fine" style="margin-top:16px">Forgot your password? Ask your market agent to reset it. New here? <a href="#signup" id="toSignup">Become a partner</a>.</p>
+      </div>
+      <div id="paneUp" class="hidden">
+        <div class="pitch">
+          <div>
+            <h1>Partner with <span id="puMarket">the market</span></h1>
+            <p class="sub">A marketing partnership between your business and the market’s agent: we send business each other’s way and run your campaigns through the same engine that reaches the city’s homeowners.</p>
+            <ul>
+              <li><b>Your own email series</b> to the homeowners around your projects, sent from your own domain, warmed up properly so it lands in inboxes.</li>
+              <li><b>Public-record owner lists</b> — the homes nearest a project, with the owner on title and a verified email, skip-traced for you.</li>
+              <li><b>You approve every email</b>, and you see every reply. The agent’s desk sends; your input shapes what goes.</li>
+              <li id="puMail" class="hidden"><b>A spot in the monthly mailing</b> to local homeowners, if you want one.</li>
+              <li><b>Business both ways</b> — the agent’s clients need good trades, and your clients sometimes need an agent. Introductions, never referral fees, in either direction.</li>
+            </ul>
+            <p class="fine" style="margin-top:12px">After you sign up you book a short call with Tim, and you can describe the campaign you have in mind right away.</p>
+          </div>
+          <form id="signupForm" novalidate>
+            <div class="grid g2">
+              <div class="field"><label for="suCompany">Company</label><input id="suCompany" required></div>
+              <div class="field"><label for="suName">Your name</label><input id="suName" required autocomplete="name"></div>
+              <div class="field"><label for="suEmail">Email (your login)</label><input id="suEmail" type="email" required autocomplete="email"></div>
+              <div class="field"><label for="suPhone">Phone</label><input id="suPhone" type="tel" autocomplete="tel"></div>
+              <div class="field"><label for="suTrade">Trade</label><select id="suTrade">
+                <option value="">Choose one</option><option>Remodeling / design-build</option><option>Kitchen &amp; bath</option><option>Roofing</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Painting</option><option>Landscaping</option><option>Solar</option><option>Windows &amp; doors</option><option>Flooring</option><option>Foundation / structural</option><option>Handyman</option><option>Cleaning</option><option>Other home service</option></select></div>
+              <div class="field"><label for="suCslb">CSLB licence #</label><input id="suCslb" placeholder="if you have one"></div>
+              <div class="field"><label for="suWeb">Website</label><input id="suWeb" placeholder="https://"></div>
+              <div class="field"><label for="suArea">Where you work</label><input id="suArea" placeholder="neighborhoods or cities"></div>
+            </div>
+            <div class="field"><label for="suNote">What you are working on, or who you want to reach</label><textarea id="suNote" style="min-height:70px" placeholder="e.g. a remodel on Divisadero St; we’d like the homes around it to know we’re there"></textarea></div>
+            <div class="field"><label for="suPass">Choose a password</label><input id="suPass" type="password" autocomplete="new-password" required placeholder="at least 8 characters"></div>
+            <input id="suHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+            <button class="btn" type="submit" id="suBtn">Create my partner account</button>
+            <div class="msg err hidden" id="suErr"></div>
+            <p class="fine" style="margin-top:10px">By signing up you agree that the market’s agent reviews your business before anything sends, and that every email goes out only with your approval and the agent’s.</p>
+          </form>
+        </div>
+      </div>
     </div>
   </section>
   <section id="portal" class="hidden"></section>
 </main>
-<p class="footer">San Francisco Condo Market · a marketplace run by a licensed agent. Email campaigns are sent and approved by the agent desk; your input shapes them.</p>
+<p class="footer" id="foot">A marketplace run by a licensed agent. Email campaigns are sent and approved by the agent desk; your input shapes them.</p>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -191,6 +243,48 @@ const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args 
 const S = { ov: null, role: null, camp: null, tab: 'overview', series: null, leads: null, replies: null, leadFilter: null, leadQ: '', cap: null, sched: null };
 let MAP = null, MAPLAYER = null, MAPCAMP = null;
 
+/* ---------- the market this page is on (before anyone signs in) ---------- */
+let PUB = null;
+async function loadPublic() {
+  try { PUB = await rpc('contractor_public_info', { p_domain: location.hostname }); } catch (e) { PUB = null; }
+  if (PUB && PUB.ok) {
+    $('wordmark').innerHTML = `<b>${esc(PUB.display_name || 'The City Market')}</b><span class="tag" style="color:#c9ced8">Contractor Partners</span>`;
+    $('puMarket').textContent = PUB.display_name || 'the market';
+    if (PUB.mail_partners) $('puMail').classList.remove('hidden');
+    $('foot').textContent = `${PUB.display_name} · a marketplace run by a licensed agent. Email campaigns are sent and approved by the agent desk; your input shapes them.`;
+  }
+}
+const door = (up) => { $('paneIn').classList.toggle('hidden', up); $('paneUp').classList.toggle('hidden', !up); $('doorIn').classList.toggle('on', !up); $('doorUp').classList.toggle('on', up); };
+$('doorIn').addEventListener('click', () => door(false)); $('doorUp').addEventListener('click', () => door(true));
+$('toSignup').addEventListener('click', (e) => { e.preventDefault(); door(true); });
+if (/#signup|#partner|#apply/.test(location.hash)) door(true);
+
+/* ---------- become a partner ---------- */
+$('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const b = $('suBtn'), err = $('suErr'); err.classList.add('hidden');
+  const body = { domain: location.hostname, company: $('suCompany').value, contact_name: $('suName').value, email: $('suEmail').value.trim(), phone: $('suPhone').value, website: $('suWeb').value,
+    trade: $('suTrade').value, cslb_license: $('suCslb').value, service_area: $('suArea').value, note: $('suNote').value, password: $('suPass').value, hp: $('suHp').value };
+  if (!body.company.trim() || !body.contact_name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email) || body.password.length < 8) { err.textContent = 'Company, your name, a working email and a password of at least 8 characters, please.'; err.classList.remove('hidden'); return; }
+  b.disabled = true; b.textContent = 'Creating your account…';
+  let res = null;
+  try { const r = await fetch(SB_URL + '/functions/v1/contractor-partner-signup', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SB_KEY }, body: JSON.stringify(body) }); res = await r.json(); }
+  catch (e2) { res = { ok: false, error: 'We could not reach the server: ' + e2.message }; }
+  if (!res || !res.ok) {
+    b.disabled = false; b.textContent = 'Create my partner account';
+    err.textContent = res && res.error === 'already_partner' ? 'That email already has a partner account here — sign in instead.' : res && res.error === 'limit' ? 'We have had a lot of sign-ups in the last hour. Please try again a little later.' : ((res && (res.detail || res.error)) || 'Something went wrong.');
+    err.classList.remove('hidden'); return;
+  }
+  if (res.bound_existing) {
+    b.disabled = false; b.textContent = 'Create my partner account'; door(false);
+    $('siEmail').value = body.email; const se = $('siErr'); se.textContent = 'You already had an account on this site with that email, so we attached your partner page to it. Sign in with the password you already use.'; se.classList.remove('hidden'); return;
+  }
+  const { error } = await sb.auth.signInWithPassword({ email: body.email, password: body.password });
+  $('suPass').value = '';
+  if (error) { b.disabled = false; b.textContent = 'Create my partner account'; door(false); $('siEmail').value = body.email; return; }
+  await boot();
+});
+
 /* ---------- sign in ---------- */
 $('signinForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -203,6 +297,7 @@ $('signinForm').addEventListener('submit', async (e) => {
 });
 
 async function boot() {
+  if (!PUB) await loadPublic();
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { $('signin').classList.remove('hidden'); $('portal').classList.add('hidden'); $('navRight').innerHTML = ''; return; }
   let ov;
@@ -219,6 +314,7 @@ async function boot() {
   const hashC = (location.hash.match(/#c(\d+)/) || [])[1];
   S.camp = (ov.campaigns || []).find((c) => String(c.id) === hashC) || (ov.campaigns || [])[0] || null;
   if (S.role === 'agent' && !S.camp) S.tab = 'partners';
+  if (S.role === 'partner' && !S.camp) S.tab = /#brief/.test(location.hash) ? 'brief' : 'overview';
   $('signin').classList.add('hidden'); $('portal').classList.remove('hidden');
   $('navRight').innerHTML = `<span>${S.role === 'agent' ? 'Agent desk' : 'Signed in as'} <b>${esc(session.user.email)}</b></span><button class="btn nav" id="outBtn">Sign out</button>`;
   $('outBtn').addEventListener('click', async () => { await sb.auth.signOut(); location.hash = ''; boot(); });
@@ -235,9 +331,11 @@ function statusPill(s) {
 function shell(inner) {
   const c = S.camp, p = c ? partnerOf(c) : (S.ov.partners || [])[0] || {};
   const camps = S.ov.campaigns || [];
-  const tabs = [['overview', 'Overview', null], ['emails', 'Emails', c ? num(c.stats.sent) : null], ['series', 'The series', c ? `${c.copy_approved}/${c.copy_total}` : null], ['leads', 'Neighbors', c ? num(c.stats.with_email) : null],
-    ['replies', 'Replies', c ? num(c.stats.replied) : null], ['requests', 'Requests', c ? (c.open_requests ? num(c.open_requests) : null) : null]];
-  if (S.role === 'agent') tabs.push(['partners', 'Partners', num((S.ov.partners || []).length)]);
+  const myBriefs = (S.ov.briefs || []).filter((b) => !p.id || b.partner_id === p.id);
+  const tabs = c ? [['overview', 'Overview', null], ['emails', 'Emails', num(c.stats.sent)], ['series', 'The series', `${c.copy_approved}/${c.copy_total}`], ['leads', 'Neighbors', num(c.stats.with_email)],
+    ['replies', 'Replies', num(c.stats.replied)], ['requests', 'Requests', c.open_requests ? num(c.open_requests) : null]] : [['overview', S.role === 'partner' ? 'Getting started' : 'Overview', null]];
+  if (S.role === 'partner') tabs.push(['brief', c ? 'Campaign briefs' : 'Your campaign brief', myBriefs.length ? num(myBriefs.length) : null]);
+  if (S.role === 'agent') tabs.push(['partners', 'Partners', num((S.ov.partners || []).length) + ((S.ov.partners || []).some((x) => x.applicant) ? ' · new' : '')]);
   $('portal').innerHTML = `
     <div class="hdr">
       <div class="brand">${p.logo_url ? `<img class="logo" src="${esc(p.logo_url)}" alt="${esc(p.company || '')}">` : ''}
@@ -321,7 +419,8 @@ async function refreshOv() {
 /* ---------- tabs ---------- */
 async function loadTab() {
   if (S.tab === 'partners' && S.role === 'agent') { shell(partnersHtml()); wirePartners(); wireAgentBar(); return; }
-  if (!S.camp) { shell(`<div class="card"><p class="note">No campaign on this account yet.${S.role === 'agent' ? ' Add a partner and build a campaign under Partners.' : ''}</p></div>`); wireAgentBar(); return; }
+  if (S.tab === 'brief' && S.role === 'partner') { shell(briefHtml()); wireBrief(); return; }
+  if (!S.camp) { shell(S.role === 'partner' ? startHtml() : `<div class="card"><p class="note">No campaign on this account yet. Add a partner and build a campaign under Partners.</p></div>`); if (S.role === 'partner') wireStart(); wireAgentBar(); return; }
   if (S.tab === 'overview') { shell(overviewHtml()); }
   else if (S.tab === 'emails') { shell('<p class="note">Loading the allowance…</p>'); [S.cap, S.sched] = await Promise.all([rpc('contractor_send_cap', { p_campaign_id: S.camp.id }), rpc('contractor_email_schedule', { p_campaign_id: S.camp.id })]); shell(emailsHtml()); wireEmails(); }
   else if (S.tab === 'series') { shell('<p class="note">Loading the series…</p>'); S.series = S.series || await rpc('contractor_portal_series', { p_campaign_id: S.camp.id }); shell(seriesHtml()); wireSeries(); }
@@ -354,14 +453,122 @@ function overviewHtml() {
     <div class="card" style="margin-top:14px"><div class="row sp"><h3>Progress by email</h3><span class="note">${sentPct}% of the planned ${num(Number(st.with_email) * Number(c.steps || 6))} sends</span></div>
       <div class="tbl" style="margin-top:10px;border:0"><table><thead><tr><th>Email</th><th>Sent</th></tr></thead><tbody>
         ${Array.from({ length: Number(c.steps || 6) }, (_, i) => `<tr><td>Email ${i + 1}</td><td class="mono">${num((st.by_step || {})[String(i + 1)] || 0)}</td></tr>`).join('')}
-      </tbody></table></div></div>`;
+      </tbody></table></div></div>
+    ${S.role === 'partner' ? mailCardHtml(p) : ''}`;
+}
+
+/* ---------- getting started (an applicant, or a partner with no campaign yet) ---------- */
+function mailCardHtml(p) {
+  const mk = p.market || {};
+  if (!mk.mail_partners) return `<div class="card" style="margin-top:14px"><h3>The monthly mailing</h3><p class="note" style="margin-top:8px">${esc(mk.display_name || 'This market')} does not mail its homeowners yet. When it does, partners get the first offer of a spot on the Market Partners page of the mailing.</p></div>`;
+  const mp = p.mail_partner, ap = p.mail_application;
+  return `<div class="card" style="margin-top:14px"><div class="row sp"><h3>Your spot in the monthly mailing</h3>${mp ? `<span class="pill ${mp.status === 'active' ? 'ok' : 'acc'}">${esc(mp.tier || '')} · ${esc(mp.status)}</span>` : ap ? '<span class="pill warn">Applied</span>' : ''}</div>
+    <p class="note" style="margin-top:8px">${esc(mk.display_name)} mails ${esc(mk.city)} homeowners every month. The Market Partners page of that mailing carries one business per trade: <b>Neighbor</b> ($100/mo, your logo and one line) or <b>Featured</b> ($200/mo, a panel with your story, a photo and a QR code). Month to month, every word approved by you. That is how the mailing’s cost is shared, and how your name reaches homes that are not on your email list.</p>
+    ${mp ? '' : `<p style="margin-top:10px"><a class="btn small" href="https://${esc(mk.domain)}/local/partners/" target="_blank" rel="noopener">${ap ? 'See the offer again' : 'Apply for a spot'}</a></p>`}</div>`;
+}
+function startHtml() {
+  const p = (S.ov.partners || [])[0] || {}, mk = p.market || {}, briefs = (S.ov.briefs || []).filter((b) => b.partner_id === p.id);
+  const booked = !!p.call_booked_at, hasBrief = briefs.length > 0, accepted = !!p.accepted_at, declined = !!p.declined_at;
+  if (declined) return `<div class="card"><h3>Thanks for applying</h3><p class="note" style="margin-top:8px">We are not able to take ${esc(p.company)} on as a partner on ${esc(mk.display_name || 'this market')} right now. ${esc(mk.agent_first || 'The agent')} will have been in touch with the reason.</p></div>`;
+  return `<div class="grid g2">
+    <div class="card"><h3>${accepted ? 'You are a partner. Here is what happens next' : 'Welcome, ' + esc(p.first_name || p.contact_name || '')}</h3>
+      <ol class="steps" style="margin-top:10px">
+        <li class="${booked ? 'done' : ''}"><b>Book a 20-minute call with Tim</b><span>Your trade, the homes you want to reach, what you want to say to them — and what we can send your way.</span>
+          <div class="row" style="margin-top:8px">${S.ov.booking_url ? `<a class="btn small" href="${esc(S.ov.booking_url)}" target="_blank" rel="noopener">Pick a time</a>` : ''}${booked ? '' : `<button class="btn ghost small" id="stBooked">I booked it</button>`}<span class="note" id="stBookedMsg">${booked ? 'Booked ' + esc(day(p.call_booked_at)) : ''}</span></div></li>
+        <li class="${hasBrief ? 'done' : ''}"><b>Describe the campaign you have in mind</b><span>Who you want to reach, when, why now, and what you are offering. A few minutes; it makes the call and the series better.</span>
+          <div class="row" style="margin-top:8px"><button class="btn small" id="stBrief">${hasBrief ? 'See or change your brief' : 'Write the brief'}</button></div></li>
+        <li class="${accepted ? 'done' : ''}"><b>${esc(mk.agent_first || 'The agent')} sets up your sending domain</b><span>A domain of your own for the series, registered and warmed up slowly so your emails land in inboxes rather than spam.${accepted && p.sending_domain ? ' Yours: ' + esc(p.sending_domain) + '.' : ''}</span></li>
+        <li><b>You review every email before it goes</b><span>The series appears here as drafts. You ask for changes, add a note from the job, and approve — then it runs on its own, one email every couple of weeks, and every reply reaches you.</span></li>
+      </ol></div>
+    <div>
+      <div class="card"><h3>Your details</h3>
+        <dl style="display:grid;grid-template-columns:110px 1fr;gap:6px 12px;margin:10px 0 0;font-size:14px">
+          <dt class="fine">Company</dt><dd style="margin:0">${esc(p.company)}</dd><dt class="fine">Contact</dt><dd style="margin:0">${esc(p.contact_name)} · ${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}</dd>
+          ${p.trade ? `<dt class="fine">Trade</dt><dd style="margin:0">${esc(p.trade)}</dd>` : ''}${p.service_area ? `<dt class="fine">Area</dt><dd style="margin:0">${esc(p.service_area)}</dd>` : ''}${p.cslb_license ? `<dt class="fine">CSLB</dt><dd style="margin:0">${esc(p.cslb_license)}</dd>` : ''}${p.website ? `<dt class="fine">Website</dt><dd style="margin:0">${esc(p.website)}</dd>` : ''}
+        </dl><p class="fine" style="margin-top:10px">Something wrong? Mention it on the call or in your brief.</p></div>
+      ${mailCardHtml(p)}
+    </div></div>`;
+}
+function wireStart() {
+  const b = $('stBooked'); if (b) b.addEventListener('click', async () => { b.disabled = true; try { await rpc('contractor_call_booked', { p_booked: true }); await refreshOv(); } catch (e) { $('stBookedMsg').textContent = e.message; b.disabled = false; } });
+  const br = $('stBrief'); if (br) br.addEventListener('click', () => { S.tab = 'brief'; loadTab(); });
+}
+
+/* ---------- the campaign brief: who / when / why / what ---------- */
+function briefCardHtml(b, agent) {
+  const who = b.who || {}, when = b.when || {}, what = b.what || {};
+  const STATE = { draft: ['Draft', ''], submitted: ['Sent to the desk', 'warn'], reviewed: ['Being reviewed', 'acc'], built: ['Campaign built', 'ok'], declined: ['Not taken up', 'bad'] };
+  const [lab, cls] = STATE[b.status] || [b.status, ''];
+  const camp = b.campaign_id ? (S.ov.campaigns || []).find((c) => c.id === b.campaign_id) : null;
+  return `<div class="briefcard" data-brief="${b.id}"><div class="row sp"><b>Brief #${b.id} · ${esc(day(b.created_at))}</b><span class="pill ${cls}">${lab}</span></div>
+    <dl><dt>Who</dt><dd>${who.mode === 'area' ? 'An area: ' + esc(who.area_note || '') : `The ${num(who.homes || 400)} homes nearest ${esc(who.project_address || '(no address)')}`}</dd>
+      <dt>When</dt><dd>${when.start === 'date' && when.start_date ? 'From ' + esc(day(when.start_date)) : 'As soon as the domain is warm'} · ${num(when.emails || 6)} emails, one every ${num(when.cadence_days || 14)} days</dd>
+      ${b.why ? `<dt>Why</dt><dd>${esc(b.why)}</dd>` : ''}<dt>What</dt><dd>${esc(what.offer || '')}${Array.isArray(what.messages) && what.messages.filter(Boolean).length ? '\n' + what.messages.filter(Boolean).map((m, i) => (i + 1) + '. ' + m).map(esc).join('\n') : ''}${what.must_say ? '\nMust say: ' + esc(what.must_say) : ''}${what.never_say ? '\nNever say: ' + esc(what.never_say) : ''}${what.tone ? '\nTone: ' + esc(what.tone) : ''}${what.links ? '\nLinks: ' + esc(what.links) : ''}</dd>
+      ${b.agent_notes ? `<dt>Desk</dt><dd>${esc(b.agent_notes)}</dd>` : ''}</dl>
+    ${camp ? `<p style="margin-top:8px"><a href="#c${camp.id}" class="campLink" data-id="${camp.id}">Open the campaign: ${esc(camp.name)}</a> ${statusPill(camp.status)}</p>` : ''}
+    ${agent && b.status !== 'built' && b.status !== 'declined' ? `<div class="row" style="margin-top:10px;flex-wrap:wrap"><input class="brAddr" data-id="${b.id}" placeholder="Project address" value="${esc(who.project_address || '')}" style="max-width:300px"><input class="brN" data-id="${b.id}" type="number" value="${Number(who.homes || 400)}" min="10" max="1000" style="width:90px"><button class="btn small brBuild" data-id="${b.id}">Build the campaign from this brief</button><button class="btn ghost small brDecline" data-id="${b.id}">Decline</button><span class="note brMsg" data-id="${b.id}"></span></div>` : ''}
+    ${!agent && b.status !== 'built' && b.status !== 'declined' ? `<div class="row" style="margin-top:10px"><button class="btn ghost small brEdit" data-id="${b.id}">Change this brief</button></div>` : ''}</div>`;
+}
+function briefFormHtml(b) {
+  const who = (b && b.who) || {}, when = (b && b.when) || {}, what = (b && b.what) || {}; const msgs = Array.isArray(what.messages) ? what.messages : [];
+  const p = (S.ov.partners || [])[0] || {};
+  return `<div class="card brief" id="briefForm" data-id="${b ? b.id : ''}"><h3>${b ? 'Change the brief' : 'Your campaign, in four parts'}</h3>
+    <p class="fine" style="margin:6px 0 14px">The desk builds the list and writes the series from this. You see and approve every email before it goes.</p>
+    <div class="field"><label>Who should hear from you?</label>
+      <label class="opt"><input type="radio" name="bwho" value="near_project" ${who.mode !== 'area' ? 'checked' : ''}><span><b>The homes nearest a project of ours</b><span>The N single-family homes closest to a job site, from the county roll; owners on title, verified emails.</span>
+        <div class="grid g2 sub2"><div class="field" style="margin:8px 0 0"><input id="bAddr" placeholder="Project address" value="${esc(who.project_address || '')}"></div><div class="field" style="margin:8px 0 0"><select id="bHomes">${[100, 200, 300, 400, 500].map((n) => `<option value="${n}" ${Number(who.homes || 400) === n ? 'selected' : ''}>${n} homes</option>`).join('')}</select></div></div></span></label>
+      <label class="opt"><input type="radio" name="bwho" value="area" ${who.mode === 'area' ? 'checked' : ''}><span><b>A neighborhood or an area</b><span>Describe it; the desk works out the list with you on the call.</span><div class="field sub2" style="margin:8px 0 0"><input id="bArea" placeholder="e.g. the blocks around Alta Plaza; homes built before 1950" value="${esc(who.area_note || '')}"></div></span></label></div>
+    <div class="grid g3">
+      <div class="field"><label>When should it start?</label><select id="bStart"><option value="asap" ${when.start !== 'date' ? 'selected' : ''}>As soon as the domain is warm</option><option value="date" ${when.start === 'date' ? 'selected' : ''}>On or after a date</option></select><input id="bDate" type="date" value="${esc(when.start_date || '')}" style="margin-top:6px" class="${when.start === 'date' ? '' : 'hidden'}"></div>
+      <div class="field"><label>How often</label><select id="bCad">${[7, 14, 21, 30].map((n) => `<option value="${n}" ${Number(when.cadence_days || 14) === n ? 'selected' : ''}>Every ${n} days</option>`).join('')}</select></div>
+      <div class="field"><label>How many emails</label><select id="bN">${[3, 4, 5, 6].map((n) => `<option value="${n}" ${Number(when.emails || 6) === n ? 'selected' : ''}>${n} emails</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Why now?</label><textarea id="bWhy" style="min-height:80px" placeholder="A project in the neighborhood, the season, a new service, a reason the neighbors would care">${esc((b && b.why) || '')}</textarea></div>
+    <div class="field"><label>What are you offering the neighbors?</label><textarea id="bOffer" style="min-height:80px" placeholder="e.g. a free visit and bid while we’re on the block; design consults; what you do best">${esc(what.offer || '')}</textarea></div>
+    <div class="field"><label>Three things you want them to know</label>${[0, 1, 2].map((i) => `<input class="bMsg" placeholder="${['e.g. we are a design-build firm, one team from drawings to finish', 'e.g. we work in occupied homes and keep the site clean', 'e.g. licensed, bonded, 15 years in the city'][i]}" value="${esc(msgs[i] || '')}" style="margin-bottom:6px">`).join('')}</div>
+    <div class="grid g2"><div class="field"><label>Anything we must say</label><input id="bMust" value="${esc(what.must_say || '')}" placeholder="a licence line, a guarantee, a name"></div><div class="field"><label>Anything we must never say</label><input id="bNever" value="${esc(what.never_say || '')}" placeholder="prices, a client’s name, a competitor"></div></div>
+    <div class="grid g2"><div class="field"><label>Tone</label><select id="bTone">${['Gentle and neighborly', 'Expert and practical', 'Friendly and direct'].map((t) => `<option ${what.tone === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div class="field"><label>Links to include</label><input id="bLinks" value="${esc(what.links || '')}" placeholder="your site, a project page, reviews"></div></div>
+    <div class="row"><button class="btn" id="bSave">${b ? 'Save the changes' : 'Send the brief to the desk'}</button>${b ? '<button class="btn ghost" id="bCancel">Cancel</button>' : ''}<span class="note" id="bMsgOut"></span></div></div>`;
+}
+function briefHtml() {
+  const p = (S.ov.partners || [])[0] || {}; const briefs = (S.ov.briefs || []).filter((b) => b.partner_id === p.id);
+  const open = briefs.some((b) => b.status === 'submitted' || b.status === 'reviewed');
+  return `${briefs.length ? `<h3 style="margin-bottom:8px">Your briefs</h3>${briefs.map((b) => briefCardHtml(b, false)).join('')}` : ''}
+    ${open ? '<p class="note" style="margin:6px 0 14px">A brief is with the desk. Change it above if you like; a new one is for another campaign.</p>' : ''}
+    <div id="briefFormHost">${briefFormHtml(null)}</div>`;
+}
+function wireBrief() {
+  const host = $('tabBody');
+  const wireForm = (b) => {
+    const f = $('briefForm'); if (!f) return;
+    const st = $('bStart'); st.addEventListener('change', () => $('bDate').classList.toggle('hidden', st.value !== 'date'));
+    const cancel = $('bCancel'); if (cancel) cancel.addEventListener('click', () => { $('briefFormHost').innerHTML = briefFormHtml(null); wireForm(null); });
+    $('bSave').addEventListener('click', async () => {
+      const m = $('bMsgOut'); const mode = (host.querySelector('input[name="bwho"]:checked') || {}).value || 'near_project';
+      const p = { id: b ? b.id : null, who: { mode, project_address: $('bAddr').value.trim(), homes: Number($('bHomes').value), area_note: $('bArea').value.trim() },
+        when: { start: $('bStart').value, start_date: $('bDate').value || null, cadence_days: Number($('bCad').value), emails: Number($('bN').value) },
+        why: $('bWhy').value.trim(), what: { offer: $('bOffer').value.trim(), messages: [...host.querySelectorAll('.bMsg')].map((x) => x.value.trim()).filter(Boolean), must_say: $('bMust').value.trim(), never_say: $('bNever').value.trim(), tone: $('bTone').value, links: $('bLinks').value.trim() } };
+      if (!p.what.offer) { m.textContent = 'Say what you are offering the neighbors.'; return; }
+      if (mode === 'near_project' && !p.who.project_address) { m.textContent = 'The project address, so we can pick the homes around it.'; return; }
+      $('bSave').disabled = true; m.textContent = 'Sending…';
+      try { const r = await rpc('contractor_brief_save', { p }); if (!r.ok) { m.textContent = r.error; $('bSave').disabled = false; return; } await refreshOv(); S.tab = 'brief'; await loadTab(); }
+      catch (e) { m.textContent = e.message; $('bSave').disabled = false; }
+    });
+  };
+  wireForm(null);
+  host.querySelectorAll('.brEdit').forEach((btn) => btn.addEventListener('click', () => {
+    const b = (S.ov.briefs || []).find((x) => String(x.id) === btn.dataset.id); if (!b) return;
+    $('briefFormHost').innerHTML = briefFormHtml(b); wireForm(b); $('briefFormHost').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+  host.querySelectorAll('.campLink').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); S.camp = (S.ov.campaigns || []).find((x) => String(x.id) === a.dataset.id); location.hash = '#c' + a.dataset.id; S.tab = 'overview'; S.series = S.leads = S.cap = S.sched = null; loadTab(); }));
 }
 
 /* ---------- the series ---------- */
 function seriesHtml() {
   const s = S.series; if (!s || !s.ok) return `<div class="card"><p class="note">Could not load the series${s && s.error ? ': ' + esc(s.error) : ''}.</p></div>`;
   const agent = S.role === 'agent';
-  return `<p class="note" style="margin-bottom:14px">${agent ? 'Every email needs your approval before the campaign can start. Editing an email un-approves it until you approve it again; rows already scheduled pick up the new wording.' : 'This is the series as it will go to your neighbors, previewed for a neighbor we have no first name for. If you want a change, ask for it under the email and the agent will make it; the two "Notes from the job" emails carry a short project update from you, which the agent approves into the email.'}</p>
+  const notes = agent && S.camp && S.camp.notes ? `<div class="card" style="margin-bottom:14px"><div class="row sp"><h3>The partner's brief</h3><span class="fine">campaign notes</span></div><div class="note" style="margin-top:8px;white-space:pre-wrap">${esc(S.camp.notes)}</div></div>` : '';
+  return `${notes}<p class="note" style="margin-bottom:14px">${agent ? 'Every email needs your approval before the campaign can start. Editing an email un-approves it until you approve it again; rows already scheduled pick up the new wording.' : 'This is the series as it will go to your neighbors, previewed for a neighbor we have no first name for. If you want a change, ask for it under the email and the agent will make it; the two "Notes from the job" emails carry a short project update from you, which the agent approves into the email.'}</p>
     ${s.steps.map((st) => `<div class="step" data-step="${st.step}">
       <button type="button" class="step-h"><span class="num">${st.step}</span><span class="t"><b>${esc(st.preview ? st.preview.subject : st.subject)}</b>
         <span>${st.step === 1 ? 'Day 1' : 'Day ' + (s.steps.slice(0, st.step).reduce((a, x) => a + Number(x.delay_days || 0), 0) + 1)} &middot; ${st.sent ? num(st.sent) + ' sent' : 'none sent yet'}${st.scheduled ? ' &middot; ' + num(st.scheduled) + ' scheduled' : ''}${st.next_day ? ' &middot; next ' + esc(day(st.next_day)) : ''}</span></span>
@@ -624,13 +831,29 @@ function wireEmails() {
 }
 
 /* ---------- partners (agent): who is on the market, a new partner, a new campaign ---------- */
+function applicantsHtml() {
+  const apps = (S.ov.partners || []).filter((p) => p.applicant);
+  const briefs = S.ov.briefs || [];
+  if (!apps.length) return '';
+  return `<div class="card" style="margin-bottom:14px"><div class="row sp"><h3>Applied to be a partner</h3><span class="note">${num(apps.length)} waiting</span></div>
+    <p class="fine" style="margin:6px 0 12px">They signed up on the market site and have the link to book a call with Tim. Accept to make them a partner (enter the sending domain once it is registered and added in Resend; it can come later), or decline.</p>
+    ${apps.map((p) => { const bs = briefs.filter((b) => b.partner_id === p.id); return `<div class="applicant" data-id="${p.id}">
+      <div class="row sp"><div><b>${esc(p.company)}</b> · ${esc(p.contact_name)}${p.trade ? ' · ' + esc(p.trade) : ''}<div class="meta">${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}${p.website ? ' · <a href="' + esc(/^https?:/.test(p.website) ? p.website : 'https://' + p.website) + '" target="_blank" rel="noopener">' + esc(p.website) + '</a>' : ''}${p.cslb_license ? ' · CSLB ' + esc(p.cslb_license) : ''}${p.service_area ? ' · ' + esc(p.service_area) : ''}</div>
+        <div class="meta">Applied ${esc(day(p.applied_at))} · ${p.call_booked_at ? 'call booked ' + esc(day(p.call_booked_at)) : 'call not booked yet'} · ${bs.length ? num(bs.length) + ' brief' + (bs.length > 1 ? 's' : '') + ' sent' : 'no brief yet'}${p.market ? ' · ' + esc(p.market.display_name) : ''}</div>
+        ${p.notes ? `<div class="meta" style="white-space:pre-wrap">${esc(p.notes)}</div>` : ''}</div></div>
+      <div class="row" style="margin-top:10px;flex-wrap:wrap"><input class="apDom" data-id="${p.id}" placeholder="Sending domain (optional now)" style="max-width:240px"><input class="apLocal" data-id="${p.id}" placeholder="local part" value="${esc(p.from_local || '')}" style="max-width:120px"><input class="apNotes" data-id="${p.id}" placeholder="Notes from the call" style="max-width:260px">
+        <button class="btn small apAccept" data-id="${p.id}">Accept as a partner</button><button class="btn ghost small apDecline" data-id="${p.id}">Decline</button><span class="note apMsg" data-id="${p.id}"></span></div>
+      ${bs.map((b) => briefCardHtml(b, true)).join('')}</div>`; }).join('')}</div>`;
+}
 function partnersHtml() {
-  const ps = S.ov.partners || [], camps = S.ov.campaigns || [];
+  const ps = (S.ov.partners || []).filter((p) => !p.applicant), camps = S.ov.campaigns || [];
   const mk = (S.camp && S.camp.market) || {};
-  return `<div class="card"><h3>Partners on this desk</h3>
+  const briefs = (S.ov.briefs || []).filter((b) => ps.some((p) => p.id === b.partner_id) && b.status !== 'built' && b.status !== 'declined');
+  return `${applicantsHtml()}${briefs.length ? `<div class="card" style="margin-bottom:14px"><h3>Campaign briefs from partners</h3><p class="fine" style="margin:6px 0 10px">Who / when / why / what, in the partner's words. Build the campaign from it: the list comes from the project address and the count; the why and what go on the campaign's notes for you to write the series against.</p>${briefs.map((b) => { const pp = ps.find((p) => p.id === b.partner_id) || {}; return `<div class="fine" style="margin:8px 0 2px"><b>${esc(pp.company || '')}</b></div>` + briefCardHtml(b, true); }).join('')}</div>` : ''}
+    <div class="card"><h3>Partners on this desk</h3>
       ${ps.length ? `<div class="tbl" style="margin-top:10px;border:0"><table><thead><tr><th>Company</th><th>Contact</th><th>Sends as</th><th>Campaigns</th><th>Portal login</th><th>Status</th></tr></thead><tbody>
         ${ps.map((p) => `<tr><td><b>${esc(p.company)}</b></td><td>${esc(p.contact_name)}<br><span class="fine">${esc(p.email)}</span></td><td class="fine">${esc((p.from_local || 'hello') + '@' + (p.sending_domain || '—'))}<br><span class="fine">${p.domain_status ? 'domain ' + esc(p.domain_status) : 'no sending domain'}</span></td>
-          <td>${camps.filter((x) => x.partner_id === p.id).map((x) => `<a href="#c${x.id}" class="campLink" data-id="${x.id}">${esc(x.name)}</a> ${statusPill(x.status)}`).join('<br>') || '<span class="fine">none yet</span>'}</td>
+          <td>${camps.filter((x) => x.partner_id === p.id).map((x) => `<a href="#c${x.id}" class="campLink" data-id="${x.id}">${esc(x.name)}</a> ${statusPill(x.status)}`).join('<br>') || '<span class="fine">none yet</span>'}${p.market && p.market.mail_partners ? `<div class="fine" style="margin-top:4px">Mailing: ${p.mail_partner ? esc(p.mail_partner.tier + ' · ' + p.mail_partner.status) : p.mail_application ? 'applied ' + esc(day(p.mail_application.created_at)) : 'no spot'}</div>` : ''}</td>
           <td>${p.has_login ? '<span class="pill ok">Created</span>' : '<span class="pill warn">Not yet</span>'}<div class="row" style="margin-top:6px;gap:6px"><input type="password" class="pwIn" data-id="${p.id}" placeholder="${p.has_login ? 'New password' : 'Password (8+)'}" autocomplete="new-password" style="width:150px;padding:6px 8px;font-size:13px"><button class="btn ghost tiny pwSet" data-id="${p.id}" data-has="${p.has_login ? 1 : 0}">${p.has_login ? 'Reset' : 'Create'}</button></div><div class="fine pwMsg" data-id="${p.id}"></div></td>
           <td>${statusPill(p.status)}</td></tr>`).join('')}
       </tbody></table></div>` : '<p class="note" style="margin-top:6px">No partners yet.</p>'}</div>
@@ -648,9 +871,9 @@ function partnersHtml() {
           <div class="field"><label>Postal address</label><input id="npPostal" placeholder="Street, City, CA ZIP"></div>
           <div class="field"><label>CSLB licence</label><input id="npCslb"></div>
         </div>
+        ${(S.ov.markets || []).length > 1 ? `<div class="field"><label>Market</label><select id="npMarket">${(S.ov.markets || []).map((m) => `<option value="${m.id}"${mk.id === m.id ? ' selected' : ''}>${esc(m.display_name || m.city)}</option>`).join('')}</select></div>` : `<p class="fine" style="margin-bottom:10px">Market: <b>${esc(mk.display_name || mk.city || ((S.ov.markets || [])[0] || {}).display_name || '')}</b>.</p>`}
         <div class="row"><button class="btn small" id="npSave">Add the partner</button><span class="note" id="npMsg"></span></div>
-        ${(S.ov.markets || []).length > 1 ? `<div class="field" style="margin-top:10px"><label>Market</label><select id="npMarket">${(S.ov.markets || []).map((m) => `<option value="${m.id}"${mk.id === m.id ? ' selected' : ''}>${esc(m.display_name || m.city)}</option>`).join('')}</select></div>` : `<p class="fine" style="margin-top:10px">Market: <b>${esc(mk.display_name || mk.city || ((S.ov.markets || [])[0] || {}).display_name || '')}</b>.</p>`}
-        <p class="fine" style="margin-top:6px">Once added, create their portal login in the table above with a password you give them; they sign in at the market site's /contractor/ page.</p></div>
+        <p class="fine" style="margin-top:10px">Once added, create their portal login in the table above with a password you give them; they sign in at the market site's /contractor/ page. Contractors can also sign themselves up there (Become a partner) and appear here as applicants.</p></div>
       <div class="card"><h3>New neighbors campaign</h3><p class="fine" style="margin:6px 0 12px">The N single-family homes nearest the partner’s project, from the county roll, ranked by distance. Skip tracing and verification start on their own; the six-email series is copied in as a draft for you to edit and approve.</p>
         <div class="field"><label>Partner</label><select id="ncPartner">${ps.map((p) => `<option value="${p.id}">${esc(p.company)}</option>`).join('')}</select></div>
         <div class="field"><label>Project address</label><input id="ncAddr" placeholder="2630 Divisadero St, San Francisco, CA"></div>
@@ -661,6 +884,38 @@ function partnersHtml() {
 }
 function wirePartners() {
   const host = $('tabBody');
+  /* applicants */
+  host.querySelectorAll('.apAccept').forEach((b) => b.addEventListener('click', async () => {
+    const id = b.dataset.id, m = host.querySelector(`.apMsg[data-id="${id}"]`); b.disabled = true; m.textContent = 'Accepting…';
+    try { const r = await rpc('contractor_partner_accept', { p_partner_id: Number(id), p: { sending_domain: host.querySelector(`.apDom[data-id="${id}"]`).value.trim(), from_local: host.querySelector(`.apLocal[data-id="${id}"]`).value.trim(), call_notes: host.querySelector(`.apNotes[data-id="${id}"]`).value.trim() } });
+      if (!r.ok) { m.textContent = 'Not accepted: ' + String(r.error).replace(/_/g, ' '); b.disabled = false; return; }
+      await refreshOv(); } catch (e) { m.textContent = e.message; b.disabled = false; }
+  }));
+  host.querySelectorAll('.apDecline').forEach((b) => b.addEventListener('click', async () => {
+    const id = b.dataset.id, m = host.querySelector(`.apMsg[data-id="${id}"]`);
+    if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Decline? Tap again'; return; }
+    b.disabled = true;
+    try { const r = await rpc('contractor_partner_decline', { p_partner_id: Number(id), p_reason: host.querySelector(`.apNotes[data-id="${id}"]`).value.trim() || null }); if (!r.ok) { m.textContent = r.error; b.disabled = false; return; } await refreshOv(); }
+    catch (e) { m.textContent = e.message; b.disabled = false; }
+  }));
+  /* briefs */
+  host.querySelectorAll('.brBuild').forEach((b) => b.addEventListener('click', async () => {
+    const id = b.dataset.id, m = host.querySelector(`.brMsg[data-id="${id}"]`), brief = (S.ov.briefs || []).find((x) => String(x.id) === id); if (!brief) return;
+    const addr = host.querySelector(`.brAddr[data-id="${id}"]`).value.trim(), n = Number(host.querySelector(`.brN[data-id="${id}"]`).value || 400);
+    if (!addr) { m.textContent = 'A project address is needed to pick the homes.'; return; }
+    b.disabled = true; m.textContent = 'Finding the homes… up to a minute.';
+    const when = brief.when || {};
+    const { data, error } = await sb.functions.invoke('contractor-campaign-build', { body: { partner_id: brief.partner_id, brief_id: brief.id, subject_address: addr, target_count: n, cadence_days: Number(when.cadence_days || 14), steps: Number(when.emails || 6) } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (!res || res.ok !== true) { m.textContent = 'Not built: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); b.disabled = false; return; }
+    await refreshOv(); S.camp = (S.ov.campaigns || []).find((x) => x.id === res.campaign_id) || S.camp; location.hash = '#c' + res.campaign_id; S.tab = 'series'; S.series = null; loadTab();
+  }));
+  host.querySelectorAll('.brDecline').forEach((b) => b.addEventListener('click', async () => {
+    const id = b.dataset.id, m = host.querySelector(`.brMsg[data-id="${id}"]`);
+    if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Decline? Tap again'; return; }
+    b.disabled = true;
+    try { const r = await rpc('contractor_brief_set', { p_id: Number(id), p_status: 'declined', p_notes: null }); if (!r.ok) { m.textContent = r.error; b.disabled = false; return; } await refreshOv(); } catch (e) { m.textContent = e.message; b.disabled = false; }
+  }));
   host.querySelectorAll('.campLink').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); S.camp = (S.ov.campaigns || []).find((x) => String(x.id) === a.dataset.id); location.hash = '#c' + a.dataset.id; S.tab = 'overview'; S.series = S.leads = S.cap = S.sched = null; loadTab(); }));
   const save = $('npSave'); if (save) save.addEventListener('click', async () => {
     const m = $('npMsg'); save.disabled = true; m.textContent = 'Saving…';
