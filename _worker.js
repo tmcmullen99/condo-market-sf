@@ -2237,11 +2237,11 @@ function renderListingCity(d, B, foot, reportsHtml) {
     '<div class="feat-grid">' +
     card(ICO_DOC, 'Disclosure review from Tim', 'Send Tim this listing and get a personal read within 24 hours &mdash; the fine print that matters, before you write.',
       ['A plain-English cheat sheet: HOA dues, reserves, special assessments, litigation', 'A Comp Report: the asking price next to recorded sales in the building', 'What a compelling, winning offer looks like here'],
-      'Request a disclosure review', app + '/tools/review', 'listing:request_review') +
-    card(ICO_CHART, 'Build your own Comp Report', 'Pull this home and the recorded sales around it, and set the asking price against them &mdash; in two minutes.',
-      ['Search every recent San Francisco condo sale as a comp', 'The asking $/sq ft next to recorded $/sq ft nearby', 'Free &mdash; save it, and Tim can sanity-check your number'],
-      'Build a Comp Report', app + '/tools/cma', 'listing:build_cma') +
-    '</div></div></section>';
+      'Request a disclosure review', app + '/for-sale', 'listing:request_review') +
+    card(ICO_CHART, 'AI property review', 'Pick the recorded sales you would compare this unit with, add the inspection and the HOA documents, and Claude reviews the facts and the arithmetic. It never states what the unit is worth.',
+      ['Every recent sale in the building and nearby to choose from, with the arithmetic shown', 'The findings by system, the open questions, the costs with their caveats', 'Free &mdash; saved to your account, and Tim is one tap away for the number'],
+      'Review this unit', app + '/review/new', 'listing:build_cma') +
+    '</div><p style="font-size:.8rem;color:#5d6575;margin-top:14px">An automated valuation and a broker&rsquo;s opinion of value are different things &mdash; <a href="/how-it-works/valuations/" style="color:inherit">the difference, explained</a>.</p></div></section>';
 
   const mortgage = price != null ? '<section class="pg"><div class="wrap"><div class="section-head"><span class="eyebrow">Run the numbers</span>' +
     '<h2>What would this cost <em>per month?</em></h2><p class="sub">A quick estimate on this home&rsquo;s asking price. Adjust the down payment, rate, and term to see your payment move. HOA dues are extra.</p></div>' +
@@ -3221,13 +3221,13 @@ function renderActiveListingsCity(M, AL, foot) {
         <h3>The tools an agent would run for you.</h3>
         <p>Every number here comes with the sample behind it. Run them yourself before you talk to anyone.</p>
         <div class="al-tools">
-          <a class="al-tool" href="https://app.${M.domain}/tools/cma" data-cta="forsale:tool_cma">
-            <b>Build a Comp Report</b><span>What the comparables actually say</span></a>
+          <a class="al-tool" href="https://app.${M.domain}/review/new" data-cta="forsale:tool_cma">
+            <b>AI property review</b><span>The comparables you pick, the reports, Claude\u2019s read</span></a>
           <a class="al-tool" href="https://app.${M.domain}/tools/net-sheet" data-cta="forsale:tool_net">
             <b>Seller net sheet</b><span>What you keep after costs</span></a>
           <a class="al-tool" href="https://app.${M.domain}/tools/compare" data-cta="forsale:tool_compare">
             <b>Compare homes</b><span>Side by side, same measures</span></a>
-          <a class="al-tool" href="https://app.${M.domain}/tools/review" data-cta="forsale:tool_review">
+          <a class="al-tool" href="https://app.${M.domain}/for-sale" data-cta="forsale:tool_review">
             <b>Disclosure review</b><span>${M.agent.first} reads the package</span></a>
         
 </div></section>
@@ -3244,8 +3244,8 @@ function renderActiveListingsCity(M, AL, foot) {
       eyebrow: "Before you make an offer",
       lead: `Weighing one of these? Get a complete disclosure review from ${M.agent.first} within 24 hours, and run the comps before you write.`,
       actions: [
-        { label: "Request a disclosure review", href: `https://app.${M.domain}/tools/review` },
-        { label: "Build a Comp Report", href: `https://app.${M.domain}/tools/cma` }
+        { label: "Request a disclosure review", href: `https://app.${M.domain}/for-sale` },
+        { label: "Review the unit", href: `https://app.${M.domain}/review/new` }
       ],
       note: `Reviewed personally by ${M.agent.first}, usually within 24 hours · free · no obligation.`
     })}
@@ -4204,7 +4204,7 @@ async function renderSitemap(mk) {
   // '/buildings/' is not listed: it is the home page, and declares '/' as its canonical.
   // Canonical forms only (S77): /active-listings/ declares the slash form.
   const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings/', '/off-market/', '/buy', '/sell',
-    '/how-it-works/sell-with-tenants/', '/how-it-works/1031-exchange/', '/calculate-payout-from-condo-sale/',
+    '/how-it-works/sell-with-tenants/', '/how-it-works/1031-exchange/', '/how-it-works/valuations/', '/calculate-payout-from-condo-sale/',
     '/methodology/', '/history/', '/owner-signup/', '/investor-exchange/'];
   if (mk.tag === 'sf') staticUrls.push('/press/');
   if (mk.tag === 'sf') staticUrls.push('/san-francisco-condo-rankings');
@@ -4702,7 +4702,7 @@ function renderInvestorExchange(mk, footerData) {
       '<div class="ix-card"><div class="ix-num">01</div><h3>You state the facts</h3>' +
         '<p>Address, asking price, current rent, lease remaining, photos. Your figures, published as stated by you.</p></div>' +
       '<div class="ix-card"><div class="ix-num">02</div><h3>Tim reviews it</h3>' +
-        '<p>He adds an opinion of value and positioning, signed in his own name and licence \u2014 never something the platform computes.</p></div>' +
+        '<p>Tim adds an opinion of value and positioning, signed under his own name and licence \u2014 a broker\u2019s opinion of value, never something the platform computes. <a href="/how-it-works/valuations/" style="color:inherit">The difference from an automated valuation.</a></p></div>' +
       '<div class="ix-card"><div class="ix-num">03</div><h3>It goes live</h3>' +
         '<p>Only to account-holding investors in this market. You can withdraw at any point before a purchase agreement is signed.</p></div>' +
       '<div class="ix-card"><div class="ix-num">04</div><h3>An investor writes</h3>' +
@@ -6905,7 +6905,7 @@ function renderUnitPage(u, footerData) {
     '<p class="links" style="padding-top:4px">' +
     '<a href="/owner-signup/?address=' + encodeURIComponent(addr + ', ' + city) + '" data-cta="unit:owner">Own this unit? Name your price privately →</a>' +
     '<a href="' + bUrl + '#offer" data-cta="unit:offer">Make an offer on unit ' + esc(label) + ' →</a>' +
-    '<a href="https://app.' + esc(M.domain || 'sanfranciscocondomarket.com') + '/tools/cma" data-cta="unit:comp_report">Build a Comp Report →</a></p>' +
+    '<a href="/owner-signup/?address=' + encodeURIComponent(addr + ', ' + city) + '" data-cta="unit:comp_report">Ask Tim what it is worth →</a></p>' +
     '<p class="rs-note">Any unit here is open to an offer, listed or not. Tim McMullen, a licensed California real estate broker (DRE #02016832), presents it to the owner of record.</p></section>';
 
   const crumb = '<nav class="kick" aria-label="Breadcrumb"><a href="' + base + '/" style="color:inherit;text-decoration:none">' + esc(M.brand || 'Condo Market SF') + '</a> › ' +
