@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Your documents</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- 19 Oct 2026. Tim: "Signers of all docs need to be able to access docs > build a portal/login function so sellers &
+     buyers have access to all the documents within their transaction folder."
+     A seller or buyer signs in with the email the agent has for them and a six-digit code sent to it. They see every
+     file they are a party to and, on each, every document on their side (the other side's clients see only what they
+     signed) — each with a view link, a download link, and one zip of the lot. Everything goes through the edge function
+     tx-portal, which answers for a signed-in session only; this page holds no key that can read anything. The same
+     file is served on every city and condo domain; the market, agent and brokerage come from the file itself. -->
+<style>
+:root{--ink:#20242e;--cream:#faf6ef;--paper:#fff;--line:rgba(32,36,46,.14);--soft:rgba(32,36,46,.62);--faint:rgba(32,36,46,.42);
+      --accent:#b06f24;--green:#3f7d4e;--red:#a8431f;--navy:#0A1A44}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--cream);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;line-height:1.55;min-height:100svh}
+.wrap{max-width:860px;margin:0 auto;padding:40px 24px 64px}
+@media(max-width:640px){.wrap{padding:24px 16px 48px}}
+.kick{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:"Playfair Display",serif;font-size:clamp(26px,5vw,34px);font-weight:600;line-height:1.2;margin-top:8px;overflow-wrap:anywhere}
+h2{font-family:"Playfair Display",serif;font-size:20px;font-weight:600}
+.from{color:var(--soft);margin-top:8px;font-size:15px}
+.from a{color:inherit}
+.top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:22px}
+.top .brand{font-family:"Playfair Display",serif;font-size:17px;font-weight:600}
+.top .brand span{color:var(--faint);font-weight:400;font-family:"DM Sans",system-ui,sans-serif;font-size:13px;margin-left:8px}
+.top .who{font-size:13px;color:var(--soft);display:flex;gap:10px;align-items:center}
+button,.btn{appearance:none;font:inherit;font-size:14px;font-weight:600;border-radius:999px;padding:9px 18px;cursor:pointer;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button:hover,.btn:hover{border-color:var(--accent)}
+button:disabled{opacity:.55;cursor:default}
+.pri{background:var(--navy)!important;border-color:var(--navy)!important;color:#fff!important}
+.sm{font-size:13px;padding:6px 13px}
+.lnk{border:0;background:none;padding:0;font-weight:500;color:var(--soft);text-decoration:underline}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px 20px;margin-top:18px}
+.card p{color:var(--soft);font-size:15px;margin-top:6px}
+label{display:block;font-size:13px;font-weight:600;margin:16px 0 6px}
+input[type=email],input[type=text]{width:100%;font:inherit;font-size:17px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus{outline:2px solid var(--navy);outline-offset:1px}
+input.code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:26px;letter-spacing:.35em;text-align:center}
+.row-btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.err{color:var(--red);font-size:14px;margin-top:10px;display:none}
+.err.on{display:block}
+.file{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;cursor:pointer}
+.file:hover{border-color:var(--accent)}
+.file .addr{font-family:"Playfair Display",serif;font-size:19px;font-weight:600;overflow-wrap:anywhere}
+.file .meta{font-size:13px;color:var(--faint);margin-top:2px}
+.pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:2px 9px;margin-right:6px;color:var(--soft);vertical-align:2px}
+.pill.on{border-color:rgba(63,125,78,.4);color:var(--green)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:24px 0 10px}
+.bar .count{font-weight:600}
+.bar .sp{flex:1}
+.search{width:100%;max-width:360px;font:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff}
+.part{margin-top:26px}
+.part h2{font-size:14px;letter-spacing:.08em;text-transform:uppercase;font-family:"DM Sans",system-ui,sans-serif;color:var(--faint);font-weight:600}
+.sec{margin-top:14px}
+.sec h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.list{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;padding:13px 16px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.name{font-weight:600;overflow-wrap:anywhere}
+.code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:500;border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-right:6px;color:var(--soft);vertical-align:1px}
+.meta{font-size:13px;color:var(--faint);margin-top:2px;overflow-wrap:anywhere}
+.ok{color:var(--green);font-weight:600}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:640px){.row{grid-template-columns:minmax(0,1fr)}.acts{justify-content:flex-start}.file{grid-template-columns:minmax(0,1fr)}}
+.more{font-size:13px;color:var(--faint);padding:6px 16px 10px}
+.more button{font-size:12px;padding:3px 10px;margin-left:6px}
+.prog{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.prog div{font-size:14px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 12px;overflow-wrap:anywhere}
+.prog .bad{border-color:rgba(168,67,31,.4);color:var(--red)}
+.note{margin-top:30px;font-size:12px;color:var(--faint)}
+.state{max-width:520px;margin:12vh auto 0;text-align:center}
+.state h1{margin-top:0}
+.state p{color:var(--soft);margin-top:12px;font-size:16px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="state"><h1>Opening&hellip;</h1></div></div>
+<script>
+(function () {
+  'use strict';
+  var FN = 'https://qinuukntpyulqjzndnho.supabase.co/functions/v1/tx-portal';
+  var app = document.getElementById('app');
+  var TOK = '', ME = null, FILE = null, EMAIL = '', Q = '';
+  if (/condomarket/i.test(location.hostname)) document.documentElement.style.setProperty('--accent', '#C2410C');
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function size(b) { b = Number(b) || 0; return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : b >= 1024 ? Math.round(b / 1024) + ' KB' : b ? b + ' B' : ''; }
+  function day(s) { try { return s ? new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''; } catch (e) { return ''; } }
+  function plain(label) { return String(label || 'Document').replace(/^[A-Z0-9][A-Z0-9/ -]{0,15} · /, ''); }
+  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function read(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function call(action, extra) {
+    var body = Object.assign({ action: action, token: TOK }, extra || {});
+    return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, error: 'The server answered ' + r.status + '.' }; }); });
+  }
+  function state(title, body) { app.innerHTML = '<div class="state"><h1>' + esc(title) + '</h1>' + (body ? '<p>' + esc(body) + '</p>' : '') + '</div>'; }
+  function err(id, msg) { var e = document.getElementById(id); if (!e) return; e.textContent = msg || ''; e.classList.toggle('on', !!msg); }
+
+  /* ── sign in ── */
+  function signIn(step) {
+    app.innerHTML =
+      '<div class="kick">Your documents</div>'
+      + '<h1>Your transaction documents, any time.</h1>'
+      + '<p class="from">Every document on your sale or purchase, as the agent files it: signed copies, disclosures, the contract and its addenda, certificates of completion.</p>'
+      + '<div class="card" id="box"></div>'
+      + '<p class="note">Sign in with the email address your agent has for you. A six-digit code goes to that address; nothing opens without it.</p>';
+    var box = document.getElementById('box');
+    if (step !== 'code') {
+      box.innerHTML = '<h2>Sign in</h2><p>Use the email address your agent has on file for you.</p>'
+        + '<label for="em">Email</label><input type="email" id="em" autocomplete="email" inputmode="email" value="' + esc(EMAIL) + '" placeholder="you@example.com">'
+        + '<div class="row-btns"><button class="pri" id="go">Email me a code</button></div><div class="err" id="e1"></div>';
+      var em = document.getElementById('em'), go = document.getElementById('go');
+      function send() {
+        var v = String(em.value || '').trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return err('e1', 'Enter the email address your agent has for you.');
+        go.disabled = true; go.textContent = 'Sending…'; err('e1', '');
+        call('request_code', { email: v }).then(function (d) {
+          if (!d || !d.ok) { go.disabled = false; go.textContent = 'Email me a code'; return err('e1', (d && d.error) || 'Could not send a code.'); }
+          EMAIL = v; store('txportal.email', v); signIn('code');
+        }).catch(function (e) { go.disabled = false; go.textContent = 'Email me a code'; err('e1', 'Check your connection. (' + (e && e.message || e) + ')'); });
+      }
+      go.onclick = send; em.onkeydown = function (e) { if (e.key === 'Enter') send(); };
+      setTimeout(function () { em.focus(); }, 50);
+    } else {
+      box.innerHTML = '<h2>Check your email</h2><p>If <b>' + esc(EMAIL) + '</b> is on a file with us, a six-digit code is on its way. It works for 15 minutes.</p>'
+        + '<label for="cd">Code</label><input type="text" id="cd" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······">'
+        + '<div class="row-btns"><button class="pri" id="ok">Open my documents</button><button class="lnk" id="again">Use a different email</button></div><div class="err" id="e2"></div>';
+      var cd = document.getElementById('cd'), ok = document.getElementById('ok');
+      function verify() {
+        var v = String(cd.value || '').replace(/\D/g, '');
+        if (v.length !== 6) return err('e2', 'Enter the six digits from the email.');
+        ok.disabled = true; ok.textContent = 'Opening…'; err('e2', '');
+        call('verify', { email: EMAIL, code: v }).then(function (d) {
+          if (!d || !d.ok) { ok.disabled = false; ok.textContent = 'Open my documents'; return err('e2', (d && d.error) || 'That code did not work.'); }
+          TOK = d.token; store('txportal.token', TOK); ME = d.me; files();
+        }).catch(function (e) { ok.disabled = false; ok.textContent = 'Open my documents'; err('e2', 'Check your connection. (' + (e && e.message || e) + ')'); });
+      }
+      ok.onclick = verify; cd.onkeydown = function (e) { if (e.key === 'Enter') verify(); };
+      cd.oninput = function () { if (cd.value.replace(/\D/g, '').length === 6) verify(); };
+      document.getElementById('again').onclick = function () { signIn(); };
+      setTimeout(function () { cd.focus(); }, 50);
+    }
+  }
+  function signOut() { var t = TOK; TOK = ''; ME = null; FILE = null; store('txportal.token', null); if (t) { TOK = t; call('signout').catch(function () {}); TOK = ''; } signIn(); }
+
+  /* ── the files ── */
+  function top() {
+    var m = (FILE && FILE.market) || (ME && ME.files && ME.files[0] && ME.files[0].market) || {};
+    return '<div class="top"><div class="brand">' + esc(m.name || 'Your documents') + '<span>Documents</span></div>'
+      + '<div class="who">' + esc(ME && ME.name ? ME.name : (ME && ME.email) || '') + ' <button class="sm" id="out">Sign out</button></div></div>';
+  }
+  function files() {
+    FILE = null;
+    var fs = (ME && ME.files) || [];
+    app.innerHTML = top()
+      + '<div class="kick">Your files</div>'
+      + '<h1>' + (fs.length === 1 ? 'One file on your account.' : fs.length + ' files on your account.') + '</h1>'
+      + (fs.length ? fs.map(function (f) {
+          var role = f.role === 'seller' ? 'You are a seller' : f.role === 'buyer' ? 'You are a buyer' : 'You signed documents';
+          return '<div class="file" data-tx="' + f.tx_id + '" role="button" tabindex="0"><div><div class="addr">' + esc(f.property) + '</div>'
+            + '<div class="meta"><span class="pill' + (/contract|approved/i.test(f.status_label) ? ' on' : '') + '">' + esc(f.status_label) + '</span>' + esc(role) + ' · ' + esc(f.agent && f.agent.name || '') + (f.updated_at ? ' · updated ' + esc(day(f.updated_at)) : '') + '</div></div>'
+            + '<div class="acts"><span class="btn sm">Open ' + (f.access === 'full' ? (f.documents || 0) + ' document' + (f.documents === 1 ? '' : 's') : 'what you signed') + ' →</span></div></div>';
+        }).join('')
+        : '<div class="card"><h2>Nothing here yet</h2><p>No documents are on this address yet. Ask your agent to add you to the file.</p></div>')
+      + '<p class="note">Signed in as ' + esc(ME.email) + '. This stays signed in on this device for 30 days.</p>';
+    document.getElementById('out').onclick = signOut;
+    app.querySelectorAll('.file').forEach(function (el) {
+      var go = function () { open(Number(el.getAttribute('data-tx'))); };
+      el.onclick = go; el.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+    });
+  }
+
+  /* ── one file ── */
+  function open(txId, quiet) {
+    if (!quiet) { var s = document.getElementById('app'); s.insertAdjacentHTML('afterbegin', '<div class="prog" id="opening"><div>Opening…</div></div>'); }
+    return call('open', { tx_id: txId }).then(function (d) {
+      if (!d || !d.ok) { if (d && d.error === 'signed_out') return signOut(); var o = document.getElementById('opening'); if (o) o.remove(); return state((d && d.error) || 'Could not open this file.', 'Go back and try again, or call your agent.'); }
+      FILE = d; FILE._at = Date.now(); Q = ''; draw();
+    }).catch(function (e) { state('Something went wrong.', 'Check your connection and reload the page. (' + (e && e.message || e) + ')'); });
+  }
+  /* the links last an hour; a page left open longer fetches fresh ones before following any */
+  function fresh() {
+    if (FILE && Date.now() - FILE._at < 50 * 60000) return Promise.resolve(FILE);
+    return call('open', { tx_id: FILE.tx_id }).then(function (d) {
+      if (!d || !d.ok) throw new Error((d && d.error) === 'signed_out' ? 'Your sign-in has ended. Sign in again.' : (d && d.error) || 'Could not refresh the links.');
+      FILE = d; FILE._at = Date.now(); return FILE;
+    });
+  }
+  function allFiles() { var out = []; (FILE.groups || []).forEach(function (g) { (g.docs || []).forEach(function (d) { (d.files || []).forEach(function (f) { out.push(Object.assign({ doc: d, group: g }, f)); }); }); }); return out; }
+  function sigLine(f) {
+    if (f.cert) return '<span class="ok">Certificate of Completion</span>' + (f.at ? ' · ' + esc(day(f.at)) : '');
+    if (f.esigned && f.signed_by) return '<span class="ok">Signed by ' + esc(f.signed_by) + '</span>' + (f.signed_at ? ' · ' + esc(day(f.signed_at)) : '');
+    if (f.verdict === 'complete') return '<span class="ok">Signed throughout</span>';
+    if (f.verdict === 'one_side') return 'Signed by one side';
+    if (f.verdict === 'blanks') return 'Signatures still to collect';
+    return '';
+  }
+  function draw() {
+    var a = FILE.agent || {}, b = FILE.brokerage || {}, q = Q.trim().toLowerCase();
+    var all = allFiles();
+    var contact = [a.email ? '<a href="mailto:' + esc(a.email) + '">' + esc(a.email) + '</a>' : '', a.phone ? '<a href="tel:' + esc(String(a.phone).replace(/[^0-9+]/g, '')) + '">' + esc(a.phone) + '</a>' : ''].filter(Boolean).join(' · ');
+    var hit = function (d) { if (!q) return true; var t = (d.code + ' ' + d.label + ' ' + (d.files || []).map(function (f) { return (f.name || '') + ' ' + (f.file_name || '') + ' ' + (f.signed_by || ''); }).join(' ')).toLowerCase(); return t.indexOf(q) !== -1; };
+    var parts = {}, order = [];
+    (FILE.groups || []).forEach(function (g) {
+      var docs = (g.docs || []).filter(hit); if (!docs.length) return;
+      if (!parts[g.part]) { parts[g.part] = []; order.push(g.part); }
+      parts[g.part].push('<div class="sec"><h3>' + esc(g.label) + '</h3><div class="list">' + docs.map(function (d) {
+        var f = d.files[0], rest = d.files.slice(1);
+        var row = function (x, first) {
+          return '<div class="row"><div><div class="name">' + (first && d.code && d.code !== 'DOC' && d.code !== 'LOCAL' && d.code !== 'ESIGN-COC' ? '<span class="code">' + esc(d.code) + '</span>' : '') + esc(first ? plain(d.label) : x.name || x.file_name) + '</div>'
+            + '<div class="meta">' + [sigLine(x), esc(x.file_name || x.name), x.at && !(x.esigned && x.signed_at) && !x.cert ? esc(day(x.at)) : '', x.size ? size(x.size) : ''].filter(Boolean).join(' · ') + '</div></div>'
+            + '<div class="acts"><a class="btn sm" data-go="view" data-id="' + x.id + '" href="' + esc(x.view) + '" target="_blank" rel="noopener noreferrer">View</a>'
+            + '<a class="btn sm" data-go="download" data-id="' + x.id + '" href="' + esc(x.download) + '" rel="noopener noreferrer" download>Download</a></div></div>';
+        };
+        return row(f, true) + (rest.length ? '<div class="more" data-doc="' + d.id + '">' + rest.length + ' earlier cop' + (rest.length === 1 ? 'y' : 'ies') + '<button class="sm" data-more="' + d.id + '">Show</button></div><div class="hide" id="more-' + d.id + '">' + rest.map(function (x) { return row(x, false); }).join('') + '</div>' : '');
+      }).join('') + '</div></div>');
+    });
+    app.innerHTML = top()
+      + '<button class="lnk" id="back">← All files</button>'
+      + '<div class="kick" style="margin-top:14px">' + esc(FILE.status_label || '') + (FILE.access === 'signed' ? ' · documents you signed' : '') + '</div>'
+      + '<h1>' + esc(FILE.property) + '</h1>'
+      + '<div class="from">Your agent: ' + esc(a.name || '') + (a.dre ? ', DRE #' + esc(a.dre) : '') + (b.name && String(b.name).indexOf(a.name || '\u0000') !== 0 ? ' · ' + esc(b.name) : '') + (contact ? '<br>' + contact : '') + '</div>'
+      + '<div class="bar"><span class="count">' + all.length + ' document' + (all.length === 1 ? '' : 's') + '</span><span class="sp"></span>'
+      + '<input class="search" id="q" type="search" placeholder="Find a document" value="' + esc(Q) + '">'
+      + (all.length > 1 ? '<button class="pri" id="all">Download all (' + all.length + ')</button>' : '') + '</div>'
+      + (order.length ? order.map(function (p) { return '<div class="part">' + (order.length > 1 || p !== 'Documents' ? '<h2>' + esc(p) + '</h2>' : '') + parts[p].join('') + '</div>'; }).join('')
+        : '<div class="card"><h2>' + (q ? 'Nothing matches “' + esc(Q) + '”.' : 'No documents on this file yet.') + '</h2></div>')
+      + '<div class="prog" id="prog"></div>'
+      + '<p class="note">' + (FILE.access === 'full' ? 'This is every document the agent has filed on your side of this transaction, newest copy first. ' : 'These are the documents you signed on this file. ') + 'Links open for an hour; come back to this page any time for fresh ones.' + (a.email ? ' Questions? Email <a href="mailto:' + esc(a.email) + '">' + esc(a.email) + '</a>.' : '') + '</p>';
+    wire();
+  }
+  function wire() {
+    document.getElementById('out').onclick = signOut;
+    document.getElementById('back').onclick = function () { call('me').then(function (d) { if (d && d.ok) ME = d.me; files(); }).catch(files); };
+    var q = document.getElementById('q'), t;
+    q.oninput = function () { clearTimeout(t); t = setTimeout(function () { var at = q.selectionStart; Q = q.value; draw(); var nq = document.getElementById('q'); nq.focus(); try { nq.setSelectionRange(at, at); } catch (e) {} }, 180); };
+    var all = document.getElementById('all'); if (all) all.onclick = function () { zipAll(all); };
+    app.querySelectorAll('[data-more]').forEach(function (b) { b.onclick = function () { var m = document.getElementById('more-' + b.getAttribute('data-more')); m.classList.toggle('hide'); b.textContent = m.classList.contains('hide') ? 'Show' : 'Hide'; }; });
+    app.querySelectorAll('a[data-go]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        if (FILE && Date.now() - FILE._at < 50 * 60000) return;   // links still good: let the browser follow
+        e.preventDefault();
+        var kind = a.getAttribute('data-go'), id = Number(a.getAttribute('data-id'));
+        var w = kind === 'view' ? window.open('', '_blank') : null;
+        fresh().then(function () {
+          var f = allFiles().filter(function (x) { return x.id === id; })[0];
+          if (!f) { if (w) w.close(); return draw(); }
+          if (w) w.location.href = f.view; else location.href = f.download;
+        }).catch(function (err) { if (w) w.close(); state(err.message, 'Reload the page and sign in again.'); });
+      });
+    });
+  }
+  function line(text, cls) { var p = document.getElementById('prog'), d = document.createElement('div'); d.textContent = text; if (cls) d.className = cls; p.appendChild(d); return d; }
+  function zipAll(btn) {
+    var label = btn.textContent, live;
+    btn.disabled = true; btn.textContent = 'Preparing…';
+    fresh().then(function () {
+      btn = document.getElementById('all') || btn; btn.disabled = true; btn.textContent = 'Preparing…';
+      live = allFiles();
+      return import('https://esm.sh/jszip@3.10.1');
+    }).then(function (m) {
+      var JSZip = m.default || m, zip = new JSZip(), used = {}, i = 0;
+      return live.reduce(function (p, f) {
+        return p.then(function () {
+          i++; btn.textContent = 'Preparing ' + i + ' of ' + live.length + '…';
+          return fetch(f.download).then(function (r) { if (!r.ok) throw new Error(f.file_name + ' (' + r.status + ')'); return r.arrayBuffer(); })
+            .then(function (buf) {
+              var folder = (f.group.part === 'Documents' ? '' : f.group.part + '/') + f.group.label;
+              var n = folder + '/' + String(i).padStart(2, '0') + ' ' + (f.doc.code && f.doc.code !== 'DOC' && f.doc.code !== 'LOCAL' && (f.file_name || '').indexOf(f.doc.code) !== 0 ? f.doc.code + ' - ' : '') + (f.file_name || f.name || 'document.pdf');
+              n = n.replace(/[\\:*?"<>|]+/g, ' ');
+              if (used[n]) n = n.replace(/(\.[a-z0-9]+)?$/i, ' (' + i + ')$1');
+              used[n] = 1; zip.file(n, buf, { binary: true });
+            });
+        });
+      }, Promise.resolve()).then(function () { return zip.generateAsync({ type: 'blob', compression: 'STORE' }); });
+    }).then(function (blob) {
+      var a = document.createElement('a'), url = URL.createObjectURL(blob);
+      a.href = url; a.download = (String(FILE.property).split(',')[0] + ' - documents (' + live.length + ').zip').replace(/[\\/:*?"<>|#]+/g, ' ').replace(/\s+/g, ' ');
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      btn.disabled = false; btn.textContent = label;
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = label;
+      line('The zip could not be made: ' + (e && e.message || e) + '. Download the documents one at a time instead.', 'bad');
+    });
+  }
+
+  /* ── start ── */
+  EMAIL = read('txportal.email');
+  TOK = read('txportal.token');
+  var want = Number(new URLSearchParams(location.search).get('tx')) || 0;
+  if (TOK) {
+    call('me').then(function (d) {
+      if (!d || !d.ok) { TOK = ''; store('txportal.token', null); return signIn(); }
+      ME = d.me;
+      if (want && ME.files.some(function (f) { return f.tx_id === want; })) return open(want, true);
+      files();
+    }).catch(function () { signIn(); });
+  } else signIn();
+})();
+</script>
+</body>
+</html>
