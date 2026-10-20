@@ -157,6 +157,27 @@ export const CM = {
     if (h.indexOf('siliconvalleycondomarket') !== -1) return 'silicon-valley-condo-market';
     return 'san-francisco-condo-market';
   },
+  /* /owner-signup/ queues the address and the price in localStorage (cm_owner_intent) and opens the account
+     modal; the only thing that ever read the queue was the retired /dashboard/, so the owner's number was lost
+     every time. The moment the email is known (sign-up or magic link) the intent is filed as a lead
+     (lead_captures, intent mmm_price, source owner_signup) under this market, and the queue is cleared. */
+  async fileOwnerIntent(email) {
+    let raw = null;
+    try { raw = localStorage.getItem('cm_owner_intent'); } catch (e) {}
+    if (!raw || !email) return;
+    let it = null;
+    try { it = JSON.parse(raw); } catch (e) { return; }
+    const price = Number(it && it.price) || null, address = String((it && it.address) || '').trim();
+    if (!price && !address) return;
+    try {
+      await sb.rpc('capture_lead', {
+        p_email: email, p_building_slug: null, p_intent: 'mmm_price', p_source: 'owner_signup',
+        p_message: 'Owner sign-up' + (address ? ' \u00b7 ' + address : ''), p_unit_label: address || null,
+        p_target_price: price, p_market_slug: CM.marketSlug(),
+      });
+      try { localStorage.removeItem('cm_owner_intent'); } catch (e) {}
+    } catch (e) { /* the account still exists; the queue stays for the next try */ }
+  },
   async signUp({ email, password, fullName, phone }) {
     rememberCurrentPath();
     const referralCode = getStoredReferralCode();
@@ -174,7 +195,7 @@ export const CM = {
         },
       },
     });
-    if (!error) clearStoredReferralCode();
+    if (!error) { clearStoredReferralCode(); CM.fileOwnerIntent(email); }
     return { data, error };
   },
 
@@ -187,13 +208,15 @@ export const CM = {
   async sendMagicLink({ email }) {
     rememberCurrentPath();
     const referralCode = getStoredReferralCode();
-    return await sb.auth.signInWithOtp({
+    const res = await sb.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: buildAuthCallbackUrl(),
         data: { referred_by_code: referralCode || '', market_slug: CM.marketSlug(), signup_host: (typeof location !== 'undefined' && location.hostname) || '' },
       },
     });
+    if (!res.error) CM.fileOwnerIntent(email);
+    return res;
   },
 
   /** Sign out. */

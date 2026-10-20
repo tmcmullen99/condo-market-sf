@@ -428,9 +428,19 @@ async function openFromLink() {
     const u = new URL(window.location.href);
     if (u.searchParams.has('signin')) mode = 'login';
     else if (u.searchParams.has('join')) mode = 'signup';
+    /* ?auth=signup|login&return=<path> (20 Oct 2026): the form cm-mmm.js, cm-cma-portfolio.js and
+       cm-report.js have linked to for months, which nothing handled - the home page just loaded.
+       The return path is remembered for after the sign-in. */
+    else if (u.searchParams.has('auth')) {
+      mode = u.searchParams.get('auth') === 'login' ? 'login' : 'signup';
+      const ret = u.searchParams.get('return');
+      if (ret && /^\/[^\s]*$/.test(ret) && ret.indexOf('//') !== 0) { try { localStorage.setItem('cm_return_to', ret); } catch (e) {} }
+    }
     if (!mode) return;
     u.searchParams.delete('signin');
     u.searchParams.delete('join');
+    u.searchParams.delete('auth');
+    u.searchParams.delete('return');
     const qs = u.searchParams.toString();
     history.replaceState(history.state, '', u.pathname + (qs ? '?' + qs : '') + u.hash);
   } catch (e) { return; }
@@ -476,6 +486,16 @@ async function bootstrap() {
   CM.onAuthChange(async (event, session) => {
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
       renderSignedIn(session.user);
+      /* A ?auth=...&return= link remembered where to go (openFromLink); a password sign-in never
+         reaches auth-callback.html, so the return happens here. Same-origin paths only. */
+      if (event === 'SIGNED_IN') {
+        let ret = null;
+        try { ret = localStorage.getItem('cm_return_to'); } catch (e) {}
+        if (ret && /^\/[^\s]*$/.test(ret) && ret.indexOf('//') !== 0 && ret.split('#')[0] !== window.location.pathname) {
+          try { localStorage.removeItem('cm_return_to'); } catch (e) {}
+          window.location.assign(ret);
+        }
+      }
     } else if (event === 'SIGNED_OUT') {
       renderSignedOut();
     }

@@ -892,8 +892,14 @@
    * Desktop generally has no sms: handler, so the button is swapped for
    * copy-to-clipboard there rather than leading somewhere dead.
    */
-  var AGENT_PHONE = '+14156919272';
+  /* 20 Oct 2026: the agent and the brand come from the page (window.__CM_AGENT__, set by the worker for
+     the market the page is on). The literals are the fallback for a page served without them. The number
+     was pinned to Tim and the text said "SF Condo Market" on Silicon Valley too. */
+  var PAGE_AGENT = (typeof window.__CM_AGENT__ === 'object' && window.__CM_AGENT__) || {};
+  var AGENT_PHONE = PAGE_AGENT.phone || '+14156919272';
   var AGENT_LABEL = 'an expert local agent';
+  var MARKET_BRAND = PAGE_AGENT.brand || ((typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__.indexOf('silicon') !== -1) ? 'Condo Market Silicon Valley' : 'SF Condo Market');
+  var MARKET_SLUG = (typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) || null;
 
   /* ---------------------------- text the agent ---------------------------
    * A real <a href="sms:"> on EVERY platform — one tap, native messaging app,
@@ -915,7 +921,7 @@
    */
   function smsBody(question) {
     var q = String(question || '').trim();
-    var lead = 'Hi, I was on SF Condo Market and had a question:';
+    var lead = 'Hi, I was on ' + MARKET_BRAND + ' and had a question:';
     return q ? (lead + ' ' + q) : (lead + ' ');
   }
 
@@ -1159,7 +1165,8 @@
       rememberEmail(v);
       rpc('capture_intent_lead', {
         p_email: v, p_intent: chosen, p_building_slug: slug,
-        p_path: location.pathname, p_session_id: (window.cmSessionId || null)
+        p_path: location.pathname, p_session_id: (window.cmSessionId || null),
+        p_market_slug: MARKET_SLUG
       }).then(function () {
         track('intent_email_captured', { door: chosen, building: slug });
         dockName = name || (chosen === 'owner' ? 'Your building' : 'Condo Market');

@@ -41,8 +41,8 @@ const MARKET_BY_HOST = {
   'www.siliconvalleycondomarket.com': 'sv',
 };
 const MARKETS = {
-  sf: { tag: 'sf', dirPath: '/san-francisco-condos', hubPages: true, unitPages: true, slug: 'san-francisco-condo-market',  brand: 'Condo Market SF',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
-  sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', ogImage: 'https://www.siliconvalleycondomarket.com/og-sv.jpg', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
+  sf: { tag: 'sf', dirPath: '/san-francisco-condos', hubPages: true, unitPages: true, slug: 'san-francisco-condo-market',  brand: 'Condo Market SF', agentFirst: 'Tim', agentPhone: '+14156919272',             region: 'San Francisco', domain: 'sanfranciscocondomarket.com',  email: 'tim@sanfranciscocondomarket.com',  ogImage: 'https://www.sanfranciscocondomarket.com/og-sf.jpg', accent: '#C2410C', accentDeep: '#9A3412', accentRgb: '194,65,12' },
+  sv: { tag: 'sv', slug: 'silicon-valley-condo-market', brand: 'Condo Market Silicon Valley', agentFirst: 'Tim', agentPhone: '+14156919272', region: 'Silicon Valley', domain: 'siliconvalleycondomarket.com', email: 'tim@siliconvalleycondomarket.com', heroImage: 'https://images.unsplash.com/photo-1719290227108-ea72b5728ec7?w=2400&q=85&auto=format&fit=crop', ogImage: 'https://www.siliconvalleycondomarket.com/og-sv.jpg', accent: '#00A8B5', accentDeep: '#006D75', accentRgb: '0,168,181' },
 };
 function resolveMarket(hostname) {
   return MARKETS[MARKET_BY_HOST[(hostname || '').toLowerCase()] || 'sf'];
@@ -165,7 +165,7 @@ const CARTO_TOKEN = '__CARTO_KEY__';
 const OG_VER = '3';
 
 const TRACK_VER = '3';
-const INTENT_VER = '24';
+const INTENT_VER = '25';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 
 function ensureIntent(html) {
@@ -237,9 +237,20 @@ const NAV_SCRIPT =
   'if(mq.addEventListener)mq.addEventListener("change",go);' +
   '})();<\/script>';
 
-function ensureGlobals(html) {
+/* 20 Oct 2026: every HTML page states its market and its agent (window.__CM_MARKET__, window.__CM_AGENT__)
+   so the popup, the captures and the account modal file leads under the market they were opened on and
+   text the market's agent — renderChrome set the market on two pages; the rest fell back to San Francisco. */
+function marketTag(mk) {
+  if (!mk) return '';
+  return '<script id="cm-market">window.__CM_MARKET__=window.__CM_MARKET__||' + JSON.stringify(mk.slug) +
+         ';window.__CM_AGENT__=window.__CM_AGENT__||' + JSON.stringify({ first: mk.agentFirst || 'Tim', phone: mk.agentPhone || '+14156919272', brand: mk.brand, domain: mk.domain }) + ';</script>';
+}
+function ensureGlobals(html, mk) {
   if (typeof html !== 'string') return html;
-  if (html.indexOf('id="cm-guard"') !== -1) return html;          // already present
+  if (html.indexOf('id="cm-guard"') !== -1) {
+    if (mk && html.indexOf('id="cm-market"') === -1 && /<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + marketTag(mk));
+    return html;          // already present
+  }
   /* The idempotency guard has to be a token that appears ONLY in the injected
      script. The first version tested for 'cm-nav-collapsed' — which is also
      the class name in the stylesheet on every page that renders a masthead.
@@ -249,8 +260,9 @@ function ensureGlobals(html) {
   if (/<\/body>/i.test(html) && html.indexOf('id="cm-nav-boot"') === -1) {
     html = html.replace(/<\/body>/i, NAV_SCRIPT + '</body>');
   }
-  if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + GLOBAL_TAGS);
-  if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, '<html$1><head>' + GLOBAL_TAGS + '</head>');
+  const tags = marketTag(mk) + GLOBAL_TAGS;
+  if (/<head[^>]*>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + tags);
+  if (/<html[^>]*>/i.test(html)) return html.replace(/<html([^>]*)>/i, '<html$1><head>' + tags + '</head>');
   return html;
 }
 
@@ -284,7 +296,7 @@ function ensureChrome(html) {
   return i === -1 ? html : html.slice(0, i) + CITY_CHROME_CSS + html.slice(i);
 }
 
-async function withFavicon(res) {
+async function withFavicon(res, mk) {
   try {
     const ct = (res.headers.get('content-type') || '').toLowerCase();
     if (!ct.includes('text/html')) return res;
@@ -292,7 +304,7 @@ async function withFavicon(res) {
     const body = await res.text();
     /* One seam, on the path every HTML response already takes - so a map
        added later cannot miss the key. */
-    let out = ensureMarketNav(ensureBrand(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body))))));   // brand first, then the nav links
+    let out = ensureMarketNav(ensureBrand(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body)), mk))));   // brand first, then the nav links
     if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
@@ -590,7 +602,7 @@ function cityTail(scripts) {
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
-const NAV_VER = '2';
+const NAV_VER = '3';
 const OM_VER = '14';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
@@ -1493,10 +1505,18 @@ function cmaRange(comps, sqft, agentLo, agentHi, implied) {
    whole building, and a review of #607 must never appear on another unit.
    ------------------------------------------------------------------------- */
 const LM_CSS = ".lm{background:#161a24;color:#ece7db;padding:72px 0 80px;position:relative;overflow:hidden;scroll-margin-top:60px}\n.lm:before{content:\"\";position:absolute;inset:0;background:radial-gradient(900px 480px at 20% 110%,rgba(232,93,42,.16),transparent 60%),radial-gradient(700px 380px at 90% -10%,rgba(232,93,42,.12),transparent 60%);pointer-events:none}\n.lm:after{content:\"\";position:absolute;inset:0;pointer-events:none;opacity:var(--glow,0);transition:opacity .5s ease;\n  background:radial-gradient(520px circle at var(--mx,80%) var(--my,10%),rgba(232,93,42,.16),rgba(232,93,42,.05) 40%,transparent 70%)}\n.lm .wrap{position:relative;z-index:1}\n.lm-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e85d2a}\n.lm h2{font-family:'Playfair Display',serif;font-size:clamp(2rem,4.2vw,3.1rem);line-height:1.08;color:#fff;margin:12px 0 12px;max-width:20ch}\n.lm h2 em{color:#e85d2a}\n.lm-sub{font-size:1.02rem;line-height:1.6;color:rgba(236,231,219,.78);max-width:62ch;margin:0}\n.lm-stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:56px;margin-top:40px;align-items:center}\n/* the document, in miniature */\n.lm-vis{position:relative;min-height:480px;display:flex;align-items:center;justify-content:center}\n.pp{position:relative;width:min(420px,100%);background:#fbf8f2;color:#1a1f2e;border-radius:14px;padding:22px 22px 0;margin:0;\n  box-shadow:0 30px 70px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.6) inset;overflow:hidden;height:460px;\n  transform:perspective(1000px) rotate(var(--rot,0deg)) translate(var(--tx,0px),var(--ty,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--lift,0px));\n  transition:transform .35s cubic-bezier(.2,.7,.2,1);will-change:transform}\n.pp:before{content:\"\";position:absolute;inset:0;pointer-events:none;opacity:var(--shine,0);transition:opacity .35s ease;\n  background:radial-gradient(360px circle at var(--cx,50%) var(--cy,50%),rgba(255,255,255,.6),transparent 55%);mix-blend-mode:soft-light;z-index:2}\n.lm-vis .pp-cma{--rot:-2.5deg;z-index:2}\n.lm-vis.two .pp-cma{--tx:-26px;--ty:14px}\n.lm-vis .pp-disc{--rot:3deg;z-index:1}\n.lm-vis.two .pp-disc{position:absolute;--tx:46px;--ty:-18px;opacity:.97}\n.lm-vis:not(.two) .pp-disc{--rot:-2.5deg}\n.pp-head{display:flex;justify-content:space-between;align-items:center;gap:10px}\n.pp-kind{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#b0632a}\n.pp-ok{font-size:11px;font-weight:700;color:#2f7a4f;background:rgba(47,122,79,.12);border-radius:999px;padding:4px 9px;white-space:nowrap}\n.pp-addr{font-family:'Playfair Display',serif;font-size:1.55rem;line-height:1.15;margin:12px 0 4px}\n.pp-by{font-size:12px;color:#6b7180}\n.pp-photo{height:132px;border-radius:10px;margin:14px 0 0;background:#e9e3d6 center/cover no-repeat}\n.pp-veil{padding:16px 0 30px;filter:blur(3.6px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent);user-select:none}\n.pp-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8f9a;margin-bottom:8px}\n.pp-range{display:flex;align-items:center;gap:8px;margin-bottom:14px}\n.pp-range i{height:22px;flex:1;border-radius:6px;background:#1a1f2e}\n.pp-range b{width:18px;height:3px;background:#b0632a}\n.pp-chart{width:100%;height:62px;margin-bottom:12px}\n.pp-chart rect{fill:#d9a441}\n.pp-chart rect:nth-child(4){fill:#b0632a}\n.pp-row{display:flex;gap:10px;align-items:center;margin:9px 0}\n.pp-row i{display:block;height:10px;border-radius:5px;background:#cfc7b8}\n.pp-row b{display:block;width:62px;height:10px;border-radius:5px;background:#1a1f2e;margin-left:auto}\n.pp-score{display:flex;gap:14px;align-items:center;margin:4px 0 14px}\n.pp-score svg{width:64px;height:64px;flex:0 0 64px}\n.pp-score circle{fill:none;stroke:#e5dfd2;stroke-width:7}\n.pp-score circle.arc{stroke:#2f7a4f;stroke-dasharray:130 164;transform:rotate(-90deg);transform-origin:center;stroke-linecap:round}\n.pp-score > div{flex:1}\n.pp-led{display:flex;gap:9px;align-items:center;margin:10px 0}\n.pp-led i{height:10px;border-radius:5px;background:#cfc7b8;flex:0 0 auto}\n.pp-led b{width:54px;height:10px;border-radius:5px;background:#1a1f2e;margin-left:auto}\n.pp-tag{font-size:9px;font-weight:700;border-radius:5px;padding:3px 6px;white-space:nowrap}\n.pp-tag.saf{background:rgba(176,99,42,.16);color:#b0632a}.pp-tag.fut{background:rgba(217,164,65,.2);color:#8a6310}.pp-tag.ele{background:rgba(47,122,79,.14);color:#2f7a4f}\n.pp-lock{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;white-space:nowrap;\n  background:#1a1f2e;color:#fff;font-size:13px;font-weight:600;border-radius:999px;padding:10px 16px;box-shadow:0 12px 30px rgba(0,0,0,.4)}\n.pp-lock svg{width:16px;height:16px;fill:none;stroke:#e85d2a;stroke-width:2;stroke-linecap:round}\n/* the ask */\n.lm-inside{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px}\n.lm-inside li{position:relative;padding-left:26px;font-size:.98rem;line-height:1.5;color:rgba(236,231,219,.88)}\n.lm-inside li:before{content:\"\\2713\";position:absolute;left:0;top:0;color:#e85d2a;font-weight:700}\n.lm-gate{background:#faf7f1;color:#20242e;border-radius:18px;padding:22px 24px;box-shadow:0 24px 60px rgba(0,0,0,.3)}\n.lm-gate-copy{font-size:1rem;margin-bottom:12px}\n.lm-gate-copy b{font-family:'Playfair Display',serif;font-size:1.25rem;margin-right:6px}\n.lm-form .rpt-in{font-size:16px;padding:15px 16px;border-radius:12px}\n.lm-form .rpt-btn{font-size:16px;padding:15px 24px;border-radius:12px;transition:transform .2s ease,box-shadow .2s ease}\n.lm-form .rpt-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(193,84,40,.35)}\n.lm .rpt-note{color:#6b7180;margin-top:10px}\n.lm-agent{display:grid;grid-template-columns:56px 1fr;column-gap:14px;align-items:center;margin-top:16px;padding:14px 16px;border-radius:16px;\n  background:rgba(255,255,255,.05);border:1px solid rgba(236,231,219,.14)}\n.lm-agent img,.lm-mono{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(232,93,42,.6)}\n.lm-mono{display:flex;align-items:center;justify-content:center;background:#2a3040;font-family:'Playfair Display',serif;font-size:1.2rem;color:#e85d2a}\n.lm-by{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,231,219,.55)}\n.lm-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff}\n.lm-title{font-size:.8rem;color:#e85d2a}\n.lm-stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}\n.lm-stats div{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 4px;text-align:center}\n.lm-stats b{display:block;font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff}\n.lm-stats span{font-size:9.5px;color:rgba(236,231,219,.62);text-transform:uppercase;letter-spacing:.06em}\n@media(max-width:900px){.lm-stage{grid-template-columns:1fr;gap:28px}.lm-vis{min-height:400px}.pp{height:400px}}\n/* PHONE: the preview on top, the ask right under it, the agent last. */\n@media(max-width:600px){\n  .lm{padding:22px 0 26px}\n  .lm-eyebrow{font-size:9.5px;letter-spacing:.12em}\n  .lm h2{font-size:1.5rem;line-height:1.12;margin:6px 0 0;max-width:none}\n  .lm-sub,.lm-inside{display:none}\n  .lm-stage{margin-top:14px;gap:12px}\n  .lm-vis{min-height:0;height:232px;align-items:flex-start;overflow:visible}\n  .pp{height:232px;padding:14px 15px 0;border-radius:12px;width:calc(100% - 26px)}\n  .lm-vis .pp-cma{--rot:-1.5deg}\n  .lm-vis.two .pp-cma{--tx:-10px;--ty:6px}\n  .lm-vis.two .pp-disc{--tx:18px;--ty:-6px;--rot:2.5deg}\n  .pp-addr{font-size:1.15rem;margin:8px 0 2px}\n  .pp-by{font-size:10.5px}\n  .pp-photo{height:62px;margin-top:9px}\n  .pp-veil{padding-top:10px}\n  .pp-chart{height:40px}\n  .pp-lock{bottom:14px;font-size:11.5px;padding:8px 12px}\n  .lm-gate{padding:13px;border-radius:14px}\n  .lm-gate-copy{font-size:.82rem;margin-bottom:8px}\n  .lm-gate-copy b{font-size:1.02rem}\n  .lm-form{flex-direction:column;gap:7px}\n  .lm-form .rpt-in{width:100%;min-width:0;padding:12px 13px}\n  .lm-form .rpt-btn{width:100%;font-size:15px;padding:13px 16px}\n  .lm .rpt-note{margin-top:6px;font-size:11px}\n  .lm-agent{grid-template-columns:44px 1fr;padding:10px 12px;margin-top:10px}\n  .lm-agent img,.lm-mono{width:44px;height:44px;font-size:1rem}\n  .lm-stats{gap:6px;margin-top:9px}\n  .lm-stats b{font-size:.95rem}\n  .lm-stats span{font-size:8px}\n}\n@media (prefers-reduced-motion: reduce){.lm:after{display:none}.pp{transition:none}}\n.rpt-grid{display:grid;grid-template-columns:300px minmax(0,640px);gap:40px;align-items:start}\n.rpt-grid--solo{grid-template-columns:minmax(0,640px)}\n@media(max-width:840px){.rpt-grid{grid-template-columns:1fr}.rpt-agent{max-width:240px}}\n.rpt-agent img{width:100%;height:auto;border-radius:18px;border:1px solid rgba(32,36,46,.13);box-shadow:0 10px 30px rgba(18,21,29,.10);display:block}\n.rpt-agent-cap{font-size:13px;line-height:1.55;color:rgba(32,36,46,.62);margin-top:12px}\n.rpt-section .rpt-card{background:#fff;border:1px solid rgba(32,36,46,.13);border-radius:14px;padding:24px}\n.rpt-list li{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}\n.rpt-list{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14.5px}\n.rpt-risk{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;\n  background:rgba(193,84,40,.08);color:#c15428;border-radius:999px;padding:2px 9px;margin-left:6px}\n.rpt-form{display:flex;gap:8px;flex-wrap:wrap}\n.rpt-in{flex:1;min-width:200px;border:1px solid rgba(32,36,46,.16);border-radius:10px;padding:11px 13px;font:inherit;font-size:14.5px}\n.rpt-in:focus{outline:none;border-color:#c15428}\n.rpt-btn{appearance:none;background:#c15428;color:#fff;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}\n.rpt-btn[disabled]{opacity:.5}\n.rpt-note{font-size:12px;color:rgba(32,36,46,.45);margin-top:10px}\n.rpt-out{margin-top:14px;font-size:14.5px}\n.rpt-out a{display:block;color:#c15428;font-weight:600;text-decoration:none;margin-top:6px}\n.rpt-unlocked{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}\n@media(max-width:700px){.rpt-unlocked{grid-template-columns:1fr}}\n.rpt-doc{display:block;background:#fff;border:1.5px solid #c15428;border-radius:14px;padding:18px 18px 16px;\n  text-decoration:none;color:inherit;box-shadow:0 12px 32px rgba(193,84,40,.16);\n  animation:rptPop .45s cubic-bezier(.2,.9,.3,1.2) both;transition:transform .15s,box-shadow .15s}\n.rpt-doc:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(193,84,40,.24)}\n.rpt-doc-k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;\n  color:#c15428;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}\n.rpt-doc p{font-size:13.5px;line-height:1.55;color:rgba(32,36,46,.78);margin:0 0 10px;\n  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}\n.rpt-score{font-size:12.5px;color:rgba(32,36,46,.6);margin-bottom:10px}\n.rpt-open{font-weight:700;font-size:14px;color:#c15428}\n@keyframes rptPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}\n.rpt-modal-veil{position:fixed;inset:0;background:rgba(18,21,29,.55);backdrop-filter:blur(3px);z-index:220;\n  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s}\n.rpt-modal-veil.on{opacity:1}\n.rpt-modal{position:relative;background:#faf7f2;border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow:auto;\n  padding:30px 30px 24px;box-shadow:0 30px 80px rgba(18,21,29,.4);transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.2,.9,.3,1.15)}\n.rpt-modal-veil.on .rpt-modal{transform:none}\n.rpt-m-x{position:absolute;top:12px;right:14px;appearance:none;background:none;border:0;font-size:26px;line-height:1;\n  color:rgba(32,36,46,.45);cursor:pointer;padding:6px}\n.rpt-m-k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#c15428}\n.rpt-m-h{font-family:'Playfair Display',serif;font-size:1.7rem;margin:6px 0 18px;color:#20242e}\n.rpt-m-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}\n@media(max-width:600px){.rpt-m-btns{grid-template-columns:1fr}}\n.rpt-m-btn{display:block;background:#c15428;border-radius:12px;padding:15px 16px;text-decoration:none;\n  box-shadow:0 10px 24px rgba(193,84,40,.3);transition:transform .15s,box-shadow .15s}\n.rpt-m-btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(193,84,40,.38)}\n.rpt-m-big{display:block;color:#fff;font-weight:700;font-size:15.5px}\n.rpt-m-small{display:block;color:rgba(255,255,255,.82);font-size:12px;margin-top:4px}\n.rpt-m-how{background:#fff;border:1px solid rgba(32,36,46,.12);border-radius:12px;padding:16px 18px}\n.rpt-m-how ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}\n.rpt-m-how li{font-size:13.5px;line-height:1.55;color:rgba(32,36,46,.8)}\n.rpt-m-note{font-size:12px;color:rgba(32,36,46,.5);margin:14px 0 0}/* condo: the preview's small labels, deepened for contrast (same hues) */\n.pp .pp-kind{color:#8a4a1f}.pp .pp-ok{color:#245f3d}.pp .pp-lbl{color:#5d6575}\n.pp .pp-tag.saf{color:#8a3f12}.pp .pp-tag.fut{color:#6b4d0b}.pp .pp-tag.ele{color:#245f3d}\n.lm-title{color:#f28c63}\n.lm-gate .lm-name{display:block;width:100%;box-sizing:border-box;margin:0 0 10px;flex:none;font-size:16px;padding:15px 16px;border-radius:12px}\n.lm-done{padding:2px 0}.lm-done-k{font-family:\"JetBrains Mono\",monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#9a360c;margin:0 0 10px}\n.lm-done p{margin:0 0 10px;color:#1a1f2e;line-height:1.55;font-size:.98rem}.lm-done-i{display:flex;gap:10px}.lm-done-i>span:first-child{color:#245f3d;font-weight:700}\n.lm-done-n{color:#5d6575!important;font-size:.9rem!important;margin-top:4px!important}\n/* condo phone spacing (Tim, 27 Sep 2026): the papers sit inside their frame, with room above and below */\n@media(max-width:600px){\n  .lm{padding:40px 0 44px}\n  .lm-head h2{margin-bottom:10px}\n  .lm-stage{margin-top:26px;gap:30px}\n  .lm-vis{height:auto;min-height:0;padding:18px 0 22px;align-items:center;overflow:visible}\n  .lm-vis .pp{height:236px}\n  .lm-vis.two .pp-cma{--tx:-6px;--ty:4px;--rot:-1.5deg}\n  .lm-vis.two .pp-disc{--tx:12px;--ty:-4px;--rot:2deg}\n  .lm-vis .pp-kind{white-space:nowrap;font-size:9.5px;letter-spacing:.12em}\n  .lm-stats{grid-template-columns:repeat(2,1fr);gap:8px}\n  .lm-stats b{font-size:1.05rem}.lm-stats span{font-size:9.5px}\n}\n";
-const LM_M = { id: 5, name: 'Condo Market SF', city: 'San Francisco', agent: { name: 'Tim McMullen', first: 'Tim', dre: '02016832', reviewImg: null } };
-async function listingReportsSection(l) {
-  const M = LM_M, KEY = RPT_KEY;
-  if (!l.unit && String(l.address_raw || '').indexOf('#') === -1) return await listingRequestSection(l);
+/* 20 Oct 2026: the listing report sections were pinned to San Francisco (city-platform market 5), so every
+   Silicon Valley listing filed its report leads and gate events under SF. The market now comes from the
+   listing's own market (falling back to the host). market_agent_card fills the agent from the city platform;
+   the literal is only the fallback when that call fails. */
+function lmMarket(mk) {
+  const m = mk || MARKETS.sf;
+  return { id: m.tag === 'sv' ? 6 : 5, slug: m.slug, name: m.brand, city: m.region, domain: m.domain,
+           agent: { name: 'Tim McMullen', first: 'Tim', dre: '02016832', reviewImg: null } };
+}
+async function listingReportsSection(l, mk) {
+  const M = lmMarket(mk), KEY = RPT_KEY;
+  if (!l.unit && String(l.address_raw || '').indexOf('#') === -1) return await listingRequestSection(l, mk);
   let reportsBlock = '';
   // Surfaced in the title, description and schema below: this is the one thing
   // a portal cannot copy. A buyer searching an address sees Zillow, Redfin and
@@ -1832,7 +1852,7 @@ async function listingReportsSection(l) {
     fetch('${SUPABASE_URL}/functions/v1/listing-report-request',{
       method:'POST',
       headers:{'apikey':'${SUPABASE_ANON_KEY}','Authorization':'Bearer ${SUPABASE_ANON_KEY}','Content-Type':'application/json'},
-      body:JSON.stringify({mode:'deliver',name:name,email:email,address:document.querySelector('[data-rpt]').getAttribute('data-addr'),mls:'${l.mls_number}',
+      body:JSON.stringify({mode:'deliver',market_slug:${JSON.stringify(M.slug)},name:name,email:email,address:document.querySelector('[data-rpt]').getAttribute('data-addr'),mls:'${l.mls_number}',
         building_slug:${JSON.stringify(l.building_slug || null)},building_name:${JSON.stringify(l.building_name || '')},unit_label:${JSON.stringify(l.unit || null)}})
     }).then(function(r){return r.json();}).then(function(j){
       if(j&&j.ok&&j.reports&&j.reports.length){
@@ -1907,14 +1927,14 @@ async function listingReportsSection(l) {
       // never needs server-side string interpolation of free text
       reportsBlock = reportsBlock.replace('data-rpt>', 'data-rpt data-addr="' + esc(l.address_norm || l.address_raw) + '">');
     } else {
-      reportsBlock = await listingRequestSection(l);
+      reportsBlock = await listingRequestSection(l, mk);
     }
   } catch (e) { reportsBlock = ''; }
   return reportsBlock;
 }
 
-async function listingRequestSection(l) {
-  const M = LM_M;
+async function listingRequestSection(l, mk) {
+  const M = lmMarket(mk);
   const card = await rptRpc('market_agent_card', { p_market_id: M.id });
   const A = (card && card.ok) ? card : { name: M.agent.name, dre: M.agent.dre, stats: [] };
   const aName = A.name || M.agent.name, aFirst = String(aName).split(' ')[0];
@@ -2002,7 +2022,7 @@ async function listingRequestSection(l) {
     if(window.cmTrack) try{ cmTrack('cta_click',{cta:'listing:request_reports',mls:P.mls}); }catch(e){}
     fetch('${SUPABASE_URL}/functions/v1/listing-report-request',{method:'POST',
       headers:{'apikey':'${SUPABASE_ANON_KEY}','Authorization':'Bearer ${SUPABASE_ANON_KEY}','Content-Type':'application/json'},
-      body:JSON.stringify(Object.assign({mode:'request',name:name,email:email,want_cma:c,want_disclosure:d},P))})
+      body:JSON.stringify(Object.assign({mode:'request',market_slug:${JSON.stringify(M.slug)},name:name,email:email,want_cma:c,want_disclosure:d},P))})
     .then(function(r){return r.json();}).then(function(j){
       if(j&&j.ok){
         /* What happens next (Tim, 26 Sep 2026): the Comp Report within 24 hours; the disclosures requested now. */
@@ -2247,7 +2267,7 @@ function renderListingCity(d, B, foot, reportsHtml) {
     'var em=fm.querySelector("input").value.trim(),bt=fm.querySelector("button");if(!em)return;bt.disabled=true;bt.textContent="Sending\u2026";' +
     'var AK="' + SUPABASE_ANON_KEY + '";' +
     'fetch("' + SUPABASE_URL + '/rest/v1/rpc/capture_lead",{method:"POST",headers:{"Content-Type":"application/json","apikey":AK,"Authorization":"Bearer "+AK},' +
-    'body:JSON.stringify({p_email:em,p_building_slug:' + JSON.stringify(bSlug || null) + ',p_intent:"tour_request",p_source:"listing_tour_form",' +
+    'body:JSON.stringify({p_email:em,p_building_slug:' + JSON.stringify(bSlug || null) + ',p_market_slug:' + JSON.stringify(d.market_slug || null) + ',p_intent:"tour_request",p_source:"listing_tour_form",' +
     'p_unit_label:' + JSON.stringify(unit || null) + ',p_message:' + JSON.stringify('Showing request for ' + addr + ' (MLS# ' + mls + ')').replace(/</g, '\\u003c') + '})})' +
     '.then(function(r){if(r.ok){fm.hidden=true;document.getElementById("ldTourDone").hidden=false;}else{bt.disabled=false;bt.textContent="Try again";}})' +
     '.catch(function(){bt.disabled=false;bt.textContent="Try again";});});})();</script>';
@@ -3299,7 +3319,7 @@ export default {
     /* withFavicon is async. Passing its promise straight to withRobots gave the
        noindexed paths an empty 200 body (every /cma/ Comp Report link, 15 Oct
        2026), because the promise has no .body or .status. Await it first. */
-    let res = await withFavicon(await handleRequest(request, env));
+    let res = await withFavicon(await handleRequest(request, env), resolveMarket(reqUrl.hostname));
     /* Versioned assets (?v=) never change in place: cache them for a year (S81). */
     if (/^\/assets\//.test(reqPath) && reqUrl.searchParams.has('v') && res.status === 200) {
       const h = new Headers(res.headers); h.set('Cache-Control', 'public, max-age=31536000, immutable');
@@ -3349,6 +3369,16 @@ async function handleRequest(request, env) {
       const inner = new URL(request.url);
       inner.pathname = '/buildings/';
       return handleRequest(new Request(inner.toString(), request), env);
+    }
+
+    /* The member account lives in the app on this market's own app.<domain> (20 Oct 2026). /account/ was
+       linked from the payout calculator page and 404'd (the only /account/ pages are /account/off-market/
+       and /account/calculator/); /dashboard was redirected by _redirects to the San Francisco app on every
+       market, so a Silicon Valley member landed on the wrong market's account. Host-aware here; the target
+       is another Pages project, so no loop is possible. */
+    if (/^\/(account|dashboard)\/?$/.test(url.pathname) || url.pathname.indexOf('/dashboard/') === 0) {
+      const to = 'https://app.' + hostMk.domain + (url.pathname.indexOf('/account') === 0 ? '/account' : '/') + url.search;
+      return new Response(null, { status: 301, headers: { 'Location': to, 'Cache-Control': 'public, max-age=600' } });
     }
 
     // Expired-listing QR codes already in the post.
@@ -3957,7 +3987,7 @@ async function handleRequest(request, env) {
       const [bcard, foot, reportsHtml] = await Promise.all([
         listingBuildingCard(d.building_slug), cityFooterData(hostMk.domain),
         listingReportsSection({ mls_number: d.mls, address_raw: d.address || '', address_norm: d.address || '', photos: lmPhotos,
-          building_slug: d.building_slug || null, building_name: d.building_name || '', unit: d.unit || null }).catch(() => ''),
+          building_slug: d.building_slug || null, building_name: d.building_name || '', unit: d.unit || null }, lMkt || hostMk).catch(() => ''),
       ]);
       const listingHtml = applyMarketSwaps(renderListingCity(d, bcard, foot, reportsHtml), hostMk);
       return new Response(listingHtml, {
@@ -4637,8 +4667,8 @@ function renderInvestorExchange(mk, footerData) {
         'The Exchange puts the two sides in one room: owners who would sell at the right number, and investors ' +
         'who buy occupied property on purpose. <strong>No showings, no vacancy, no termination notice.</strong></p>' +
       '<div class="ix-cta">' +
-        '<a class="ix-btn" href="#signin" data-cm-auth="login">List a rental you\u2019d sell \u2192</a>' +
-        '<a class="ix-btn ghost" href="#signin" data-cm-auth="login">Create an investor account</a>' +
+        '<a class="ix-btn" href="#signup" data-cm-auth="signup">List a rental you\u2019d sell \u2192</a>' +
+        '<a class="ix-btn ghost" href="#signup" data-cm-auth="signup">Create an investor account</a>' +
       '</div>' +
     '</div>' +
 
@@ -4656,7 +4686,7 @@ function renderInvestorExchange(mk, footerData) {
           '<button class="ix-pill" data-beds="1">1+</button>' +
           '<button class="ix-pill" data-beds="2">2+</button>' +
           '<button class="ix-pill" data-beds="3">3+</button></div>' +
-        '<div class="ix-cta"><a class="ix-btn" href="#signin" data-cm-auth="login">Unlock the map \u2192</a></div>' +
+        '<div class="ix-cta"><a class="ix-btn" href="#signup" data-cm-auth="signup">Unlock the map \u2192</a></div>' +
         '<p class="ix-sub" style="font-size:13px;margin-top:14px">Free account. The signal is an inference from ' +
           'public records \u2014 it also catches second homes, trusts and estates. It is not a statement that any of ' +
           'them is for sale, and owner names are never shown.</p>' +

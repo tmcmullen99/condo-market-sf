@@ -63,7 +63,8 @@ export async function init() {
   btn.addEventListener('click', async () => {
     let user = null;
     try { ({ data: { user } } = await CM.client.auth.getUser()); } catch (e) {}
-    if (!user) { try { openAuthModal({ mode: 'login' }); } catch (e) {} return; }
+    /* openAuthModal takes a mode string; an object read as sign-up (20 Oct 2026). A saver without an account is asked to create one. */
+    if (!user) { try { openAuthModal('signup'); } catch (e) {} return; }
     paint(btn, saved, true);
     if (saved) {
       const { error } = await CM.removeFromWatchlist(slug);
