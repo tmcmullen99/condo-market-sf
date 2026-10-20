@@ -530,7 +530,21 @@ function cityNav(active) {
     '    </div>\n' +
     '    <div class="nav-right"><a class="nav-cta" href="#signin" data-cm-auth="login">Sign in</a></div>\n' +
     '    <button class="burger" aria-label="Open menu" aria-expanded="false" id="burger"><span></span><span></span><span></span></button>\n' +
-    '  </div>\n</nav>\n';
+    '  </div>\n</nav>\n' +
+    /* The phone menu (20 Oct 2026). The burger toggled a class on <nav> that no stylesheet knew, and the links and
+       the sign-in pill were display:none under 700px — so on a phone the menu opened nothing and there was no way
+       to sign in. The drawer the stylesheet already styles (.drawer, .drawer.open) now exists, and its Sign in
+       hands the click to the header's control, which cm-auth-nav.js binds (it binds the first one only). */
+    '<div class="drawer" id="drawer">\n' +
+    '  ' + a('/active-listings/', '<span class="live-dot"></span>For sale', 'forsale') + '\n' +
+    '  ' + a('/off-market/', 'Off market', 'offmarket') + '\n' +
+    '  ' + a('/#atlas', 'Buildings', 'buildings') + '\n' +
+    '  ' + a('/market-reports/', 'Reports', 'reports') + '\n' +
+    '  ' + a('/intelligence/', 'Intelligence', 'intelligence') + '\n' +
+    '  ' + a('/how-it-works/', 'How it works', 'how') + '\n' +
+    '  <a href="/methodology/">Methodology</a>\n' +
+    '  <a class="nav-cta" href="#signin" id="drawerSignin" data-cta="nav:signin">Sign in</a>\n' +
+    '</div>\n';
 }
 
 function cityFooter(payload) {
@@ -577,7 +591,8 @@ function cityFooter(payload) {
 function cityTail(scripts) {
   return (scripts || '') +
     '<script type="module" src="/assets/cm-auth-nav.js?v=' + NAV_VER + '"></script>\n' +
-    '<script>(function(){var b=document.getElementById("burger"),n=document.querySelector(".nav");if(b&&n)b.addEventListener("click",function(){var o=n.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});' +
+    '<script>(function(){var b=document.getElementById("burger"),d=document.getElementById("drawer");if(b&&d)b.addEventListener("click",function(){var o=d.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});' +
+    'var ds=document.getElementById("drawerSignin");if(ds)ds.addEventListener("click",function(e){var h=document.querySelector(".nav-right [data-cm-auth]")||document.querySelector("[data-cm-auth]");if(h){e.preventDefault();if(d)d.classList.remove("open");h.click();}});' +
     'var io="IntersectionObserver" in window?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px"}):null;' +
     'document.querySelectorAll(".reveal").forEach(function(el){io?io.observe(el):el.classList.add("in");});})();</script>\n' +
     '</body>\n</html>\n';
