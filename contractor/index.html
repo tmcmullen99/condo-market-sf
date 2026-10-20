@@ -214,7 +214,7 @@ tr.nbfocus td{background:var(--accent-soft)}
               <div class="field"><label for="suPhone">Phone</label><input id="suPhone" type="tel" autocomplete="tel"></div>
               <div class="field"><label for="suTrade">Trade</label><select id="suTrade">
                 <option value="">Choose one</option><option>Remodeling / design-build</option><option>Kitchen &amp; bath</option><option>Roofing</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Painting</option><option>Landscaping</option><option>Solar</option><option>Windows &amp; doors</option><option>Flooring</option><option>Foundation / structural</option><option>Handyman</option><option>Cleaning</option><option>Other home service</option></select></div>
-              <div class="field"><label for="suCslb">CSLB licence #</label><input id="suCslb" placeholder="if you have one"></div>
+              <div class="field"><label for="suCslb">Licence #</label><input id="suCslb" placeholder="if your trade has one"></div>
               <div class="field"><label for="suWeb">Website</label><input id="suWeb" placeholder="https://"></div>
               <div class="field"><label for="suArea">Where you work</label><input id="suArea" placeholder="neighborhoods or cities"></div>
             </div>
@@ -359,16 +359,31 @@ function shell(inner) {
 }
 function agentBar() {
   const c = S.camp; if (!c) return '';
-  const missing = (c.missing || []);
-  const can = c.copy_approved === c.copy_total && !missing.length;
-  return `<div class="agentbar"><div class="row sp">
-    <div><b>Agent desk.</b> ${c.status === 'running' ? 'The campaign is running: email 1 goes to each verified neighbor within the domain’s daily allowance; emails 2–6 follow 14 days apart on their own.'
-      : c.status === 'paused' ? 'Paused: nothing goes out until you resume.'
-      : `Starting the campaign approves email 1 to every verified neighbor and begins warming <b>${esc(partnerOf(c).sending_domain || 'the sending domain')}</b> (${c.stats.domain ? c.stats.domain.ramp_start + ' a day, +' + c.stats.domain.ramp_step + ' a day, up to ' + c.stats.domain.ramp_max : '10 a day, +3 a day, up to 50'}).`}
-      ${missing.length ? `<div class="note" style="margin-top:6px">Still needed before anything sends: <b>${esc(missing.join(', '))}</b>.</div>` : ''}
-      ${c.copy_total && c.copy_approved < c.copy_total ? `<div class="note" style="margin-top:6px">${num(c.copy_total - c.copy_approved)} of ${num(c.copy_total)} emails still need your approval on The series.</div>` : ''}</div>
+  const missing = (c.missing || []), st = c.stats || {}, live = st.series_mode === 'live', p = partnerOf(c);
+  const ou = st.open_update;
+  const firstApproved = live ? Number(c.copy_approved) >= 1 : c.copy_approved === c.copy_total && c.copy_total > 0;
+  const can = firstApproved && !missing.length;
+  const dom = st.domain || {};
+  if (c.status === 'running' || c.status === 'paused') {
+    return `<div class="agentbar"><div class="row sp">
+      <div><b>Agent desk.</b> ${c.status === 'running' ? (live ? `Running: each approved email goes to every neighbor due it, within ${esc(p.sending_domain || 'the domain')}’s daily allowance (${num(dom.limit_today || 0)} today). The next email is written from the next update.` : 'The campaign is running: email 1 goes to each verified neighbor within the domain’s daily allowance; the rest follow 14 days apart on their own.') : 'Paused: nothing goes out until you resume.'}</div>
+      <div class="row">${c.status === 'running' ? `<button class="btn warn small" id="agPause">Pause the campaign</button>` : `<button class="btn ok small" id="agResume">Resume</button>`}<button class="btn ghost small" id="agDetails">Partner details</button></div></div>
+      <div id="agMsg"></div><div id="agDetailsBox" class="hidden" style="margin-top:14px"></div></div>`;
+  }
+  /* not started yet: the three things between here and the first send */
+  const step1 = live ? (firstApproved ? 'done' : (ou && ou.status === 'drafted') ? 'review' : (ou && ou.status === 'submitted') ? 'drafting' : 'write') : (firstApproved ? 'done' : 'review');
+  return `<div class="agentbar"><div class="row sp" style="align-items:flex-start">
+    <div style="flex:1;min-width:0"><b>Agent desk.</b> Three steps to the first send${live ? ', then it runs from the updates' : ''}.
+      <ol class="steps" style="margin-top:8px">
+        <li class="${step1 === 'done' ? 'done' : ''}"><b>${live ? 'Email 1, written from the first project update' : 'The series, approved'}</b><span>${live
+          ? (step1 === 'done' ? 'Approved.' : step1 === 'review' ? 'Drafted — review it on The series and approve it.' : step1 === 'drafting' ? 'The update is in; the draft is being written.' : `Write what is happening on ${esc((c.subject_address || '').split(',')[0])} now (two or three sentences, a photo if there is one) or ask ${esc(p.first_name || p.contact_name || 'the partner')} to. The draft comes back in about half a minute.`)
+          : (step1 === 'done' ? 'Every email approved.' : `${num(c.copy_total - c.copy_approved)} of ${num(c.copy_total)} still need your approval on The series.`)}</span>
+          ${step1 === 'write' ? `<div class="row" style="margin-top:6px"><button class="btn small" id="agWrite">Write the first update</button><button class="btn ghost small" id="agAsk">Ask ${esc(p.first_name || 'the partner')}</button></div>` : step1 === 'review' ? `<div class="row" style="margin-top:6px"><button class="btn small" id="agReview">Review email 1</button></div>` : ''}</li>
+        <li class="${!missing.length ? 'done' : ''}"><b>The sender</b><span>${missing.length ? 'Still needed: ' + esc(missing.join(', ')) + '.' : `${esc(p.from_name || p.contact_name || '')} &lt;${esc((p.from_local || 'hello') + '@' + (p.sending_domain || ''))}&gt;${dom.status === 'paused' ? ' — the domain starts warming the moment you start' : ''}.`}</span></li>
+        <li><b>Start the campaign</b><span>Email 1 goes to the verified neighbors at ${num(dom.ramp_start || 10)} a day, ${num(dom.ramp_step || 3)} more each day, up to ${num(dom.ramp_max || 50)}; ${num(st.ready || 0)} are verified now.</span></li>
+      </ol></div>
     <div class="row">
-      ${c.status === 'running' ? `<button class="btn warn small" id="agPause">Pause the campaign</button>` : c.status === 'paused' ? `<button class="btn ok small" id="agResume">Resume</button>` : `<button class="btn ok small" id="agStart"${can ? '' : ' disabled'}>Start the campaign</button>`}
+      <button class="btn ok small" id="agStart"${can ? '' : ' disabled'}>Start the campaign</button>
       <button class="btn ghost small" id="agDetails">Partner details</button>
     </div></div>
     <div id="agMsg"></div>
@@ -378,12 +393,19 @@ function wireAgentBar() {
   const c = S.camp; if (!c || S.role !== 'agent') return;
   const out = $('agMsg');
   const say = (ok, t) => { out.innerHTML = `<div class="msg ${ok ? 'ok' : 'err'}">${esc(t)}</div>`; };
+  const wr = $('agWrite'); if (wr) wr.addEventListener('click', () => { S.tab = 'overview'; loadTab().then(() => { const b = $('updNew'); if (b) b.click(); const t = $('updText'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.focus(); } }); });
+  const ak = $('agAsk'); if (ak) ak.addEventListener('click', async () => { ak.disabled = true;
+    const { data, error } = await sb.functions.invoke('contractor-update', { body: { action: 'request', campaign_id: c.id } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (!res || res.ok !== true) { say(false, 'Not asked: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' ')); ak.disabled = false; return; }
+    say(true, `Asked ${res.to} for the first update.`); await refreshOv(); });
+  const rv = $('agReview'); if (rv) rv.addEventListener('click', () => { S.tab = 'series'; S.series = null; loadTab(); });
   const start = $('agStart'); if (start) start.addEventListener('click', async () => {
     if (!start.classList.contains('armed')) { start.classList.add('armed'); start.textContent = 'Start it? Tap again'; return; }
     start.disabled = true;
     try { const r = await rpc('contractor_campaign_approve', { p_campaign_id: c.id });
       if (!r.ok) { say(false, 'Not started: ' + (r.detail || (r.missing ? r.missing.join(', ') : r.error))); start.disabled = false; start.classList.remove('armed'); start.textContent = 'Start the campaign'; return; }
-      say(true, `Started. ${num(r.staged.leads)} neighbors staged (${num(r.staged.emails)} emails), email 1 approved; the domain is warming from today.`);
+      say(true, `Started. ${num(r.staged.staged != null ? r.staged.staged : r.staged.leads)} neighbors get email 1 within the allowance; the domain is warming from today.`);
       await refreshOv(); } catch (e) { say(false, e.message); start.disabled = false; }
   });
   const pause = $('agPause'); if (pause) pause.addEventListener('click', async () => {
@@ -400,8 +422,8 @@ function wireAgentBar() {
 function renderPartnerForm(box) {
   const p = partnerOf(S.camp);
   box.innerHTML = `<div class="grid g2">
-    <div class="field"><label>Postal address (goes in every email footer)</label><input id="pfPostal" value="${esc(p.postal_address || '')}" placeholder="Street, City, CA ZIP"></div>
-    <div class="field"><label>CSLB licence number</label><input id="pfCslb" value="${esc(p.cslb_license || '')}" placeholder="e.g. 1023456"></div>
+    <div class="field"><label>Postal address (optional; the market's goes in the footer otherwise)</label><input id="pfPostal" value="${esc(p.postal_address || '')}" placeholder="Street, City, CA ZIP"></div>
+    <div class="field"><label>Licence # (if their trade has one)</label><input id="pfCslb" value="${esc(p.cslb_license || '')}" placeholder="optional"></div>
     <div class="field"><label>Partner’s own inbox (replies are copied here)</label><input id="pfFwd" type="email" value="${esc(p.forward_email || '')}" placeholder="name@company.com"></div>
     <div class="field"><label>Phone</label><input id="pfPhone" value="${esc(p.phone || '')}"></div>
     <div class="field"><label>Website</label><input id="pfWeb" value="${esc(p.website || '')}"></div>
@@ -455,7 +477,7 @@ function overviewHtml() {
         <p class="note" style="margin-top:8px"><b>Sending domain</b> ${esc(d.domain || p.sending_domain || '')} &middot; ${d.status === 'warming' ? `warming since ${esc(day(d.started))}: ${num(d.limit_today)} a day today (${num(d.sent_today)} used), rising ${num(d.ramp_step)} a day to ${num(d.ramp_max)}${d.full_on ? ' by ' + esc(day(d.full_on)) : ''}` : d.status === 'live' ? `established, ${num(d.limit_today)} a day` : 'not warming yet: it starts the day the agent starts the campaign'}.</p>
         <p class="fine" style="margin-top:8px">A new domain earns its reputation slowly: a small number of emails a day, growing by a few each day, with our own seed inboxes opening and replying alongside the real ones. Sending faster than this is what lands a domain in spam.</p></div>
       <div class="card"><h3>Who you are writing to</h3>
-        <p class="note" style="margin-top:8px">Owners of record from the San Francisco assessor roll, matched to a verified personal email through public-record skip tracing. Trust- and company-held homes where no person could be matched are on the list without an address; they can be reached by letter later.</p>
+        <p class="note" style="margin-top:8px">Owners of record from the San Francisco assessor roll, matched to a verified personal email through public-record skip tracing. Trust- and company-held homes where no person could be matched are on the list without an address.</p>
         <p class="note" style="margin-top:8px"><b>Sends as</b> ${esc((p.from_name || p.contact_name || '') + ' <' + (p.from_local || 'hello') + '@' + (p.sending_domain || '') + '>')}. Replies come to you${p.forward_email ? ' at ' + esc(p.forward_email) : ' (ask the agent to set the inbox they should be copied to)'} and to the agent desk.</p>
         ${c.missing && c.missing.length ? `<div class="msg info">Before anything sends, the agent still needs: ${esc(c.missing.join(', '))}.</div>` : ''}</div>
     </div>
@@ -489,7 +511,7 @@ function journalHtml() {
       ${ou.partner_text ? `<div class="msg info" style="white-space:pre-wrap">${esc(ou.partner_text)}</div>` : ''}
       <div class="row" style="margin-top:10px"><button class="btn small" id="updGoSeries">Open it on The series</button>${agent ? `<input id="updSteer" placeholder="Steer the redraft (optional): shorter, more on the steel, …" style="max-width:320px"><button class="btn ghost small" id="updRedraft" data-id="${ou.id}">Draft again</button>` : ''}<span class="note" id="updMsg"></span></div>`;
   } else {
-    body = `<p class="note" style="margin:4px 0 12px">${lv.ask_on ? `The next update will be asked for around ${esc(day(lv.ask_on))}, for email ${num(lv.next_step || 1)}${lv.next_due ? ' going out around ' + esc(day(lv.next_due)) : ''}.` : `The next email is written from ${agent ? first + "'s" : 'your'} next update.`} ${agent ? '' : 'You can write one any time.'}</p>
+    body = `<p class="note" style="margin:4px 0 12px">${c.status !== 'running' ? `Email 1 is written from the first update${agent ? '' : ' — yours'}.` : lv.ask_on ? `The next update will be asked for around ${esc(day(lv.ask_on))}, for email ${num(lv.next_step || 1)}${lv.next_due ? ' going out around ' + esc(day(lv.next_due)) : ''}.` : `The next email is written from ${agent ? first + "'s" : 'your'} next update.`} ${agent ? '' : 'You can write one any time.'}</p>
       <div class="row"><button class="btn small" id="updNew">Write an update now</button>${agent ? `<button class="btn ghost small" id="updAsk">Ask ${first} for an update</button>` : ''}<span class="note" id="updMsg"></span></div><div id="updFormHost"></div>`;
   }
   return `<div class="journal${ou && ou.status === 'requested' && !agent ? ' due' : ''}"><div class="row sp"><h3>The project journal</h3><span class="fine">${num(st.updates_done || 0)} update${Number(st.updates_done || 0) === 1 ? '' : 's'} sent · every ${num(c.cadence_days)} days</span></div>
@@ -543,7 +565,7 @@ function formOnly() {
 /* ---------- getting started (an applicant, or a partner with no campaign yet) ---------- */
 function mailCardHtml(p) {
   const mk = p.market || {};
-  if (!mk.mail_partners) return `<div class="card" style="margin-top:14px"><h3>The monthly mailing</h3><p class="note" style="margin-top:8px">${esc(mk.display_name || 'This market')} does not mail its homeowners yet. When it does, partners get the first offer of a spot on the Market Partners page of the mailing.</p></div>`;
+  if (!mk.mail_partners) return '';
   const mp = p.mail_partner, ap = p.mail_application;
   return `<div class="card" style="margin-top:14px"><div class="row sp"><h3>Your spot in the monthly mailing</h3>${mp ? `<span class="pill ${mp.status === 'active' ? 'ok' : 'acc'}">${esc(mp.tier || '')} · ${esc(mp.status)}</span>` : ap ? '<span class="pill warn">Applied</span>' : ''}</div>
     <p class="note" style="margin-top:8px">${esc(mk.display_name)} mails ${esc(mk.city)} homeowners every month. The Market Partners page of that mailing carries one business per trade: <b>Neighbor</b> ($100/mo, your logo and one line) or <b>Featured</b> ($200/mo, a panel with your story, a photo and a QR code). Month to month, every word approved by you. That is how the mailing’s cost is shared, and how your name reaches homes that are not on your email list.</p>
@@ -567,7 +589,7 @@ function startHtml() {
       <div class="card"><h3>Your details</h3>
         <dl style="display:grid;grid-template-columns:110px 1fr;gap:6px 12px;margin:10px 0 0;font-size:14px">
           <dt class="fine">Company</dt><dd style="margin:0">${esc(p.company)}</dd><dt class="fine">Contact</dt><dd style="margin:0">${esc(p.contact_name)} · ${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}</dd>
-          ${p.trade ? `<dt class="fine">Trade</dt><dd style="margin:0">${esc(p.trade)}</dd>` : ''}${p.service_area ? `<dt class="fine">Area</dt><dd style="margin:0">${esc(p.service_area)}</dd>` : ''}${p.cslb_license ? `<dt class="fine">CSLB</dt><dd style="margin:0">${esc(p.cslb_license)}</dd>` : ''}${p.website ? `<dt class="fine">Website</dt><dd style="margin:0">${esc(p.website)}</dd>` : ''}
+          ${p.trade ? `<dt class="fine">Trade</dt><dd style="margin:0">${esc(p.trade)}</dd>` : ''}${p.service_area ? `<dt class="fine">Area</dt><dd style="margin:0">${esc(p.service_area)}</dd>` : ''}${p.cslb_license ? `<dt class="fine">Licence</dt><dd style="margin:0">${esc(p.cslb_license)}</dd>` : ''}${p.website ? `<dt class="fine">Website</dt><dd style="margin:0">${esc(p.website)}</dd>` : ''}
         </dl><p class="fine" style="margin-top:10px">Something wrong? Mention it on the call or in your brief.</p></div>
       ${mailCardHtml(p)}
     </div></div>`;
@@ -932,7 +954,7 @@ function applicantsHtml() {
   return `<div class="card" style="margin-bottom:14px"><div class="row sp"><h3>Applied to be a partner</h3><span class="note">${num(apps.length)} waiting</span></div>
     <p class="fine" style="margin:6px 0 12px">They signed up on the market site and have the link to book a call with Tim. Accept to make them a partner (enter the sending domain once it is registered and added in Resend; it can come later), or decline.</p>
     ${apps.map((p) => { const bs = briefs.filter((b) => b.partner_id === p.id); return `<div class="applicant" data-id="${p.id}">
-      <div class="row sp"><div><b>${esc(p.company)}</b> · ${esc(p.contact_name)}${p.trade ? ' · ' + esc(p.trade) : ''}<div class="meta">${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}${p.website ? ' · <a href="' + esc(/^https?:/.test(p.website) ? p.website : 'https://' + p.website) + '" target="_blank" rel="noopener">' + esc(p.website) + '</a>' : ''}${p.cslb_license ? ' · CSLB ' + esc(p.cslb_license) : ''}${p.service_area ? ' · ' + esc(p.service_area) : ''}</div>
+      <div class="row sp"><div><b>${esc(p.company)}</b> · ${esc(p.contact_name)}${p.trade ? ' · ' + esc(p.trade) : ''}<div class="meta">${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}${p.website ? ' · <a href="' + esc(/^https?:/.test(p.website) ? p.website : 'https://' + p.website) + '" target="_blank" rel="noopener">' + esc(p.website) + '</a>' : ''}${p.cslb_license ? ' · licence ' + esc(p.cslb_license) : ''}${p.service_area ? ' · ' + esc(p.service_area) : ''}</div>
         <div class="meta">Applied ${esc(day(p.applied_at))} · ${p.call_booked_at ? 'call booked ' + esc(day(p.call_booked_at)) : 'call not booked yet'} · ${bs.length ? num(bs.length) + ' brief' + (bs.length > 1 ? 's' : '') + ' sent' : 'no brief yet'}${p.market ? ' · ' + esc(p.market.display_name) : ''}</div>
         ${p.notes ? `<div class="meta" style="white-space:pre-wrap">${esc(p.notes)}</div>` : ''}</div></div>
       <div class="row" style="margin-top:10px;flex-wrap:wrap"><input class="apDom" data-id="${p.id}" placeholder="Sending domain (optional now)" style="max-width:240px"><input class="apLocal" data-id="${p.id}" placeholder="local part" value="${esc(p.from_local || '')}" style="max-width:120px"><input class="apNotes" data-id="${p.id}" placeholder="Notes from the call" style="max-width:260px">
@@ -952,7 +974,7 @@ function partnersHtml() {
           <td>${statusPill(p.status)}</td></tr>`).join('')}
       </tbody></table></div>` : '<p class="note" style="margin-top:6px">No partners yet.</p>'}</div>
     <div class="grid g2" style="margin-top:14px">
-      <div class="card"><h3>Add a contractor partner</h3><p class="fine" style="margin:6px 0 12px">Their own sending domain is what keeps their mail off the market’s reputation: register it, add it in Resend (DKIM), and enter it here. Postal address and CSLB licence are needed before anything sends; they can come later.</p>
+      <div class="card"><h3>Add a contractor partner</h3><p class="fine" style="margin:6px 0 12px">Their own sending domain is what keeps their mail off the market’s reputation: register it, add it in Resend (DKIM), and enter it here. Everything else can come later.</p>
         <div class="grid g2">
           <div class="field"><label>Company</label><input id="npCompany" placeholder="Blu Leaf Property Solutions"></div>
           <div class="field"><label>Contact name</label><input id="npContact" placeholder="Ashley Reese"></div>
@@ -963,7 +985,7 @@ function partnersHtml() {
           <div class="field"><label>Website</label><input id="npWeb" placeholder="https://"></div>
           <div class="field"><label>Their real inbox (reply copies)</label><input id="npFwd" type="email"></div>
           <div class="field"><label>Postal address</label><input id="npPostal" placeholder="Street, City, CA ZIP"></div>
-          <div class="field"><label>CSLB licence</label><input id="npCslb"></div>
+          <div class="field"><label>Licence # (if their trade has one)</label><input id="npCslb"></div>
         </div>
         ${(S.ov.markets || []).length > 1 ? `<div class="field"><label>Market</label><select id="npMarket">${(S.ov.markets || []).map((m) => `<option value="${m.id}"${mk.id === m.id ? ' selected' : ''}>${esc(m.display_name || m.city)}</option>`).join('')}</select></div>` : `<p class="fine" style="margin-bottom:10px">Market: <b>${esc(mk.display_name || mk.city || ((S.ov.markets || [])[0] || {}).display_name || '')}</b>.</p>`}
         <div class="row"><button class="btn small" id="npSave">Add the partner</button><span class="note" id="npMsg"></span></div>
@@ -1017,7 +1039,7 @@ function wirePartners() {
     const marketId = $('npMarket') ? Number($('npMarket').value) : (mk.id || ((S.ov.partners || [])[0] || {}).market_id || ((S.ov.markets || [])[0] || {}).id);
     try { const r = await rpc('contractor_partner_create', { p: { market_id: marketId, company: $('npCompany').value, contact_name: $('npContact').value, email: $('npEmail').value, phone: $('npPhone').value, sending_domain: $('npDomain').value, from_local: $('npLocal').value, website: $('npWeb').value, forward_email: $('npFwd').value, postal_address: $('npPostal').value, cslb_license: $('npCslb').value } });
       if (!r.ok) { m.textContent = 'Not added: ' + String(r.error).replace(/_/g, ' '); save.disabled = false; return; }
-      await refreshOv(); const m2 = $('npMsg'); if (m2) m2.textContent = `Added ${r.company || 'the partner'}. Next: their domain in Resend (DKIM, then the root MX for replies), postal address and CSLB on the partner record, and a campaign below.`; } catch (e) { m.textContent = e.message; save.disabled = false; }
+      await refreshOv(); const m2 = $('npMsg'); if (m2) m2.textContent = `Added ${r.company || 'the partner'}. Next: their domain in Resend (DKIM, then the root MX for replies), their real inbox on the partner record, and a campaign below.`; } catch (e) { m.textContent = e.message; save.disabled = false; }
   });
   host.querySelectorAll('.pwSet').forEach((b) => b.addEventListener('click', async () => {
     const id = b.dataset.id, inp = host.querySelector(`.pwIn[data-id="${id}"]`), m = host.querySelector(`.pwMsg[data-id="${id}"]`);
