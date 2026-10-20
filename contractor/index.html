@@ -970,7 +970,8 @@ function partnersHtml() {
       ${ps.length ? `<div class="tbl" style="margin-top:10px;border:0"><table><thead><tr><th>Company</th><th>Contact</th><th>Sends as</th><th>Campaigns</th><th>Portal login</th><th>Status</th></tr></thead><tbody>
         ${ps.map((p) => `<tr><td><b>${esc(p.company)}</b></td><td>${esc(p.contact_name)}<br><span class="fine">${esc(p.email)}</span></td><td class="fine">${esc((p.from_local || 'hello') + '@' + (p.sending_domain || '—'))}<br><span class="fine">${p.domain_status ? 'domain ' + esc(p.domain_status) : 'no sending domain'}</span></td>
           <td>${camps.filter((x) => x.partner_id === p.id).map((x) => `<a href="#c${x.id}" class="campLink" data-id="${x.id}">${esc(x.name)}</a> ${statusPill(x.status)}`).join('<br>') || '<span class="fine">none yet</span>'}${p.market && p.market.mail_partners ? `<div class="fine" style="margin-top:4px">Mailing: ${p.mail_partner ? esc(p.mail_partner.tier + ' · ' + p.mail_partner.status) : p.mail_application ? 'applied ' + esc(day(p.mail_application.created_at)) : 'no spot'}</div>` : ''}</td>
-          <td>${p.has_login ? '<span class="pill ok">Created</span>' : '<span class="pill warn">Not yet</span>'}<div class="row" style="margin-top:6px;gap:6px"><input type="password" class="pwIn" data-id="${p.id}" placeholder="${p.has_login ? 'New password' : 'Password (8+)'}" autocomplete="new-password" style="width:150px;padding:6px 8px;font-size:13px"><button class="btn ghost tiny pwSet" data-id="${p.id}" data-has="${p.has_login ? 1 : 0}">${p.has_login ? 'Reset' : 'Create'}</button></div><div class="fine pwMsg" data-id="${p.id}"></div></td>
+          <td>${p.has_login ? '<span class="pill ok">Created</span>' : '<span class="pill warn">Not yet</span>'}<div class="row" style="margin-top:6px;gap:6px"><input type="password" class="pwIn" data-id="${p.id}" placeholder="${p.has_login ? 'New password' : 'Password (8+)'}" autocomplete="new-password" style="width:150px;padding:6px 8px;font-size:13px"><button class="btn ghost tiny pwSet" data-id="${p.id}" data-has="${p.has_login ? 1 : 0}">${p.has_login ? 'Reset' : 'Create'}</button></div><div class="fine pwMsg" data-id="${p.id}"></div>
+            <div class="row" style="margin-top:8px;gap:6px"><button class="btn ghost tiny obSend" data-id="${p.id}" data-me="0" title="The tour of the partner account, to ${esc(p.forward_email || p.email)}">Send onboarding email</button><button class="btn ghost tiny obSend" data-id="${p.id}" data-me="1">Email me the example</button></div><div class="fine obMsg" data-id="${p.id}"></div></td>
           <td>${statusPill(p.status)}</td></tr>`).join('')}
       </tbody></table></div>` : '<p class="note" style="margin-top:6px">No partners yet.</p>'}</div>
     <div class="grid g2" style="margin-top:14px">
@@ -1041,6 +1042,14 @@ function wirePartners() {
       if (!r.ok) { m.textContent = 'Not added: ' + String(r.error).replace(/_/g, ' '); save.disabled = false; return; }
       await refreshOv(); const m2 = $('npMsg'); if (m2) m2.textContent = `Added ${r.company || 'the partner'}. Next: their domain in Resend (DKIM, then the root MX for replies), their real inbox on the partner record, and a campaign below.`; } catch (e) { m.textContent = e.message; save.disabled = false; }
   });
+  host.querySelectorAll('.obSend').forEach((b) => b.addEventListener('click', async () => {
+    const id = b.dataset.id, me = b.dataset.me === '1', m = host.querySelector(`.obMsg[data-id="${id}"]`);
+    if (!me && !b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Send it to the partner? Tap again'; return; }
+    b.disabled = true; m.textContent = 'Sending…';
+    try { const r = await rpc('contractor_onboarding_send', { p_partner_id: Number(id), p_to: me ? 'me' : null });
+      m.textContent = r.ok ? `Sent to ${r.to}.` : 'Not sent: ' + String(r.error).replace(/_/g, ' '); } catch (e) { m.textContent = e.message; }
+    b.disabled = false; if (!me) { b.classList.remove('armed'); b.textContent = 'Send onboarding email'; }
+  }));
   host.querySelectorAll('.pwSet').forEach((b) => b.addEventListener('click', async () => {
     const id = b.dataset.id, inp = host.querySelector(`.pwIn[data-id="${id}"]`), m = host.querySelector(`.pwMsg[data-id="${id}"]`);
     const pw = inp.value; if (pw.length < 8) { m.textContent = 'At least 8 characters.'; return; }
