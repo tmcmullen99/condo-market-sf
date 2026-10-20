@@ -415,6 +415,14 @@
   }
   function storePersona(v) {
     try { localStorage.setItem(PERSONA_KEY, v); } catch (e) {}
+    /* 20 Oct 2026: the door also goes on a cm_persona cookie on the parent domain, which the account app on
+       app.<domain> reads at sign-in (record_signup_origin). localStorage never crosses that origin. */
+    try {
+      var p = v === 'owner' ? 'homeowner' : v === 'buyer' ? 'buyer' : '';
+      if (!p) return;
+      var dom = PAGE_AGENT.domain && location.hostname.slice(-PAGE_AGENT.domain.length) === PAGE_AGENT.domain ? '; domain=.' + PAGE_AGENT.domain : '';
+      document.cookie = 'cm_persona=' + p + '; max-age=' + (60 * 60 * 24 * 90) + dom + '; path=/; SameSite=Lax; Secure';
+    } catch (e) {}
   }
 
   /* --------------------- persistent persona prompt -----------------------

@@ -161,6 +161,14 @@ export const CM = {
      modal; the only thing that ever read the queue was the retired /dashboard/, so the owner's number was lost
      every time. The moment the email is known (sign-up or magic link) the intent is filed as a lead
      (lead_captures, intent mmm_price, source owner_signup) under this market, and the queue is cleared. */
+  /* The popup's owner/buyer door (cm_persona), or a queued owner sign-up, as the account's persona. */
+  sitePersona() {
+    try {
+      if (localStorage.getItem('cm_owner_intent')) return 'homeowner';
+      const v = localStorage.getItem('cm_persona');
+      return v === 'owner' ? 'homeowner' : v === 'buyer' ? 'buyer' : null;
+    } catch (e) { return null; }
+  },
   async fileOwnerIntent(email) {
     let raw = null;
     try { raw = localStorage.getItem('cm_owner_intent'); } catch (e) {}
@@ -192,6 +200,7 @@ export const CM = {
           referred_by_code: referralCode || '',
           market_slug: CM.marketSlug(),
           signup_host: (typeof location !== 'undefined' && location.hostname) || '',
+          persona: CM.sitePersona(),
         },
       },
     });
@@ -212,7 +221,7 @@ export const CM = {
       email,
       options: {
         emailRedirectTo: buildAuthCallbackUrl(),
-        data: { referred_by_code: referralCode || '', market_slug: CM.marketSlug(), signup_host: (typeof location !== 'undefined' && location.hostname) || '' },
+        data: { referred_by_code: referralCode || '', market_slug: CM.marketSlug(), signup_host: (typeof location !== 'undefined' && location.hostname) || '', persona: CM.sitePersona() },
       },
     });
     if (!res.error) CM.fileOwnerIntent(email);
