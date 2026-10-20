@@ -147,6 +147,16 @@ export const CM = {
   },
 
   /** Sign up with email + password. Passes full_name, phone, and stored ref code into raw_user_meta_data. */
+  /* The market the account is opened on (20 Oct 2026). The worker sets window.__CM_MARKET__ on rendered pages; a
+     static page falls back to the hostname. The lead sync reads it, so a sign-up on another condo market is never
+     filed under San Francisco Condo Market by default. */
+  marketSlug() {
+    if (typeof window !== 'undefined' && typeof window.__CM_MARKET__ === 'string' && window.__CM_MARKET__) return window.__CM_MARKET__;
+    const h = (typeof location !== 'undefined' && location.hostname || '').toLowerCase();
+    if (h.indexOf('eichlermarket') !== -1) return 'eichler-market';
+    if (h.indexOf('siliconvalleycondomarket') !== -1) return 'silicon-valley-condo-market';
+    return 'san-francisco-condo-market';
+  },
   async signUp({ email, password, fullName, phone }) {
     rememberCurrentPath();
     const referralCode = getStoredReferralCode();
@@ -159,6 +169,8 @@ export const CM = {
           full_name: fullName || '',
           phone: phone || '',
           referred_by_code: referralCode || '',
+          market_slug: CM.marketSlug(),
+          signup_host: (typeof location !== 'undefined' && location.hostname) || '',
         },
       },
     });
@@ -179,7 +191,7 @@ export const CM = {
       email,
       options: {
         emailRedirectTo: buildAuthCallbackUrl(),
-        data: { referred_by_code: referralCode || '' },
+        data: { referred_by_code: referralCode || '', market_slug: CM.marketSlug(), signup_host: (typeof location !== 'undefined' && location.hostname) || '' },
       },
     });
   },
