@@ -140,6 +140,14 @@ details[open] summary{margin-bottom:10px}
 .leaflet-container{font-family:'DM Sans',system-ui,sans-serif}
 tr.nbfocus td{background:var(--accent-soft)}
 @media (max-width:640px){#nbmap{height:300px}}
+/* the project journal (live series) */
+.journal{border:1px solid var(--line);border-radius:14px;background:#fff;padding:16px 18px;margin-bottom:14px}
+.journal.due{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.jl{display:flex;gap:12px;padding:10px 0;border-top:1px solid #f1f3f7;align-items:flex-start}.jl:first-child{border-top:0}
+.jl .th{width:72px;height:54px;border-radius:8px;object-fit:cover;flex:none;background:#eef1f6}.jl .ph{width:72px;height:54px;border-radius:8px;flex:none;background:#eef1f6;display:grid;place-items:center;color:var(--ink-3);font-size:11px}
+.jl .t{flex:1;min-width:0}.jl .t b{display:block}.jl .t span{color:var(--ink-2);font-size:13.5px;display:block;white-space:pre-wrap}
+.photoin{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.photoin img{max-height:120px;border-radius:8px}
+.photoin input[type=file]{width:auto;padding:6px}
 /* trace panel */
 .tracebox{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;margin-bottom:12px}
 .tracebox .counts{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 10px}.tracebox .counts div{font-size:13px;color:var(--ink-2)}.tracebox .counts b{display:block;font-size:1.3rem;color:var(--ink)}
@@ -421,7 +429,7 @@ async function loadTab() {
   if (S.tab === 'partners' && S.role === 'agent') { shell(partnersHtml()); wirePartners(); wireAgentBar(); return; }
   if (S.tab === 'brief' && S.role === 'partner') { shell(briefHtml()); wireBrief(); return; }
   if (!S.camp) { shell(S.role === 'partner' ? startHtml() : `<div class="card"><p class="note">No campaign on this account yet. Add a partner and build a campaign under Partners.</p></div>`); if (S.role === 'partner') wireStart(); wireAgentBar(); return; }
-  if (S.tab === 'overview') { shell(overviewHtml()); }
+  if (S.tab === 'overview') { shell(overviewHtml()); if ((S.camp.stats || {}).series_mode === 'live') wireJournal(); }
   else if (S.tab === 'emails') { shell('<p class="note">Loading the allowance…</p>'); [S.cap, S.sched] = await Promise.all([rpc('contractor_send_cap', { p_campaign_id: S.camp.id }), rpc('contractor_email_schedule', { p_campaign_id: S.camp.id })]); shell(emailsHtml()); wireEmails(); }
   else if (S.tab === 'series') { shell('<p class="note">Loading the series…</p>'); S.series = S.series || await rpc('contractor_portal_series', { p_campaign_id: S.camp.id }); shell(seriesHtml()); wireSeries(); }
   else if (S.tab === 'leads') { shell('<p class="note">Loading neighbors…</p>'); S.leads = await rpc('contractor_portal_leads', { p_campaign_id: S.camp.id, p_status: S.leadFilter, p_q: S.leadQ || null, p_limit: 400, p_offset: 0 }); shell(leadsHtml()); wireLeads(); }
@@ -432,8 +440,9 @@ async function loadTab() {
 
 function overviewHtml() {
   const c = S.camp, st = c.stats || {}, d = st.domain || {}, p = partnerOf(c);
+  const live = st.series_mode === 'live';
   const sentPct = st.with_email ? Math.round(100 * Number(st.sent || 0) / (Number(st.with_email) * Number(c.steps || 6))) : 0;
-  return `
+  return `${live ? journalHtml() : ''}
     <div class="grid g4">
       <div class="card stat"><div class="k">Homes on the list</div><div class="v">${num(st.homes)}</div><div class="n">the ${num(c.target_count)} single-family homes nearest ${esc((c.subject_address || '').split(',')[0])}</div></div>
       <div class="card stat"><div class="k">Owners with an email</div><div class="v">${num(st.with_email)}</div><div class="n">${num(st.ready + st.queued + st.in_series + st.done + st.replied)} verified &middot; ${num(st.verifying)} being checked &middot; ${num(st.no_email)} no address on file</div></div>
@@ -442,7 +451,7 @@ function overviewHtml() {
     </div>
     <div class="grid g2" style="margin-top:14px">
       <div class="card"><h3>How the series runs</h3>
-        <p class="note" style="margin-top:8px">${num(c.steps)} emails, one every ${num(c.cadence_days)} days, to each neighbor whose address verified. Email 1 waits for the agent’s approval; the rest follow on their own, ${num(c.cadence_days)} days after the one before. A reply, an unsubscribe or a bounce stops that neighbor’s series the same day.</p>
+        <p class="note" style="margin-top:8px">${live ? `One email every ${num(c.cadence_days)} days, each written from the latest project update and approved by the agent before it goes; it reaches every neighbor whose address verified, ${num(c.cadence_days)} days after their previous one. A reply, an unsubscribe or a bounce stops that neighbor’s series the same day.` : `${num(c.steps)} emails, one every ${num(c.cadence_days)} days, to each neighbor whose address verified. Email 1 waits for the agent’s approval; the rest follow on their own, ${num(c.cadence_days)} days after the one before. A reply, an unsubscribe or a bounce stops that neighbor’s series the same day.`}</p>
         <p class="note" style="margin-top:8px"><b>Sending domain</b> ${esc(d.domain || p.sending_domain || '')} &middot; ${d.status === 'warming' ? `warming since ${esc(day(d.started))}: ${num(d.limit_today)} a day today (${num(d.sent_today)} used), rising ${num(d.ramp_step)} a day to ${num(d.ramp_max)}${d.full_on ? ' by ' + esc(day(d.full_on)) : ''}` : d.status === 'live' ? `established, ${num(d.limit_today)} a day` : 'not warming yet: it starts the day the agent starts the campaign'}.</p>
         <p class="fine" style="margin-top:8px">A new domain earns its reputation slowly: a small number of emails a day, growing by a few each day, with our own seed inboxes opening and replying alongside the real ones. Sending faster than this is what lands a domain in spam.</p></div>
       <div class="card"><h3>Who you are writing to</h3>
@@ -450,11 +459,85 @@ function overviewHtml() {
         <p class="note" style="margin-top:8px"><b>Sends as</b> ${esc((p.from_name || p.contact_name || '') + ' <' + (p.from_local || 'hello') + '@' + (p.sending_domain || '') + '>')}. Replies come to you${p.forward_email ? ' at ' + esc(p.forward_email) : ' (ask the agent to set the inbox they should be copied to)'} and to the agent desk.</p>
         ${c.missing && c.missing.length ? `<div class="msg info">Before anything sends, the agent still needs: ${esc(c.missing.join(', '))}.</div>` : ''}</div>
     </div>
-    <div class="card" style="margin-top:14px"><div class="row sp"><h3>Progress by email</h3><span class="note">${sentPct}% of the planned ${num(Number(st.with_email) * Number(c.steps || 6))} sends</span></div>
+    <div class="card" style="margin-top:14px"><div class="row sp"><h3>Progress by email</h3><span class="note">${live ? num(st.sent) + ' sent so far' : sentPct + '% of the planned ' + num(Number(st.with_email) * Number(c.steps || 6)) + ' sends'}</span></div>
       <div class="tbl" style="margin-top:10px;border:0"><table><thead><tr><th>Email</th><th>Sent</th></tr></thead><tbody>
         ${Array.from({ length: Number(c.steps || 6) }, (_, i) => `<tr><td>Email ${i + 1}</td><td class="mono">${num((st.by_step || {})[String(i + 1)] || 0)}</td></tr>`).join('')}
       </tbody></table></div></div>
     ${S.role === 'partner' ? mailCardHtml(p) : ''}`;
+}
+
+/* ---------- the project journal: a live series is built one update at a time ---------- */
+function journalHtml() {
+  const c = S.camp, st = c.stats || {}, lv = st.live || {}, ou = st.open_update, agent = S.role === 'agent', p = partnerOf(c);
+  const street = (c.subject_address || '').split(',')[0];
+  const first = esc(p.first_name || (p.contact_name || '').split(' ')[0] || 'you');
+  const form = (u) => `<div id="updForm" data-id="${u ? u.id : ''}">
+      <div class="field"><label>${u && u.step > 1 ? `What happened on ${esc(street)} since the last email?` : `What is happening on ${esc(street)} right now?`}</label>
+        <textarea id="updText" style="min-height:110px" placeholder="Two or three sentences is plenty: what got done, what is next, anything a neighbor walking past might have noticed.">${esc(u && u.partner_text || '')}</textarea></div>
+      <div class="field"><label>A photo from the job (optional)</label><div class="photoin"><input type="file" id="updPhoto" accept="image/*"><img id="updPrev" class="${u && u.image_url ? '' : 'hidden'}" src="${esc(u && u.image_url || '')}" alt=""></div></div>
+      <div class="row"><button class="btn small" id="updSend">${u && u.partner_text ? 'Send again' : 'Send the update'}</button><span class="note" id="updMsg"></span></div>
+      <p class="fine" style="margin-top:8px">From this, a short email is drafted: the progress in plain words, one thing an expert would tell a homeowner about that part of the work, and the usual line — <i>If you're thinking of a project, happy to swing by.</i> ${agent ? 'You' : 'Tim'} review${agent ? '' : 's'} it before it goes to the ${num(c.target_count)} neighbors.</p></div>`;
+  let body = '';
+  if (ou && ou.status === 'requested') {
+    body = `<p class="note" style="margin:4px 0 12px">${agent ? `Email ${num(ou.step)} is waiting on ${first}'s update, asked ${esc(day(ou.requested_at))}. You can write it for them from the call.` : `Email ${num(ou.step)} to your neighbors is next. ${lv.next_due ? 'It goes out around ' + esc(day(lv.next_due)) + '.' : ''}`}</p>${form(ou)}`;
+  } else if (ou && ou.status === 'submitted') {
+    body = `<p class="note" style="margin:4px 0 12px">Update ${num(ou.step)} is in${ou.draft_error ? `, but the draft did not come back (${esc(ou.draft_error)}).` : '; the draft is being written.'}</p>
+      ${ou.partner_text ? `<div class="msg info" style="white-space:pre-wrap">${esc(ou.partner_text)}</div>` : ''}
+      <div class="row" style="margin-top:10px"><button class="btn small" id="updDraft" data-id="${ou.id}">Draft the email${ou.draft_error ? ' again' : ''}</button><span class="note" id="updMsg"></span></div>`;
+  } else if (ou && ou.status === 'drafted') {
+    body = `<p class="note" style="margin:4px 0 12px">Email ${num(ou.step)} is drafted from ${agent ? first + "'s" : 'your'} update. ${agent ? 'Review and approve it on The series; it then goes to everyone in the series within the allowance.' : 'Tim is reviewing it; you can read it and ask for changes on The series.'}</p>
+      ${ou.partner_text ? `<div class="msg info" style="white-space:pre-wrap">${esc(ou.partner_text)}</div>` : ''}
+      <div class="row" style="margin-top:10px"><button class="btn small" id="updGoSeries">Open it on The series</button>${agent ? `<input id="updSteer" placeholder="Steer the redraft (optional): shorter, more on the steel, …" style="max-width:320px"><button class="btn ghost small" id="updRedraft" data-id="${ou.id}">Draft again</button>` : ''}<span class="note" id="updMsg"></span></div>`;
+  } else {
+    body = `<p class="note" style="margin:4px 0 12px">${lv.ask_on ? `The next update will be asked for around ${esc(day(lv.ask_on))}, for email ${num(lv.next_step || 1)}${lv.next_due ? ' going out around ' + esc(day(lv.next_due)) : ''}.` : `The next email is written from ${agent ? first + "'s" : 'your'} next update.`} ${agent ? '' : 'You can write one any time.'}</p>
+      <div class="row"><button class="btn small" id="updNew">Write an update now</button>${agent ? `<button class="btn ghost small" id="updAsk">Ask ${first} for an update</button>` : ''}<span class="note" id="updMsg"></span></div><div id="updFormHost"></div>`;
+  }
+  return `<div class="journal${ou && ou.status === 'requested' && !agent ? ' due' : ''}"><div class="row sp"><h3>The project journal</h3><span class="fine">${num(st.updates_done || 0)} update${Number(st.updates_done || 0) === 1 ? '' : 's'} sent · every ${num(c.cadence_days)} days</span></div>
+    <p class="fine" style="margin:4px 0 0">The series is built from the job as it happens: each email is one progress update from ${esc(street)}, one expert point about that part of the work, and the invitation to swing by.</p>
+    <div style="margin-top:12px">${body}</div></div>`;
+}
+function wireJournal() {
+  const host = $('tabBody'); const msg = () => $('updMsg');
+  const readPhoto = () => new Promise((resolve) => { const f = $('updPhoto') && $('updPhoto').files[0]; if (!f) return resolve(null); const r = new FileReader(); r.onload = () => resolve({ b64: String(r.result).split(',')[1], type: f.type }); r.onerror = () => resolve(null); r.readAsDataURL(f); });
+  const wireForm = () => {
+    const ph = $('updPhoto'); if (ph) ph.addEventListener('change', () => { const f = ph.files[0]; const img = $('updPrev'); if (!f) { img.classList.add('hidden'); return; } img.src = URL.createObjectURL(f); img.classList.remove('hidden'); });
+    const send = $('updSend'); if (send) send.addEventListener('click', async () => {
+      const text = $('updText').value.trim(); if (text.length < 15) { msg().textContent = 'A few sentences on what happened, please.'; return; }
+      send.disabled = true; msg().textContent = 'Sending… the draft takes about half a minute.';
+      const photo = await readPhoto();
+      const body = { action: 'submit', campaign_id: S.camp.id, text }; const id = $('updForm').dataset.id; if (id) body.update_id = Number(id);
+      if (photo) { body.image_base64 = photo.b64; body.image_type = photo.type; }
+      const { data, error } = await sb.functions.invoke('contractor-update', { body });
+      let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+      if (!res || res.ok !== true) { send.disabled = false; msg().textContent = 'Not drafted: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' ') + (res && res.error === 'draft_rejected' ? ' — your update is saved; try Draft the email again.' : ''); if (res && (res.error === 'draft_rejected' || res.error === 'anthropic_error')) await refreshOv(); return; }
+      await refreshOv(); const m2 = $('updMsg'); if (m2) m2.textContent = `Drafted: "${res.subject}".`;
+    });
+  };
+  wireForm();
+  const nw = $('updNew'); if (nw) nw.addEventListener('click', () => { $('updFormHost').innerHTML = formOnly(); nw.classList.add('hidden'); wireForm(); });
+  const ask = $('updAsk'); if (ask) ask.addEventListener('click', async () => { ask.disabled = true; msg().textContent = 'Asking…';
+    const { data, error } = await sb.functions.invoke('contractor-update', { body: { action: 'request', campaign_id: S.camp.id } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (!res || res.ok !== true) { ask.disabled = false; msg().textContent = 'Not asked: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    await refreshOv(); const m2 = $('updMsg'); if (m2) m2.textContent = `Asked ${res.to} for update ${num(res.step)}.`; });
+  const dr = $('updDraft'); if (dr) dr.addEventListener('click', async () => { dr.disabled = true; msg().textContent = 'Drafting… about half a minute.';
+    const { data, error } = await sb.functions.invoke('contractor-update', { body: { action: 'draft', update_id: Number(dr.dataset.id) } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (!res || res.ok !== true) { dr.disabled = false; msg().textContent = 'Not drafted: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    await refreshOv(); });
+  const rd = $('updRedraft'); if (rd) rd.addEventListener('click', async () => { rd.disabled = true; msg().textContent = 'Drafting again… about half a minute.';
+    const { data, error } = await sb.functions.invoke('contractor-update', { body: { action: 'draft', update_id: Number(rd.dataset.id), steer_note: $('updSteer').value.trim() } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (!res || res.ok !== true) { rd.disabled = false; msg().textContent = 'Not drafted: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    await refreshOv(); const m2 = $('updMsg'); if (m2) m2.textContent = `New draft: "${res.subject}".`; });
+  const go = $('updGoSeries'); if (go) go.addEventListener('click', () => { S.tab = 'series'; S.series = null; loadTab(); });
+}
+function formOnly() {
+  const c = S.camp, p = partnerOf(c), agent = S.role === 'agent', street = (c.subject_address || '').split(',')[0];
+  return `<div id="updForm" data-id="" style="margin-top:12px">
+      <div class="field"><label>What is happening on ${esc(street)} right now?</label><textarea id="updText" style="min-height:110px" placeholder="Two or three sentences is plenty: what got done, what is next, anything a neighbor walking past might have noticed."></textarea></div>
+      <div class="field"><label>A photo from the job (optional)</label><div class="photoin"><input type="file" id="updPhoto" accept="image/*"><img id="updPrev" class="hidden" alt=""></div></div>
+      <div class="row"><button class="btn small" id="updSend">Send the update</button><span class="note" id="updMsg"></span></div></div>`;
 }
 
 /* ---------- getting started (an applicant, or a partner with no campaign yet) ---------- */
@@ -571,7 +654,7 @@ function seriesHtml() {
   return `${notes}<p class="note" style="margin-bottom:14px">${agent ? 'Every email needs your approval before the campaign can start. Editing an email un-approves it until you approve it again; rows already scheduled pick up the new wording.' : 'This is the series as it will go to your neighbors, previewed for a neighbor we have no first name for. If you want a change, ask for it under the email and the agent will make it; the two "Notes from the job" emails carry a short project update from you, which the agent approves into the email.'}</p>
     ${s.steps.map((st) => `<div class="step" data-step="${st.step}">
       <button type="button" class="step-h"><span class="num">${st.step}</span><span class="t"><b>${esc(st.preview ? st.preview.subject : st.subject)}</b>
-        <span>${st.step === 1 ? 'Day 1' : 'Day ' + (s.steps.slice(0, st.step).reduce((a, x) => a + Number(x.delay_days || 0), 0) + 1)} &middot; ${st.sent ? num(st.sent) + ' sent' : 'none sent yet'}${st.scheduled ? ' &middot; ' + num(st.scheduled) + ' scheduled' : ''}${st.next_day ? ' &middot; next ' + esc(day(st.next_day)) : ''}</span></span>
+        <span>${s.campaign && s.campaign.series_mode === 'live' ? (st.update && st.update.submitted_at ? 'From the update of ' + esc(day(st.update.submitted_at)) : 'Email ' + st.step) : (st.step === 1 ? 'Day 1' : 'Day ' + (s.steps.slice(0, st.step).reduce((a, x) => a + Number(x.delay_days || 0), 0) + 1))} &middot; ${st.sent ? num(st.sent) + ' sent' : 'none sent yet'}${st.scheduled ? ' &middot; ' + num(st.scheduled) + ' scheduled' : ''}${st.next_day ? ' &middot; next ' + esc(day(st.next_day)) : ''}</span></span>
         ${st.status === 'approved' ? '<span class="pill ok">Approved</span>' : st.status === 'partner_review' ? '<span class="pill warn">With the agent</span>' : '<span class="pill">Draft</span>'}
         ${st.partner_note_draft_md ? '<span class="pill warn">Update waiting</span>' : ''}</button>
       <div class="step-b hidden">
@@ -584,6 +667,9 @@ function seriesHtml() {
               ${st.partner_note_draft_md ? `<div class="msg ${agent ? 'ok' : 'info'}" style="margin-top:8px"><b>${agent ? 'Waiting for your approval:' : 'Sent to the agent, waiting for approval:'}</b><br>${esc(st.partner_note_draft_md)}${agent ? `<div class="row" style="margin-top:8px"><button class="btn ok small noteOk" data-step="${st.step}">Put it in the email</button><button class="btn ghost small noteNo" data-step="${st.step}">Decline</button></div>` : ''}</div>` : ''}
               <div class="field" style="margin-top:10px"><label>${agent ? 'Write or replace the update' : 'Write this fortnight’s update'}</label><textarea class="noteTx" data-step="${st.step}" placeholder="Foundation work is under way this week: the engineer’s drawings are approved and the crew is digging the first pits on the uphill side…">${esc(st.partner_note_draft_md || '')}</textarea></div>
               <button class="btn small noteSend" data-step="${st.step}">${agent ? 'Save into the email' : 'Send to the agent'}</button><span class="note noteMsg" data-step="${st.step}" style="margin-left:10px"></span></div>` : ''}
+            ${st.update ? `<div class="card" style="margin-bottom:12px"><div class="row sp"><h3>The update behind this email</h3><span class="fine">${esc(day(st.update.submitted_at))}${st.update.drafts > 1 ? ' &middot; draft ' + num(st.update.drafts) : ''}</span></div>
+              <div class="note" style="margin-top:8px;white-space:pre-wrap">${esc(st.update.partner_text || '')}</div>${st.update.image_url ? `<img src="${esc(st.update.image_url)}" alt="" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:8px">` : ''}
+              ${agent && st.status !== 'approved' ? `<div class="row" style="margin-top:10px"><input class="sdSteer" data-step="${st.step}" placeholder="Steer the redraft (optional)" style="max-width:300px"><button class="btn ghost small sdRedraft" data-step="${st.step}" data-id="${st.update.id}">Draft again</button><span class="note sdMsg" data-step="${st.step}"></span></div>` : ''}</div>` : ''}
             ${agent ? `<div class="card"><div class="row sp"><h3>Copy</h3><span class="fine">version ${num(st.version)}${st.updated_by ? ' &middot; ' + esc(st.updated_by) : ''}</span></div>
               <div class="field" style="margin-top:10px"><label>Subject</label><input class="cpSubj" data-step="${st.step}" value="${esc(st.subject)}"></div>
               <div class="field"><label>Body (Markdown; {{greeting}} {{project_street}} {{near}} {{project_update}} {{phone}} are filled per neighbor)</label><textarea class="cpBody" data-step="${st.step}" style="min-height:260px">${esc(st.body_md)}</textarea></div>
@@ -601,6 +687,14 @@ function frameDoc(bodyHtml) {
 function wireSeries() {
   const host = $('tabBody');
   host.querySelectorAll('.step-h').forEach((h) => h.addEventListener('click', () => { h.nextElementSibling.classList.toggle('hidden'); }));
+  host.querySelectorAll('.sdRedraft').forEach((b) => b.addEventListener('click', async () => {
+    const step = b.dataset.step, m = host.querySelector(`.sdMsg[data-step="${step}"]`), steer = host.querySelector(`.sdSteer[data-step="${step}"]`).value.trim();
+    b.disabled = true; m.textContent = 'Drafting again… about half a minute.';
+    const { data, error } = await sb.functions.invoke('contractor-update', { body: { action: 'draft', update_id: Number(b.dataset.id), steer_note: steer } });
+    let res = data; if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+    if (!res || res.ok !== true) { b.disabled = false; m.textContent = 'Not drafted: ' + ((res && (res.detail || res.error)) || (error && error.message) || 'unknown').replace(/_/g, ' '); return; }
+    S.series = null; await refreshOv(); S.tab = 'series'; await loadTab();
+  }));
   const msgOf = (cls, step) => host.querySelector(`.${cls}[data-step="${step}"]`);
   host.querySelectorAll('.rqSend').forEach((b) => b.addEventListener('click', async () => {
     const step = Number(b.dataset.step), tx = host.querySelector(`.rqTx[data-step="${step}"]`), m = msgOf('rqMsg', step);
@@ -792,7 +886,7 @@ function emailsHtml() {
     if (dn !== last) { html += `<div class="emday"><span>${esc(dn)}</span><span class="n">${num(groups.filter((x) => (x.state === 'sent') === sentG && x.day === g.day).reduce((a, x) => a + Number(x.n), 0))}</span></div>`; last = dn; }
     const [lab, cls] = STATE[g.state] || [g.state, ''];
     const lastAt = g.people.map((p) => p.sent_at).filter(Boolean).sort().pop();
-    html += `<div class="emgrp${sentG ? ' sent' : ''}" data-g="${gi}"><button type="button" class="emgrph"><span class="t"><b>Email ${esc(g.step)} of ${esc(c.steps || 6)} &middot; ${esc(g.people[0] && g.people[0].subject || '')}</b><span>${num(g.n)} ${g.n == 1 ? 'neighbor' : 'neighbors'}${lastAt ? ' &middot; last ' + esc(tm(lastAt)) : ''}</span></span><span class="pill ${cls}">${esc(lab)}</span></button>
+    html += `<div class="emgrp${sentG ? ' sent' : ''}" data-g="${gi}"><button type="button" class="emgrph"><span class="t"><b>Email ${esc(g.step)}${(c.stats || {}).series_mode === 'live' ? '' : ' of ' + esc(c.steps || 6)} &middot; ${esc(g.people[0] && g.people[0].subject || '')}</b><span>${num(g.n)} ${g.n == 1 ? 'neighbor' : 'neighbors'}${lastAt ? ' &middot; last ' + esc(tm(lastAt)) : ''}</span></span><span class="pill ${cls}">${esc(lab)}</span></button>
       <div class="emgrpb hidden">
         ${agent && g.state === 'needs_ok' ? `<div class="row" style="margin-bottom:10px"><button class="btn small emapprove" data-g="${gi}">Approve &amp; send${g.day <= C.today ? ' now' : ' for ' + esc(dayName(g.day))}${g.n > 1 ? ' to ' + num(g.n) : ''}</button><button class="btn ghost small empreview" data-id="${esc(g.people[0].id)}">Email me a preview</button><span class="note emmsg"></span></div>`
           : (g.people[0] && !sentG) ? `<div class="row" style="margin-bottom:10px"><button class="btn ghost small empreview" data-id="${esc(g.people[0].id)}">Email me a preview</button><span class="note emmsg"></span></div>` : ''}
