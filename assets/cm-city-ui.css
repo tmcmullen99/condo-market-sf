@@ -60,8 +60,19 @@ section{padding:88px 0}
 .nav-cta:hover{background:#e8b878}
 .burger{display:none;background:none;border:0;cursor:pointer;padding:8px;margin-left:auto;flex:0 0 auto}
 .burger span{display:block;width:20px;height:2px;background:var(--chrome-ink);margin:4px 0}
-.drawer{display:none;position:fixed;top:var(--nav-h);left:0;right:0;background:var(--chrome-2);border-bottom:1px solid var(--chrome-line);z-index:899;padding:18px 24px 26px;flex-direction:column;gap:4px}
-.drawer.open{display:flex}
+/* The phone menu (20 Oct 2026, the same slide-in as the city markets): a panel from the left over three quarters
+   of the screen, the page dimmed beside it; closed by the scrim, the ×, Escape, a link or a swipe left. */
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(78vw,340px);background:var(--chrome-2);border-right:1px solid var(--chrome-line);z-index:1201;padding:calc(14px + env(safe-area-inset-top,0px)) 22px calc(26px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:4px;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;box-shadow:0 0 40px rgba(0,0,0,.35)}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.drawer-brand{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--chrome-ink);padding:2px 44px 14px 0;border-bottom:1px solid var(--chrome-line);margin-bottom:6px}
+.drawer-brand .tag{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.14em;color:var(--apricot);margin-left:6px}
+.drawer-x{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;background:transparent;color:var(--chrome-soft);font-size:26px;line-height:1;cursor:pointer;border-radius:50%}
+.drawer-scrim{position:fixed;inset:0;background:rgba(8,10,16,.55);z-index:1200;opacity:0;pointer-events:none;transition:opacity .25s}
+html.drawer-open .drawer-scrim{opacity:1;pointer-events:auto}
+html.drawer-open,html.drawer-open body{overflow:hidden}
+/* the intent prompt and the Ask bar never sit over the open menu */
+html.drawer-open .cmi-launch,html.drawer-open .cmi-prompt,html.drawer-open .mkc-launch,html.drawer-open .mkc-prompt{opacity:0!important;pointer-events:none!important}
+@media(min-width:701px){.drawer,.drawer-scrim{display:none}}
 .drawer a{padding:11px 0;border-bottom:1px solid var(--chrome-line);font-size:.95rem;color:var(--chrome-soft)}
 .drawer-admin{border-bottom:0!important;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:.6rem!important;letter-spacing:.16em;text-transform:uppercase;opacity:.75}
 /* Featured, so it reads as an action rather than another index entry, but it

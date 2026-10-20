@@ -499,7 +499,7 @@ async function wrapStaticWithSwaps(request, env, mk) {
    /assets/cm-city-ui.css (the accent swapped to the condo orange). These are
    its shared pieces - header, agent strip, footer - and the pages built on it.
    ========================================================================== */
-const CITY_UI_VER = '6';
+const CITY_UI_VER = '7';
 
 function cityEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function citySlug(s) { return String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
@@ -591,8 +591,9 @@ function cityFooter(payload) {
 function cityTail(scripts) {
   return (scripts || '') +
     '<script type="module" src="/assets/cm-auth-nav.js?v=' + NAV_VER + '"></script>\n' +
-    '<script>(function(){var b=document.getElementById("burger"),d=document.getElementById("drawer");if(b&&d)b.addEventListener("click",function(){var o=d.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});' +
-    'var ds=document.getElementById("drawerSignin");if(ds)ds.addEventListener("click",function(e){var h=document.querySelector(".nav-right [data-cm-auth]")||document.querySelector("[data-cm-auth]");if(h){e.preventDefault();if(d)d.classList.remove("open");h.click();}});' +
+    '<script>' + "(function(){var b=document.getElementById('burger'),d=document.getElementById('drawer');if(!b||!d)return;var H=document.documentElement;\nvar x=document.createElement('button');x.type='button';x.className='drawer-x';x.setAttribute('aria-label','Close menu');x.innerHTML='&times;';d.insertBefore(x,d.firstChild);\nvar w=document.querySelector('.nav .wordmark');if(w){var br=document.createElement('div');br.className='drawer-brand';br.innerHTML=w.innerHTML;d.insertBefore(br,d.firstChild);}\nvar sc=document.createElement('div');sc.className='drawer-scrim';d.parentNode.insertBefore(sc,d.nextSibling);\nfunction set(o){d.classList.toggle('open',o);H.classList.toggle('drawer-open',o);b.setAttribute('aria-expanded',o?'true':'false');}\nb.addEventListener('click',function(){set(!d.classList.contains('open'));});x.addEventListener('click',function(){set(false);});sc.addEventListener('click',function(){set(false);});\nd.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('a'))set(false);});\ndocument.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});\n/* a swipe from the left edge opens it, a swipe left on it closes it */\nvar sx=null,sy=null,edge=false;document.addEventListener('touchstart',function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;edge=sx<24;},{passive:true});\ndocument.addEventListener('touchend',function(e){if(sx==null)return;var t=e.changedTouches[0],dx=t.clientX-sx,dy=Math.abs(t.clientY-sy);sx=null;if(dy>80)return;if(edge&&dx>60&&!d.classList.contains('open')&&window.innerWidth<=700)set(true);else if(dx<-60&&d.classList.contains('open'))set(false);},{passive:true});\n})();" +
+    '(function(){var d=document.getElementById("drawer"),ds=document.getElementById("drawerSignin");if(ds)ds.addEventListener("click",function(e){var h=document.querySelector(".nav-right [data-cm-auth]")||document.querySelector("[data-cm-auth]");if(h){e.preventDefault();if(d){d.classList.remove("open");document.documentElement.classList.remove("drawer-open");}h.click();}});})();' +
+    '(function(){' +
     'var io="IntersectionObserver" in window?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{rootMargin:"0px 0px -8% 0px"}):null;' +
     'document.querySelectorAll(".reveal").forEach(function(el){io?io.observe(el):el.classList.add("in");});})();</script>\n' +
     '</body>\n</html>\n';
