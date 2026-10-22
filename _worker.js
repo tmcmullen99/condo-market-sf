@@ -157,6 +157,15 @@ function applyOgRotation(html, url, mk) {
    platforms. No key set means watermarked tiles, never a broken map. */
 let CARTO_KEY = '';
 const CARTO_TOKEN = '__CARTO_KEY__';
+/* The net under the seam (21 Oct 2026, from the City Markets: "All api keys should always show"). A map written with a
+   bare CARTO tile URL draws with API KEY REQUIRED on every tile and nothing fails until someone looks. Every HTML
+   response has any unkeyed literal tile URL - L.tileLayer('https://...png', {...}) - keyed on its way out; a URL a
+   script builds itself ('...png' + key) is left to its own code, so nothing is keyed twice. */
+const CARTO_BARE = /(https:\/\/(?:\{s\}\.)?basemaps\.cartocdn\.com\/[a-z_\/]+\/\{z\}\/\{x\}\/\{y\}(?:\{r\})?\.png)(?=\\?['"`]\s*[,)])/g;
+function keyBareTiles(html) {
+  if (!CARTO_KEY || !html || html.indexOf('basemaps.cartocdn.com') === -1) return html;
+  return html.replace(CARTO_BARE, '$1?key=' + encodeURIComponent(CARTO_KEY));
+}
 
 /* Bump on every og card change. X caches a card per URL for about a week and
    will not re-fetch an image at a URL it has already seen - the version query
@@ -306,6 +315,7 @@ async function withFavicon(res, mk) {
        added later cannot miss the key. */
     let out = ensureMarketNav(ensureBrand(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body)), mk))));   // brand first, then the nav links
     if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
+    out = keyBareTiles(out);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
     const headers = new Headers(res.headers);
     headers.delete('content-length');
