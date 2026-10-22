@@ -673,7 +673,10 @@ function seriesHtml() {
   const s = S.series; if (!s || !s.ok) return `<div class="card"><p class="note">Could not load the series${s && s.error ? ': ' + esc(s.error) : ''}.</p></div>`;
   const agent = S.role === 'agent';
   const notes = agent && S.camp && S.camp.notes ? `<div class="card" style="margin-bottom:14px"><div class="row sp"><h3>The partner's brief</h3><span class="fine">campaign notes</span></div><div class="note" style="margin-top:8px;white-space:pre-wrap">${esc(S.camp.notes)}</div></div>` : '';
-  return `${notes}<p class="note" style="margin-bottom:14px">${agent ? 'Every email needs your approval before the campaign can start. Editing an email un-approves it until you approve it again; rows already scheduled pick up the new wording.' : 'This is the series as it will go to your neighbors, previewed for a neighbor we have no first name for. If you want a change, ask for it under the email and the agent will make it; the two "Notes from the job" emails carry a short project update from you, which the agent approves into the email.'}</p>
+  return `${notes}<p class="note" style="margin-bottom:14px">${agent ? 'Every email needs your approval before the campaign can start. Editing an email un-approves it until you approve it again; rows already scheduled pick up the new wording.' : (s.campaign && s.campaign.series_mode === 'live'
+      ? 'Each email is drafted from one of your project updates and shown here exactly as a neighbor will see it, with your logo and signature. If you want a change, ask for it under the email and the agent will make it; nothing goes out until the agent approves it.'
+      : 'This is the series as it will go to your neighbors, previewed for a neighbor we have no first name for. If you want a change, ask for it under the email and the agent will make it; the two "Notes from the job" emails carry a short project update from you, which the agent approves into the email.')}</p>
+    ${!s.steps.length && !agent ? `<div class="card"><h3>No emails yet</h3><p class="note" style="margin-top:6px">Email 1 is written from your first project update. Write it on the Overview (<b>Write an update now</b>): two or three sentences on what is happening on the job, and a photo if you have one. The draft appears here for you to read before the agent approves it.</p></div>` : ''}
     ${s.steps.map((st) => `<div class="step" data-step="${st.step}">
       <button type="button" class="step-h"><span class="num">${st.step}</span><span class="t"><b>${esc(st.preview ? st.preview.subject : st.subject)}</b>
         <span>${s.campaign && s.campaign.series_mode === 'live' ? (st.update && st.update.submitted_at ? 'From the update of ' + esc(day(st.update.submitted_at)) : 'Email ' + st.step) : (st.step === 1 ? 'Day 1' : 'Day ' + (s.steps.slice(0, st.step).reduce((a, x) => a + Number(x.delay_days || 0), 0) + 1))} &middot; ${st.sent ? num(st.sent) + ' sent' : 'none sent yet'}${st.scheduled ? ' &middot; ' + num(st.scheduled) + ' scheduled' : ''}${st.next_day ? ' &middot; next ' + esc(day(st.next_day)) : ''}</span></span>
@@ -756,7 +759,7 @@ const LEAD_LABEL = { new: ['Not traced yet', ''], verifying: ['Email being check
 function tracePanelHtml() {
   const c = S.camp, st = c.stats || {}, agent = S.role === 'agent';
   const pending = Number(st.homes || 0) - Number(st.traced || 0);
-  return `<div class="tracebox"><div class="row sp"><h3>Skip trace &middot; DealMachine</h3><span class="fine">public records → the owner on title, their email and phone</span></div>
+  return `<div class="tracebox"><div class="row sp"><h3>Skip trace &middot; DealMachine</h3><span class="fine">public records → the owner on title${S.role === 'agent' ? ', their email and phone' : ' and their email'}</span></div>
     <div class="counts"><div><b>${num(st.homes)}</b>homes</div><div><b>${num(st.traced)}</b>traced</div><div><b>${num(pending)}</b>not yet traced</div><div><b>${num(st.with_email)}</b>with an owner email</div><div><b>${num(st.no_email)}</b>no email on file</div></div>
     ${agent ? `<div class="row actions">
       <button class="btn small" id="trRun"${pending ? '' : ' disabled'}>Trace the next ${num(Math.min(25, pending))}</button>
@@ -790,7 +793,7 @@ function leadsHtml() {
       </tr>`; }).join('')}
       ${!(L.leads || []).length ? '<tr><td colspan="7" class="note">Nothing matches.</td></tr>' : ''}
     </tbody></table></div>
-    <p class="fine" style="margin-top:10px">${num(L.total)} homes. Owner names and addresses are public record (San Francisco assessor roll); emails and phones were matched from public records and are for this campaign only.</p>`;
+    <p class="fine" style="margin-top:10px">${num(L.total)} homes. Owner names and addresses are public record (San Francisco assessor roll); ${S.role === 'agent' ? 'emails and phones were' : 'emails were'} matched from public records and are for this campaign only.</p>`;
 }
 const LEAD_COLOR = { new: '#9aa3b2', verifying: '#c9a24a', ready: '#2f7d4e', queued: '#2f7d4e', in_series: '#2f4262', replied: '#b06f24', done: '#8b93a1', unsubscribed: '#b42318', bounced: '#b42318', removed: '#e3e6ec', no_email: '#c4c9d2', other: '#9aa3b2' };
 function paintLeadMap() {
