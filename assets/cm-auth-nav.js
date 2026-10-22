@@ -529,3 +529,53 @@ if (!document.querySelector('script[src*="cm-track.js"]') &&
   cmTrk.defer = true;
   document.head.appendChild(cmTrk);
 }
+
+/* ── The account app, signed in (Tim, 21 Oct 2026: "all users should be using the new user accounts ... and all should
+   have full user account functionality"). This site signs members in on Platform B; their account lives in the app at
+   app.<domain> on Platform A. A signed-in member who follows any link to their account (/dashboard, /account, or the
+   app itself) is handed over: Platform A's condo-account function checks this site's session with Platform B, makes or
+   completes their app account (market, name, phone, persona, the buildings they watch) and returns a one-time sign-in
+   link. They land in the app already signed in. Signed out, or if the hand-over fails, the link works as it always did
+   (the app's own sign-in). ── */
+const CM_APP_FN = 'https://qinuukntpyulqjzndnho.supabase.co/functions/v1/condo-account';
+let cmAppSession = null;
+CM.getSession().then((s) => { cmAppSession = s || null; }).catch(() => {});
+try { CM.onAuthChange((_e, s) => { cmAppSession = s || null; }); } catch (e) { /* no listener: links work as before */ }
+
+function cmAppPath(href) {
+  let u; try { u = new URL(href, location.href); } catch (e) { return null; }
+  const bare = location.hostname.replace(/^www\./, '');
+  if (u.hostname === 'app.' + bare) return (u.pathname || '/') + u.search + u.hash;
+  if (u.hostname === location.hostname || u.hostname === bare || u.hostname === 'www.' + bare) {
+    if (/^\/dashboard(\/|$)/.test(u.pathname)) return '/';
+    if (/^\/account\/?$/.test(u.pathname)) return '/account';
+  }
+  return null;
+}
+
+async function cmOpenApp(next, fallback) {
+  const s = cmAppSession;
+  if (!s || !s.access_token) { if (fallback) location.assign(fallback); return false; }
+  try {
+    const r = await fetch(CM_APP_FN, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'handoff', b_token: s.access_token, host: location.hostname, next: next || '/' }) });
+    const j = await r.json().catch(() => null);
+    if (j && j.ok && j.url) { location.assign(j.url); return true; }
+    console.warn('[cm-auth-nav] account hand-over failed:', j && j.error);
+  } catch (e) { console.warn('[cm-auth-nav] account hand-over failed:', e); }
+  if (fallback) location.assign(fallback);
+  return false;
+}
+window.CMOpenApp = cmOpenApp;
+
+document.addEventListener('click', (e) => {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+  if (!a || (a.target && a.target !== '_self')) return;
+  if (!cmAppSession || !cmAppSession.access_token) return;           // signed out: the link as it is
+  const next = cmAppPath(a.getAttribute('href'));
+  if (next == null) return;
+  e.preventDefault();
+  a.setAttribute('aria-busy', 'true');
+  cmOpenApp(next, a.href).finally(() => a.removeAttribute('aria-busy'));
+}, true);
