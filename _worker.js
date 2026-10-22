@@ -628,7 +628,7 @@ function cityTail(scripts) {
    The map itself is /assets/cm-offmarket-map.js, reading <script id="omData">.
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
-const NAV_VER = '4';
+const NAV_VER = '5';
 const OM_VER = '14';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }

@@ -553,16 +553,36 @@ function cmAppPath(href) {
   return null;
 }
 
+/* A hand-over that has not answered in 8 seconds gives way to the plain link, and while it runs the page says so (Tim,
+   22 Oct 2026: "my dashboard button doesn't click when logged in": Platform A had stopped answering and every click
+   waited 20 seconds in silence before failing). A hand-over normally answers in under two seconds. */
+const CM_APP_WAIT_MS = 8000;
+function cmOpening(on) {
+  let t = document.getElementById('cm-opening');
+  if (on && !t) {
+    t = document.createElement('div');
+    t.id = 'cm-opening'; t.setAttribute('role', 'status'); t.textContent = 'Opening your account\u2026';
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;background:#22262f;color:#faf8f3;'
+      + 'font:600 14px/1 system-ui,-apple-system,sans-serif;padding:12px 18px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.3);cursor:progress';
+    document.body.appendChild(t);
+  }
+  if (!on && t) t.remove();
+  document.documentElement.style.cursor = on ? 'progress' : '';
+}
+
 async function cmOpenApp(next, fallback) {
   const s = cmAppSession;
   if (!s || !s.access_token) { if (fallback) location.assign(fallback); return false; }
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), CM_APP_WAIT_MS);
   try {
-    const r = await fetch(CM_APP_FN, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    const r = await fetch(CM_APP_FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
       body: JSON.stringify({ action: 'handoff', b_token: s.access_token, host: location.hostname, next: next || '/' }) });
     const j = await r.json().catch(() => null);
     if (j && j.ok && j.url) { location.assign(j.url); return true; }
     console.warn('[cm-auth-nav] account hand-over failed:', j && j.error);
-  } catch (e) { console.warn('[cm-auth-nav] account hand-over failed:', e); }
+  } catch (e) { console.warn('[cm-auth-nav] account hand-over failed:', ctl.signal.aborted ? 'no answer in ' + CM_APP_WAIT_MS / 1000 + 's' : e); }
+  finally { clearTimeout(timer); }
   if (fallback) location.assign(fallback);
   return false;
 }
@@ -576,6 +596,10 @@ document.addEventListener('click', (e) => {
   const next = cmAppPath(a.getAttribute('href'));
   if (next == null) return;
   e.preventDefault();
+  if (a.getAttribute('aria-busy') === 'true') return;                 // already opening: one hand-over per click
   a.setAttribute('aria-busy', 'true');
-  cmOpenApp(next, a.href).finally(() => a.removeAttribute('aria-busy'));
+  cmOpening(true);
+  cmOpenApp(next, a.href).finally(() => { a.removeAttribute('aria-busy'); cmOpening(false); });
 }, true);
+/* back to this page from the app (the browser's back-forward cache): nothing left saying "opening" */
+window.addEventListener('pageshow', () => { cmOpening(false); document.querySelectorAll('a[aria-busy="true"]').forEach((x) => x.removeAttribute('aria-busy')); });
