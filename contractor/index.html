@@ -318,7 +318,7 @@ async function boot() {
     $('outBtn').addEventListener('click', async () => { await sb.auth.signOut(); boot(); });
     return;
   }
-  S.ov = ov; S.role = ov.role;
+  S.ov = ov; S.role = ov.role; S.realRole = ov.role; S.viewAs = false;
   const hashC = (location.hash.match(/#c(\d+)/) || [])[1];
   S.camp = (ov.campaigns || []).find((c) => String(c.id) === hashC) || (ov.campaigns || [])[0] || null;
   if (S.role === 'agent' && !S.camp) S.tab = 'partners';
@@ -351,17 +351,23 @@ function shell(inner) {
   const tabs = c ? [['overview', 'Overview', null], ['emails', 'Emails', num(c.stats.sent)], ['series', 'The series', `${c.copy_approved}/${c.copy_total}`], ['leads', 'Neighbors', num(c.stats.with_email)],
     ['replies', 'Replies', num(c.stats.replied)], ['requests', 'Requests', c.open_requests ? num(c.open_requests) : null]] : [['overview', S.role === 'partner' ? 'Getting started' : 'Overview', null]];
   if (S.role === 'partner') tabs.push(['brief', c ? 'Campaign briefs' : 'Your campaign brief', myBriefs.length ? num(myBriefs.length) : null]);
+  if (S.role === 'agent' && c) tabs.push(['activity', (p.first_name || 'Partner') + '’s activity', null]);
   if (S.role === 'agent') tabs.push(['partners', 'Partners', num((S.ov.partners || []).length) + ((S.ov.partners || []).some((x) => x.applicant) ? ' · new' : '')]);
   $('portal').innerHTML = `
     <div class="hdr">
       <div class="brand">${p.logo_url ? `<img class="logo" src="${esc(p.logo_url)}" alt="${esc(p.company || '')}">` : ''}
         <div><h1>${esc(p.company || 'Contractor partner')}</h1>
-        <p class="sub">${c ? esc(c.name) + ' &middot; ' : ''}${c ? statusPill(c.status) : ''}${S.role === 'agent' ? ' <span class="pill acc">Agent view</span>' : ''}</p></div></div>
+        <p class="sub">${c ? esc(c.name) + ' &middot; ' : ''}${c ? statusPill(c.status) : ''}${S.role === 'agent' ? ' <span class="pill acc">Agent view</span>' : ''}${S.realRole === 'agent' && c ? ` <button class="btn ghost small" id="viewAsBtn" type="button">${S.viewAs ? 'Back to the agent view' : 'View as ' + esc(p.first_name || 'the partner')}</button>` : ''}</p></div></div>
       ${camps.length > 1 ? `<select id="campSel" style="width:auto">${camps.map((x) => `<option value="${x.id}"${c && x.id === c.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : ''}
     </div>
     <div id="agentHost">${S.role === 'agent' ? agentBar() : ''}</div>
     <div class="tabs">${tabs.map(([k, l, n]) => `<button data-tab="${k}" class="${S.tab === k ? 'on' : ''}">${l}${n ? `<span class="c">${esc(n)}</span>` : ''}</button>`).join('')}</div>
     <div id="tabBody">${inner}</div>`;
+  /* View as the partner (Tim, 22 Oct 2026): the same page rendered in the partner's role, read-only */
+  const va = $('viewAsBtn'); if (va) va.addEventListener('click', () => { S.viewAs = !S.viewAs; S.role = S.viewAs ? 'partner' : 'agent';
+    S.series = S.leads = S.cap = S.sched = S.replies = null; if (S.viewAs && ['activity', 'partners'].includes(S.tab)) S.tab = 'overview'; loadTab(); });
+  if (S.viewAs) $('portal').insertAdjacentHTML('afterbegin', `<div class="msg info" style="margin-bottom:12px"><b>Viewing as ${esc(p.first_name || 'the partner')}.</b> This is their page exactly as they see it; buttons are switched off here. <a href="#" id="viewAsBack">Back to the agent view</a></div>`);
+  const vb = $('viewAsBack'); if (vb) vb.addEventListener('click', (e) => { e.preventDefault(); $('viewAsBtn').click(); });
   $('portal').querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => { S.tab = b.dataset.tab; loadTab(); }));
   const sel = $('campSel'); if (sel) sel.addEventListener('change', () => { S.camp = camps.find((x) => String(x.id) === sel.value); location.hash = '#c' + S.camp.id; S.series = S.leads = S.replies = S.cap = S.sched = null; loadTab(); });
 }
@@ -388,7 +394,7 @@ function agentBar() {
           : (step1 === 'done' ? 'Every email approved.' : `${num(c.copy_total - c.copy_approved)} of ${num(c.copy_total)} still need your approval on The series.`)}</span>
           ${step1 === 'write' ? `<div class="row" style="margin-top:6px"><button class="btn small" id="agWrite">Write the first update</button><button class="btn ghost small" id="agAsk">Ask ${esc(p.first_name || 'the partner')}</button></div>` : step1 === 'review' ? `<div class="row" style="margin-top:6px"><button class="btn small" id="agReview">Review email 1</button></div>` : ''}</li>
         <li class="${!missing.length ? 'done' : ''}"><b>The sender</b><span>${missing.length ? 'Still needed: ' + esc(missing.join(', ')) + '.' : `${esc(p.from_name || p.contact_name || '')} &lt;${esc((p.from_local || 'hello') + '@' + (p.sending_domain || ''))}&gt;${dom.status === 'paused' ? ' — the domain starts warming the moment you start' : ''}.`}</span></li>
-        <li><b>Start the campaign</b><span>Email 1 goes to the verified neighbors at ${num(dom.ramp_start || 10)} a day, ${num(dom.ramp_step || 3)} more each day, up to ${num(dom.ramp_max || 50)}; ${num(st.ready || 0)} are verified now.</span></li>
+        <li><b>Start the campaign</b><span>Email 1 goes to the verified neighbors at ${num(dom.ramp_start || 5)} a day, ${num(dom.ramp_step || 1)} more each day, up to ${num(dom.ramp_max || 30)}; ${num(st.ready || 0)} are verified now.</span></li>
       </ol></div>
     <div class="row">
       <button class="btn ok small" id="agStart"${can ? '' : ' disabled'}>Start the campaign</button>
@@ -456,16 +462,62 @@ async function refreshOv() {
 
 /* ---------- tabs ---------- */
 async function loadTab() {
+  await loadTabInner();
+  if (!S.viewAs) return;
+  /* read-only while viewing as the partner; phone numbers are the agent's only, as the server sends the partner */
+  const tb = $('tabBody'); if (tb) tb.querySelectorAll('button, input, textarea, select').forEach((x) => { x.disabled = true; });
+}
+async function loadTabInner() {
+  if (S.tab === 'activity' && S.role === 'agent' && S.camp) { shell('<p class="note">Loading activity…</p>'); S.act = await rpc('contractor_partner_activity', { p_campaign_id: S.camp.id }); shell(activityHtml()); wireActivity(); wireAgentBar(); return; }
   if (S.tab === 'partners' && S.role === 'agent') { shell(partnersHtml()); wirePartners(); wireAgentBar(); return; }
   if (S.tab === 'brief' && S.role === 'partner') { shell(briefHtml()); wireBrief(); return; }
   if (!S.camp) { shell(S.role === 'partner' ? startHtml() : `<div class="card"><p class="note">No campaign on this account yet. Add a partner and build a campaign under Partners.</p></div>`); if (S.role === 'partner') wireStart(); wireAgentBar(); return; }
   if (S.tab === 'overview') { shell(overviewHtml()); if ((S.camp.stats || {}).series_mode === 'live') wireJournal(); }
   else if (S.tab === 'emails') { shell('<p class="note">Loading the allowance…</p>'); [S.cap, S.sched] = await Promise.all([rpc('contractor_send_cap', { p_campaign_id: S.camp.id }), rpc('contractor_email_schedule', { p_campaign_id: S.camp.id })]); shell(emailsHtml()); wireEmails(); }
   else if (S.tab === 'series') { shell('<p class="note">Loading the series…</p>'); S.series = S.series || await rpc('contractor_portal_series', { p_campaign_id: S.camp.id }); shell(seriesHtml()); wireSeries(); }
-  else if (S.tab === 'leads') { shell('<p class="note">Loading neighbors…</p>'); S.leads = await rpc('contractor_portal_leads', { p_campaign_id: S.camp.id, p_status: S.leadFilter, p_q: S.leadQ || null, p_limit: 400, p_offset: 0 }); shell(leadsHtml()); wireLeads(); }
+  else if (S.tab === 'leads') { shell('<p class="note">Loading neighbors…</p>'); S.leads = await rpc('contractor_portal_leads', { p_campaign_id: S.camp.id, p_status: S.leadFilter, p_q: S.leadQ || null, p_limit: 400, p_offset: 0 }); if (S.viewAs && S.leads && S.leads.leads) S.leads.leads.forEach((l) => { l.phone = null; (l.contacts || []).forEach((x) => { x.phone = null; x.phone_type = null; x.dnc = null; }); }); shell(leadsHtml()); wireLeads(); }
   else if (S.tab === 'replies') { shell('<p class="note">Loading replies…</p>'); S.replies = await rpc('contractor_portal_replies', { p_campaign_id: S.camp.id }); shell(repliesHtml()); }
   else if (S.tab === 'requests') { shell('<p class="note">Loading…</p>'); S.series = S.series || await rpc('contractor_portal_series', { p_campaign_id: S.camp.id }); shell(requestsHtml()); wireRequests(); }
   wireAgentBar();
+}
+
+/* ---------- the partner's activity (agent only): everything sent to them and everything they did ---------- */
+function activityHtml() {
+  const A = S.act; if (!A || !A.ok) return `<div class="card"><p class="note">Could not load the activity${A && A.error ? ': ' + esc(A.error) : ''}.</p></div>`;
+  const P = A.partner || {}, first = esc(P.first_name || 'the partner');
+  const kindName = { contractor_onboarding: 'Onboarding', contractor_update_request: 'Asked for an update', contractor_update_remind: 'Reminder', contractor_preview: 'Preview' };
+  const chips = (m) => [m.bounced_at ? '<span class="pill warn">Bounced</span>' : m.status === 'delivered' || m.status === 'sent' ? '<span class="pill ok">Delivered</span>' : `<span class="pill">${esc(m.status || 'sent')}</span>`,
+    m.opened_at ? `<span class="pill acc">Opened${Number(m.open_count) > 1 ? ' ' + num(m.open_count) + '×' : ''}</span>` : '<span class="pill">Not opened</span>',
+    m.clicked_at ? `<span class="pill acc">Clicked${Number(m.click_count) > 1 ? ' ' + num(m.click_count) + '×' : ''}</span>` : ''].join(' ');
+  const emails = (A.emails || []).map((m, i) => `<div class="step"><button type="button" class="step-h actMail" data-i="${i}"><span class="t"><b>${esc(m.subject || '')}</b>
+      <span>${esc(kindName[m.kind] || (m.kind || 'Email').replace(/_/g, ' '))} &middot; to ${esc(m.to)} &middot; ${esc(when(m.sent_at))}</span></span>${chips(m)}</button>
+      <div class="step-b hidden" data-body="${i}"><div class="prev"><iframe title="${esc(m.subject || 'Email')}" sandbox="" style="min-height:520px" srcdoc="${esc(frameDoc(m.html || ''))}"></iframe></div></div></div>`).join('')
+    || `<p class="note">Nothing sent to ${first} yet.</p>`;
+  const updStatus = { requested: ['Asked', 'warn'], submitted: ['Update in', 'acc'], drafted: ['Drafted', 'acc'], approved: ['Approved', 'ok'], sent: ['Sent', 'ok'], skipped: ['Skipped', ''] };
+  const updates = (A.updates || []).map((u) => { const s = updStatus[u.status] || [u.status, ''];
+    return `<div class="card" style="margin-bottom:10px"><div class="row sp"><h3>Update for email ${num(u.step)}</h3><span class="pill ${s[1]}">${esc(s[0])}</span></div>
+      <p class="fine" style="margin:4px 0 8px">${[u.requested_at ? 'asked ' + esc(when(u.requested_at)) : '', u.request_sent_at ? 'email sent ' + esc(when(u.request_sent_at)) : '', u.reminded_at ? 'reminded ' + esc(when(u.reminded_at)) : '',
+        u.submitted_at ? 'written ' + esc(when(u.submitted_at)) + (u.submitted_by ? ' by ' + esc(u.submitted_by) : '') : '', u.drafted_at ? 'drafted ' + esc(when(u.drafted_at)) : ''].filter(Boolean).join(' &middot; ')}</p>
+      ${u.text ? `<div class="msg info" style="white-space:pre-wrap">${esc(u.text)}</div>` : `<p class="note">${first} has not written this one yet.</p>`}
+      ${u.photo ? `<img src="${esc(u.photo)}" alt="${esc(u.caption || 'Photo from the job')}" style="display:block;max-width:320px;width:100%;border-radius:10px;margin-top:10px">` : ''}
+      ${u.draft_subject ? `<div style="margin-top:10px"><div class="fine">The email drafted from it</div><b>${esc(u.draft_subject)}</b><div class="note" style="white-space:pre-wrap;margin-top:4px">${esc(u.draft_body || '')}</div></div>` : ''}
+      ${u.draft_error ? `<div class="msg err" style="margin-top:8px">Draft failed: ${esc(u.draft_error)}</div>` : ''}${u.steer_note ? `<p class="fine" style="margin-top:6px">Redraft note: ${esc(u.steer_note)}</p>` : ''}</div>`; }).join('')
+    || `<p class="note">No project updates yet. Email 1 is written from ${first}'s first one.</p>`;
+  const reqs = (A.requests || []).map((r) => `<div class="msg ${r.status === 'open' ? 'info' : ''}" style="margin-bottom:8px"><b>${r.step ? 'Email ' + num(r.step) : 'General'}</b> &middot; ${esc(r.from === 'agent' ? 'from you' : 'from ' + (P.first_name || 'the partner'))} &middot; ${esc(when(r.at))} &middot; ${esc(r.status)}<div style="white-space:pre-wrap;margin-top:4px">${esc(r.message || '')}</div>${r.reply ? `<div class="fine" style="margin-top:6px">Answer: ${esc(r.reply)}</div>` : ''}</div>`).join('')
+    || '<p class="note">No change requests.</p>';
+  return `<div class="grid g4">
+      <div class="card stat"><div class="k">Signs in as</div><div class="v" style="font-size:1rem;word-break:break-all">${esc(P.login || '')}</div><div class="n">account made ${esc(day(P.account_created_at))}</div></div>
+      <div class="card stat"><div class="k">Their inbox</div><div class="v" style="font-size:1rem;word-break:break-all">${esc(P.inbox || 'not on file')}</div><div class="n">where everything below goes</div></div>
+      <div class="card stat"><div class="k">Onboarding email</div><div class="v" style="font-size:1rem">${P.onboarding_sent_at ? esc(when(P.onboarding_sent_at)) : 'not sent'}</div><div class="n">${(A.emails || []).some((m) => m.kind === 'contractor_onboarding' && m.opened_at) ? 'opened' : 'not opened yet'}</div></div>
+      <div class="card stat"><div class="k">Last signed in</div><div class="v" style="font-size:1rem">${P.last_sign_in_at ? esc(when(P.last_sign_in_at)) : 'never'}</div><div class="n">on their partner page</div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><div class="row sp"><h3>Emails sent to ${first}</h3><span class="fine">${num((A.emails || []).length)} &middot; tap one to read it as sent</span></div><div style="margin-top:10px">${emails}</div></div>
+    <div style="margin-top:14px"><div class="row sp" style="margin-bottom:8px"><h3>Project updates</h3><span class="fine">what ${first} wrote, and the email drafted from each</span></div>${updates}</div>
+    <div class="card" style="margin-top:14px"><h3>Change requests</h3><div style="margin-top:10px">${reqs}</div></div>
+    <p class="fine" style="margin-top:12px">To see their pages exactly as they do, use <b>View as ${first}</b> at the top.</p>`;
+}
+function wireActivity() {
+  $('tabBody').querySelectorAll('.actMail').forEach((b) => b.addEventListener('click', () => { const x = $('tabBody').querySelector(`[data-body="${b.dataset.i}"]`); if (x) x.classList.toggle('hidden'); }));
 }
 
 function overviewHtml() {
