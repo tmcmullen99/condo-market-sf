@@ -169,6 +169,7 @@ tr.nbfocus td{background:var(--accent-soft)}
 .applicant .meta{color:var(--ink-2);font-size:13.5px;margin-top:4px}
 .hidden{display:none !important}
 .footer{margin-top:40px;color:var(--ink-3);font-size:12.5px;text-align:center}
+.updsteps input[type=file]{max-width:100%}.updchips{display:flex;flex-wrap:wrap;gap:6px}.updchips .chip{border:1px solid var(--line,#e2ddd2);background:transparent;border-radius:999px;padding:5px 11px;font:inherit;font-size:.82rem;cursor:pointer;color:inherit}.updchips .chip.on{background:var(--ink,#20242e);color:#fff;border-color:var(--ink,#20242e)}
 </style>
 </head>
 <body>
@@ -549,17 +550,46 @@ function overviewHtml() {
     ${S.role === 'partner' ? mailCardHtml(p) : ''}`;
 }
 
+/* ---------- the update box (Tim, 22 Oct 2026): every email is a chance to tell a small story from the job, not a report.
+   Three short steps: what happened, one tidbit (the chips prompt for the kind of detail neighbors enjoy), a photo. ---------- */
+const UPD_TOPICS = [
+  ['Foundation', 'What made the foundation work interesting? The soil, the slope, how the house was held up while you worked.'],
+  ['Drainage', 'How are you keeping water away from the house, and what did you find?'],
+  ['Framing', 'Anything surprising in the framing: old-growth lumber, a wall that had to move, a beam you added?'],
+  ['Windows', 'Which windows, and why those for this house?'],
+  ['Roof', 'What is going on the roof, and why that choice?'],
+  ['Finishes', 'Which finish did you choose, and why will it hold up?'],
+  ['Tile & stone', 'Which tile or stone, and what makes it right for the room?'],
+  ['Cabinetry', 'What is special about the cabinets: the wood, the maker, the way they are built?'],
+  ['Lighting', 'What did you do with the light in the house?'],
+  ['A material', 'One material on this job you like, and why.'],
+  ['Something we found', 'What did you find when you opened things up?'],
+];
+function updFields(u, street) {
+  const prev = (u && u.partner_text) || '';
+  return `<div class="updsteps">
+      <div class="field"><label><b>1.</b> What did the crew do ${u && u.step > 1 ? 'since the last email' : 'this month'} on ${esc(street)}?</label>
+        <textarea id="updText" style="min-height:70px" placeholder="One or two lines: poured the new footings, framed the back wall, tiled the primary bath…">${esc(prev)}</textarea></div>
+      <div class="field"><label><b>2.</b> One tidbit worth sharing <span class="fine">(pick one, then a sentence or two)</span></label>
+        <div class="updchips">${UPD_TOPICS.map(([k]) => `<button type="button" class="chip updTopic" data-k="${esc(k)}">${esc(k)}</button>`).join('')}</div>
+        <textarea id="updTidbit" style="min-height:70px;margin-top:8px" placeholder="A specific material, a tricky part of the job, something a neighbor walking past might have noticed."></textarea></div>
+      <div class="field"><label><b>3.</b> A photo from the job <span class="fine">(optional)</span></label><div class="photoin"><input type="file" id="updPhoto" accept="image/*"><img id="updPrev" class="${u && u.image_url ? '' : 'hidden'}" src="${esc(u && u.image_url || '')}" alt=""></div></div>
+      <p class="fine" style="margin:0 0 10px">Claude turns this into a short email in your voice: a small story from the job, not a report. You don't need to write it well; a few plain words are plenty.</p></div>`;
+}
+function updText() {
+  const what = ($('updText') && $('updText').value || '').trim(), tid = ($('updTidbit') && $('updTidbit').value || '').trim();
+  const on = document.querySelector('.updTopic.on'); const topic = on ? on.dataset.k : '';
+  return [what, tid ? `Tidbit${topic ? ' (' + topic + ')' : ''}: ${tid}` : ''].filter(Boolean).join('\n\n');
+}
+
 /* ---------- the project journal: a live series is built one update at a time ---------- */
 function journalHtml() {
   const c = S.camp, st = c.stats || {}, lv = st.live || {}, ou = st.open_update, agent = S.role === 'agent', p = partnerOf(c);
   const street = (c.subject_address || '').split(',')[0];
   const first = esc(p.first_name || (p.contact_name || '').split(' ')[0] || 'you');
-  const form = (u) => `<div id="updForm" data-id="${u ? u.id : ''}">
-      <div class="field"><label>${u && u.step > 1 ? `What happened on ${esc(street)} since the last email?` : `What is happening on ${esc(street)} right now?`}</label>
-        <textarea id="updText" style="min-height:110px" placeholder="Two or three sentences is plenty: what got done, what is next, anything a neighbor walking past might have noticed.">${esc(u && u.partner_text || '')}</textarea></div>
-      <div class="field"><label>A photo from the job (optional)</label><div class="photoin"><input type="file" id="updPhoto" accept="image/*"><img id="updPrev" class="${u && u.image_url ? '' : 'hidden'}" src="${esc(u && u.image_url || '')}" alt=""></div></div>
+  const form = (u) => `<div id="updForm" data-id="${u ? u.id : ''}">${updFields(u, street)}
       <div class="row"><button class="btn small" id="updSend">${u && u.partner_text ? 'Send again' : 'Send the update'}</button><span class="note" id="updMsg"></span></div>
-      <p class="fine" style="margin-top:8px">From this, a short email is drafted: the progress in plain words, one thing an expert would tell a homeowner about that part of the work, and the usual line — <i>If you're thinking of a project, happy to swing by.</i> ${agent ? 'You' : 'Tim'} review${agent ? '' : 's'} it before it goes to the ${num(c.target_count)} neighbors.</p></div>`;
+      <p class="fine" style="margin-top:8px">${agent ? 'You' : 'Tim'} review${agent ? '' : 's'} the email before it goes to the ${num(c.target_count)} neighbors.</p></div>`;
   let body = '';
   if (ou && ou.status === 'requested') {
     body = `<p class="note" style="margin:4px 0 12px">${agent ? `Email ${num(ou.step)} is waiting on ${first}'s update, asked ${esc(day(ou.requested_at))}. You can write it for them from the call.` : `Email ${num(ou.step)} to your neighbors is next. ${lv.next_due ? 'It goes out around ' + esc(day(lv.next_due)) + '.' : ''}`}</p>${form(ou)}`;
@@ -576,16 +606,22 @@ function journalHtml() {
       <div class="row"><button class="btn small" id="updNew">Write an update now</button>${agent ? `<button class="btn ghost small" id="updAsk">Ask ${first} for an update</button>` : ''}<span class="note" id="updMsg"></span></div><div id="updFormHost"></div>`;
   }
   return `<div class="journal${ou && ou.status === 'requested' && !agent ? ' due' : ''}"><div class="row sp"><h3>The project journal</h3><span class="fine">${num(st.updates_done || 0)} update${Number(st.updates_done || 0) === 1 ? '' : 's'} sent · every ${num(c.cadence_days)} days</span></div>
-    <p class="fine" style="margin:4px 0 0">The series is built from the job as it happens: each email is one progress update from ${esc(street)}, one expert point about that part of the work, and the invitation to swing by.</p>
+    <p class="fine" style="margin:4px 0 0">Each email is a short story from the job on ${esc(street)}: what the crew did and one tidbit worth telling the neighbors, then the invitation to swing by.</p>
     <div style="margin-top:12px">${body}</div></div>`;
 }
 function wireJournal() {
   const host = $('tabBody'); const msg = () => $('updMsg');
   const readPhoto = () => new Promise((resolve) => { const f = $('updPhoto') && $('updPhoto').files[0]; if (!f) return resolve(null); const r = new FileReader(); r.onload = () => resolve({ b64: String(r.result).split(',')[1], type: f.type }); r.onerror = () => resolve(null); r.readAsDataURL(f); });
   const wireForm = () => {
+    document.querySelectorAll('.updTopic').forEach((b) => b.addEventListener('click', () => {
+      const was = b.classList.contains('on');
+      document.querySelectorAll('.updTopic').forEach((x) => x.classList.remove('on'));
+      if (!was) b.classList.add('on');
+      const t = UPD_TOPICS.find(([k]) => k === b.dataset.k); const ta = $('updTidbit'); if (ta && t) { ta.placeholder = t[1]; ta.focus(); }
+    }));
     const ph = $('updPhoto'); if (ph) ph.addEventListener('change', () => { const f = ph.files[0]; const img = $('updPrev'); if (!f) { img.classList.add('hidden'); return; } img.src = URL.createObjectURL(f); img.classList.remove('hidden'); });
     const send = $('updSend'); if (send) send.addEventListener('click', async () => {
-      const text = $('updText').value.trim(); if (text.length < 15) { msg().textContent = 'A few sentences on what happened, please.'; return; }
+      const text = updText(); if (text.length < 15) { msg().textContent = 'A line on what the crew did, or a tidbit, please.'; return; }
       send.disabled = true; msg().textContent = 'Sending… the draft takes about half a minute.';
       const photo = await readPhoto();
       const body = { action: 'submit', campaign_id: S.camp.id, text }; const id = $('updForm').dataset.id; if (id) body.update_id = Number(id);
@@ -618,8 +654,7 @@ function wireJournal() {
 function formOnly() {
   const c = S.camp, p = partnerOf(c), agent = S.role === 'agent', street = (c.subject_address || '').split(',')[0];
   return `<div id="updForm" data-id="" style="margin-top:12px">
-      <div class="field"><label>What is happening on ${esc(street)} right now?</label><textarea id="updText" style="min-height:110px" placeholder="Two or three sentences is plenty: what got done, what is next, anything a neighbor walking past might have noticed."></textarea></div>
-      <div class="field"><label>A photo from the job (optional)</label><div class="photoin"><input type="file" id="updPhoto" accept="image/*"><img id="updPrev" class="hidden" alt=""></div></div>
+${updFields(null, street)}
       <div class="row"><button class="btn small" id="updSend">Send the update</button><span class="note" id="updMsg"></span></div></div>`;
 }
 
