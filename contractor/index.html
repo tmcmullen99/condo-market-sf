@@ -467,7 +467,7 @@ async function loadTab() {
   await loadTabInner();
   if (!S.viewAs) return;
   /* read-only while viewing as the partner; phone numbers are the agent's only, as the server sends the partner */
-  const tb = $('tabBody'); if (tb) tb.querySelectorAll('button, input, textarea, select').forEach((x) => { x.disabled = true; });
+  const tb = $('tabBody'); if (tb) tb.querySelectorAll('button, input, textarea, select').forEach((x) => { if (!x.matches('.step-h, .actMail')) x.disabled = true; });
 }
 async function loadTabInner() {
   if (S.tab === 'activity' && S.role === 'agent' && S.camp) { shell('<p class="note">Loading activity…</p>'); S.act = await rpc('contractor_partner_activity', { p_campaign_id: S.camp.id }); shell(activityHtml()); wireActivity(); wireAgentBar(); return; }
