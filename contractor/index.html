@@ -326,7 +326,15 @@ async function boot() {
   $('signin').classList.add('hidden'); $('portal').classList.remove('hidden');
   $('navRight').innerHTML = `<span>${S.role === 'agent' ? 'Agent desk' : 'Signed in as'} <b>${esc(session.user.email)}</b></span><button class="btn nav" id="outBtn">Sign out</button>`;
   $('outBtn').addEventListener('click', async () => { await sb.auth.signOut(); location.hash = ''; boot(); });
+  /* the update emails link here (#c<id>/update): straight to the project journal with the box open (Tim, 22 Oct 2026) */
+  const toUpdate = /\/update\b/.test(location.hash) && S.camp;
+  if (toUpdate) S.tab = 'overview';
   await loadTab();
+  if (toUpdate) {
+    const nw = $('updNew'); if (nw && !nw.classList.contains('hidden')) nw.click();
+    const t = $('updText') || document.querySelector('.journal');
+    if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (t.focus) t.focus(); }
+  }
 }
 
 /* ---------- shell ---------- */
