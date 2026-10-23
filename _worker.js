@@ -545,6 +545,87 @@ async function wrapStaticWithSwaps(request, env, mk) {
   return new Response(body, { status: resp.status, statusText: resp.statusText, headers });
 }
 
+/* BACK IN A FEW MINUTES (Tim, 23 Oct 2026). What a Build A Page link shows while the database behind it is
+   down: a tower going up under a crane, so it reads as work in progress rather than a dead link. 503 with
+   Retry-After, never cached or indexed; the page checks itself every 20 s and opens as soon as it answers. */
+function pageOutageResponse(mk) {
+  const A = mk.accent || '#C2410C', ink = '#e8e3d8';
+  const ph = String(mk.agentPhone || '+14156919272').replace(/\D/g, '').slice(-10);
+  const phDisp = '(' + ph.slice(0, 3) + ') ' + ph.slice(3, 6) + '-' + ph.slice(6);
+  let wins = '';
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+    wins += '<rect class="bk-w" x="' + (126 + c * 19) + '" y="' + (134 + r * 16) + '" width="11" height="9" rx="1" style="animation-delay:'
+      + ((3 - r) * 0.32 + c * 0.14).toFixed(2) + 's"/>';
+  }
+  const svg = '<svg class="bk-art" viewBox="0 0 320 214" role="img" aria-label="A building going up under a crane">'
+    + '<line x1="24" y1="200" x2="296" y2="200" stroke="rgba(232,227,216,.28)" stroke-width="1.5"/>'
+    + '<rect x="118" y="126" width="84" height="74" fill="#161b27" stroke="rgba(232,227,216,.55)" stroke-width="1.5"/>' + wins
+    + '<rect class="bk-sc" x="118" y="96" width="84" height="30" fill="none" stroke="' + A + '" stroke-width="1.5"/>'
+    + '<line class="bk-sc" x1="118" y1="111" x2="202" y2="111" stroke="' + A + '" stroke-width="1"/>'
+    + '<line class="bk-sc" x1="146" y1="96" x2="146" y2="126" stroke="' + A + '" stroke-width="1"/><line class="bk-sc" x1="174" y1="96" x2="174" y2="126" stroke="' + A + '" stroke-width="1"/>'
+    + '<g stroke="rgba(232,227,216,.7)" stroke-width="1.4" fill="none">'
+    + '<line x1="238" y1="200" x2="238" y2="30"/><line x1="246" y1="200" x2="246" y2="30"/>'
+    + '<polyline points="238,200 246,186 238,172 246,158 238,144 246,130 238,116 246,102 238,88 246,74 238,60 246,46 238,32"/>'
+    + '<line x1="140" y1="30" x2="290" y2="30"/><line x1="242" y1="30" x2="242" y2="12"/>'
+    + '<line x1="242" y1="12" x2="146" y2="30"/><line x1="242" y1="12" x2="288" y2="30"/></g>'
+    + '<rect x="274" y="31" width="14" height="10" fill="rgba(232,227,216,.35)"/>'
+    + '<rect x="234" y="33" width="16" height="9" rx="1.5" fill="#161b27" stroke="rgba(232,227,216,.7)" stroke-width="1.2"/>'
+    + '<g class="bk-tr"><rect x="-5" y="29" width="10" height="4" fill="' + ink + '"/>'
+    + '<rect class="bk-cb" x="-0.5" y="33" width="1" height="55" fill="rgba(232,227,216,.75)"/>'
+    + '<g class="bk-ld"><rect x="-8" y="88" width="16" height="8" rx="1" fill="' + A + '"/></g></g>'
+    + '</svg>';
+  const css = '*{box-sizing:border-box;margin:0;padding:0}'
+    + 'body{background:#0f131d;color:' + ink + ';font-family:"DM Sans",system-ui,sans-serif;font-weight:300;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;-webkit-font-smoothing:antialiased}'
+    + '.bk{max-width:580px;width:100%;text-align:center}'
+    + '.bk-art{width:min(340px,86vw);height:auto;display:block;margin:0 auto 14px;overflow:visible}'
+    + '.bk-bar{position:relative;height:2px;width:min(260px,70vw);margin:0 auto 30px;background:rgba(232,227,216,.12);border-radius:2px;overflow:hidden}'
+    + '.bk-bar i{position:absolute;top:0;left:0;height:100%;width:38%;background:' + A + ';border-radius:2px;animation:bk-bar 1.8s ease-in-out infinite}'
+    + '.bk-k{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:' + A + ';margin-bottom:20px}'
+    + 'h1{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:500;font-size:clamp(40px,7vw,68px);line-height:1.04;margin-bottom:20px}'
+    + 'h1 span{color:' + A + '}'
+    + 'p{font-size:17px;color:rgba(232,227,216,.66);max-width:44ch;margin:0 auto 18px}'
+    + '.bk-st{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:rgba(232,227,216,.55);margin-bottom:30px}'
+    + '.bk-st i{width:7px;height:7px;border-radius:50%;background:' + A + ';animation:bk-pulse 1.6s ease-in-out infinite}'
+    + '.bk-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}'
+    + '.bk-b{display:inline-block;padding:13px 24px;border-radius:999px;font:500 14px "DM Sans",system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:all .15s}'
+    + '.bk-p{background:' + A + ';color:#fff;border:1px solid ' + A + '}.bk-p:hover{opacity:.88}'
+    + '.bk-s{background:transparent;color:' + ink + ';border:1px solid rgba(232,227,216,.22)}.bk-s:hover{border-color:' + A + ';color:' + ink + '}'
+    + '.bk-w{fill:' + A + ';opacity:.1;animation:bk-win 3.4s ease-in-out infinite}'
+    + '.bk-sc{stroke-dasharray:5 4;animation:bk-ants 1s linear infinite}'
+    + '.bk-tr{animation:bk-tr 6s ease-in-out infinite}'
+    + '.bk-cb{transform-box:fill-box;transform-origin:50% 0;animation:bk-cb 6s ease-in-out infinite}'
+    + '.bk-ld{animation:bk-ld 6s ease-in-out infinite}'
+    + '@keyframes bk-win{0%,100%{opacity:.1}35%,55%{opacity:.95}}'
+    + '@keyframes bk-ants{to{stroke-dashoffset:-9}}'
+    + '@keyframes bk-tr{0%{transform:translateX(222px)}25%,78%{transform:translateX(160px)}100%{transform:translateX(222px)}}'
+    + '@keyframes bk-cb{0%,25%{transform:scaleY(.24)}45%,58%{transform:scaleY(1)}78%,100%{transform:scaleY(.24)}}'
+    + '@keyframes bk-ld{0%,25%{transform:translateY(-41.8px)}45%,58%{transform:translateY(0)}78%,100%{transform:translateY(-41.8px)}}'
+    + '@keyframes bk-bar{0%{transform:translateX(-100%)}100%{transform:translateX(270%)}}'
+    + '@keyframes bk-pulse{0%,100%{opacity:.35}50%{opacity:1}}'
+    + '@media (prefers-reduced-motion:reduce){.bk-w,.bk-sc,.bk-tr,.bk-cb,.bk-ld,.bk-bar i,.bk-st i{animation:none}.bk-w{opacity:.6}.bk-tr{transform:translateX(160px)}}';
+  const js = '(function(){var n=20,busy=false,tries=0,el=document.getElementById("bk-n");'
+    + 'function check(){busy=true;el.textContent="now";fetch(location.href,{cache:"no-store",credentials:"same-origin"})'
+    + '.then(function(r){if(r.status===200){location.reload();return;}done();}).catch(done);}'
+    + 'function done(){busy=false;tries++;n=tries>15?60:20;el.textContent="in "+n+"s";}'
+    + 'document.getElementById("bk-go").addEventListener("click",function(){if(!busy)check();});'
+    + 'setInterval(function(){if(busy)return;n--;if(n<=0)check();else el.textContent="in "+n+"s";},1000);})();';
+  const html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<meta name="robots" content="noindex, nofollow"><title>Back in a few minutes · ' + cityEsc(mk.brand || 'Condo Market') + '</title>'
+    + '<link rel="icon" href="/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'
+    + '<style>' + css + '</style></head><body><main class="bk">' + svg
+    + '<div class="bk-bar" aria-hidden="true"><i></i></div>'
+    + '<div class="bk-k">Back in a few minutes</div>'
+    + '<h1>This page is <span>being worked on.</span></h1>'
+    + '<p>We&rsquo;re doing some work on the system behind it. Nothing has been lost, and the page will open by itself the moment it&rsquo;s ready.</p>'
+    + '<div class="bk-st" aria-live="polite"><i></i><span>Checking again <b id="bk-n">in 20s</b></span></div>'
+    + '<div class="bk-row"><button type="button" id="bk-go" class="bk-b bk-p">Try again now</button>'
+    + '<a class="bk-b bk-s" href="tel:+1' + ph + '">Call ' + cityEsc(mk.agentFirst || 'Tim') + ' &middot; ' + phDisp + '</a></div>'
+    + '</main><script>' + js + '</script></body></html>';
+  return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Retry-After': '30',
+    'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow, noarchive' } });
+}
+
 
 /* ============================================================================
    CITY UI ON THE CONDO MARKET (26 Sep 2026)
@@ -3683,13 +3764,18 @@ async function handleRequest(request, env) {
     if (bapM && request.method === 'GET') {
       if (!url.pathname.endsWith('/')) return new Response(null, { status: 301, headers: { 'Location': url.pathname + '/' + url.search } });
       const pv = (url.searchParams.get('preview') || '').slice(0, 64);
-      let html = '';
+      let html = '', upStatus = 0;
+      /* (23 Oct 2026) Only a page the city worker says does not exist (404) gets the 404. Anything else - the
+         database down, a 5xx, no answer in 15 s - is an outage, and an outage said "this address isn't in our
+         index" to a buyer holding a live link. It now gets the back-in-a-few-minutes page, which retries. */
+      const ac = new AbortController(), acT = setTimeout(() => ac.abort(), 15000);
       try {
         const up = await fetch(BAP_ORIGIN + '/_ooa/m' + BAP_MARKET + '/' + bapM[1] + '/' + bapM[2] + '/' + (pv ? '?preview=' + encodeURIComponent(pv) : ''),
-          { headers: { 'User-Agent': 'condo-market-page-proxy' }, cf: { cacheTtl: 0 } });
+          { headers: { 'User-Agent': 'condo-market-page-proxy' }, cf: { cacheTtl: 0 }, signal: ac.signal });
+        upStatus = up.status;
         if (up.ok) html = await up.text();
-      } catch (e) { html = ''; }
-      if (!html || html.length < 500) return wrapStaticWithSwaps(request, env, hostMk);
+      } catch (e) { html = ''; } finally { clearTimeout(acT); }
+      if (!html || html.length < 500) return upStatus === 404 ? wrapStaticWithSwaps(request, env, hostMk) : pageOutageResponse(hostMk);
       /* scripts, styles and Street View images are root-relative for the city domains */
       html = html.replace(/(=["'])\/(assets\/|sv\?)/g, '$1' + BAP_ORIGIN + '/$2');
       const base = 'https://' + url.host;
