@@ -218,7 +218,7 @@
   .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: #5d6575; }
 </style>
 <style>
-.mi{--mi-bg:#0d1016;--mi-card:#141821;--mi-line:#242b38;--mi-ink:#ece7db;--mi-sub:#a3adbf;--mi-acc:#e0893a;background:var(--mi-bg);color:var(--mi-ink);padding:0 0 64px}
+.mi{--mi-bg:#0d1016;--mi-card:#141821;--mi-line:#242b38;--mi-ink:#ece7db;--mi-sub:#a3adbf;--mi-acc:#e85d2a;background:var(--mi-bg);color:var(--mi-ink);padding:0 0 64px}
 .mi a{color:inherit}
 .mi .wrap{max-width:1240px}
 .mi-tape{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--mi-line);background:#0a0c11;overflow:hidden;height:40px}
@@ -424,7 +424,7 @@
     <div class="mi-sec" id="ixHoodSec">
       <div class="mi-card">
         <div class="mi-bar-h"><div><h2>Neighborhood by <em>neighborhood</em></h2><p class="mi-sub">Every neighborhood’s median $/sf over the three years to each year, against San Francisco. Sort the table by any column; pick up to four to chart.</p></div>
-          <button type="button" class="mi-tog" id="ixHoodCity" aria-pressed="true"><i class="mi-sw" style="background:#c9ced8;margin:0"></i>San Francisco</button></div>
+          <button type="button" class="mi-tog" id="ixHoodCity" aria-pressed="true"><i class="mi-sw" style="background:none;border-top:2px dashed #c9ced8;height:0;margin:0"></i>San Francisco</button></div>
         <div class="mi-chips" id="ixHoodChips" style="margin-bottom:10px"></div>
         <div class="mi-chart" id="ixHoodCmp"></div>
         <div class="mi-rankwrap mi-scroll" id="ixHoodTbl"></div>
@@ -434,7 +434,7 @@
     <div class="mi-sec" id="ixBldSec">
       <div class="mi-card">
         <div class="mi-bar-h"><div><h2>Building by <em>building</em></h2><p class="mi-sub">Every catalogued building with its own recorded sales: the last three years’ median $/sf, how it moved, and how often it trades. Pick up to four from the table or the map to chart them by year.</p></div>
-          <button type="button" class="mi-tog" id="ixBldCity" aria-pressed="true"><i class="mi-sw" style="background:#c9ced8;margin:0"></i>San Francisco</button></div>
+          <button type="button" class="mi-tog" id="ixBldCity" aria-pressed="true"><i class="mi-sw" style="background:none;border-top:2px dashed #c9ced8;height:0;margin:0"></i>San Francisco</button></div>
         <div class="mi-chips" id="ixBldChips" style="margin-bottom:10px"></div>
         <div class="mi-cmp">
           <div><div class="mi-chart" id="ixBldCmp"></div></div>
@@ -767,7 +767,7 @@
      injected by the worker; fetched with the anon key if it is not). Every number is a count or a median of recorded
      sales; a thin sample shows a gap, never a guess. No value is stated for any home. */
   var D0=window.__SFI||null, C=window.__SFIC||{};
-  var COL=['#d4782a','#2a9d8f','#8b79e8','#d95f80','#4790d6'];
+  var COL=['#e85d2a','#f5b56b','#93a3b8','#d9708a','#a8572a'];  /* the condo orange first (Tim, 22 Oct 2026: "less teal, more orange") */
   var CITYC='#c9ced8';
   var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var BK=['b0','b1','b2','b3'], BKN={b0:'Studio',b1:'1 bd',b2:'2 bd',b3:'3+ bd'}, BKL={b0:'Studios',b1:'1 bedroom',b2:'2 bedrooms',b3:'3+ bedrooms'};
@@ -977,7 +977,7 @@
     /* ── the spread of prices, 12 months ── */
     function drawHist(){var h=D.hist||[];if(!h.length||!D.hist_n){$('ixHistCard').style.display='none';return;}
       $('ixHistN').textContent='n = '+num(D.hist_n)+' recorded sales, last 12 months';
-      barChart($('ixHist'),{vals:h.map(function(b){return b.n;}),labels:h.map(function(b){return b.hi==null?money(b.lo)+'+':money(b.hi);}),tips:h.map(function(b){return (b.hi==null?money(b.lo)+' and up':money(b.lo)+'–'+money(b.hi))+': '+num(b.n)+' sales';}),aria:'Recorded sales by price, last 12 months',color:COL[1],height:210});}
+      barChart($('ixHist'),{vals:h.map(function(b){return b.n;}),labels:h.map(function(b){return b.hi==null?money(b.lo)+'+':money(b.hi);}),tips:h.map(function(b){return (b.hi==null?money(b.lo)+' and up':money(b.lo)+'–'+money(b.hi))+': '+num(b.n)+' sales';}),aria:'Recorded sales by price, last 12 months',color:COL[0],height:210});}
     drawHist();
 
     /* ── by bedrooms, by year ── */
@@ -996,7 +996,7 @@
 
     /* the year axis shared by neighborhoods and buildings: every year the city has a three-year median */
     var TY=YRS.filter(function(y){return y.r3!=null;}).map(function(y){return y.y;});
-    function cityLine(){return {key:'city',name:REGION+' (all condos)',short:REGION.length>14?'City':REGION,color:CITYC,vals:TY.map(function(y){return CY[y].r3;}),ns:null,thin:true};}
+    function cityLine(){return {key:'city',name:REGION+' (all condos)',short:REGION.length>14?'City':REGION,color:CITYC,vals:TY.map(function(y){return CY[y].r3;}),ns:null,thin:true,dash:true};}
     function r3Map(r){var m={};(r||[]).forEach(function(p){m[p[0]]=p;});return m;}
     function r3Tip(l){return '3 years to '+l+(+l===CURY?' (to date)':'');}
 
