@@ -55,7 +55,7 @@ function chromeFor(mk, kind) {
   const www = 'https://www.' + mk.domain;
   if (kind === 'intel') return {
     title: 'Market intelligence \u00b7 ' + mk.brand,
-    desc:  'Search every ' + mk.region + ' condo \u2014 ten years of sale history, the citywide $/sf trend, live activity, owner tenure, and per-unit detail.',
+    desc:  'The ' + mk.region + ' condo market from recorded sales: the $/sf index, sales as they close, and every neighborhood and building by year, each with its sample.',
     url:   www + '/intelligence/',
   };
   return {
@@ -359,6 +359,58 @@ function applyMarketSwaps(s, mk) {
   return s;
 }
 
+/* ---- the intelligence terminal's data: sf_intel_explorer, cached 15 minutes per market ---- */
+async function sfIntelData(mk) {
+  const key = new Request('https://sfi.cache/' + mk.domain + '/v1');
+  let cache = null;
+  try { cache = caches.default; const hit = await cache.match(key); if (hit) return await hit.json(); } catch (e) { cache = null; }
+  try {
+    const ctl = new AbortController(); const t = setTimeout(function () { ctl.abort(); }, 6000);
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/sf_intel_explorer', { method: 'POST', signal: ctl.signal,
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_domain: mk.domain }) });
+    clearTimeout(t);
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || !d.ok) return null;
+    if (cache) { try { await cache.put(key, new Response(JSON.stringify(d), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=900' } })); } catch (e) {} }
+    return d;
+  } catch (e) { return null; }
+}
+function sfiNum(n) { return n == null ? '—' : Number(n).toLocaleString('en-US'); }
+function sfiMoney(n) { if (n == null) return '—'; if (n >= 1e6) return '$' + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/0+$/, '').replace(/[.]$/, '') + 'M'; return '$' + Math.round(n / 1000) + 'K'; }
+function sfiDay(iso) { const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; if (!iso) return ''; const p = String(iso).split('-'); return M[(+p[1]) - 1] + ' ' + (+p[2]) + ', ' + p[0]; }
+/* the quote and the tiles as the server's first paint; the client redraws the same figures with sparklines */
+function sfiFigures(D, mk) {
+  const Q = D.quarters || [], LFQ = D.last_full_quarter, T = D.totals || {};
+  let li = -1; for (let i = Q.length - 1; i >= 0; i--) { if (Q[i].t_ppsf != null && (!LFQ || Q[i].end <= LFQ)) { li = i; break; } }
+  const q = li >= 0 ? Q[li] : null, ya = li >= 4 ? Q[li - 4] : null;
+  let quote = '<div class="mi-px">—</div><div class="mi-meta">Too few recorded sales for a quarterly median yet.</div>';
+  if (q) {
+    const p = ya && ya.t_ppsf ? Math.round((q.t_ppsf / ya.t_ppsf - 1) * 1000) / 10 : null;
+    const chg = p == null ? '<span class="mi-flat">—</span>' : p === 0 ? '<span class="mi-flat">level</span>' : '<span class="' + (p > 0 ? 'mi-up' : 'mi-dn') + '">' + (p > 0 ? '▲ +' : '▼ ') + (Math.abs(p) >= 10 ? Math.round(Math.abs(p)) : Math.abs(p).toFixed(1)) + '%</span>';
+    quote = '<div class="mi-sym">' + cityEsc(mk.region.toUpperCase()) + ' CONDOS · $/SF INDEX</div><div class="mi-px">$' + sfiNum(q.t_ppsf) + '<span>/sf</span></div>' +
+      '<div class="mi-chg">' + chg + ' <span class="mi-mute">vs the 12 months to ' + cityEsc(ya ? ya.q : 'a year earlier') + '</span></div>' +
+      '<div class="mi-meta">Median $/sf of ' + sfiNum(q.t_np != null ? q.t_np : q.t_n) + ' recorded condo sales in the 12 months to ' + cityEsc(q.q) + ' · through ' + cityEsc(sfiDay(D.through)) + '</div>';
+  }
+  const tile = function (l, v, n) { return '<div class="mi-tile"><div class="mi-tl">' + l + '</div><div class="mi-tv">' + v + '</div><div class="mi-tn">' + n + '</div></div>'; };
+  const tiles = tile('Median sale · 12 mo', sfiMoney(T.med12), 'n = ' + sfiNum(T.n12) + ' sales') + tile('Sales · 12 mo', sfiNum(T.n12), 'recorded closings') +
+    tile('Buildings', sfiNum(T.buildings), sfiNum(T.homes) + ' homes · ' + sfiNum(T.hoods) + ' neighborhoods') + tile('Recorded sales', sfiNum(T.sales), 'since 2010, each counted once');
+  return { quote: quote, tiles: tiles, through: D.through ? 'Recorded sales through ' + cityEsc(sfiDay(D.through)) + ' · ' : '' };
+}
+async function injectIntel(html, mk) {
+  if (html.indexOf('<!--SFI-DATA-->') === -1) return html;
+  const D = await sfIntelData(mk);
+  const cfg = { sb: SUPABASE_URL, key: SUPABASE_ANON_KEY, domain: mk.domain, region: mk.region };
+  let data = '<script>window.__SFIC=' + JSON.stringify(cfg).replace(/</g, '\\u003c') + ';' + (D ? 'window.__SFI=' + JSON.stringify(D).replace(/</g, '\\u003c') + ';' : '') + '</script>';
+  html = html.replace('<!--SFI-DATA-->', function () { return data; });
+  if (D) {
+    const F = sfiFigures(D, mk);
+    html = html.replace('<!--SFI-QUOTE-->', function () { return F.quote; }).replace('<!--SFI-TILES-->', function () { return F.tiles; }).replace('<!--SFI-THROUGH-->', function () { return F.through; });
+  }
+  return html;
+}
+
 async function renderChrome(request, env, kind) {
   const res = await env.ASSETS.fetch(request);
   const ct = res.headers.get('content-type') || '';
@@ -439,18 +491,10 @@ async function renderChrome(request, env, kind) {
 
   // (Home active-listings teaser removed — replaced by building-list highlights.)
 
-  if (kind === 'intel' && mk.tag === 'sf') {
-    const widget = neighborhoodCompareWidget(mk) + priceMovementWidget(mk);
-    // Place ABOVE the footer, in the dark content area. Try anchors in order;
-    // each replace only fires if the marker exists, so the first match wins.
-    if (html.indexOf('<footer') !== -1) {
-      html = html.replace('<footer', widget + '<footer');
-    } else if (html.indexOf('</main>') !== -1) {
-      html = html.replace('</main>', widget + '</main>');
-    } else {
-      html = html.replace('</body>', widget + '</body>');
-    }
-  }
+  /* The intelligence terminal (22 Oct 2026): the page is static; its data, the quote and the latest figures are
+     stitched in here so the first paint has the numbers and a crawler sees them. The neighborhood and price-movement
+     widgets this replaced are no longer injected; the terminal's neighborhood table does both. */
+  if (kind === 'intel') html = await injectIntel(html, mk);
 
   // Comprehensive sitewide footer: replace the static page footer with CM_FOOTER.
   try {

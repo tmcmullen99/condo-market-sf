@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Market intelligence · Condo Market SF</title>
-<meta name="description" content="Search every San Francisco condo — ten years of sale history, citywide $/sf trend, live activity, owner tenure, and per-unit detail.">
+<meta name="description" content="The San Francisco condo market from recorded sales: the $/sf index, sales as they close, and every neighborhood and building by year, each with its sample.">
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -218,48 +218,146 @@
   .cmp-empty { padding: 40px; text-align: center; font-family: var(--ff-display); font-style: italic; color: #5d6575; }
 </style>
 <style>
-  .workbench-wrap { display: block; }
-  @media (max-width: 980px) { .workbench-wrap { grid-template-columns: 1fr; } }
-  .wb-tabs { display: flex; flex-wrap: nowrap; gap: 4px; background: #ffffff; border: 1px solid rgba(34,38,47,0.06); border-radius: 12px; padding: 4px; box-shadow: var(--cm-shadow); margin-bottom: 16px; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .wb-tabs::-webkit-scrollbar { height: 0; }
-  .wb-tabs button { background: none; border: 0; font-family: var(--ff-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #5d6575; padding: 9px 15px; border-radius: 8px; cursor: pointer; transition: 0.15s; white-space: nowrap; flex: 0 0 auto; }
-  .wb-tabs button.on { background: #9fb4d8; color: #ffffff; }
-  .wb-tabs button:not(.on):hover { color: #1f2430; }
-  .wb-panel { background: #ffffff; border: 1px solid rgba(34,38,47,0.06); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; }
-  .wb-frame { display: none; width: 100%; min-height: 480px; border: 0; background: #ffffff; }
-  .wb-frame.on { display: block; }
-  @media (max-width: 980px) { .wb-frame { min-height: 420px; } }
-  .wb-feed { background: #ffffff; border: 1px solid rgba(34,38,47,0.06); border-radius: 16px; box-shadow: var(--cm-shadow); overflow: hidden; position: sticky; top: 18px; }
-  .wb-feed-head { padding: 15px 18px; border-bottom: 1px solid rgba(34,38,47,0.06); display: flex; justify-content: space-between; align-items: baseline; }
-  .wb-feed-head h3 { font-family: var(--ff-display); font-weight: 500; font-size: 19px; } .wb-feed-head h3 em { font-style: italic; color: #C2410C; }
-  .wb-feed-head span { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #5d6575; }
-  .wb-ticker-list { max-height: 736px; overflow-y: auto; }
-  .wb-ticker { display: flex; align-items: stretch; background: #ffffff; border: 1px solid rgba(34,38,47,0.06); border-radius: 12px; box-shadow: var(--cm-shadow); overflow: hidden; margin-bottom: 18px; }
-  .wb-ticker-label { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 16px; font-family: var(--ff-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5d6575; border-right: 1px solid rgba(34,38,47,0.06); white-space: nowrap; }
-  .wb-ticker-dot { width: 7px; height: 7px; border-radius: 50%; background: #3f9d6b; animation: wb-pulse 2.4s infinite; }
-  @keyframes wb-pulse { 0% { box-shadow: 0 0 0 0 rgba(63,157,107,.45); } 70% { box-shadow: 0 0 0 6px rgba(63,157,107,0); } 100% { box-shadow: 0 0 0 0 rgba(63,157,107,0); } }
-  .wb-ticker-viewport { flex: 1 1 auto; overflow: hidden; position: relative; }
-  .wb-ticker-track { display: flex; align-items: stretch; width: max-content; animation: wb-marquee 60s linear infinite; }
-  .wb-ticker:hover .wb-ticker-track { animation-play-state: paused; }
-  @keyframes wb-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .wb-ticker-item { display: inline-flex; align-items: baseline; gap: 9px; padding: 13px 18px; border-right: 1px solid rgba(34,38,47,0.06); white-space: nowrap; cursor: pointer; text-decoration: none; transition: background .12s; }
-  .wb-ticker-item:hover { background: #eef1f6; }
-  .wb-ti-addr { font-family: var(--ff-body); font-weight: 500; font-size: 13px; color: #1f2430; }
-  .wb-ti-unit { font-family: var(--ff-mono); font-size: 10.5px; color: #C2410C; margin-left: 4px; }
-  .wb-ti-price { font-family: var(--ff-display); font-style: italic; font-size: 15px; color: #1f2430; }
-  .wb-ti-meta { font-family: var(--ff-mono); font-size: 10px; color: #5d6575; letter-spacing: .03em; }
-  @media (prefers-reduced-motion: reduce) { .wb-ticker-track { animation: none; } .wb-ticker-viewport { overflow-x: auto; } }
-  .activity-grid { display: flex; flex-direction: column; }
-  .feed-row { padding: 12px 18px; border-bottom: 1px solid rgba(34,38,47,0.06); cursor: pointer; transition: background 0.12s; }
-  .feed-row:last-child { border-bottom: 0; }
-  .feed-row:hover { background: #eef1f6; }
-  .feed-row-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
-  .feed-addr { font-family: var(--ff-body); font-weight: 500; font-size: 13.5px; color: #1f2430; }
-  .feed-unit { font-family: var(--ff-mono); font-size: 11px; color: #C2410C; margin-left: 5px; }
-  .feed-price { font-family: var(--ff-display); font-style: italic; font-size: 16px; color: #1f2430; white-space: nowrap; }
-  .feed-row-bot { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; }
-  .feed-bldg { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: #5d6575; }
-  .feed-meta { font-family: var(--ff-mono); font-size: 10.5px; color: #5d6575; white-space: nowrap; }
+.mi{--mi-bg:#0d1016;--mi-card:#141821;--mi-line:#242b38;--mi-ink:#ece7db;--mi-sub:#a3adbf;--mi-acc:#e0893a;background:var(--mi-bg);color:var(--mi-ink);padding:0 0 64px}
+.mi a{color:inherit}
+.mi .wrap{max-width:1240px}
+.mi-tape{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--mi-line);background:#0a0c11;overflow:hidden;height:40px}
+.mi-live{flex:none;display:inline-flex;align-items:center;gap:7px;padding:0 14px;height:100%;font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:.12em;color:#fff;background:#151a24;border-right:1px solid var(--mi-line)}
+.mi-live::before{content:'';width:7px;height:7px;border-radius:50%;background:#3ecf8e;box-shadow:0 0 0 3px rgba(62,207,142,.18)}
+.mi-tapewrap{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+.mi-tapein{display:inline-flex;white-space:nowrap;animation:miTape 90s linear infinite}
+.mi-tape:hover .mi-tapein{animation-play-state:paused}
+.mi-tape.still .mi-tapewrap{overflow-x:auto}.mi-tape.still .mi-tapein{animation:none}
+@keyframes miTape{to{transform:translateX(-50%)}}
+.mi-tk{display:inline-flex;align-items:center;gap:6px;padding:0 18px;font:500 13px/40px 'DM Sans',system-ui,sans-serif;color:var(--mi-sub);text-decoration:none;border-right:1px solid var(--mi-line)}
+.mi-tk b{color:var(--mi-ink);font-weight:600}
+.mi-tk:hover{background:#151a24}
+.mi-top{padding:30px 0 6px}
+.mi-crumb{font-size:13px;color:var(--mi-sub)}.mi-crumb a{text-decoration:none}
+.mi h1{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(30px,3.6vw,44px);line-height:1.08;margin:8px 0 6px;color:#fff}
+.mi-lead{color:var(--mi-sub);font-size:16px;max-width:68ch;margin:0}
+.mi-head{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:14px;margin:24px 0 14px}
+.mi-figs{display:flex;flex-direction:column;gap:8px;min-width:0}.mi-figs .mi-tiles{flex:1}
+.mi-figs-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.mi-figs-h h2{margin:0;font:600 14px/1.2 'DM Sans',system-ui,sans-serif;color:var(--mi-ink)}.mi-figs-h span{font-size:12px;color:var(--mi-sub)}
+.mi-card{background:var(--mi-card);border:1px solid var(--mi-line);border-radius:14px;padding:20px;position:relative}
+.mi-quote{background:linear-gradient(160deg,#18202c,#121620);border:1px solid var(--mi-line);border-radius:14px;padding:20px 22px}
+.mi-sym{font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--mi-sub)}
+.mi-px{font:600 52px/1.05 'JetBrains Mono',monospace;color:#fff;margin:12px 0 6px;letter-spacing:-.02em}.mi-px span{font-size:20px;color:var(--mi-sub);margin-left:4px}
+.mi-chg{font:600 15px/1.3 'JetBrains Mono',monospace}
+.mi-meta{font-size:12.5px;color:var(--mi-sub);margin-top:10px;line-height:1.45}
+.mi-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.mi-tile{background:var(--mi-card);border:1px solid var(--mi-line);border-radius:12px;padding:14px;min-width:0}
+.mi-tl{font-size:12px;color:var(--mi-sub)}
+.mi-tv{font:600 22px/1.2 'JetBrains Mono',monospace;color:#fff;margin:6px 0 2px;white-space:nowrap}
+.mi-tn{font-size:11.5px;color:var(--mi-sub);margin-top:4px}
+.mi-spark{display:block;margin-top:4px;width:100%;height:26px}
+.mi-show-s{display:none}
+.mi-up{color:#3ecf8e}.mi-dn{color:#f2766b}.mi-flat,.mi-mute{color:var(--mi-sub)}.mi-small{font-size:12px}
+.mi-mono{font-family:'JetBrains Mono',monospace;font-size:12.5px}
+.mi-bar-h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.mi h2{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:22px;color:#fff;margin:0}
+.mi h3{font:600 15px/1.3 'DM Sans',system-ui,sans-serif;color:#fff;margin:0}
+.mi-sub{color:var(--mi-sub);font-size:13px;margin:3px 0 0}
+.mi-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.mi-seg{display:inline-flex;background:#0e1219;border:1px solid var(--mi-line);border-radius:999px;padding:3px}
+.mi-seg button,.mi-chips button,.mi-tog{font:600 12.5px/1 'DM Sans',system-ui,sans-serif;color:var(--mi-sub);background:none;border:0;border-radius:999px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.mi-seg button[aria-pressed="true"]{background:#2a3242;color:#fff}
+.mi-chips{display:inline-flex;flex-wrap:wrap;gap:6px}
+.mi-chips button,.mi-tog,.mi-chip{border:1px solid var(--mi-line);background:#0e1219;display:inline-flex;align-items:center;gap:7px}
+.mi-chips button i,.mi-chip i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.mi-chips button[aria-pressed="false"]{opacity:.55}.mi-chips button[aria-pressed="false"] i{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--mi-sub)}
+.mi-chips button[aria-pressed="true"],.mi-tog[aria-pressed="true"]{color:#fff;border-color:#3a4458}
+.mi-chip{font:600 12.5px/1 'DM Sans',sans-serif;color:#fff;border-radius:999px;padding:7px 11px;cursor:pointer}
+.mi-chip span{color:var(--mi-sub);margin-left:2px}
+.mi-spacer{flex:1}
+.mi-chart{position:relative}
+.mi-chart svg{display:block;max-width:100%}
+.mi-bridge{margin:6px 0 0}
+.mi-grid{stroke:#232a36;stroke-width:1}
+.mi-ax{fill:#8f9aad;font:11px 'JetBrains Mono',monospace}
+.mi-dl{fill:#d8dde6;font:600 11px 'DM Sans',sans-serif}
+.mi-vol{fill:#36404f}
+.mi-cross{stroke:#5b6577;stroke-width:1;stroke-dasharray:3 3}
+.mi-tip{position:absolute;top:6px;transform:translateX(-50%);display:none;pointer-events:none;background:#0a0c11;border:1px solid #333c4c;border-radius:10px;padding:9px 11px;min-width:170px;font-size:12.5px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:5}
+.mi-th{font:600 12px 'JetBrains Mono',monospace;color:#fff;margin-bottom:5px}
+.mi-tr{display:flex;align-items:center;gap:7px;padding:2px 0;color:var(--mi-sub)}.mi-tr i{width:8px;height:8px;border-radius:2px;flex:none}.mi-tr b{margin-left:auto;color:#fff;font:600 12px 'JetBrains Mono',monospace}.mi-tr small{font-size:10.5px;color:#7f8a9d;min-width:48px;text-align:right}
+.mi-vsw{background:#36404f}
+.mi-empty{color:var(--mi-sub);font-size:14px;padding:28px 4px}
+.mi-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.mi-tbl th{text-align:left;font:600 11px 'DM Sans',sans-serif;color:var(--mi-sub);padding:8px 10px;border-bottom:1px solid var(--mi-line);white-space:nowrap;position:sticky;top:0;background:var(--mi-card)}
+.mi-tbl td{padding:9px 10px;border-bottom:1px solid #1d2330;color:var(--mi-ink);white-space:nowrap}
+.mi-tbl tr:hover td{background:#171c26}
+.mi-tbl a{text-decoration:none}.mi-tbl a:hover{color:var(--mi-acc)}
+.mi-sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;vertical-align:0}
+.mi-tblwrap{max-height:340px;overflow:auto;margin-top:12px;border:1px solid var(--mi-line);border-radius:10px}
+.mi-two{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-top:14px}
+.mi-col{display:grid;gap:14px;align-content:start}
+.mi-two>*,.mi-cmp>*,.mi-head>*,.mi-col>*{min-width:0}
+.mi-scroll{overflow-x:auto}
+.mi-more{margin-top:10px;font:600 13px 'DM Sans',sans-serif;color:var(--mi-acc);background:none;border:0;cursor:pointer;padding:6px 0}
+.mi-sec{margin-top:34px}
+.mi-cmp{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+#ixMap{height:430px;border-radius:12px;overflow:hidden;background:#0a0c11}
+.mi-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:12px 'JetBrains Mono',monospace;color:var(--mi-sub);margin-top:10px}
+.mi-grad{display:inline-block;width:120px;height:9px;border-radius:5px;background:linear-gradient(90deg,#f6d9b8,#8a3f0c)}
+.mi-find{position:relative;flex:1 1 220px;max-width:320px}
+.mi-find input{width:100%;background:#0e1219;border:1px solid var(--mi-line);color:#fff;border-radius:999px;padding:8px 14px;font:14px 'DM Sans',sans-serif}
+.mi-find input::placeholder{color:#7f8a9d}
+.mi-hits{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);background:#0a0c11;border:1px solid #333c4c;border-radius:10px;overflow:hidden}
+.mi-hits button{display:block;width:100%;text-align:left;background:none;border:0;color:#fff;padding:9px 12px;font:13.5px 'DM Sans',sans-serif;cursor:pointer}.mi-hits button:hover{background:#171c26}
+.mi-foot{font-size:12.5px;color:var(--mi-sub);line-height:1.6;margin-top:28px;max-width:90ch}
+.mi-foot a{color:var(--mi-acc)}
+.mi :focus-visible{outline:2px solid var(--mi-acc);outline-offset:2px}
+.mi .leaflet-container{background:#0a0c11;font:12px 'DM Sans',sans-serif}
+@media(max-width:1000px){.mi-head{grid-template-columns:1fr}.mi-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.mi-two,.mi-cmp{grid-template-columns:1fr}}
+@media(max-width:640px){.mi-tiles{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px}.mi-tile{flex:0 0 150px;scroll-snap-align:start}.mi-px{font-size:40px}.mi-hide-s{display:none}.mi-card{padding:14px}.mi-tools{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 12px;padding:0 14px}#ixMap{height:340px}}
+@media (prefers-reduced-motion:reduce){.mi-tapein{animation:none}}
+.mi-tools,.mi-tiles,.mi-scroll,.mi-tapewrap{scrollbar-width:none}.mi-tools::-webkit-scrollbar,.mi-tiles::-webkit-scrollbar,.mi-tapewrap::-webkit-scrollbar{display:none}
+@media(max-width:640px){.mi-tbl{font-size:12px}.mi-tbl th,.mi-tbl td{padding:8px 5px}.mi-blot td:nth-child(2){white-space:normal;min-width:120px}.mi-show-s{display:block!important}.mi-blot .mi-mono{font-size:11.5px}.mi-tools .mi-chips{flex-wrap:nowrap}.mi-bar-h .mi-tools{flex-wrap:nowrap;overflow-x:auto;max-width:100%}}
+
+/* the condo terminal: the hero and the search live in the dark section */
+.mi-top{padding:30px 0 6px}
+.mi-kick{font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--mi-acc)}
+.mi .search-shell{max-width:760px;margin:20px 0 4px}
+.mi .search-input{background:#0e1219;color:#fff;border:1px solid var(--mi-line);box-shadow:none;font-size:16px;padding:16px 56px 16px 50px}
+.mi .search-input:focus{border-color:var(--mi-acc);background:#0e1219}
+.mi .search-input::placeholder{color:#7f8a9d}
+.mi .search-icon{left:19px;color:#7f8a9d}
+.mi .search-status{color:var(--mi-sub)}
+.mi .search-clear{background:#1b2130;color:#fff}
+.mi .search-results{padding:18px 0 4px;border:0}
+.mi .results-title{color:#fff;font-size:20px}.mi .results-title strong{color:var(--mi-acc)}
+.mi .results-meta{color:var(--mi-sub)}
+.mi .results-grid{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:10px}
+.mi .result-card{background:var(--mi-card);border:1px solid var(--mi-line);box-shadow:none;padding:16px 18px}
+.mi .result-card:hover{border-color:var(--mi-acc)}
+.mi .result-addr{color:#fff;font-size:17px}.mi .result-addr-unit{color:var(--mi-acc)}
+.mi .result-bldg{color:var(--mi-sub);margin-bottom:10px}
+.mi .result-stats{color:var(--mi-ink)}.mi .result-stat-label{color:var(--mi-sub)}
+.mi .results-empty{color:var(--mi-sub)}
+.mi-sort{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;white-space:nowrap}.mi-sort:hover{color:#fff}
+.mi-tbl th[aria-sort="ascending"],.mi-tbl th[aria-sort="descending"]{color:#fff}
+.mi-cmpcol{width:36px;padding-right:0!important}
+.mi-add{width:24px;height:24px;border-radius:7px;border:1px solid var(--mi-line);background:#0e1219;color:var(--mi-sub);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font:600 15px/1 'DM Sans',sans-serif;padding:0}
+.mi-add:hover:not(:disabled){border-color:#4a5468;color:#fff}
+.mi-add i{width:10px;height:10px;border-radius:2px;display:block}
+.mi-add[aria-pressed="true"]{border-color:#4a5468}
+.mi-add:disabled{opacity:.3;cursor:not-allowed}
+.mi-tbl tr.mi-on td{background:#161c28}
+.mi-rankwrap{max-height:520px;overflow:auto;border:1px solid var(--mi-line);border-radius:10px;margin-top:14px}
+.mi-sel{background:#0e1219;border:1px solid var(--mi-line);color:#fff;border-radius:999px;padding:8px 12px;font:14px 'DM Sans',sans-serif;max-width:100%}
+.mi-count{font-size:12.5px;color:var(--mi-sub)}
+#ixMap{height:460px}
+.mi .leaflet-tooltip{background:#0a0c11;color:#fff;border:1px solid #333c4c;border-radius:8px;font:12.5px/1.45 'DM Sans',sans-serif}
+.mi .leaflet-tooltip-left:before{border-left-color:#333c4c}.mi .leaflet-tooltip-right:before{border-right-color:#333c4c}
+.mi-sec h2 em{font-style:italic;color:var(--mi-acc)}
+@media(max-width:640px){.mi-rankwrap{max-height:none;border:0;border-radius:0;margin:12px -14px 0}.mi .search-input{font-size:15px}.mi-hd-tools{flex-wrap:wrap!important;overflow:visible!important}.mi-find{max-width:none}}
+.cta-strip{margin-top:0}
+.mi-n{color:var(--mi-sub);font-size:11.5px;margin-left:6px}
+.mi-blot td:nth-child(2){white-space:normal;min-width:150px}.mi-blot .mi-small a{color:var(--mi-sub)}.mi-blot .mi-small a:hover{color:#fff}
+@media(max-width:640px){.mi-show-s.mi-inl{display:inline!important}}
+@media(max-width:640px){.mi-n{display:block;margin:2px 0 0;font-size:10.5px}
+  .nav-meta{flex-wrap:nowrap;overflow-x:auto;gap:16px;max-width:100%;white-space:nowrap;scrollbar-width:none}.nav-meta::-webkit-scrollbar{display:none}}
 </style>
 </head>
 <body>
@@ -279,93 +377,79 @@
 </header>
 
 <main>
-  <section class="search-hero">
-    <div class="wrap">
-      <div class="hero-kicker">Market Intelligence</div>
-      <h1 class="hero-h1">Search every <em>condo</em>. Every sale. Every owner tenure.</h1>
+<section class="mi" aria-label="San Francisco condo market intelligence">
+  <div class="mi-tape" id="ixTape"><span class="mi-live">LIVE</span><div class="mi-tapewrap"><div class="mi-tapein" id="ixTapeIn"></div></div></div>
+  <div class="wrap">
+    <div class="mi-top">
+      <div class="mi-kick">Market intelligence</div>
+      <h1>The San Francisco condo market, sale by sale</h1>
+      <p class="mi-lead">The index, the sales as they close, every neighborhood and every building, year by year. Counts and medians of recorded condo sales, with the sample behind each one.</p>
       <div class="search-shell">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search any address, building, or neighborhood…">
+        <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search any address, building, or neighborhood…" aria-label="Search any address, building, or neighborhood">
         <button id="search-clear" class="search-clear" type="button" aria-label="Clear search">×</button>
         <span id="search-status" class="search-status"></span>
       </div>
-      <div class="kpi-strip" id="kpi-strip">
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Median $/sf</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Units indexed</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Sales · 10y</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Volume · 10y</div></div>
-        <div class="kpi-tile"><div class="kpi-val skel">&nbsp;</div><div class="kpi-label">Latest sale</div></div>
-      </div>
     </div>
-  </section>
-
-  <section class="search-results" id="search-results">
-    <div class="wrap">
-      <div class="results-head">
-        <div class="results-title" id="results-title">Results</div>
-        <div class="results-meta" id="results-meta"></div>
-      </div>
+    <div class="search-results" id="search-results">
+      <div class="results-head"><div class="results-title" id="results-title">Results</div><div class="results-meta" id="results-meta"></div></div>
       <div class="results-grid" id="results-grid"></div>
     </div>
-  </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">The <em>workbench</em></h2>
-        <span class="section-sub">Toggle the view · every tool built on closed sales</span>
+    <div class="mi-head"><div class="mi-quote" id="ixQuote"><!--SFI-QUOTE--></div><div class="mi-figs"><div class="mi-figs-h"><h2>Latest figures</h2><span id="ixThrough"><!--SFI-THROUGH-->each sale counted once</span></div><div class="mi-tiles" id="ixTiles"><!--SFI-TILES--></div></div></div>
+
+    <div class="mi-card">
+      <div class="mi-bar-h"><div><h2>Price history</h2><p class="mi-sub" id="ixMainChg"></p></div>
+        <div class="mi-tools" style="margin:0"><div class="mi-seg" id="ixGrain" role="group" aria-label="Grain"><button type="button" data-v="q" aria-pressed="true">Quarterly</button><button type="button" data-v="m" aria-pressed="false">Monthly</button></div><div class="mi-seg" id="ixRange" role="group" aria-label="Range"><button type="button" data-v="1" aria-pressed="false">1Y</button><button type="button" data-v="3" aria-pressed="false">3Y</button><button type="button" data-v="5" aria-pressed="false">5Y</button><button type="button" data-v="10" aria-pressed="true">10Y</button><button type="button" data-v="all" aria-pressed="false">Max</button></div></div></div>
+      <div class="mi-tools"><div class="mi-seg" id="ixMetric" role="group" aria-label="Measure"><button type="button" data-v="ppsf" aria-pressed="true">$/sf</button><button type="button" data-v="price" aria-pressed="false">Median price</button></div><div class="mi-chips" id="ixSeries"></div><span class="mi-spacer"></span>
+        <button type="button" class="mi-tog" id="ixVol" aria-pressed="true">Volume</button><button type="button" class="mi-tog" id="ixTblBtn" aria-pressed="false">Table</button></div>
+      <div class="mi-chart" id="ixMain"><p class="mi-empty">Loading the market…</p></div>
+      <div class="mi-tblwrap" id="ixMainTable" hidden></div>
+    </div>
+
+    <div class="mi-two">
+      <div class="mi-card" id="ixFeedCard">
+        <div class="mi-bar-h"><div><h2>Sales as they close</h2><p class="mi-sub">The latest recorded condo sales, each against its building’s or its neighborhood’s three-year median $/sf.</p></div></div>
+        <div class="mi-tools"><div class="mi-seg" id="ixFeedVs" role="group" aria-label="Compare each sale with"><button type="button" data-v="b" aria-pressed="true">vs building</button><button type="button" data-v="h" aria-pressed="false">vs neighborhood</button></div><div class="mi-seg" id="ixFeedSort" role="group" aria-label="Sort"><button type="button" data-v="d" aria-pressed="true">Newest</button><button type="button" data-v="p" aria-pressed="false">Price</button><button type="button" data-v="ppsf" aria-pressed="false">$/sf</button></div></div>
+        <div class="mi-scroll" id="ixFeed" style="max-height:640px;overflow-y:auto"></div>
+        <button type="button" class="mi-more" id="ixFeedMore" style="display:none"></button>
       </div>
-      <div class="wb-ticker" id="wb-ticker">
-        <span class="wb-ticker-label"><span class="wb-ticker-dot"></span>Live · recent sales</span>
-        <div class="wb-ticker-viewport"><div class="wb-ticker-track" id="activity-grid"></div></div>
-      </div>
-      <div class="workbench-wrap">
-        <div class="wb-main">
-          <div class="wb-tabs" id="wb-tabs" role="tablist">
-            <button data-f="price-per-foot-map" class="on">$/Foot map</button>
-            <button data-f="building-comparison">Compare buildings</button>
-            <button data-f="neighborhood-supply-demand">Supply &amp; demand</button>
-            <button data-f="unit-comparison">Unit comps</button>
-          </div>
-          <div class="wb-panel" id="wb-panel">
-            <iframe class="wb-frame on" data-f="price-per-foot-map" title="$/foot map" loading="lazy"></iframe>
-            <iframe class="wb-frame" data-f="building-comparison" title="Building comparison" loading="lazy"></iframe>
-            <iframe class="wb-frame" data-f="neighborhood-supply-demand" title="Supply and demand" loading="lazy"></iframe>
-            <iframe class="wb-frame" data-f="unit-comparison" title="Unit comparison" loading="lazy"></iframe>
-          </div>
-        </div>
+      <div class="mi-col">
+        <div class="mi-card" id="ixHistCard"><h3>Where prices land</h3><p class="mi-sub" id="ixHistN"></p><div class="mi-chart" id="ixHist" style="margin-top:8px"></div></div>
+        <div class="mi-card" id="ixBedsCard"><div class="mi-bar-h" style="margin-bottom:8px"><h3>By bedrooms</h3><div class="mi-seg" id="ixBedsMetric" role="group" aria-label="Measure"><button type="button" data-v="price" aria-pressed="true">Price</button><button type="button" data-v="ppsf" aria-pressed="false">$/sf</button></div></div>
+          <div class="mi-chips" id="ixBedsOn" style="margin-bottom:8px"></div><div class="mi-chart" id="ixBeds"></div></div>
       </div>
     </div>
-  </section>
 
-
-  <section class="section" id="price-movement">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="section-title">Price movement by <em>neighborhood</em></h2>
-        <span class="section-sub" id="pm-sub">Median $/sf</span>
-      </div>
-      <div class="timeline-shell">
-        <div id="pm-controls"></div>
-        <div class="pm-cards" id="pm-cards" style="display:none;"></div>
-        <div class="cmp-empty" id="pm-empty" style="display:none"></div>
-        <div class="timeline-canvas-wrap">
-          <canvas id="timeline-chart"></canvas>
-        </div>
-        <div class="timeline-bookends">
-          <div>
-                        <div class="bookend-val" id="bookend-start">--</div>
-          </div>
-          <div class="bookend-r">
-                        <div class="bookend-val" id="bookend-end">--</div>
-          </div>
-        </div>
+    <div class="mi-sec" id="ixHoodSec">
+      <div class="mi-card">
+        <div class="mi-bar-h"><div><h2>Neighborhood by <em>neighborhood</em></h2><p class="mi-sub">Every neighborhood’s median $/sf over the three years to each year, against San Francisco. Sort the table by any column; pick up to four to chart.</p></div>
+          <button type="button" class="mi-tog" id="ixHoodCity" aria-pressed="true"><i class="mi-sw" style="background:#c9ced8;margin:0"></i>San Francisco</button></div>
+        <div class="mi-chips" id="ixHoodChips" style="margin-bottom:10px"></div>
+        <div class="mi-chart" id="ixHoodCmp"></div>
+        <div class="mi-rankwrap mi-scroll" id="ixHoodTbl"></div>
       </div>
     </div>
-  </section>
 
+    <div class="mi-sec" id="ixBldSec">
+      <div class="mi-card">
+        <div class="mi-bar-h"><div><h2>Building by <em>building</em></h2><p class="mi-sub">Every catalogued building with its own recorded sales: the last three years’ median $/sf, how it moved, and how often it trades. Pick up to four from the table or the map to chart them by year.</p></div>
+          <button type="button" class="mi-tog" id="ixBldCity" aria-pressed="true"><i class="mi-sw" style="background:#c9ced8;margin:0"></i>San Francisco</button></div>
+        <div class="mi-chips" id="ixBldChips" style="margin-bottom:10px"></div>
+        <div class="mi-cmp">
+          <div><div class="mi-chart" id="ixBldCmp"></div></div>
+          <div><div class="mi-tools" style="justify-content:space-between"><div class="mi-seg" id="ixMapMetric" role="group" aria-label="Shade by"><button type="button" data-v="ppsf" aria-pressed="true">$/sf · 3 yr</button><button type="button" data-v="n" aria-pressed="false">Sales · 3 yr</button></div></div><div id="ixMap"></div><div class="mi-legend" id="ixLegend"></div></div>
+        </div>
+        <div class="mi-tools mi-hd-tools" style="margin-top:18px"><div class="mi-find"><input id="ixBldQ" type="search" placeholder="Find a building…" aria-label="Find a building" autocomplete="off"></div>
+          <select class="mi-sel" id="ixBldHood" aria-label="Neighborhood"></select><span class="mi-count" id="ixBldCount"></span></div>
+        <div class="mi-rankwrap mi-scroll" id="ixBldTbl"></div>
+        <button type="button" class="mi-more" id="ixBldMore" style="display:none"></button>
+      </div>
+    </div>
 
-
+    <p class="mi-foot">Every figure is a count or a median of recorded condo sales in San Francisco County records and the MLS, for the buildings this market catalogues<span id="ixFootThrough"></span>. Each sale is counted once. A median needs five sales: the price history plots each quarter as the twelve months to it, and neighborhoods and buildings as the three years to each year, so a building that trades a few times a year still has a median; where a year falls short, a dashed line joins the medians either side, and a series without a median in most years is not charted. Sales under $100,000, below-market-rate resales and implausible $/sf are left out. Nothing here is an opinion of what any home is worth. <a href="/methodology/">How each figure is calculated</a> · <a href="/buildings/">Every building</a></p>
+  </div>
+</section>
 
   <section class="cta-strip">
     <div class="wrap">
@@ -406,7 +490,6 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="/assets/cm-psf-chart.js"></script>
 
 <script>
 (() => {
@@ -493,30 +576,6 @@
     } catch (e) { /* leave SF defaults */ }
   }
 
-  // ───────── KPI strip ─────────
-  async function loadKPIs() {
-    try {
-      const [agg] = await rpc('homepage_aggregates', { p_market_slug: MARKET });
-      const tiles = document.querySelectorAll('#kpi-strip .kpi-val');
-      tiles[0].textContent = '$' + agg.median_psf_36mo.toLocaleString();
-      tiles[0].classList.remove('skel');
-      tiles[1].textContent = agg.total_units.toLocaleString();
-      tiles[1].classList.remove('skel');
-      tiles[2].textContent = agg.sales_last_10y.toLocaleString();
-      tiles[2].classList.remove('skel');
-      tiles[3].textContent = fmtMoneyShort(agg.total_volume_10y);
-      tiles[3].classList.remove('skel');
-      tiles[4].textContent = fmtDate(agg.most_recent_sale_date);
-      tiles[4].classList.remove('skel');
-      try {
-        const _bs = await getBuildings();
-        const _hoods = new Set(_bs.map(b => b.hood).filter(Boolean)).size;
-        const _si = document.getElementById('search-input');
-        if (_si) _si.placeholder = 'Search ' + agg.total_units.toLocaleString() + ' units · ' + agg.buildings_with_data.toLocaleString() + ' buildings · ' + _hoods + ' neighborhoods…';
-      } catch (e2) {}
-    } catch (e) { console.warn('KPI load failed', e); }
-  }
-
   // ───────── Search ─────────
   let searchTimer = null;
   let searchSeq = 0;
@@ -594,259 +653,6 @@
           ${r.sqft ? `<span><span class="result-stat-label">sqft</span>${r.sqft.toLocaleString()}</span>` : ''}
         </div>
       </div>`;
-  }
-
-  // ───────── Heatmap ─────────
-  let map = null;
-  let buildingMarkers = [];
-  let buildingCardMap = null;
-  let currentMetric = 'psf';
-  let cachedBuildings = null;
-
-  function colorForMetric(value, min, max) {
-    if (value == null || max <= min) return '#9fb4d8';
-    const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
-    if (t < 0.5) {
-      const k = t * 2;
-      return lerpColor([0x9f, 0xb4, 0xd8], [0xd4, 0xa5, 0x74], k);
-    } else {
-      const k = (t - 0.5) * 2;
-      return lerpColor([0xd4, 0xa5, 0x74], [0xc9, 0x57, 0x42], k);
-    }
-  }
-  function lerpColor(a, b, t) {
-    const r = Math.round(a[0] + (b[0] - a[0]) * t);
-    const g = Math.round(a[1] + (b[1] - a[1]) * t);
-    const bl = Math.round(a[2] + (b[2] - a[2]) * t);
-    return `rgb(${r},${g},${bl})`;
-  }
-
-  async function initHeatmap() {
-    try {
-      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards', { p_market_slug: MARKET }), getBuildings()]);
-      cachedBuildings = buildings;
-      buildingCardMap = new Map(cards.map(c => [c.building_slug, c]));
-
-      map = L.map('heatmap', { zoomControl: true, scrollWheelZoom: false, attributionControl: true })
-            .setView([37.778, -122.404], 13);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=__CARTO_KEY__', {
-        subdomains: 'abcd', maxZoom: 19,
-        attribution: '© OpenStreetMap, © CartoDB'
-      }).addTo(map);
-
-      drawMarkers();
-    } catch (e) {
-      console.warn('heatmap init failed', e);
-      document.getElementById('heatmap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#5d6575;font-style:italic;">Heatmap could not load.</div>';
-    }
-  }
-
-  function drawMarkers() {
-    if (!map || !cachedBuildings) return;
-    buildingMarkers.forEach(m => map.removeLayer(m));
-    buildingMarkers = [];
-
-    const valuesByBldg = new Map();
-    cachedBuildings.forEach(b => {
-      const slug = (b.href || '').split('/').pop();
-      const card = buildingCardMap.get(slug);
-      if (!card) return;
-      let v = null;
-      if (currentMetric === 'psf') v = card.median_psf_36mo;
-      else if (currentMetric === 'volume') v = (card.most_recent_sale_price || 0) * (card.sales_36mo || 0);
-      else if (currentMetric === 'velocity') v = card.sales_36mo;
-      if (v != null) valuesByBldg.set(slug, v);
-    });
-    const vals = [...valuesByBldg.values()].filter(v => v != null);
-    const min = Math.min(...vals);
-    const max = Math.max(...vals);
-
-    const legendLow = document.getElementById('legend-low');
-    const legendHigh = document.getElementById('legend-high');
-    if (currentMetric === 'psf') {
-      legendLow.textContent = '$' + Math.round(min).toLocaleString() + '/sf';
-      legendHigh.textContent = '$' + Math.round(max).toLocaleString() + '/sf';
-    } else if (currentMetric === 'volume') {
-      legendLow.textContent = fmtMoneyShort(min);
-      legendHigh.textContent = fmtMoneyShort(max);
-    } else {
-      legendLow.textContent = Math.round(min) + ' sales';
-      legendHigh.textContent = Math.round(max) + ' sales';
-    }
-
-    cachedBuildings.forEach(b => {
-      const slug = (b.href || '').split('/').pop();
-      const card = buildingCardMap.get(slug);
-      if (!card || !b.lat || !b.lng) return;
-      const v = valuesByBldg.get(slug);
-      const sales = card.sales_36mo || 0;
-      const radius = 6 + Math.sqrt(sales) * 0.9;
-      const color = colorForMetric(v, min, max);
-
-      const marker = L.circleMarker([b.lat, b.lng], {
-        radius, fillColor: color, color: '#f6f2ea',
-        weight: 1, opacity: 1, fillOpacity: 0.85
-      }).addTo(map);
-
-      const psf = card.median_psf_36mo ? '$' + card.median_psf_36mo.toLocaleString() + '/sf' : '—';
-      const lastPrice = card.most_recent_sale_price ? fmtMoneyShort(card.most_recent_sale_price) : '—';
-      const lastDate = card.most_recent_sale_date ? fmtDate(card.most_recent_sale_date) : '—';
-      marker.bindPopup(`
-        <strong>${escapeHtml(b.name)}</strong>
-        <div>${escapeHtml(b.hood || '')} · ${b.units || '?'} units · built ${b.year || '—'}</div>
-        <div class="pop-stat">${psf} · ${sales} sales (3y)</div>
-        <div class="pop-stat">Last sale: ${lastPrice} on ${lastDate}</div>
-        <a class="pop-link" href="${b.href}/">View building →</a>
-      `);
-      buildingMarkers.push(marker);
-    });
-  }
-
-  document.querySelectorAll('#heatmap-toggle button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#heatmap-toggle button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      currentMetric = btn.dataset.metric;
-      drawMarkers();
-    });
-  });
-
-  // ───────── Price movement (unified: cards + graph, 1/3/5/10yr) ─────────
-  let timelineChart = null;
-  let pmYears = 10;
-  let pmHood = '';
-  let pmMoveCache = {};
-
-  function pmStatCards() {
-    const cardsEl = document.getElementById('pm-cards');
-    if (!cardsEl) return;
-    if (!pmHood) { cardsEl.style.display = 'none'; return; }
-    cardsEl.style.display = 'grid';
-    const rows = pmMoveCache[pmHood];
-    if (!rows) { cardsEl.innerHTML = ''; return; }
-    let r = null;
-    for (let i = 0; i < rows.length; i++) if (rows[i].horizon_years === pmYears) r = rows[i];
-    const hl = pmYears + (pmYears === 1 ? ' year' : ' years');
-    const hLabel = pmYears + (pmYears === 1 ? ' Year' : ' Years');
-    if (!r || r.pct_change == null) {
-      cardsEl.innerHTML = '<div class="pm-note">Not enough recorded sales in ' + escapeHtml(pmHood) + ' over this ' + hl + ' window to report a reliable change.</div>';
-      return;
-    }
-    const up = r.pct_change >= 0;
-    const col = up ? '#4f7a39' : '#b8472f';
-    const arr = up ? '▲' : '▼';
-    const box = (label, val, sub, peri, color) =>
-      '<div class="pm-card"><div class="pm-card-label">' + label + '</div>' +
-      '<div class="pm-card-val' + (peri ? ' peri' : '') + '"' + (color ? ' style="color:' + color + '"' : '') + '>' + val + '</div>' +
-      '<div class="pm-card-sub">' + sub + '</div></div>';
-    cardsEl.innerHTML =
-      box(hLabel + ' Ago', '$' + Math.round(r.median_then).toLocaleString(), 'median $/sqft', false, null) +
-      box('Today', '$' + Math.round(r.median_now).toLocaleString(), 'median $/sqft', true, null) +
-      box('Change', arr + ' ' + Math.abs(r.pct_change) + '%', 'over ' + hl, false, col);
-  }
-
-  async function refreshStatCards() {
-    const cardsEl = document.getElementById('pm-cards');
-    if (!pmHood) { if (cardsEl) cardsEl.style.display = 'none'; return; }
-    if (pmMoveCache[pmHood]) { pmStatCards(); return; }
-    try {
-      const p = await getPayload();
-      const domain = (p.market && p.market.domain) || 'sanfranciscocondomarket.com';
-      pmMoveCache[pmHood] = await rpc('neighborhood_price_movement', { p_market_domain: domain, p_neighborhood: pmHood });
-    } catch (e) { pmMoveCache[pmHood] = []; }
-    pmStatCards();
-  }
-
-  // Price-movement chart. Rendered by the shared module so this page and the
-  // homepage are guaranteed identical — same RPC, same code, same styling.
-  function initTimeline() {
-    if (!window.CMPsfChart) { console.warn('cm-psf-chart.js not loaded'); return; }
-    return window.CMPsfChart.mount({
-      market: MARKET,
-      canvas: '#timeline-chart',
-      controls: '#pm-controls',
-      subtitle: '#pm-sub',
-      bookendStart: '#bookend-start',
-      bookendEnd: '#bookend-end',
-      empty: '#pm-empty',
-      accent: '#c2410c',
-      defaults: { grain: 'quarter', years: 10, hood: '' },
-      onChange: function (st) { pmHood = st.hood; pmYears = st.years; refreshStatCards(); }
-    });
-  }
-
-  // ───────── Live activity ─────────
-  async function loadActivity() {
-    try {
-      const [rows, buildings] = await Promise.all([
-        rpc('intelligence_recent_sales', { p_limit: 18, p_market_slug: MARKET }),
-        getBuildings()
-      ]);
-      const bldgBySlug = new Map();
-      buildings.forEach(b => {
-        const slug = (b.href || '').replace(/\/$/, '').split('/').pop();
-        if (slug) bldgBySlug.set(slug, b);
-      });
-      const ticker = document.getElementById('wb-ticker');
-      const track = document.getElementById('activity-grid');
-      if (!track || !rows.length) { if (ticker) ticker.style.display = 'none'; return; }
-      const itemsHtml = rows.map(r => {
-        const psf = (r.sale_price && r.sqft) ? Math.round(r.sale_price / r.sqft) : null;
-        const bldg = bldgBySlug.get(r.building_slug);
-        const bldgName = bldg ? bldg.name : r.building_slug;
-        return `<a class="wb-ticker-item" href="/building/${encodeURIComponent(r.building_slug)}" data-address="${escapeAttr(r.unit_address)}" data-label="${escapeAttr(r.unit_label || '')}" data-bldg="${escapeAttr(r.building_slug)}"><span class="wb-ti-addr">${escapeHtml(r.unit_address)}${r.unit_label ? `<span class="wb-ti-unit">${escapeHtml(r.unit_label)}</span>` : ''}</span><span class="wb-ti-price">${fmtMoneyShort(r.sale_price)}</span><span class="wb-ti-meta">${escapeHtml(bldgName)}${psf ? ' \u00b7 $' + psf.toLocaleString() + '/sf' : ''} \u00b7 ${fmtDateShort(r.sale_date)}</span></a>`;
-      }).join('');
-      track.innerHTML = itemsHtml + itemsHtml;
-    } catch (e) { console.warn('activity load failed', e); }
-  }
-
-  // ───────── Rankings ─────────
-  async function loadRankings() {
-    try {
-      const [cards, buildings] = await Promise.all([rpc('homepage_building_cards', { p_market_slug: MARKET }), getBuildings()]);
-      const cardBySlug = new Map(cards.map(c => [c.building_slug, c]));
-
-      const enriched = buildings.map(b => {
-        const slug = (b.href || '').split('/').pop();
-        const c = cardBySlug.get(slug) || {};
-        return {
-          ...b, slug,
-          median_psf_36mo: c.median_psf_36mo,
-          sales_36mo: c.sales_36mo,
-          most_recent_sale_date: c.most_recent_sale_date,
-          year_built_mode: c.year_built_mode,
-          unit_count: c.unit_count
-        };
-      }).filter(b => b.slug);
-
-      const byPsf = [...enriched].filter(b => b.median_psf_36mo).sort((a,b) => b.median_psf_36mo - a.median_psf_36mo).slice(0, 5);
-      const byTraded = [...enriched].filter(b => b.sales_36mo != null).sort((a,b) => (b.sales_36mo||0) - (a.sales_36mo||0)).slice(0, 5);
-      const byUnits = [...enriched].filter(b => b.unit_count || b.units).sort((a,b) => (b.unit_count||b.units||0) - (a.unit_count||a.units||0)).slice(0, 5);
-      const newest = [...enriched].filter(b => b.year_built_mode || b.year).sort((a,b) => (b.year_built_mode||b.year||0) - (a.year_built_mode||a.year||0)).slice(0, 5);
-
-      function card(title, sub, rows, formatVal) {
-        return `
-          <div class="rank-card">
-            <h3>${title}</h3>
-            <div class="sub">${sub}</div>
-            <ul class="rank-list">
-              ${rows.map((b, i) => `
-                <li>
-                  <span class="rank-n">0${i+1}</span>
-                  <span class="rank-name"><a href="${b.href}/">${escapeHtml(b.name)}</a></span>
-                  <span class="rank-val">${formatVal(b)}</span>
-                </li>`).join('')}
-            </ul>
-          </div>`;
-      }
-      document.getElementById('rank-grid').innerHTML = [
-        card('Highest $/sf', 'Median, last 36 months', byPsf, b => '$' + b.median_psf_36mo.toLocaleString()),
-        card('Most traded', 'Sales · last 36 months', byTraded, b => (b.sales_36mo||0).toLocaleString()),
-        card('Largest towers', 'By total unit count', byUnits, b => (b.unit_count || b.units || 0).toLocaleString() + ' units'),
-        card('Newest', 'By year completed', newest, b => (b.year_built_mode || b.year || '—'))
-      ].join('');
-    } catch (e) { console.warn('rankings failed', e); }
   }
 
   // ───────── Detail drawer ─────────
@@ -945,130 +751,378 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
-  // ───────── Building comparison + owner tenure ─────────
-  let cmpRows = [];
-  let cmpSort = 'psf';
-  let cmpHood = '';
-
-  async function loadComparison() {
-    try {
-      const [stats, tenure] = await Promise.all([
-        rpc('intelligence_building_stats', { p_window_months: 36, p_market_slug: MARKET }),
-        rpc('intelligence_owner_tenure', {})
-      ]);
-      const tenureBySlug = new Map(tenure.map(t => [t.building_slug, t]));
-      cmpRows = stats.map(s => {
-        const t = tenureBySlug.get(s.slug) || null;
-        const turnover = (s.unit_count && s.sales != null) ? (s.sales / s.unit_count) * 100 : null;
-        const hasTenure = t && t.units_measured >= 10;
-        return {
-          slug: s.slug,
-          name: s.display_name || s.slug,
-          hood: s.neighborhood || '',
-          psf: s.median_psf != null ? Number(s.median_psf) : null,
-          sales: s.sales != null ? Number(s.sales) : 0,
-          turnover,
-          tenure: hasTenure ? Number(t.median_years_held) : null,
-          held7: hasTenure ? Number(t.pct_held_7y_plus) : null
-        };
-      });
-      const hoods = [...new Set(cmpRows.map(r => r.hood).filter(Boolean))].sort();
-      const sel = document.getElementById('cmp-filter');
-      sel.innerHTML = '<option value="">All districts</option>' +
-        hoods.map(h => `<option value="${escapeAttr(h)}">${escapeHtml(h)}</option>`).join('');
-      renderComparison();
-    } catch (e) {
-      document.getElementById('cmp-body').innerHTML = '<tr><td colspan="7" class="cmp-empty">Comparison data could not load.</td></tr>';
-      console.warn('comparison load failed', e);
-    }
-  }
-
-  function renderComparison() {
-    const rows = (cmpHood ? cmpRows.filter(r => r.hood === cmpHood) : [...cmpRows]);
-    const getVal = r => r[cmpSort];
-    rows.sort((a, b) => {
-      const av = getVal(a), bv = getVal(b);
-      if (av == null && bv == null) return 0;
-      if (av == null) return 1;
-      if (bv == null) return -1;
-      return bv - av;
-    });
-    const maxHeld7 = Math.max(1, ...rows.map(r => r.held7 || 0));
-    const body = document.getElementById('cmp-body');
-    if (rows.length === 0) {
-      body.innerHTML = '<tr><td colspan="7" class="cmp-empty">No buildings in this district.</td></tr>';
-    } else {
-      body.innerHTML = rows.map(r => `
-        <tr>
-          <td class="cmp-name"><a href="/buildings/${escapeAttr(r.slug)}/">${escapeHtml(r.name)}</a></td>
-          <td class="cmp-hood">${r.hood ? escapeHtml(r.hood) : '—'}</td>
-          <td>${r.psf != null ? '$' + r.psf.toLocaleString() : '<span class="cmp-dim">—</span>'}</td>
-          <td>${r.sales ? r.sales.toLocaleString() : '<span class="cmp-dim">0</span>'}</td>
-          <td>${r.turnover != null ? r.turnover.toFixed(0) + '%' : '<span class="cmp-dim">—</span>'}</td>
-          <td>${r.tenure != null ? r.tenure.toFixed(1) + ' yr' : '<span class="cmp-dim">—</span>'}</td>
-          <td>${r.held7 != null
-                ? `<span class="cmp-bar-wrap"><span class="cmp-bar"><i style="width:${Math.round((r.held7 / maxHeld7) * 100)}%"></i></span>${r.held7.toFixed(0)}%</span>`
-                : '<span class="cmp-dim">—</span>'}</td>
-        </tr>`).join('');
-    }
-    document.getElementById('cmp-count').textContent =
-      rows.length + (rows.length === 1 ? ' building' : ' buildings') + (cmpHood ? ` · ${cmpHood}` : '');
-  }
-
-  // building comparison, rankings, and heatmap now live in the workbench tools
-
   // ───────── Boot ─────────
   applyChrome();
-  loadKPIs();
-  initTimeline();
-  loadActivity();
 })();
 </script>
+
+<!--SFI-DATA-->
+<script>window.__SFIC=window.__SFIC||{sb:'https://kfqphwerygccpzntbbif.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcXBod2VyeWdjY3B6bnRiYmlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTgxODQsImV4cCI6MjA5MTk3NDE4NH0.FGQD3BMLVLD9lE8LUBUjD3SqKhsCxjdnCiGV8MMnqpg',domain:location.hostname.replace(/^www\./,'')};</script>
 <script>
-(function () {
-  var base = '/intelligence/';
-  function fit(fr) {
-    if (!fr || !fr.classList.contains('on')) return;
-    try {
-      var d = fr.contentDocument;
-      if (d && d.body) {
-        var h = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight);
-        if (h > 200 && Math.abs((parseInt(fr.style.height) || 0) - h) > 2) fr.style.height = h + 'px';
-      }
-    } catch (e) {}
-  }
-  function wake(fr) {
-    try { fr.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
-    setTimeout(function () { fit(fr); }, 140);
-  }
-  function mount(f) {
-    var fr = document.querySelector('.wb-frame[data-f="' + f + '"]');
-    if (!fr) return;
-    if (!fr.getAttribute('src')) {
-      fr.addEventListener('load', function () {
-        fit(fr);
-        try { var ro = new ResizeObserver(function () { fit(fr); }); ro.observe(fr.contentDocument.body); } catch (e) {}
-        wake(fr);
-      });
-      fr.setAttribute('src', base + f + '.html' + (window.__CM_MARKET__ ? '?m=' + encodeURIComponent(window.__CM_MARKET__) : ''));
-    } else {
-      wake(fr);
-    }
-  }
-  var tabs = document.getElementById('wb-tabs');
-  if (tabs) {
-    tabs.querySelectorAll('button').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var f = b.dataset.f;
-        tabs.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-        document.querySelectorAll('.wb-frame').forEach(function (fr) { fr.classList.toggle('on', fr.dataset.f === f); });
-        mount(f);
-      });
+(function(){
+  /* THE CONDO MARKET INTELLIGENCE TERMINAL (Tim, 22 Oct 2026: "redesign the UI of San Francisco's intelligence page
+     similarly to how we did the city markets, including a neighborhood by neighborhood and building by building
+     analysis"). The City Markets' terminal, rebuilt for condos: the index, the sales as they close, every neighborhood
+     and every building with its own three-year median and the sample behind it. Data: sf_intel_explorer (window.__SFI,
+     injected by the worker; fetched with the anon key if it is not). Every number is a count or a median of recorded
+     sales; a thin sample shows a gap, never a guess. No value is stated for any home. */
+  var D0=window.__SFI||null, C=window.__SFIC||{};
+  var COL=['#d4782a','#2a9d8f','#8b79e8','#d95f80','#4790d6'];
+  var CITYC='#c9ced8';
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var BK=['b0','b1','b2','b3'], BKN={b0:'Studio',b1:'1 bd',b2:'2 bd',b3:'3+ bd'}, BKL={b0:'Studios',b1:'1 bedroom',b2:'2 bedrooms',b3:'3+ bedrooms'};
+  var REGION=C.region||'San Francisco';
+  function $(id){return document.getElementById(id);}
+  function esc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function num(n){return n==null?'—':Number(n).toLocaleString('en-US');}
+  function money(n){if(n==null)return '—';if(n>=1e6)return '$'+(n/1e6).toFixed(n>=1e7?1:2).replace(/0+$/,'').replace(/[.]$/,'')+'M';return '$'+Math.round(n/1000)+'K';}
+  function full(n){return n==null?'—':'$'+Math.round(n).toLocaleString('en-US');}
+  function day(iso){if(!iso)return '';var p=String(iso).split('-');return MON[(+p[1])-1]+' '+(+p[2])+', '+p[0];}
+  function dayShort(iso){if(!iso)return '';var p=String(iso).split('-');return MON[(+p[1])-1]+' '+(+p[2]);}
+  function pct(a,b){return (a==null||b==null||!b)?null:Math.round((a/b-1)*1000)/10;}
+  function chg(p,label){if(p==null)return '<span class="mi-flat">—</span>';var tail=label?' <span class="mi-mute">'+label+'</span>':'';if(p===0)return '<span class="mi-flat">level</span>'+tail;var up=p>0,a=Math.abs(p);return '<span class="'+(up?'mi-up':'mi-dn')+'">'+(up?'▲ +':'▼ ')+(Number.isInteger(a)||a>=10?Math.round(a):a.toFixed(1))+'%</span>'+tail;}
+  function slugify(s){return String(s||'').toLowerCase().trim().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+  function cover(vals){var n=0;vals.forEach(function(v){if(v!=null)n++;});return n;}
+  function dense(vals,share){var n=cover(vals);return n>=3&&n>=Math.ceil((share==null?.7:share)*vals.length);}
+  /* from the first median to the end: a building that was finished in 2016 is judged on 2016 onward */
+  function denseFrom(vals,share){var f=-1;for(var i=0;i<vals.length;i++){if(vals[i]!=null){f=i;break;}}return f>=0&&dense(vals.slice(f),share);}
+  var RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function track(c){try{if(window.CBTrack)CBTrack.event('cta_click',{cta:'intel:'+c});}catch(_){}}
+  function fmtP(v,ax){return '$'+num(Math.round(v))+(ax?'':'/sf');}
+  function fmtM(v,ax){return ax?money(v):full(v);}
+
+  /* ── one chart: lines with dashed bridges across thin periods, an optional volume strip, a crosshair ── */
+  function lineChart(host,o){
+    if(!host)return;
+    var W=Math.max(280,host.clientWidth||600), H=o.height||(W<560?260:340), VOL=o.vol?Math.round(H*.2):0;
+    var padL=W<560?50:64, padR=o.directLabels?(W<560?8:104):12, padT=14, padB=24, gap=o.vol?10:0;
+    var plotH=H-padT-padB-VOL-gap, plotW=W-padL-padR, L=o.labels, N=L.length;
+    var vis=o.series.filter(function(s){return s.on!==false;});
+    var all=[];vis.forEach(function(s){s.vals.forEach(function(v){if(v!=null)all.push(v);});});
+    if(N<2||!all.length){host.innerHTML='<p class="mi-empty">'+(o.empty||'Not enough recorded sales to chart this honestly.')+'</p>';return;}
+    var lo=Math.min.apply(null,all), hi=Math.max.apply(null,all), pad=(hi-lo)*.1||hi*.05||1;
+    lo=Math.max(0,lo-pad); hi=hi+pad;
+    function X(i){return padL+(N===1?plotW/2:i*plotW/(N-1));}
+    function Y(v){return padT+plotH-(v-lo)/(hi-lo)*plotH;}
+    var s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(o.aria||'Chart')+'">';
+    for(var g=0;g<=4;g++){var v=lo+(hi-lo)*g/4, y=Y(v);
+      s+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" class="mi-grid"/>';
+      s+='<text x="'+(padL-8)+'" y="'+(y+4).toFixed(1)+'" class="mi-ax" text-anchor="end">'+esc(o.fmt(v,true))+'</text>';}
+    var narrow=W<560, step=Math.max(1,Math.ceil(N/(narrow?3:7)));
+    for(var i=0;i<N;i+=step){var xl=o.xfmt?o.xfmt(L[i]):L[i];if(narrow)xl=String(xl).replace(/^20(\d\d) /,'’$1 ');s+='<text x="'+X(i).toFixed(1)+'" y="'+(H-6)+'" class="mi-ax" text-anchor="'+(i===0?'start':'middle')+'">'+esc(xl)+'</text>';}
+    if(o.vol){var vmax=Math.max.apply(null,o.vol.vals.concat([1])), vy0=H-padB, bw=Math.max(1.5,plotW/N*.62);
+      if(!narrow)s+='<text x="'+(padL-8)+'" y="'+(vy0-4)+'" class="mi-ax" text-anchor="end">'+esc(o.vol.label||'Sales')+'</text>';
+      o.vol.vals.forEach(function(v,i){if(!v)return;var h=Math.max(1,v/vmax*(VOL-4));s+='<rect x="'+(X(i)-bw/2).toFixed(1)+'" y="'+(vy0-h).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5" class="mi-vol"/>';});}
+    var bridged=false, DL=[];
+    vis.forEach(function(se){
+      var d='',bd='',prev=-1;
+      se.vals.forEach(function(v,i){if(v==null)return;var pt=X(i).toFixed(1)+','+Y(v).toFixed(1);
+        if(prev<0)d+='M'+pt;else if(prev===i-1)d+='L'+pt;else{bd+='M'+X(prev).toFixed(1)+','+Y(se.vals[prev]).toFixed(1)+'L'+pt;d+='M'+pt;}prev=i;});
+      if(bd){bridged=true;s+='<path d="'+bd+'" fill="none" stroke="'+se.color+'" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round" opacity=".6"/>';}
+      if(vis.length===1){var first=-1,last=-1;se.vals.forEach(function(v,i){if(v!=null){if(first<0)first=i;last=i;}});
+        if(first>=0){var a='M'+X(first).toFixed(1)+','+(padT+plotH);se.vals.forEach(function(v,i){if(v!=null)a+='L'+X(i).toFixed(1)+','+Y(v).toFixed(1);});a+='L'+X(last).toFixed(1)+','+(padT+plotH)+'Z';
+          s+='<path d="'+a+'" fill="'+se.color+'" opacity=".12"/>';}}
+      s+='<path d="'+d+'" fill="none" stroke="'+se.color+'" stroke-width="'+(se.thin?1.5:2)+'"'+(se.dash?' stroke-dasharray="5 4"':'')+' stroke-linejoin="round" stroke-linecap="round"/>';
+      se.vals.forEach(function(v,i){if(v==null)return;var pv=i>0?se.vals[i-1]:null,nv=i<N-1?se.vals[i+1]:null;if(pv==null&&nv==null)s+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="2.5" fill="'+se.color+'"/>';});
+      if(o.directLabels&&W>=560){var li=-1;se.vals.forEach(function(v,i){if(v!=null)li=i;});
+        if(li>=0)DL.push({x:X(li)+8,y:Y(se.vals[li])+4,t:se.short||se.name});}
     });
-    mount('price-per-foot-map');
-    window.addEventListener('resize', function () { var on = document.querySelector('.wb-frame.on'); if (on) fit(on); });
+    /* direct labels never sit on top of each other: pushed apart, then back inside the plot */
+    if(DL.length){DL.sort(function(a,b){return a.y-b.y;});for(var q=1;q<DL.length;q++)if(DL[q].y<DL[q-1].y+13)DL[q].y=DL[q-1].y+13;
+      var over=DL[DL.length-1].y-(padT+plotH+4);if(over>0)DL.forEach(function(l){l.y-=over;});
+      DL.forEach(function(l){s+='<text x="'+l.x.toFixed(1)+'" y="'+l.y.toFixed(1)+'" class="mi-dl">'+esc(l.t)+'</text>';});}
+    s+='<line class="mi-cross" x1="0" x2="0" y1="'+padT+'" y2="'+(H-padB)+'" style="display:none"/>';
+    vis.forEach(function(se,si){s+='<circle class="mi-dot" data-s="'+si+'" r="4.5" fill="'+se.color+'" stroke="#11141b" stroke-width="2" style="display:none"/>';});
+    s+='<rect x="'+padL+'" y="0" width="'+plotW+'" height="'+H+'" fill="transparent" class="mi-hit"/></svg><div class="mi-tip" role="status"></div>'+
+      (bridged?'<p class="mi-mute mi-small mi-bridge">Dashed: '+esc(o.gapUnit||'a period')+' with too few sales for a median, joined across.</p>':'');
+    host.innerHTML=s;
+    var svg=host.querySelector('svg'), tip=host.querySelector('.mi-tip'), cross=host.querySelector('.mi-cross'), dots=host.querySelectorAll('.mi-dot');
+    function at(cx){var r=svg.getBoundingClientRect(), xr=(cx-r.left)/r.width*W, i=Math.round((xr-padL)/(plotW/(N-1)));return Math.max(0,Math.min(N-1,i));}
+    function show(i){
+      cross.setAttribute('x1',X(i));cross.setAttribute('x2',X(i));cross.style.display='';
+      var rows='';
+      vis.forEach(function(se,si){var v=se.vals[i], n=se.ns?se.ns[i]:null, dt=dots[si];
+        if(v!=null){dt.setAttribute('cx',X(i));dt.setAttribute('cy',Y(v));dt.style.display='';}else dt.style.display='none';
+        rows+='<div class="mi-tr"><i style="background:'+se.color+'"></i><span>'+esc(se.name)+'</span><b>'+(v!=null?esc(o.fmt(v)):(n?'too few':'—'))+'</b>'+(n!=null?'<small>n = '+num(n)+'</small>':'')+'</div>';});
+      if(o.vol)rows+='<div class="mi-tr"><i class="mi-vsw"></i><span>'+esc(o.vol.tip||o.vol.label||'Sales')+'</span><b>'+num(o.vol.vals[i])+'</b></div>';
+      tip.innerHTML='<div class="mi-th">'+esc(o.tipLabel?o.tipLabel(L[i]):L[i])+'</div>'+rows;
+      tip.style.display='block';var px=X(i)/W*host.clientWidth;tip.style.left=Math.min(Math.max(px,100),host.clientWidth-100)+'px';
+    }
+    function hide(){tip.style.display='none';cross.style.display='none';for(var k=0;k<dots.length;k++)dots[k].style.display='none';}
+    svg.addEventListener('mousemove',function(e){show(at(e.clientX));});
+    svg.addEventListener('mouseleave',hide);
+    svg.addEventListener('touchstart',function(e){if(e.touches.length)show(at(e.touches[0].clientX));},{passive:true});
+    svg.addEventListener('touchmove',function(e){if(e.touches.length)show(at(e.touches[0].clientX));},{passive:true});
   }
+  function barChart(host,o){
+    if(!host)return;
+    var W=Math.max(260,host.clientWidth||400),H=o.height||200,padL=8,padR=8,padT=18,padB=34,N=o.vals.length,plotW=W-padL-padR,plotH=H-padT-padB;
+    var max=Math.max.apply(null,o.vals.concat([1])), bw=plotW/N, every=bw<30?2:1, s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+esc(o.aria||'Bars')+'">';
+    o.vals.forEach(function(v,i){var h=v?Math.max(2,v/max*plotH):0,x=padL+i*bw+1.5,w=Math.max(1,bw-3);
+      s+='<g class="mi-bar" data-i="'+i+'"><rect x="'+x.toFixed(1)+'" y="'+padT+'" width="'+w.toFixed(1)+'" height="'+plotH+'" fill="transparent"/>'+
+        (h?'<rect x="'+x.toFixed(1)+'" y="'+(padT+plotH-h).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2.5" fill="'+(o.color||COL[0])+'"/>':'')+
+        (v&&bw>26?'<text x="'+(x+w/2).toFixed(1)+'" y="'+(padT+plotH-h-5).toFixed(1)+'" class="mi-ax" text-anchor="middle">'+num(v)+'</text>':'')+
+        (i%every===0?'<text x="'+(x+w/2).toFixed(1)+'" y="'+(H-padB+15)+'" class="mi-ax" text-anchor="middle">'+esc(o.labels[i])+'</text>':'')+'</g>';});
+    s+='</svg><div class="mi-tip" role="status"></div>';host.innerHTML=s;
+    var tip=host.querySelector('.mi-tip');
+    host.querySelectorAll('.mi-bar').forEach(function(g){var i=+g.getAttribute('data-i');
+      function on(){tip.innerHTML='<div class="mi-th">'+esc(o.tips[i])+'</div>';tip.style.display='block';tip.style.left=Math.min(Math.max((padL+(i+.5)*bw)/W*host.clientWidth,90),host.clientWidth-90)+'px';}
+      g.addEventListener('mouseenter',on);g.addEventListener('touchstart',on,{passive:true});g.addEventListener('mouseleave',function(){tip.style.display='none';});});
+  }
+  function seg(id,onPick){var el=$(id);if(!el)return;el.addEventListener('click',function(e){var b=e.target.closest('button[data-v]');if(!b)return;
+    el.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});onPick(b.getAttribute('data-v'));});}
+  function sparkline(vals,color){var v=vals.filter(function(x){return x!=null;});if(v.length<2)return '';var lo=Math.min.apply(null,v),hi=Math.max.apply(null,v),W=96,H=26;
+    var pts=[];vals.forEach(function(x,i){if(x!=null)pts.push((i*W/(vals.length-1)).toFixed(1)+','+(H-2-(x-lo)/((hi-lo)||1)*(H-4)).toFixed(1));});
+    return '<svg class="mi-spark" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" preserveAspectRatio="none" aria-hidden="true"><polyline points="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linejoin="round"/></svg>';}
+  /* a sortable table header: click a column, again to flip */
+  function sortHead(cols,S){return '<thead><tr>'+cols.map(function(c){if(!c.k)return '<th'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.t+'</th>';var on=S.k===c.k;
+    return '<th'+(c.cls?' class="'+c.cls+'"':'')+' aria-sort="'+(on?(S.dir<0?'descending':'ascending'):'none')+'"><button type="button" class="mi-sort" data-k="'+c.k+'"'+(c.title?' title="'+esc(c.title)+'"':'')+'>'+c.t+(on?(S.dir<0?' ↓':' ↑'):'')+'</button></th>';}).join('')+'</tr></thead>';}
+  function sorter(get,dir){return function(a,b){var x=get(a),y=get(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;if(typeof x==='string')return dir*x.localeCompare(y);return dir*(x-y);};}
+
+  function start(D){
+    var through=D.through, LFQ=D.last_full_quarter;
+    var Q=(D.quarters||[]).slice(), last=null;
+    /* the quote is the last full quarter: the twelve months to it (the quarter in progress is a shorter window) */
+    for(var i=Q.length-1;i>=0;i--){if(Q[i].t_ppsf!=null&&(!LFQ||Q[i].end<=LFQ)){last=i;break;}}
+    var NOWQ=Q.length&&LFQ&&Q[Q.length-1].end>LFQ?Q[Q.length-1].q:null;
+    function qTip(l){return '12 months to '+l+(l===NOWQ?' (to date)':'');}
+    var MO=D.months||[], hasMo=MO.length>=6&&cover(MO.map(function(x){return x.ppsf;}))>=Math.ceil(.8*MO.length);
+    var YRS=D.years||[], CY={};YRS.forEach(function(y){CY[y.y]=y;});
+    function cityN3(y){var n=0;for(var k=y-2;k<=y;k++)n+=(CY[k]&&CY[k].n)||0;return n;}
+    var CURY=through?+String(through).slice(0,4):new Date().getFullYear();
+    var bkOn=BK.filter(function(k){return dense(Q.map(function(q){return q.bk_ppsf?q.bk_ppsf[k]:null;}));});
+    var T=D.totals||{};
+
+    /* ── the quote and the latest figures ── */
+    (function(){
+      var q=last!=null?Q[last]:null, yago=last!=null&&last>=4?Q[last-4]:null, h='';
+      if(q)h='<div class="mi-sym">'+esc(REGION.toUpperCase())+' CONDOS · $/SF INDEX</div><div class="mi-px">$'+num(q.t_ppsf)+'<span>/sf</span></div>'+
+        '<div class="mi-chg">'+chg(yago?pct(q.t_ppsf,yago.t_ppsf):null,'vs the 12 months to '+(yago?yago.q:'a year earlier'))+'</div>'+
+        '<div class="mi-meta">Median $/sf of '+num(q.t_np!=null?q.t_np:q.t_n)+' recorded condo sales in the 12 months to '+esc(q.q)+' · through '+esc(day(through))+'</div>';
+      $('ixQuote').innerHTML=h||'<div class="mi-px">—</div><div class="mi-meta">Too few recorded sales for a quarterly median yet.</div>';
+      var qp=Q.slice(Math.max(0,(last||0)-15),(last||0)+1), tiles=[
+        ['Median sale · 12 mo', money(T.med12), sparkline(qp.map(function(x){return x.t_price;}),COL[0]), 'n = '+num(T.n12)+' sales'],
+        ['Sales · 12 mo', num(T.n12), sparkline(qp.map(function(x){return x.n;}),COL[1]), 'recorded closings']];
+      if(q&&q.bk_ppsf){[['b1','1 bedroom'],['b2','2 bedrooms']].forEach(function(p){if(q.bk_ppsf[p[0]]!=null&&bkOn.indexOf(p[0])>=0)tiles.push([p[1]+' · $/sf','$'+num(q.bk_ppsf[p[0]]),sparkline(qp.map(function(x){return x.bk_ppsf?x.bk_ppsf[p[0]]:null;}),COL[BK.indexOf(p[0])+1]),'12 mo to '+esc(q.q)]);});}
+      tiles.push(['Buildings', num(T.buildings), '', num(T.homes)+' homes · '+num(T.hoods)+' neighborhoods']);
+      if(tiles.length<5)tiles.push(['Recorded sales', num(T.sales), '', 'since 2010, each counted once']);
+      $('ixTiles').innerHTML=tiles.slice(0,5).map(function(t){return '<div class="mi-tile"><div class="mi-tl">'+t[0]+'</div><div class="mi-tv">'+t[1]+'</div>'+t[2]+'<div class="mi-tn">'+t[3]+'</div></div>';}).join('');
+      var si=$('search-input');if(si&&T.homes)si.placeholder='Search '+num(T.homes)+' homes · '+num(T.buildings)+' buildings · '+num(T.hoods)+' neighborhoods…';
+    })();
+
+    /* ── the tape ── */
+    (function(){
+      var f=(D.feed||[]).slice(0,24);if(!f.length){$('ixTape').style.display='none';return;}
+      var items=f.map(function(x){return '<a class="mi-tk" href="/building/'+esc(x.slug)+'"><b>'+esc(x.bname)+(x.unit_label?' #'+esc(x.unit_label):'')+'</b> '+money(x.price)+(x.ppsf?' · $'+num(x.ppsf)+'/sf':'')+(x.vs_b!=null?' '+chg(x.vs_b):'')+'<span class="mi-mute"> '+esc(dayShort(x.d))+'</span></a>';}).join('');
+      $('ixTapeIn').innerHTML=items+(RM?'':items);
+      if(RM)$('ixTape').classList.add('still');
+    })();
+
+    /* ── the main chart: measure, bedrooms, range, grain ── */
+    var M={metric:'ppsf',range:'10',grain:'q',on:{all:true},vol:true};
+    function mainData(){
+      if(M.grain==='m'&&hasMo)return {labels:MO.map(function(x){return x.m;}),series:[{key:'all',name:'All condos',short:'All',color:COL[0],vals:MO.map(function(x){return M.metric==='price'?x.price:x.ppsf;}),ns:M.metric==='price'?MO.map(function(x){return x.n;}):null,on:true}],vol:MO.map(function(x){return x.n;})};
+      var nq={'1':4,'3':12,'5':20,'10':40}[M.range], q=nq?Q.slice(-(nq+1)):Q, k=M.metric==='price'?'price':'ppsf';
+      var f0=0;while(f0<q.length-1&&q[f0]['t_'+k]==null)f0++;q=q.slice(f0);
+      var ser=[{key:'all',name:'All condos',short:'All',color:COL[0],vals:q.map(function(x){return x['t_'+k];}),ns:q.map(function(x){return k==='ppsf'&&x.t_np!=null?x.t_np:x.t_n;}),on:M.on.all}];
+      bkOn.forEach(function(b){ser.push({key:b,name:BKL[b],short:BKN[b],color:COL[BK.indexOf(b)+1],vals:q.map(function(x){var o=x['bk_'+k];return o?o[b]:null;}),ns:null,on:!!M.on[b]});});
+      return {labels:q.map(function(x){return x.q;}),series:ser,vol:q.map(function(x){return x.n;})};
+    }
+    function drawMain(){
+      var d=mainData(), fmt=M.metric==='price'?fmtM:fmtP, vis=d.series.filter(function(s){return s.on!==false;});
+      lineChart($('ixMain'),{labels:d.labels,series:d.series,fmt:fmt,vol:M.vol?{vals:d.vol,label:'Sales',tip:M.grain==='m'?'Sales':'Sales in the quarter'}:null,directLabels:vis.length>1,
+        xfmt:M.grain==='m'?function(l){var p=l.split('-');return MON[(+p[1])-1]+' ’'+p[0].slice(2);}:null,
+        tipLabel:M.grain==='m'?function(l){var p=l.split('-');return MON[(+p[1])-1]+' '+p[0];}:qTip,gapUnit:M.grain==='m'?'a month':'a quarter',
+        aria:'Median '+(M.metric==='price'?'sale price':'price per square foot')+' of '+REGION+' condos',height:$('ixMain').clientWidth<560?260:360});
+      var s0=vis[0],a=null,b=null;
+      if(s0){for(var i=0;i<s0.vals.length;i++){if(s0.vals[i]!=null){a=s0.vals[i];break;}}for(var j=s0.vals.length-1;j>=0;j--){if(s0.vals[j]!=null){b=s0.vals[j];break;}}}
+      $('ixMainChg').innerHTML=s0?chg(pct(b,a),s0.name.toLowerCase()+' over the range shown'+(M.grain==='m'?' · each point one month':' · each point the 12 months to that quarter')):'';
+      renderTable();
+    }
+    function renderTable(){
+      var t=$('ixMainTable');if(!t||t.hidden)return;var d=mainData(),vis=d.series.filter(function(s){return s.on!==false;});
+      t.innerHTML='<table class="mi-tbl"><thead><tr><th>'+(M.grain==='m'?'Month':'12 months to')+'</th>'+vis.map(function(s){return '<th>'+esc(s.name)+'</th>'+(s.ns?'<th>n</th>':'');}).join('')+'</tr></thead><tbody>'+
+        d.labels.map(function(l,i){return '<tr><td>'+esc(l)+(l===NOWQ&&M.grain!=='m'?' <span class="mi-mute">to date</span>':'')+'</td>'+vis.map(function(s){return '<td class="mi-mono">'+(s.vals[i]!=null?(M.metric==='price'?full(s.vals[i]):'$'+num(s.vals[i])):'—')+'</td>'+(s.ns?'<td class="mi-mute mi-mono">'+num(s.ns[i])+'</td>':'');}).join('')+'</tr>';}).reverse().join('')+'</tbody></table>';
+    }
+    seg('ixMetric',function(v){M.metric=v;drawMain();track('metric_'+v);});
+    seg('ixRange',function(v){M.range=v;drawMain();});
+    if(!hasMo){var gr=$('ixGrain');if(gr)gr.style.display='none';}
+    seg('ixGrain',function(v){M.grain=v;$('ixSeries').style.display=v==='m'?'none':'';$('ixRange').style.display=v==='m'?'none':'';drawMain();});
+    (function(){var el=$('ixSeries');if(!el)return;
+      el.innerHTML='<button type="button" data-k="all" aria-pressed="true"><i style="background:'+COL[0]+'"></i>All condos</button>'+bkOn.map(function(b){return '<button type="button" data-k="'+b+'" aria-pressed="false"><i style="background:'+COL[BK.indexOf(b)+1]+'"></i>'+BKN[b]+'</button>';}).join('');
+      el.addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;var k=b.getAttribute('data-k');M.on[k]=!M.on[k];
+        if(!['all'].concat(bkOn).some(function(x){return M.on[x];})){M.on[k]=true;return;}b.setAttribute('aria-pressed',M.on[k]?'true':'false');drawMain();track('series_'+k);});})();
+    $('ixVol').addEventListener('click',function(){M.vol=!M.vol;this.setAttribute('aria-pressed',M.vol?'true':'false');drawMain();});
+    $('ixTblBtn').addEventListener('click',function(){var t=$('ixMainTable');t.hidden=!t.hidden;this.setAttribute('aria-pressed',t.hidden?'false':'true');renderTable();});
+    drawMain();
+
+    /* ── the blotter ── */
+    var F={vs:'b',sort:'d',n:15};
+    function drawFeed(){
+      var rows=(D.feed||[]).slice().sort(function(a,b){return F.sort==='p'?(b.price-a.price):F.sort==='ppsf'?((b.ppsf||0)-(a.ppsf||0)):(a.d<b.d?1:a.d>b.d?-1:b.price-a.price);});
+      var total=rows.length;rows=rows.slice(0,F.n);
+      var vh=F.vs==='b'?'vs building':'vs neighborhood', vt=F.vs==='b'?'This sale’s $/sf against its building’s 3-year median':'This sale’s $/sf against its neighborhood’s 3-year median';
+      $('ixFeed').innerHTML=rows.length?'<table class="mi-tbl mi-blot"><thead><tr><th class="mi-hide-s">Closed</th><th>Home</th><th>Price</th><th>$/sf</th><th title="'+esc(vt)+'">'+vh+'</th></tr></thead><tbody>'+
+        rows.map(function(x){var v=F.vs==='b'?x.vs_b:x.vs_h, n=F.vs==='b'?x.b_n3:x.h_n3;
+          return '<tr><td class="mi-mono mi-hide-s">'+esc(dayShort(x.d))+'</td><td><a href="/building/'+esc(x.slug)+'">'+esc(x.bname)+'</a>'+(x.unit_label?' <span class="mi-mute">#'+esc(x.unit_label)+'</span>':'')+'<div class="mi-mute mi-small"><span class="mi-show-s mi-inl">'+esc(dayShort(x.d))+' · </span>'+(x.hood?'<a href="/neighborhood/'+slugify(x.hood)+'">'+esc(x.hood)+'</a>':'')+(x.beds!=null?' · '+(x.beds===0?'studio':x.beds+' bd'):'')+(x.sqft?' · '+num(x.sqft)+' sf':'')+'</div></td>'+
+            '<td class="mi-mono">'+money(x.price)+'</td><td class="mi-mono">'+(x.ppsf?'$'+num(x.ppsf):'—')+'</td>'+
+            '<td class="mi-mono" title="'+(v!=null?esc(vt)+', n = '+n:(n!=null?'Fewer than five sales in three years ('+n+')':''))+'">'+(v!=null?chg(v):'<span class="mi-mute">too few</span>')+'</td></tr>';}).join('')+'</tbody></table>':'<p class="mi-empty">No recorded sales in the feed yet.</p>';
+      $('ixFeedMore').style.display=total>F.n?'':'none';$('ixFeedMore').textContent='Show all '+total;
+    }
+    seg('ixFeedVs',function(v){F.vs=v;drawFeed();});
+    seg('ixFeedSort',function(v){F.sort=v;drawFeed();});
+    $('ixFeedMore').addEventListener('click',function(){F.n=999;drawFeed();track('feed_all');});
+    drawFeed();
+
+    /* ── the spread of prices, 12 months ── */
+    function drawHist(){var h=D.hist||[];if(!h.length||!D.hist_n){$('ixHistCard').style.display='none';return;}
+      $('ixHistN').textContent='n = '+num(D.hist_n)+' recorded sales, last 12 months';
+      barChart($('ixHist'),{vals:h.map(function(b){return b.n;}),labels:h.map(function(b){return b.hi==null?money(b.lo)+'+':money(b.hi);}),tips:h.map(function(b){return (b.hi==null?money(b.lo)+' and up':money(b.lo)+'–'+money(b.hi))+': '+num(b.n)+' sales';}),aria:'Recorded sales by price, last 12 months',color:COL[1],height:210});}
+    drawHist();
+
+    /* ── by bedrooms, by year ── */
+    var BD=D.beds||{}, BY=(function(){var ys={};BK.forEach(function(k){(BD[k]||[]).forEach(function(p){ys[p.y]=1;});});return Object.keys(ys).map(Number).sort();})();
+    function bVals(k,f){var m={};(BD[k]||[]).forEach(function(p){m[p.y]=p;});return BY.map(function(y){return m[y]?m[y][f]:null;});}
+    var bkeys=BK.filter(function(k){return dense(bVals(k,'price'));}), bthin=BK.filter(function(k){return bkeys.indexOf(k)<0;}), B={metric:'price',on:{}};
+    bkeys.forEach(function(k){B.on[k]=true;});
+    function drawBeds(){if(bkeys.length<2){$('ixBedsCard').style.display='none';return;}
+      lineChart($('ixBeds'),{labels:BY.map(String),series:bkeys.map(function(k){return {key:k,name:BKL[k],short:BKN[k],color:COL[BK.indexOf(k)+1],vals:bVals(k,B.metric),ns:B.metric==='price'?bVals(k,'n'):null,on:B.on[k]};}),
+        fmt:B.metric==='price'?fmtM:fmtP,directLabels:true,gapUnit:'a year',tipLabel:function(l){return l+(+l===CURY?' to date':'');},aria:'Median by bedrooms, by year',height:260});}
+    (function(){var el=$('ixBedsOn');if(!el||bkeys.length<2)return;
+      el.innerHTML=bkeys.map(function(k){return '<button type="button" data-k="'+k+'" aria-pressed="true"><i style="background:'+COL[BK.indexOf(k)+1]+'"></i>'+BKN[k]+'</button>';}).join('')+(bthin.length?'<span class="mi-mute mi-small">'+esc(bthin.map(function(k){return BKL[k];}).join(', '))+': too few sales most years</span>':'');
+      el.addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;var k=b.getAttribute('data-k');B.on[k]=!B.on[k];if(!bkeys.some(function(x){return B.on[x];})){B.on[k]=true;return;}b.setAttribute('aria-pressed',B.on[k]?'true':'false');drawBeds();});})();
+    seg('ixBedsMetric',function(v){B.metric=v;drawBeds();});
+    drawBeds();
+
+    /* the year axis shared by neighborhoods and buildings: every year the city has a three-year median */
+    var TY=YRS.filter(function(y){return y.r3!=null;}).map(function(y){return y.y;});
+    function cityLine(){return {key:'city',name:REGION+' (all condos)',short:REGION.length>14?'City':REGION,color:CITYC,vals:TY.map(function(y){return CY[y].r3;}),ns:null,thin:true};}
+    function r3Map(r){var m={};(r||[]).forEach(function(p){m[p[0]]=p;});return m;}
+    function r3Tip(l){return '3 years to '+l+(+l===CURY?' (to date)':'');}
+
+    /* ── neighborhood by neighborhood ── */
+    var HD=(D.hoods||[]).filter(function(h){return h.name;}), HM={};
+    HD.forEach(function(h){var m=r3Map(h.r3);HM[h.name]={m:m,vals:TY.map(function(y){return m[y]?m[y][1]:null;})};});
+    function hok(name){return dense(HM[name].vals,.6);}
+    var HC={sel:[],city:true}, HS={k:'n3',dir:-1};
+    HD.filter(function(h){return hok(h.name);}).sort(function(a,b){return (b.n3||0)-(a.n3||0);}).slice(0,3).forEach(function(h){HC.sel.push(h.name);});
+    function hColor(n){return COL[HC.sel.indexOf(n)%5];}
+    function hByName(n){for(var i=0;i<HD.length;i++)if(HD[i].name===n)return HD[i];return null;}
+    function drawHoodChart(){
+      var ser=[];if(HC.city)ser.push(cityLine());
+      HC.sel.forEach(function(n){var h=hByName(n),m=HM[n].m;ser.push({key:n,name:n,short:n.length>14?n.slice(0,13)+'…':n,color:hColor(n),vals:HM[n].vals,ns:TY.map(function(y){return m[y]?m[y][2]:0;})});});
+      lineChart($('ixHoodCmp'),{labels:TY.map(String),series:ser,fmt:fmtP,directLabels:true,gapUnit:'a year',empty:'Pick a neighborhood in the table to chart it.',aria:'Median $/sf by neighborhood, three years to each year',height:320,tipLabel:r3Tip});
+      $('ixHoodChips').innerHTML=HC.sel.map(function(n){return '<button type="button" class="mi-chip" data-rm="'+esc(n)+'" aria-label="Remove '+esc(n)+'"><i style="background:'+hColor(n)+'"></i>'+esc(n)+' <span aria-hidden="true">×</span></button>';}).join('')+
+        (HC.sel.length<4?'<span class="mi-mute mi-small">'+(HC.sel.length?'Add up to '+(4-HC.sel.length)+' more from the table':'Pick neighborhoods from the table')+'</span>':'');
+    }
+    function drawHoodTbl(){
+      var g={name:function(h){return h.name;},p3:function(h){return h.p3;},vc:function(h){return pct(h.p3,T.p3);},chg5:function(h){return h.chg5;},n12:function(h){return h.n12;},med12:function(h){return h.med12;},n3:function(h){return h.n3;},nb:function(h){return h.nb;}};
+      var rows=HD.slice().sort(sorter(g[HS.k],HS.dir));
+      $('ixHoodTbl').innerHTML='<table class="mi-tbl mi-rank">'+sortHead([{t:'',cls:'mi-cmpcol'},{k:'name',t:'Neighborhood'},{k:'p3',t:'$/sf · 3 yr',title:'Median $/sf of the sales in the last three years'},{k:'vc',t:'vs '+esc(REGION),cls:'mi-hide-s',title:'The neighborhood’s three-year median $/sf against '+REGION+'’s'+(T.p3?' ($'+num(T.p3)+', n = '+num(T.n3)+')':'')},{k:'chg5',t:'5-yr change',title:'The three-year median now against the same three years five years earlier'},{k:'n12',t:'Sales · 12 mo',cls:'mi-hide-s'},{k:'med12',t:'Median · 12 mo',cls:'mi-hide-s'},{k:'nb',t:'Buildings',cls:'mi-hide-s'}],HS)+'<tbody>'+
+        rows.map(function(h){var on=HC.sel.indexOf(h.name)>=0, ok=hok(h.name);
+          return '<tr'+(on?' class="mi-on"':'')+'><td class="mi-cmpcol"><button type="button" class="mi-add" data-h="'+esc(h.name)+'" aria-pressed="'+(on?'true':'false')+'"'+(ok?'':' disabled title="Too few sales most years to chart"')+' aria-label="'+(on?'Remove ':'Compare ')+esc(h.name)+'">'+(on?'<i style="background:'+hColor(h.name)+'"></i>':'+')+'</button></td>'+
+            '<td><a href="/neighborhood/'+slugify(h.name)+'">'+esc(h.name)+'</a><div class="mi-show-s mi-mute mi-small">'+num(h.n12||0)+(h.n12===1?' sale':' sales')+' · 12 mo</div></td>'+
+            '<td class="mi-mono">'+(h.p3!=null?'$'+num(h.p3)+'<span class="mi-n"> n = '+num(h.n3)+'</span>':'<span class="mi-mute">too few ('+num(h.n3||0)+')</span>')+'</td>'+
+            '<td class="mi-mono mi-hide-s">'+(h.p3!=null&&T.p3?chg(pct(h.p3,T.p3)):'<span class="mi-mute">—</span>')+'</td>'+
+            '<td class="mi-mono">'+chg(h.chg5)+'</td><td class="mi-mono mi-hide-s">'+num(h.n12||0)+'</td>'+
+            '<td class="mi-mono mi-hide-s">'+(h.med12!=null?money(h.med12):'<span class="mi-mute">too few</span>')+'</td><td class="mi-mono mi-hide-s">'+num(h.nb)+'</td></tr>';}).join('')+'</tbody></table>';
+    }
+    function toggleHood(n){var i=HC.sel.indexOf(n);if(i>=0)HC.sel.splice(i,1);else{if(!hok(n))return;if(HC.sel.length>=4)HC.sel.shift();HC.sel.push(n);}drawHoodChart();drawHoodTbl();track('hood_compare');}
+    if(!HD.length)$('ixHoodSec').style.display='none';
+    else{
+      $('ixHoodChips').addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(b)toggleHood(b.getAttribute('data-rm'));});
+      $('ixHoodTbl').addEventListener('click',function(e){var a=e.target.closest('.mi-add');if(a&&!a.disabled){toggleHood(a.getAttribute('data-h'));return;}
+        var s=e.target.closest('.mi-sort');if(s){var k=s.getAttribute('data-k');HS.dir=HS.k===k?-HS.dir:(k==='name'?1:-1);HS.k=k;drawHoodTbl();}});
+      $('ixHoodCity').addEventListener('click',function(){HC.city=!HC.city;this.setAttribute('aria-pressed',HC.city?'true':'false');drawHoodChart();});
+      drawHoodChart();drawHoodTbl();
+    }
+
+    /* ── building by building ── */
+    var HP3={};(D.hoods||[]).forEach(function(h){if(h.p3!=null)HP3[h.name]={p:h.p3,n:h.n3};});
+    function vsH(b){var h=HP3[b.hood];return b.p3!=null&&h?pct(b.p3,h.p):null;}
+    var BL=(D.buildings||[]).filter(function(b){return b.slug;}), BV={}, BS={k:'n3',dir:-1}, BF={hood:'',q:'',n:25}, BC={sel:[],city:true};
+    BL.forEach(function(b){var m=r3Map(b.r3);BV[b.slug]={b:b,m:m,vals:TY.map(function(y){return m[y]?m[y][1]:null;})};});
+    function bok(s){return denseFrom(BV[s].vals,.6);}
+    BL.filter(function(b){return bok(b.slug);}).sort(function(a,b){return (b.n3||0)-(a.n3||0);}).slice(0,3).forEach(function(b){BC.sel.push(b.slug);});
+    function bColor(s){return COL[BC.sel.indexOf(s)%5];}
+    function bShort(n){return n.length>16?n.slice(0,15)+'…':n;}
+    (function(){var sel=$('ixBldHood');if(!sel)return;var hs={};BL.forEach(function(b){if(b.hood)hs[b.hood]=(hs[b.hood]||0)+1;});
+      sel.innerHTML='<option value="">All neighborhoods</option>'+Object.keys(hs).sort().map(function(h){return '<option value="'+esc(h)+'">'+esc(h)+' ('+hs[h]+')</option>';}).join('');})();
+    function bRows(){var q=BF.q.toLowerCase();return BL.filter(function(b){return (!BF.hood||b.hood===BF.hood)&&(!q||b.name.toLowerCase().indexOf(q)>=0||(b.hood||'').toLowerCase().indexOf(q)>=0);});}
+    function drawBldChart(){
+      var ser=[];if(BC.city)ser.push(cityLine());
+      BC.sel.forEach(function(s){var v=BV[s];ser.push({key:s,name:v.b.name,short:bShort(v.b.name),color:bColor(s),vals:v.vals,ns:TY.map(function(y){return v.m[y]?v.m[y][2]:null;})});});
+      lineChart($('ixBldCmp'),{labels:TY.map(String),series:ser,fmt:fmtP,directLabels:true,gapUnit:'a year',empty:'Pick a building in the table or on the map to chart it.',aria:'Median $/sf by building, three years to each year',height:$('ixBldCmp').clientWidth<560?300:440,tipLabel:r3Tip});
+      $('ixBldChips').innerHTML=BC.sel.map(function(s){var b=BV[s].b;return '<button type="button" class="mi-chip" data-rm="'+esc(s)+'" aria-label="Remove '+esc(b.name)+'"><i style="background:'+bColor(s)+'"></i>'+esc(b.name)+' <span aria-hidden="true">×</span></button>';}).join('')+
+        (BC.sel.length<4?'<span class="mi-mute mi-small">'+(BC.sel.length?'Add up to '+(4-BC.sel.length)+' more — the table or the map':'Pick buildings from the table or the map')+'</span>':'');
+    }
+    function drawBldTbl(){
+      var g={name:function(b){return b.name;},hood:function(b){return b.hood||'';},p3:function(b){return b.p3;},vh:vsH,chg5:function(b){return b.chg5;},n12:function(b){return b.n12;},n3:function(b){return b.n3;},units:function(b){return b.units;},built:function(b){return b.built;},last:function(b){return b.last;}};
+      var rows=bRows().sort(sorter(g[BS.k],BS.dir)), total=rows.length;rows=rows.slice(0,BF.n);
+      $('ixBldCount').textContent=num(total)+(total===1?' building':' buildings')+(BF.hood?' in '+BF.hood:'')+(BF.q?' matching “'+BF.q+'”':'');
+      $('ixBldTbl').innerHTML=total?'<table class="mi-tbl mi-rank">'+sortHead([{t:'',cls:'mi-cmpcol'},{k:'name',t:'Building'},{k:'hood',t:'Neighborhood',cls:'mi-hide-s'},{k:'p3',t:'$/sf · 3 yr',title:'Median $/sf of the building’s sales in the last three years'},{k:'vh',t:'vs neighborhood',cls:'mi-hide-s',title:'The building’s three-year median $/sf against its neighborhood’s, same three years'},{k:'chg5',t:'5-yr change',cls:'mi-hide-s',title:'The three-year median now against the same three years five years earlier'},{k:'n3',t:'Sales · 3 yr',title:'Sales with a recorded size in the last three years: the sample behind the $/sf'},{k:'units',t:'Units',cls:'mi-hide-s'},{k:'built',t:'Built',cls:'mi-hide-s'},{k:'last',t:'Last sale',cls:'mi-hide-s'}],BS)+'<tbody>'+
+        rows.map(function(b){var on=BC.sel.indexOf(b.slug)>=0, ok=bok(b.slug);
+          return '<tr'+(on?' class="mi-on"':'')+'><td class="mi-cmpcol"><button type="button" class="mi-add" data-b="'+esc(b.slug)+'" aria-pressed="'+(on?'true':'false')+'"'+(ok?'':' disabled title="Too few sales most years to chart"')+' aria-label="'+(on?'Remove ':'Compare ')+esc(b.name)+'">'+(on?'<i style="background:'+bColor(b.slug)+'"></i>':'+')+'</button></td>'+
+            '<td><a href="/building/'+esc(b.slug)+'">'+esc(b.name)+'</a><div class="mi-show-s mi-mute mi-small">'+esc(b.hood||'')+'</div></td><td class="mi-hide-s"><span class="mi-mute">'+esc(b.hood||'—')+'</span></td>'+
+            '<td class="mi-mono">'+(b.p3!=null?'$'+num(b.p3)+'<span class="mi-n"> n = '+num(b.n3)+'</span>':'<span class="mi-mute">too few ('+num(b.n3||0)+')</span>')+'</td>'+
+            '<td class="mi-mono mi-hide-s"'+(vsH(b)!=null?' title="'+esc(b.hood)+': $'+num(HP3[b.hood].p)+'/sf, n = '+num(HP3[b.hood].n)+'"':'')+'>'+(vsH(b)!=null?chg(vsH(b)):'<span class="mi-mute">—</span>')+'</td><td class="mi-mono mi-hide-s">'+chg(b.chg5)+'</td>'+
+            '<td class="mi-mono">'+num(b.n3||0)+'</td><td class="mi-mono mi-hide-s">'+num(b.units)+'</td><td class="mi-mono mi-hide-s">'+(b.built||'—')+'</td><td class="mi-mono mi-hide-s">'+(b.last?esc(dayShort(b.last))+' ’'+String(b.last).slice(2,4):'—')+'</td></tr>';}).join('')+'</tbody></table>':'<p class="mi-empty">No building matches.</p>';
+      $('ixBldMore').style.display=total>BF.n?'':'none';$('ixBldMore').textContent='Show all '+num(total);
+    }
+    function toggleBld(s){var i=BC.sel.indexOf(s);if(i>=0)BC.sel.splice(i,1);else{if(!bok(s))return;if(BC.sel.length>=4)BC.sel.shift();BC.sel.push(s);}drawBldChart();drawBldTbl();paintMap();track('building_compare');}
+    if(!BL.length)$('ixBldSec').style.display='none';
+    else{
+      $('ixBldChips').addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(b)toggleBld(b.getAttribute('data-rm'));});
+      $('ixBldTbl').addEventListener('click',function(e){var a=e.target.closest('.mi-add');if(a&&!a.disabled){toggleBld(a.getAttribute('data-b'));return;}
+        var s=e.target.closest('.mi-sort');if(s){var k=s.getAttribute('data-k');BS.dir=BS.k===k?-BS.dir:((k==='name'||k==='hood')?1:-1);BS.k=k;drawBldTbl();}});
+      $('ixBldCity').addEventListener('click',function(){BC.city=!BC.city;this.setAttribute('aria-pressed',BC.city?'true':'false');drawBldChart();});
+      $('ixBldHood').addEventListener('change',function(){BF.hood=this.value;BF.n=25;drawBldTbl();paintMap(true);});
+      var qt=null;$('ixBldQ').addEventListener('input',function(){var v=this.value.trim();clearTimeout(qt);qt=setTimeout(function(){BF.q=v;BF.n=25;drawBldTbl();},120);});
+      $('ixBldMore').addEventListener('click',function(){BF.n=9999;drawBldTbl();track('buildings_all');});
+      drawBldChart();drawBldTbl();
+    }
+
+    /* the building map: a dot per building, shaded by its three-year $/sf (5+ sales) or by its sales; tap to compare */
+    var MAP=null,DOT={},MM='ppsf';
+    function shade(v,lo,hi){if(v==null)return null;var t=Math.max(0,Math.min(1,(v-lo)/((hi-lo)||1)));var a=[0xf6,0xd9,0xb8],b=[0x8a,0x3f,0x0c];return 'rgb('+a.map(function(x,i){return Math.round(x+(b[i]-x)*t);}).join(',')+')';}
+    function mval(b){return MM==='ppsf'?b.p3:(b.n3||0);}
+    function paintMap(fit){
+      if(!MAP)return;var keys=Object.keys(DOT), vals=keys.map(function(s){return mval(BV[s].b);}).filter(function(v){return v!=null;}).sort(function(a,b){return a-b;});
+      /* the scale runs 5th to 95th percentile, so one tower does not wash out the rest */
+      var lo=vals.length?vals[Math.floor(vals.length*.05)]:0, hi=vals.length?vals[Math.min(vals.length-1,Math.floor(vals.length*.95))]:1, bb=null;
+      keys.forEach(function(s){var b=BV[s].b,v=mval(b),on=BC.sel.indexOf(s)>=0,f=shade(v,lo,hi),inF=!BF.hood||b.hood===BF.hood;
+        DOT[s].setStyle({color:on?bColor(s):(f?'#0d1016':'#8f9aad'),weight:on?3:1,fillColor:f||'#c9ced8',fillOpacity:inF?(f?.88:.15):.06,opacity:inF?1:.2,dashArray:f?null:'2,2'});
+        DOT[s].setRadius(on?9:Math.max(4,Math.min(9,Math.sqrt(b.units||1)*.6)));
+        if(on)DOT[s].bringToFront();
+        if(inF){var ll=DOT[s].getLatLng();bb=bb?bb.extend(ll):L.latLngBounds(ll,ll);}});
+      if(fit&&bb)MAP.fitBounds(bb.pad(.15),{maxZoom:16});
+      $('ixLegend').innerHTML=vals.length?'<span>'+(MM==='ppsf'?'$'+num(lo)+'/sf':num(lo)+' sales')+'</span><i class="mi-grad"></i><span>'+(MM==='ppsf'?'$'+num(hi)+'/sf':num(hi)+' sales')+'</span>'+(MM==='ppsf'?'<span class="mi-mute mi-small">hollow: under 5 sales in 3 years</span>':''):'';
+    }
+    seg('ixMapMetric',function(v){MM=v;paintMap();});
+    function loadMap(){var el=$('ixMap');if(!el||!BL.length)return;
+      function go(){try{
+        MAP=L.map(el,{scrollWheelZoom:false,zoomControl:true}).setView([37.78,-122.41],13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=__CARTO_KEY__',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}).addTo(MAP);
+        MAP.on('focus click',function(){MAP.scrollWheelZoom.enable();});
+        BL.forEach(function(b){if(b.lat==null||b.lng==null)return;var s=b.slug;
+          var m=L.circleMarker([b.lat,b.lng],{radius:5});
+          m.bindTooltip(function(){return '<b>'+esc(b.name)+'</b><br>'+esc(b.hood||'')+'<br>'+(b.p3!=null?'$'+num(b.p3)+'/sf · ':'')+num(b.n3||0)+' sales, 3 yr'+(bok(s)?'':'<br><span style="opacity:.75">Too few sales to chart by year</span>');},{sticky:true});
+          m.on('click',function(){toggleBld(s);});m.addTo(MAP);DOT[s]=m;});
+        paintMap(true);setTimeout(function(){try{MAP.invalidateSize();paintMap(true);}catch(_){}},200);
+      }catch(e){el.innerHTML='<p class="mi-empty">The map did not load; the table still works.</p>';}}
+      if(window.L&&window.L.map)return go();
+      var lk=document.createElement('link');lk.rel='stylesheet';lk.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(lk);
+      var sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';sc.onload=go;sc.onerror=function(){el.innerHTML='<p class="mi-empty">The map did not load; the table still works.</p>';};document.head.appendChild(sc);}
+    /* the map loads when it nears the screen */
+    (function(){var el=$('ixMap');if(!el)return;if(!('IntersectionObserver' in window))return loadMap();var io=new IntersectionObserver(function(es){if(es.some(function(x){return x.isIntersecting;})){io.disconnect();loadMap();}},{rootMargin:'400px'});io.observe(el);})();
+
+    var rt=null,lw=window.innerWidth;window.addEventListener('resize',function(){if(window.innerWidth===lw)return;lw=window.innerWidth;clearTimeout(rt);rt=setTimeout(function(){drawMain();drawHist();drawBeds();if(HD.length)drawHoodChart();if(BL.length)drawBldChart();},200);});
+  }
+  function fail(){var e=$('ixMain');if(e)e.innerHTML='<p class="mi-empty">The market data did not load. Refresh to try again.</p>';}
+  if(D0&&D0.ok)start(D0);
+  else if(C.sb)fetch(C.sb+'/rest/v1/rpc/sf_intel_explorer',{method:'POST',headers:{apikey:C.key,Authorization:'Bearer '+C.key,'Content-Type':'application/json'},body:JSON.stringify({p_domain:C.domain||'sanfranciscocondomarket.com'})})
+    .then(function(r){return r.ok?r.json():null;}).then(function(d){if(d&&d.ok)start(d);else fail();}).catch(fail);
+  else fail();
 })();
 </script>
 </body>
