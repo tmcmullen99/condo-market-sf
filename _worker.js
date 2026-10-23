@@ -3455,7 +3455,7 @@ function condoMergeFeatured(rows, feat) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     CARTO_KEY = (env && env.CARTO_KEY) ? String(env.CARTO_KEY) : '';
     const reqUrl = new URL(request.url);
     let reqPath = reqUrl.pathname;
@@ -3467,6 +3467,38 @@ export default {
         'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store',
         'X-Robots-Tag': 'noindex, nofollow, noarchive' } });
     }
+    /* STATIC UNTIL CHANGED (Tim, 23 Oct 2026). Public pages built from the databases are kept whole, stamped with the
+       data versions of both databases (this site's B and the City Markets' A, whose teasers and news it shows), with
+       no expiry. While the versions are unchanged a stored page is served without touching either database; when they
+       move the stored copy still goes out at once and one background render replaces it. */
+    if (__pageCacheable(request, reqUrl)) {
+      const key = new Request('https://' + reqUrl.hostname.toLowerCase() + reqUrl.pathname + '?__cv=' + __PAGE_VER);
+      const sv = await __condoVersions(reqUrl.hostname);
+      let hit = null;
+      try { hit = await caches.default.match(key); } catch (e) { hit = null; }
+      if (hit) {
+        const current = !sv || (hit.headers.get('X-CM-SV') || '') === sv;
+        if (!current && ctx && ctx.waitUntil && __claimPageRender(key.url)) {
+          ctx.waitUntil(__renderPage(request, env, reqUrl, reqPath)
+            .then((r) => (r.status === 200 ? __pagePut(key, r, sv) : null)).catch(() => null)
+            .finally(() => __PAGE_RENDERING.delete(key.url)));
+        }
+        const h = new Headers(hit.headers);
+        h.set('X-CM-Cache', current ? 'HIT' : 'STALE');
+        return new Response(hit.body, { status: hit.status, headers: h });
+      }
+      const res = await __renderPage(request, env, reqUrl, reqPath);
+      if (res.status === 200) {
+        const put = __pagePut(key, res, sv);
+        if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
+      }
+      return res;
+    }
+    return __renderPage(request, env, reqUrl, reqPath);
+  },
+};
+
+async function __renderPage(request, env, reqUrl, reqPath) {
     /* withFavicon is async. Passing its promise straight to withRobots gave the
        noindexed paths an empty 200 body (every /cma/ Comp Report link, 15 Oct
        2026), because the promise has no .body or .status. Await it first. */
@@ -3477,8 +3509,86 @@ export default {
       res = new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
     }
     return withRobots(reqPath, reqUrl.hostname, res);
-  },
+}
+
+/* Which pages are kept: public GETs built from the databases, no query string but tracking parameters, never a
+   preview host. Token, account, booking, unsubscribe and Build A Page (private) routes are never kept. */
+const __PAGE_VER = 'p1-' + handleRequest.toString().length;   // a deploy that changes the router starts every page fresh
+const __PAGE_TRACK = /^(utm_[a-z_]+|via|e|fbclid|gclid|msclkid|mc_cid|mc_eid|ref)$/i;
+const __PAGE_RULES = [
+  /^\/$/, /^\/buildings\/$/, /^\/intelligence\/$/,
+  /^\/building\/[a-z0-9-]+\/?$/, /^\/building\/[a-z0-9-]+\/unit\/[a-z0-9-]+\/?$/,
+  /^\/listing\/[A-Za-z0-9]+\/?$/,
+  /^\/(active-listings|off-market|investor-exchange)\/$/,
+  /^\/neighborhoods\/?$/, /^\/neighborhood\/[a-z0-9-]+\/?$/,
+  /^\/(condos-in|buy-a-condo-in|sell-a-condo-in)-[a-z0-9-]+\/?$/, /^\/(buy|sell)\/?$/,
+  /^\/san-francisco-(condo-rankings|condo-market-stats|condos)\/?$/,
+  /^\/(news|market-reports)\/([a-z0-9-]+\/?)?$/,
+  /^\/(sitemap-pages|sitemap-news|sitemap-units)\.xml$/, /^\/llms\.txt$/,
+];
+function __pageCacheable(request, url) {
+  if (request.method !== 'GET' || typeof caches === 'undefined' || !caches.default) return false;
+  if (/\.pages\.dev$/i.test(url.hostname)) return false;
+  for (const k of url.searchParams.keys()) if (!__PAGE_TRACK.test(k)) return false;
+  return __PAGE_RULES.some((re) => re.test(url.pathname));
+}
+/* A page built while a database read was failing may be a fallback (a building shown as not live, an empty list): it
+   is stored as 'degraded', which never matches a version, so the next request rebuilds it. Every database call goes
+   through fetch, so failures are noticed here without touching each call site. */
+let __DB_FAIL_AT = 0;
+const __fetch0 = globalThis.fetch.bind(globalThis);
+globalThis.fetch = async function (input, init) {
+  const u = typeof input === 'string' ? input : ((input && input.url) || '');
+  if (u.indexOf('.supabase.co/') === -1) return __fetch0(input, init);
+  try {
+    const r = await __fetch0(input, init);
+    if (r.status >= 500 || r.status === 429) __DB_FAIL_AT = Date.now();
+    return r;
+  } catch (e) { __DB_FAIL_AT = Date.now(); throw e; }
 };
+async function __pagePut(key, res, sv) {
+  try {
+    const h = new Headers(res.headers);
+    h.set('X-CM-SV', (Date.now() - __DB_FAIL_AT < 20000) ? 'degraded' : (sv || ''));
+    h.set('X-CM-Cached-At', String(Date.now()));
+    h.delete('Set-Cookie');
+    /* the stored copy never expires; the copy sent to browsers keeps the page's own Cache-Control */
+    h.set('X-CM-Orig-CC', res.headers.get('Cache-Control') || '');
+    h.set('Cache-Control', 'public, max-age=31536000');
+    await caches.default.put(key, new Response(await res.clone().arrayBuffer(), { status: 200, headers: h }));
+  } catch (e) { /* the page still goes out; only the stored copy is lost */ }
+}
+const __PAGE_RENDERING = new Map();
+function __claimPageRender(k) {
+  const at = __PAGE_RENDERING.get(k);
+  if (at && Date.now() - at < 30000) return false;
+  __PAGE_RENDERING.set(k, Date.now());
+  return true;
+}
+/* Both databases' change-log versions as one stamp: isolate memory 15 s, data-centre cache 60 s, one tiny call to
+   each database per data centre per site per minute. Unreadable: the last known stamp stands; none known: ''. */
+const __CSV = { v: '', at: 0 };
+async function __condoVersions(host) {
+  if (__CSV.v && Date.now() - __CSV.at < 15000) return __CSV.v;
+  const key = 'https://' + String(host).toLowerCase() + '/__sv/v1';
+  try {
+    const hit = await caches.default.match(key);
+    if (hit) { const t = await hit.text(); if (t) { __CSV.v = t; __CSV.at = Date.now(); return t; } }
+  } catch (e) {}
+  const read = (url, k) => fetchT(url + '/rest/v1/rpc/site_versions', { method: 'POST',
+      headers: { apikey: k, Authorization: 'Bearer ' + k, 'Content-Type': 'application/json' }, body: '{}' }, 1500)
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const [a, b] = await Promise.all([read(SB_A_URL, SB_A_KEY), read(SUPABASE_URL, SUPABASE_ANON_KEY)]);
+  const tag = (v) => (v && v.listings ? 'l' + v.listings + 's' + v.sales + 'h' + v.homes + 'c' + v.content : '');
+  if (a && a.listings && b && b.listings) {
+    const t = 'A' + tag(a) + 'B' + tag(b);
+    __CSV.v = t; __CSV.at = Date.now();
+    try { await caches.default.put(key, new Response(t, { headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=60' } })); } catch (e) {}
+    return t;
+  }
+  if (__CSV.v) __CSV.at = Date.now() - 5000;   // could not ask: keep the last known stamp, ask again in 10 s
+  return __CSV.v;
+}
 
 /* fetch with a deadline (SEO audit S11d). A building page used to wait on four
    RPCs with no timeout; one hung for 30 s. */
