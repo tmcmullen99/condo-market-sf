@@ -3566,28 +3566,34 @@ function __claimPageRender(k) {
   return true;
 }
 /* Both databases' change-log versions as one stamp: isolate memory 15 s, data-centre cache 60 s, one tiny call to
-   each database per data centre per site per minute. Unreadable: the last known stamp stands; none known: ''. */
-const __CSV = { v: '', at: 0 };
+   each database per data centre per site per minute. Unreadable: the last known stamp stands; none known: ''.
+   Platform A per market (sv2, 23 Oct 2026): only this site's A market and the changes that count for every market,
+   so a change in a city market no longer re-reads the condo pages. */
+const __CSV = {};
 async function __condoVersions(host) {
-  if (__CSV.v && Date.now() - __CSV.at < 15000) return __CSV.v;
-  const key = 'https://' + String(host).toLowerCase() + '/__sv/v1';
+  const h = String(host).toLowerCase();
+  const c = __CSV[h] || (__CSV[h] = { v: '', at: 0 });
+  if (c.v && Date.now() - c.at < 15000) return c.v;
+  const key = 'https://' + h + '/__sv/v2';
   try {
     const hit = await caches.default.match(key);
-    if (hit) { const t = await hit.text(); if (t) { __CSV.v = t; __CSV.at = Date.now(); return t; } }
+    if (hit) { const t = await hit.text(); if (t) { c.v = t; c.at = Date.now(); return t; } }
   } catch (e) {}
-  const read = (url, k) => fetchT(url + '/rest/v1/rpc/site_versions', { method: 'POST',
-      headers: { apikey: k, Authorization: 'Bearer ' + k, 'Content-Type': 'application/json' }, body: '{}' }, 1500)
+  const read = (url, k, fn, body) => fetchT(url + '/rest/v1/rpc/' + fn, { method: 'POST',
+      headers: { apikey: k, Authorization: 'Bearer ' + k, 'Content-Type': 'application/json' }, body }, 1500)
     .then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  const [a, b] = await Promise.all([read(SB_A_URL, SB_A_KEY), read(SUPABASE_URL, SUPABASE_ANON_KEY)]);
+  const aMk = A_MARKET_ID_BY_TAG[resolveMarket(h).tag] || 5;
+  const [a, b] = await Promise.all([read(SB_A_URL, SB_A_KEY, 'site_versions_m', JSON.stringify({ p_market_id: aMk })),
+                                    read(SUPABASE_URL, SUPABASE_ANON_KEY, 'site_versions', '{}')]);
   const tag = (v) => (v && v.listings ? 'l' + v.listings + 's' + v.sales + 'h' + v.homes + 'c' + v.content : '');
   if (a && a.listings && b && b.listings) {
     const t = 'A' + tag(a) + 'B' + tag(b);
-    __CSV.v = t; __CSV.at = Date.now();
+    c.v = t; c.at = Date.now();
     try { await caches.default.put(key, new Response(t, { headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=60' } })); } catch (e) {}
     return t;
   }
-  if (__CSV.v) __CSV.at = Date.now() - 5000;   // could not ask: keep the last known stamp, ask again in 10 s
-  return __CSV.v;
+  if (c.v) c.at = Date.now() - 5000;   // could not ask: keep the last known stamp, ask again in 10 s
+  return c.v;
 }
 
 /* fetch with a deadline (SEO audit S11d). A building page used to wait on four
