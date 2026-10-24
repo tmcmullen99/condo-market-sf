@@ -3479,17 +3479,41 @@ export default {
       if (hit) {
         const current = !sv || (hit.headers.get('X-CM-SV') || '') === sv;
         if (!current && ctx && ctx.waitUntil && __claimPageRender(key.url)) {
-          ctx.waitUntil(__renderPage(request, env, reqUrl, reqPath)
-            .then((r) => (r.status === 200 ? __pagePut(key, r, sv) : null)).catch(() => null)
+          /* another data centre may already have rebuilt it: take KV's copy when it is current, else build */
+          ctx.waitUntil(__kvGet(env, key)
+            .then((k) => (k && sv && k.metadata.sv === sv)
+              ? __pageColoPut(key, k.value, new Headers(k.metadata.h), k.metadata.sv)
+              : __renderPage(request, env, reqUrl, reqPath).then((r) => (r.status === 200 ? __pagePut(key, r, sv, env) : null)))
+            .catch(() => null)
             .finally(() => __PAGE_RENDERING.delete(key.url)));
         }
         const h = new Headers(hit.headers);
+        /* the stored copy is kept a year; a browser gets the page's own Cache-Control (24 Oct 2026: it was getting the year) */
+        h.set('Cache-Control', hit.headers.get('X-CM-Orig-CC') || 'no-cache');
+        h.delete('X-CM-Orig-CC');
         h.set('X-CM-Cache', current ? 'HIT' : 'STALE');
         return new Response(hit.body, { status: hit.status, headers: h });
       }
+      /* No copy in this data centre: the shared copy (KV), if there is one. Current: kept here too. Older than the
+         data: it still goes out at once and one background render replaces it here and in KV. */
+      const kv = await __kvGet(env, key);
+      if (kv) {
+        const current = !sv || kv.metadata.sv === sv;
+        const h = new Headers(kv.metadata.h);
+        if (ctx && ctx.waitUntil) {
+          if (current) ctx.waitUntil(__pageColoPut(key, kv.value.slice(0), h, kv.metadata.sv).catch(() => null));
+          else if (__claimPageRender(key.url)) {
+            ctx.waitUntil(__renderPage(request, env, reqUrl, reqPath)
+              .then((r) => (r.status === 200 ? __pagePut(key, r, sv, env) : null)).catch(() => null)
+              .finally(() => __PAGE_RENDERING.delete(key.url)));
+          }
+        }
+        h.set('X-CM-Cache', current ? 'KV' : 'KV-STALE');
+        return new Response(kv.value, { status: 200, headers: h });
+      }
       const res = await __renderPage(request, env, reqUrl, reqPath);
       if (res.status === 200) {
-        const put = __pagePut(key, res, sv);
+        const put = __pagePut(key, res, sv, env);
         if (ctx && ctx.waitUntil) ctx.waitUntil(put); else await put;
       }
       return res;
@@ -3546,17 +3570,51 @@ globalThis.fetch = async function (input, init) {
     return r;
   } catch (e) { __DB_FAIL_AT = Date.now(); throw e; }
 };
-async function __pagePut(key, res, sv) {
+async function __pagePut(key, res, sv, env) {
   try {
-    const h = new Headers(res.headers);
-    h.set('X-CM-SV', (Date.now() - __DB_FAIL_AT < 20000) ? 'degraded' : (sv || ''));
-    h.set('X-CM-Cached-At', String(Date.now()));
-    h.delete('Set-Cookie');
-    /* the stored copy never expires; the copy sent to browsers keeps the page's own Cache-Control */
-    h.set('X-CM-Orig-CC', res.headers.get('Cache-Control') || '');
-    h.set('Cache-Control', 'public, max-age=31536000');
-    await caches.default.put(key, new Response(await res.clone().arrayBuffer(), { status: 200, headers: h }));
+    const stamp = (Date.now() - __DB_FAIL_AT < 20000) ? 'degraded' : (sv || '');
+    const buf = await res.clone().arrayBuffer();
+    await __pageColoPut(key, buf, res.headers, stamp);
+    /* the shared copy only for a page built from known, healthy data */
+    if (stamp && stamp !== 'degraded') await __kvPut(env, key, buf, res.headers, stamp);
   } catch (e) { /* the page still goes out; only the stored copy is lost */ }
+}
+async function __pageColoPut(key, buf, headers, stamp) {
+  const h = new Headers(headers);
+  h.set('X-CM-SV', stamp);
+  h.set('X-CM-Cached-At', String(Date.now()));
+  h.delete('Set-Cookie');
+  /* the stored copy never expires; the copy sent to browsers keeps the page's own Cache-Control */
+  h.set('X-CM-Orig-CC', headers.get('Cache-Control') || '');
+  h.set('Cache-Control', 'public, max-age=31536000');
+  await caches.default.put(key, new Response(buf, { status: 200, headers: h }));
+}
+/* ONE COPY FOR EVERY DATA CENTRE (Tim, 24 Oct 2026). The Cache API is per Cloudflare data centre, so a crawler that
+   arrived from many of them at once had every page built in each. Every page stored above is also written to Workers
+   KV (binding PAGES_KV, namespace site-pages, shared with the city sites under its own host keys) with the versions it
+   was built from; a data centre with no copy reads KV first and builds only when KV has none or KV's copy is older
+   than the data. Without the binding this is a no-op. */
+const __KV_KEEP = ['content-type', 'cache-control', 'x-robots-tag', 'content-language', 'vary', 'link'];
+function __kvKey(key) { return 'page:' + key.url.replace(/^https:\/\//, ''); }
+async function __kvGet(env, key) {
+  if (!env || !env.PAGES_KV) return null;
+  const k = __kvKey(key);
+  if (k.length > 480) return null;
+  try {
+    const r = await env.PAGES_KV.getWithMetadata(k, { type: 'arrayBuffer', cacheTtl: 60 });
+    return (r && r.value && r.metadata && r.metadata.sv && r.metadata.h) ? r : null;
+  } catch (e) { return null; }
+}
+async function __kvPut(env, key, buf, headers, stamp) {
+  if (!env || !env.PAGES_KV) return;
+  const k = __kvKey(key);
+  if (k.length > 480) return;
+  const h = {};
+  for (const n of __KV_KEEP) { const v = headers.get(n); if (v) h[n] = v; }
+  let meta = { sv: stamp, h, at: Date.now() };
+  if (JSON.stringify(meta).length > 1000) { delete h.link; meta = { sv: stamp, h, at: meta.at }; }
+  if (JSON.stringify(meta).length > 1000) return;
+  try { await env.PAGES_KV.put(k, buf, { metadata: meta }); } catch (e) { /* a write limit or a race: the next render writes it */ }
 }
 const __PAGE_RENDERING = new Map();
 function __claimPageRender(k) {
