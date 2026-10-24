@@ -6133,12 +6133,23 @@ const CM_FOOTER_CSS =
 
 // Fetch all catalogued buildings for the host market, grouped city → neighborhood,
 // plus the city list. One embedded-filter query; cached via page cache-control.
-const FOOT_DATA_CACHE = {};   // per market tag, 10 minutes; a failed or empty read is never cached
+/* Static until changed (23 Oct 2026): kept while the data versions are unchanged, in this isolate and in the data
+   centre's cache, so a new isolate does not read all ~2,000 buildings again (about 240 reads an hour before). 10
+   minutes only while the versions cannot be read. A failed or empty read is never kept. */
+const FOOT_DATA_CACHE = {};
 async function fetchFooterData(hostMk) {
   const ck = hostMk.tag, hit = FOOT_DATA_CACHE[ck];
-  if (hit && Date.now() - hit.t < 600000) return hit.v;
+  const sv = await __condoVersions(hostMk.domain);
+  if (hit && (sv ? hit.sv === sv : Date.now() - hit.t < 600000)) return hit.v;
+  const key = sv ? new Request('https://' + hostMk.domain + '/__foot/v1?sv=' + sv) : null;
+  if (key) {
+    try { const c = await caches.default.match(key); if (c) { const v = await c.json(); FOOT_DATA_CACHE[ck] = { t: Date.now(), sv: sv, v: v }; return v; } } catch (e) {}
+  }
   const v = await fetchFooterDataRaw(hostMk);
-  if (v && v.cities && v.cities.length) FOOT_DATA_CACHE[ck] = { t: Date.now(), v: v };
+  if (v && v.cities && v.cities.length) {
+    FOOT_DATA_CACHE[ck] = { t: Date.now(), sv: sv, v: v };
+    if (key) { try { await caches.default.put(key, new Response(JSON.stringify(v), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=31536000' } })); } catch (e) {} }
+  }
   return v;
 }
 async function fetchFooterDataRaw(hostMk) {
