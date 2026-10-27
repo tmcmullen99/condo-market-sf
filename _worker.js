@@ -3556,7 +3556,10 @@ async function __renderPage(request, env, reqUrl, reqPath) {
 
 /* Which pages are kept: public GETs built from the databases, no query string but tracking parameters, never a
    preview host. Token, account, booking, unsubscribe and Build A Page (private) routes are never kept. */
-const __PAGE_VER = 'p1-' + handleRequest.toString().length;   // a deploy that changes the router starts every page fresh
+/* A deploy that changes the router starts every page fresh; so does a new version of an asset the kept pages load
+   (27 Oct 2026: the brochure button shipped in cm-offmarket.js?v=15, and building pages kept in the cache still
+   pointed at v=14, so the button never appeared on them). */
+const __PAGE_VER = 'p1-' + handleRequest.toString().length + '-om' + OM_VER;
 const __PAGE_TRACK = /^(utm_[a-z_]+|via|e|fbclid|gclid|msclkid|mc_cid|mc_eid|ref)$/i;
 const __PAGE_RULES = [
   /^\/$/, /^\/buildings\/$/, /^\/intelligence\/$/,
