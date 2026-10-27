@@ -485,7 +485,7 @@
     set('Making the PDF\u2026', true);
     var run = function () { return window.CMBrochure.download(data); };
     (window.CMBrochure ? Promise.resolve() : new Promise(function (ok, bad) {
-      var s = document.createElement('script'); s.src = '/assets/cm-brochure.js?v=2'; s.onload = ok; s.onerror = function () { bad(new Error('the brochure tool did not load')); }; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = '/assets/cm-brochure.js?v=3'; s.onload = ok; s.onerror = function () { bad(new Error('the brochure tool did not load')); }; document.head.appendChild(s);
     })).then(run).then(function () { set('Brochure (PDF)'); }, function (e) { set('Did not download: ' + ((e && e.message) || 'try again')); setTimeout(function () { set('Brochure (PDF)'); }, 5000); });
   }
   function act(it, kind) {

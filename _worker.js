@@ -754,7 +754,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '16';
+const OM_VER = '17';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -2281,7 +2281,7 @@ function condoBrochureButton(data) {
     'if(window.CM)f();else window.addEventListener("cm-ready",f,{once:true});setTimeout(function(){ok(false);},5000);});};' +
     'var up=function(){window.dispatchEvent(new CustomEvent("openAuthModal",{detail:{mode:"signup"}}));};' +
     'function go(){CMBrochure.button(b,function(){return D;},{gate:mem,signup:up});}' +
-    'if(window.CMBrochure)return go();var s=document.createElement("script");s.src="/assets/cm-brochure.js?v=2";s.onload=go;document.head.appendChild(s);})();</script>';
+    'if(window.CMBrochure)return go();var s=document.createElement("script");s.src="/assets/cm-brochure.js?v=3";s.onload=go;document.head.appendChild(s);})();</script>';
 }
 function renderListingCity(d, B, foot, reportsHtml) {
   const E = cityEsc;

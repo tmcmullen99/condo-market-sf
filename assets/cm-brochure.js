@@ -128,7 +128,7 @@
     y = ty + 18;
 
     /* the facts, as a ruled row */
-    var facts = (d.facts || []).filter(function (f) { return f && f[1] != null && String(f[1]).trim() !== '' && String(f[1]) !== '—'; }).slice(0, 8);
+    var facts = (d.facts || []).filter(function (f) { return f && !/^listing\s*(agent|office)/i.test(String(f[0] || '')) && f[1] != null && String(f[1]).trim() !== '' && String(f[1]) !== '—'; }).slice(0, 8);
     if (facts.length) {
       var per = Math.min(facts.length, 4), cw = IW / per, rows = Math.ceil(facts.length / per);
       doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.6);
@@ -179,7 +179,10 @@
       String(d.body).split(/\n{2,}/).forEach(function (p) { if (p.trim()) para(p.replace(/\s*\n\s*/g, ' ').trim(), 10.5, ink, 'helvetica', 7); });
     }
     /* LISTING DETAILS (27 Oct 2026): every further fact the page holds, as a ruled two-column list. */
-    var det = (d.details || []).filter(function (r) { return r && r[1] != null && String(r[1]).trim() !== ''; });
+    /* NO LISTING AGENT ON A BROCHURE (Tim, 27 Oct 2026: "Remove listing agent name and contact details from all
+       brochures"): any listing agent / office row is dropped here, whatever a page passes in. */
+    var noLA = /^(listing\s*(agent|office|broker(age)?)|la\b|lo\b|la\s*ph|co-?listing)/i;
+    var det = (d.details || []).filter(function (r) { return r && !noLA.test(String(r[0] || '').trim()) && r[1] != null && String(r[1]).trim() !== ''; });
     if (det.length) {
       if (y + 40 > H - 52) y = newPage();
       y += 4;
@@ -206,7 +209,7 @@
       }
       y += 10;
     }
-    if (d.courtesy) para(d.courtesy, 8.5, slate, 'helvetica', 4);
+    if (d.courtesy && !/listing courtesy of|listed by/i.test(d.courtesy)) para(d.courtesy, 8.5, slate, 'helvetica', 4);
 
     /* the agent and the way back to the live page */
     var boxH = 92;
@@ -256,5 +259,5 @@
         .catch(function (err) { el.disabled = false; el.textContent = 'Did not download: ' + ((err && err.message) || 'try again'); setTimeout(function () { el.textContent = label; }, 5000); });
     }
   }
-  window.CMBrochure = { download: download, button: button, version: '2' };
+  window.CMBrochure = { download: download, button: button, version: '3' };
 })();
