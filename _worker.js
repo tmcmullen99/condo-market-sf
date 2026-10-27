@@ -754,7 +754,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '14';
+const OM_VER = '15';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -2266,6 +2266,18 @@ function cmThumbUrl(u, w, h) {
   return u;
 }
 
+/* DOWNLOAD THE BROCHURE (Tim, 27 Oct 2026). Same generator as the city sites (assets/cm-brochure.js, kept identical in
+   campbell-market and marketplace-app/public). The page's own facts go in as JSON; the PDF is drawn in the visitor's
+   browser. "Condo Market SF" is swapped for the host's brand by applyMarketSwaps like the rest of the page. */
+function condoBrochureButton(data) {
+  const d = Object.assign({ market: { name: 'Condo Market SF' }, accent: '#d9772b',
+    agent: { name: 'Tim McMullen', phone: '(415) 691-9272', email: 'tim@mcmullen.properties', brokerage: 'Tim McMullen, Broker, CA DRE #02016832' } }, data);
+  const json = JSON.stringify(d).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, '');
+  const id = 'bro' + Math.random().toString(36).slice(2, 8);
+  return '<button type="button" class="btn btn-line" id="' + id + '" data-cta="brochure">Download the brochure (PDF)</button>' +
+    '<script>(function(){var b=document.getElementById("' + id + '"),D=' + json + ';function go(){CMBrochure.button(b,function(){return D;});}' +
+    'if(window.CMBrochure)return go();var s=document.createElement("script");s.src="/assets/cm-brochure.js?v=1";s.onload=go;document.head.appendChild(s);})();</script>';
+}
 function renderListingCity(d, B, foot, reportsHtml) {
   const E = cityEsc;
   const money = (n) => (n == null ? '' : '$' + Math.round(n).toLocaleString('en-US'));
@@ -2325,6 +2337,13 @@ function renderListingCity(d, B, foot, reportsHtml) {
     '</div><div class="ld-head-cta">' +
     '<button type="button" class="btn btn-gold" data-cm-offer-trigger data-building-slug="' + E(bSlug) + '" data-unit-label="' + E(unit) + '" data-suggested-price="' + (price != null ? price : '') + '" data-cta="listing:offer">Make an offer &rarr;</button>' +
     '<a class="btn btn-line" href="#tour">Tour this home</a>' +
+    condoBrochureButton({ kind: 'For sale', title: addr + (unit && addr.indexOf('#') === -1 ? ' #' + unit : ''),
+      sub: [bName, cityName + ', CA' + (d.zip ? ' ' + d.zip : '')].filter(Boolean).join(' \u00b7 '),
+      price: price, priceLabel: price != null ? 'Asking price' : undefined,
+      facts: [['Beds', beds], ['Baths', baths], ['Square feet', sqft ? num(sqft) : null], ['Built', d.year_built || null], ['Neighborhood', d.neighborhood || null]],
+      photos: photos.slice(0, 4), body: d.listing_description || null,
+      url: 'https://' + domain + '/listing/' + mls, filename: addr + ' brochure',
+      courtesy: 'MLS #' + mls + '. Listing information from the MLS; the asking price is the seller\u2019s, set through the listing agent.' }) +
     '</div></div>';
 
   const specs = [];

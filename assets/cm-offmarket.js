@@ -254,6 +254,7 @@
       (it.type === 'ex' ? '' : '<button type="button" class="omx-act" data-om-act="comps">Comp Report</button>') +
       (it.type === 'mmm' ? '<button type="button" class="omx-act" data-om-act="tour">Tour</button>' : '') +
       '<button type="button" class="omx-act" data-om-act="question">Ask ' + esc(agentFirst()) + '</button>' +
+      (it.type === 'ex' ? '' : '<button type="button" class="omx-act" data-om-act="brochure">Brochure (PDF)</button>') +
       '</div>';
     var up = it.building && opt.upsell !== false
       ? '<div class="omx-up">Not this one? <a href="/building/' + encodeURIComponent(it.building) + '#dossier" data-cta="offmarket:any-unit">Write an offer on any unit in ' + esc(it.bname || 'the building') + ' \u2192</a></div>'
@@ -462,11 +463,35 @@
     tour: function (it) { return agentFirst() + ' will ask ' + tourParty(it) + ' which of your two times works and confirm one with you by email. Nothing is booked until then.'; },
     question: function () { return agentFirst() + ' will reply to you directly, by email.'; },
   };
+  /* THE BROCHURE (Tim, 27 Oct 2026): the card's own facts as a letter-size PDF, drawn in the browser by
+     /assets/cm-brochure.js (the same generator as the city sites and the account app). Members only, like the card. */
+  function brochure(it) {
+    track('offmarket:brochure', { ref_type: it.type });
+    var btns = document.querySelectorAll('[data-om-ref="' + it.ref + '"] [data-om-act="brochure"]');
+    var set = function (t, dis) { Array.prototype.forEach.call(btns, function (b) { b.textContent = t; b.disabled = !!dis; }); };
+    var ag = (S.member && S.member.agent) || {};
+    var data = {
+      kind: it.type === 'mmm' ? 'Make Me Move' : 'Coming soon', title: it.title, sub: [it.bname && it.type === 'cs' ? it.bname : '', it.hood || it.sub || ''].filter(Boolean).join(' \u00b7 '),
+      price: it.price != null ? Number(it.price) : null, priceLabel: it.price != null ? (it.type === 'mmm' ? 'The owner\u2019s own number' : 'Asking price') : undefined,
+      facts: it.type === 'cs' ? [['Beds', it.bd], ['Baths', it.ba], ['Square feet', it.sf ? nf(it.sf) : null], ['Built', it.yb], ['Neighborhood', it.hood]] : [['Building', it.bname]],
+      photos: (it.photos && it.photos.length ? it.photos : [it.photo]).slice(0, 4),
+      url: location.origin + location.pathname + '#' + it.type + '-' + it.key,
+      market: { name: (/(Condo Market [A-Z]{2,3}|Eichler Market)/.exec(document.title) || [])[1] || 'Condo Market SF' }, accent: '#d9772b',
+      agent: { name: ag.name || 'Tim McMullen', phone: ag.phone || '(415) 691-9272', email: ag.email || 'tim@mcmullen.properties', brokerage: 'Tim McMullen, Broker, CA DRE #02016832' },
+      fine: it.type === 'mmm' ? 'The price is the owner\u2019s own number for selling, not an appraisal or an opinion of value. Information deemed reliable but not guaranteed.' : undefined,
+      filename: it.title + ' brochure' };
+    set('Making the PDF\u2026', true);
+    var run = function () { return window.CMBrochure.download(data); };
+    (window.CMBrochure ? Promise.resolve() : new Promise(function (ok, bad) {
+      var s = document.createElement('script'); s.src = '/assets/cm-brochure.js?v=1'; s.onload = ok; s.onerror = function () { bad(new Error('the brochure tool did not load')); }; document.head.appendChild(s);
+    })).then(run).then(function () { set('Brochure (PDF)'); }, function (e) { set('Did not download: ' + ((e && e.message) || 'try again')); setTimeout(function () { set('Brochure (PDF)'); }, 5000); });
+  }
   function act(it, kind) {
     if (!S.member) {
       if (S.pending) { S.pending.then(function () { if (S.member) act(it, kind); }); return; }
       signup(it.type === 'cs' ? it.key : null); return;
     }
+    if (kind === 'brochure') return brochure(it);
     css();
     kind = KIND[kind] ? kind : 'tour';
     if (it.type === 'ex' && kind === 'comps') kind = 'question';
