@@ -754,7 +754,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '15';
+const OM_VER = '16';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -2275,8 +2275,13 @@ function condoBrochureButton(data) {
   const json = JSON.stringify(d).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, '');
   const id = 'bro' + Math.random().toString(36).slice(2, 8);
   return '<button type="button" class="btn btn-line" id="' + id + '" data-cta="brochure">Download the brochure (PDF)</button>' +
-    '<script>(function(){var b=document.getElementById("' + id + '"),D=' + json + ';function go(){CMBrochure.button(b,function(){return D;});}' +
-    'if(window.CMBrochure)return go();var s=document.createElement("script");s.src="/assets/cm-brochure.js?v=1";s.onload=go;document.head.appendChild(s);})();</script>';
+    /* account holders only (Tim, 27 Oct 2026): the site's own session (cm-auth-nav.js), else the account modal */
+    '<script>(function(){var b=document.getElementById("' + id + '"),D=' + json + ';' +
+    'var mem=function(){return new Promise(function(ok){var f=function(){try{window.CM.getSession().then(function(x){ok(!!x);},function(){ok(false);});}catch(e){ok(false);}};' +
+    'if(window.CM)f();else window.addEventListener("cm-ready",f,{once:true});setTimeout(function(){ok(false);},5000);});};' +
+    'var up=function(){window.dispatchEvent(new CustomEvent("openAuthModal",{detail:{mode:"signup"}}));};' +
+    'function go(){CMBrochure.button(b,function(){return D;},{gate:mem,signup:up});}' +
+    'if(window.CMBrochure)return go();var s=document.createElement("script");s.src="/assets/cm-brochure.js?v=2";s.onload=go;document.head.appendChild(s);})();</script>';
 }
 function renderListingCity(d, B, foot, reportsHtml) {
   const E = cityEsc;

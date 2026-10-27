@@ -59,7 +59,7 @@
       photo: (x.building && x.hero) || (x.photos && x.photos[0]) || x.hero || '', bimg: x.building ? (x.hero || '') : '',
       unitPhoto: (x.photos && x.photos[0]) || '', nPhotos: (x.photos || []).length, photos: x.photos || [], spec: spec(x.bd, x.ba, x.sf), bd: x.bd, ba: x.ba, sf: x.sf,
       hood: x.h || '', zip: x.zip || '', yb: x.yb || null,
-      since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
+      since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x, bx: x.bx || null };
     if (type === 'mmm') return { type: 'mmm', ref: 'mmm:' + x.id, key: x.id, unit: x.unit,
       title: (x.unit ? 'Unit ' + x.unit : 'A unit') + (x.building_name ? ', ' + x.building_name : ''),
       sub: x.h || '', price: x.price, plab: 'Owner\u2019s number', photo: x.hero || '', spec: x.units ? nf(x.units) + ' homes in the building' : '',
@@ -474,16 +474,18 @@
       kind: it.type === 'mmm' ? 'Make Me Move' : 'Coming soon', title: it.title, sub: [it.bname && it.type === 'cs' ? it.bname : '', it.hood || it.sub || ''].filter(Boolean).join(' \u00b7 '),
       price: it.price != null ? Number(it.price) : null, priceLabel: it.price != null ? (it.type === 'mmm' ? 'The owner\u2019s own number' : 'Asking price') : undefined,
       facts: it.type === 'cs' ? [['Beds', it.bd], ['Baths', it.ba], ['Square feet', it.sf ? nf(it.sf) : null], ['Built', it.yb], ['Neighborhood', it.hood]] : [['Building', it.bname]],
-      photos: (it.photos && it.photos.length ? it.photos : [it.photo]).slice(0, 4),
+      photos: ((it.photos && it.photos.length ? it.photos : [it.photo]).concat(it.bimg ? [it.bimg] : [])).filter(function (u, i, a) { return u && a.indexOf(u) === i; }).slice(0, 4),
       url: location.origin + location.pathname + '#' + it.type + '-' + it.key,
       market: { name: (/(Condo Market [A-Z]{2,3}|Eichler Market)/.exec(document.title) || [])[1] || 'Condo Market SF' }, accent: '#d9772b',
       agent: { name: ag.name || 'Tim McMullen', phone: ag.phone || '(415) 691-9272', email: ag.email || 'tim@mcmullen.properties', brokerage: 'Tim McMullen, Broker, CA DRE #02016832' },
       fine: it.type === 'mmm' ? 'The price is the owner\u2019s own number for selling, not an appraisal or an opinion of value. Information deemed reliable but not guaranteed.' : undefined,
       filename: it.title + ' brochure' };
+    /* the listing's own details where the agent has entered them (coming_soon_listings.brochure_details) */
+    if (it.bx) ['facts', 'details', 'body', 'courtesy'].forEach(function (k) { if (it.bx[k]) data[k] = it.bx[k]; });
     set('Making the PDF\u2026', true);
     var run = function () { return window.CMBrochure.download(data); };
     (window.CMBrochure ? Promise.resolve() : new Promise(function (ok, bad) {
-      var s = document.createElement('script'); s.src = '/assets/cm-brochure.js?v=1'; s.onload = ok; s.onerror = function () { bad(new Error('the brochure tool did not load')); }; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = '/assets/cm-brochure.js?v=2'; s.onload = ok; s.onerror = function () { bad(new Error('the brochure tool did not load')); }; document.head.appendChild(s);
     })).then(run).then(function () { set('Brochure (PDF)'); }, function (e) { set('Did not download: ' + ((e && e.message) || 'try again')); setTimeout(function () { set('Brochure (PDF)'); }, 5000); });
   }
   function act(it, kind) {

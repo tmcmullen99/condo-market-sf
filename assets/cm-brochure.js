@@ -178,6 +178,34 @@
     if (d.body) {
       String(d.body).split(/\n{2,}/).forEach(function (p) { if (p.trim()) para(p.replace(/\s*\n\s*/g, ' ').trim(), 10.5, ink, 'helvetica', 7); });
     }
+    /* LISTING DETAILS (27 Oct 2026): every further fact the page holds, as a ruled two-column list. */
+    var det = (d.details || []).filter(function (r) { return r && r[1] != null && String(r[1]).trim() !== ''; });
+    if (det.length) {
+      if (y + 40 > H - 52) y = newPage();
+      y += 4;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(slate[0], slate[1], slate[2]);
+      doc.text('LISTING DETAILS', M, y); y += 8;
+      var colW = (IW - 20) / 2, rowH = 0, half = Math.ceil(det.length / 2);
+      for (var di = 0; di < half; di++) {
+        var pair = [det[di], det[di + half]], hts = [];
+        doc.setFontSize(9);
+        pair.forEach(function (r) { if (r) hts.push(doc.splitTextToSize(clean(r[1]), colW - 108).length); });
+        rowH = 8 + 12 * Math.max.apply(null, hts.concat([1]));
+        if (y + rowH > H - 52) { y = newPage(); }
+        doc.setDrawColor(rule[0], rule[1], rule[2]); doc.setLineWidth(0.5);
+        pair.forEach(function (r, ci) {
+          if (!r) return;
+          var x = M + ci * (colW + 20);
+          doc.line(x, y, x + colW, y);
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(slate[0], slate[1], slate[2]);
+          doc.text(clean(r[0]), x, y + 12);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(ink[0], ink[1], ink[2]);
+          doc.text(doc.splitTextToSize(clean(r[1]), colW - 108), x + 104, y + 12);
+        });
+        y += rowH;
+      }
+      y += 10;
+    }
     if (d.courtesy) para(d.courtesy, 8.5, slate, 'helvetica', 4);
 
     /* the agent and the way back to the live page */
@@ -213,11 +241,20 @@
     var label = el.textContent;
     el.addEventListener('click', function (e) {
       e.preventDefault(); if (el.disabled) return;
+      /* ACCOUNT HOLDERS ONLY (Tim, 27 Oct 2026): opts.gate answers whether this visitor is signed in, and
+         opts.signup sends them to make an account when they are not. */
+      if (opts && opts.gate) {
+        Promise.resolve().then(opts.gate).then(function (ok) { if (ok) run(); else if (opts.signup) opts.signup(); }, function () { if (opts.signup) opts.signup(); });
+        return;
+      }
+      run();
+    });
+    function run() {
       el.disabled = true; el.textContent = (opts && opts.busy) || 'Making the PDF…';
       Promise.resolve().then(getData).then(download)
         .then(function () { el.disabled = false; el.textContent = label; })
         .catch(function (err) { el.disabled = false; el.textContent = 'Did not download: ' + ((err && err.message) || 'try again'); setTimeout(function () { el.textContent = label; }, 5000); });
-    });
+    }
   }
-  window.CMBrochure = { download: download, button: button, version: '1' };
+  window.CMBrochure = { download: download, button: button, version: '2' };
 })();
