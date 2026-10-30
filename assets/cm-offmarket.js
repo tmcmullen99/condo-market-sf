@@ -33,7 +33,7 @@
   var A_MKT = cfgEl && Number(cfgEl.getAttribute('data-om-a-market') || 0);
 
   var S = { member: null, uid: null, pending: null, ex: null };
-  var TYPE = { cs: 'Coming soon', mmm: 'Make Me Move', ex: 'Investor Exchange' };
+  var TYPE = { cs: 'Coming soon', mmm: 'Make Me Move', ex: 'The Exchange' };
 
   /* --------------------------------- helpers --------------------------------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -65,7 +65,7 @@
       sub: x.h || '', price: x.price, plab: 'Owner\u2019s number', photo: x.hero || '', spec: x.units ? nf(x.units) + ' homes in the building' : '',
       since: x.since, building: x.building, bname: x.building_name, y: x.y, x: x.x };
     var b = x.building || {};
-    return { type: 'ex', ref: 'ex:' + x.token, key: x.token, title: x.address || (b.name ? 'A unit at ' + b.name : 'An Investor Exchange listing'),
+    return { type: 'ex', ref: 'ex:' + x.token, key: x.token, title: x.address || (b.name ? 'A unit at ' + b.name : 'An Exchange listing'),
       sub: [x.area, x.property_type].filter(Boolean).join(' \u00b7 '), price: null, plab: '', cover: x.cover, nPhotos: x.photo_count || 0, exPhotos: [],
       spec: spec(x.beds, x.baths, x.sqft) + (x.hoa_fee_monthly ? ' \u00b7 HOA ' + money(Math.round(x.hoa_fee_monthly)) + '/mo' : ''),
       since: String(x.published_at || '').slice(0, 10), building: b.slug, bname: b.name, exUrl: x.member_url };
@@ -259,7 +259,7 @@
     var up = it.building && opt.upsell !== false
       ? '<div class="omx-up">Not this one? <a href="/building/' + encodeURIComponent(it.building) + '#dossier" data-cta="offmarket:any-unit">Write an offer on any unit in ' + esc(it.bname || 'the building') + ' \u2192</a></div>'
       : '';
-    var ex = it.type === 'ex' && it.exUrl ? '<div class="omx-sub"><a href="' + esc(it.exUrl) + '" style="color:#C2410C;font-weight:600;text-decoration:none">Full listing on the Investor Exchange \u2192</a></div>' : '';
+    var ex = it.type === 'ex' && it.exUrl ? '<div class="omx-sub"><a href="' + esc(it.exUrl) + '" style="color:#C2410C;font-weight:600;text-decoration:none">Full listing on The Exchange \u2192</a></div>' : '';
     return '<article class="omx-card" id="' + it.type + '-' + esc(it.key) + '" data-om-ref="' + esc(it.ref) + '">' +
       (hasStrip(it) ? stripHtml(it) :
       '<div class="omx-ph' + (photo || it.cover ? '' : ' omx-noimg') + '"' + photo + (it.cover ? ' data-om-cover="' + esc(it.cover) + '"' : '') + '><span class="omx-tag' + (it.type === 'cs' ? ' cs' : '') + '">' + TYPE[it.type] + '</span>' +
@@ -273,7 +273,7 @@
       '<div class="omx-addr">' + esc(it.title) + '</div>' +
       (it.spec ? '<div class="omx-sub">' + esc(it.spec) + '</div>' : '') +
       (it.sub ? '<div class="omx-sub">' + esc(it.sub) + '</div>' : '') +
-      (it.since ? '<div class="omx-sub">' + (it.type === 'mmm' ? 'Named ' : it.type === 'ex' ? 'On the Exchange since ' : 'First seen ') + day(it.since) + '</div>' : '') +
+      (it.since ? '<div class="omx-sub">' + (it.type === 'mmm' ? 'Named ' : it.type === 'ex' ? 'On The Exchange since ' : 'First seen ') + day(it.since) + '</div>' : '') +
       (it.building && opt.buildingLink !== false ? '<div class="omx-sub"><a href="/building/' + encodeURIComponent(it.building) + '" style="color:inherit">The building record \u2192</a></div>' : '') +
       ex + photoNote(it, 'data-om-act="tour"') + acts + up + '</div></article>';
   }
@@ -732,12 +732,12 @@
       '<nav class="omx-jump" aria-label="Your off-market lists">' +
       '<a href="#coming-soon">Coming soon <b>' + cs.length + '</b></a>' +
       '<a href="#make-me-move">Owners\u2019 numbers <b>' + mm.length + '</b></a>' +
-      '<a href="#investor-exchange">Investor Exchange <b data-om-exn></b></a></nav>' +
+      '<a href="#investor-exchange">The Exchange <b data-om-exn></b></a></nav>' +
       sec('coming-soon', 'Coming soon', cs.length, 'San Francisco condos entered as coming soon and not yet on the listing sites. Ask for the disclosures, a Comp Report or a tour, and ' + a + ' takes it from there.', cs,
         'No coming-soon condos right now. New ones appear here as soon as they are entered; the list is checked twice a day.') +
       sec('make-me-move', 'Owners\u2019 private numbers', mm.length, 'Owners who named the price that would make them move, with no listing. An offer at or near the number goes to the owner through ' + a + '.', mm,
         'No owner has a private number open right now.') +
-      '<div class="omx-sec" id="investor-exchange"><h2>Investor Exchange<span data-om-exn></span></h2><p class="omx-lede">Investor-owned units offered privately, between members.</p><div data-om-ex><div class="omx-empty">Loading the Exchange\u2026</div></div></div>';
+      '<div class="omx-sec" id="investor-exchange"><h2>The Exchange<span data-om-exn></span></h2><p class="omx-lede">Investor-owned units offered privately, between members.</p><div data-om-ex><div class="omx-empty">Loading The Exchange\u2026</div></div></div>';
     /* Coming soon gets the browse tools (filters, sort, the map) from cm-offmarket-explore.js when it is on the page. */
     var g1 = body.querySelector('[data-om-list="coming-soon"]');
     if (g1) { if (window.OMCS && window.OMCS.mount) window.OMCS.mount(g1, cs); else render(g1, cs); }
@@ -747,13 +747,13 @@
   }
   function loadExchange(box, n) {
     if (!box) return;
-    if (!A_URL || !A_KEY || !A_MKT) { box.innerHTML = '<div class="omx-empty">The Investor Exchange isn\u2019t open in this market.</div>'; return; }
+    if (!A_URL || !A_KEY || !A_MKT) { box.innerHTML = '<div class="omx-empty">The Exchange isn\u2019t open in this market.</div>'; return; }
     exchangeAll()
       .then(function (items) {
         if (!items) { box.innerHTML = '<div class="omx-empty">The Exchange didn\u2019t load. Refresh the page to try again.</div>'; return; }
         if (n) n.textContent = items.length;
         document.querySelectorAll('[data-om-exn]').forEach(function (el) { el.textContent = items.length; });
-        if (!items.length) { box.innerHTML = '<div class="omx-empty">Nothing on the Exchange right now.</div>'; return; }
+        if (!items.length) { box.innerHTML = '<div class="omx-empty">Nothing on The Exchange right now.</div>'; return; }
         box.className = 'omx-grid'; render(box, items); fillPrices();
       });
   }

@@ -298,7 +298,7 @@
   function memPeek(it) {
     var O = window.OM, strip = O && O.hasStrip && O.hasStrip(it) ? O.strip(it, { panel: true }) : '';
     return pk({ strip: strip, img: it.building && it.bimg ? it.bimg : (it.type === 'mmm' ? it.photo : it.unitPhoto) || '', inset: it.building && it.bimg ? it.unitPhoto : '',
-      tag: it.type === 'cs' ? 'Coming soon' : it.type === 'ex' ? 'Investor Exchange' : 'Owner\u2019s number', tagCls: it.type,
+      tag: it.type === 'cs' ? 'Coming soon' : it.type === 'ex' ? 'The Exchange' : 'Owner\u2019s number', tagCls: it.type,
       price: it.price ? money(it.price) : '', plab: it.type === 'mmm' ? 'Owner\u2019s number' : '',
       spec: it.type === 'mmm' ? e(it.spec || '') : specLine(it.bd, it.ba, it.sf) || e(it.spec || ''), title: it.title,
       meta: [it.sub, it.since ? (it.type === 'mmm' ? 'Named ' : 'First seen ') + dd(it.since) : ''].filter(Boolean).join(' \u00b7 ') });
@@ -374,14 +374,14 @@
   /* ---- the Investor Exchange, and featured listings on every layer ---- */
   function exCard(x, mode) {
     pane('item');
-    side.innerHTML = '<div class="act-k">Investor Exchange' + (x[2] ? ' \u00b7 ' + e(x[2]) : '') + '</div>' +
+    side.innerHTML = '<div class="act-k">The Exchange' + (x[2] ? ' \u00b7 ' + e(x[2]) : '') + '</div>' +
       '<h3 class="mact-h">' + e(sp(x[5], x[6], x[7]) || 'An Exchange listing') + '</h3>' +
       '<p class="mact-lede">Offered privately to investors, often with the tenant in place.' + (x[2] ? ' In ' + e(x[2]) + '.' : '') + '</p>' +
       (MEM ? '<a class="btn btn-gold" href="/account/off-market/#investor-exchange" style="margin-top:12px;width:100%">Open it in your off-market list &rarr;</a>'
            : '<button class="btn btn-gold" data-om-signup="" data-cta="offmarket:map-ex" style="margin-top:12px;width:100%">Create a free account to see it &rarr;</button>') +
       (x[1] ? '<a class="mp-rec" href="/building/' + encodeURIComponent(x[1]) + '#dossier">Every unit in ' + e(x[2] || 'the building') + ' &rarr;</a>' : '');
-    phoneCards([{ h: pk({ tag: 'Investor Exchange', tagCls: 'ex', lock: MEM ? 'Price in your off-market list' : 'Price for members', spec: specLine(x[5], x[6], x[7]),
-      title: x[2] ? 'A condo in ' + x[2] : 'An Investor Exchange listing', meta: 'Offered privately, often with the tenant in place' }),
+    phoneCards([{ h: pk({ tag: 'The Exchange', tagCls: 'ex', lock: MEM ? 'Price in your off-market list' : 'Price for members', spec: specLine(x[5], x[6], x[7]),
+      title: x[2] ? 'A condo in ' + x[2] : 'An Exchange listing', meta: 'Offered privately, often with the tenant in place' }),
       open: function () { exCard(x, 'quiet'); } }], mode);
   }
   /* a featured listing: its card from the page, as the card and the sheet */
@@ -393,7 +393,7 @@
     var stripEl = full.querySelector('.omp'), ph = full.querySelector('.omf-ph'), bg = ph && ph.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);
     var spec = q('.omf-s'), title = q('.omf-t');
     phoneCards([{ h: pk({ strip: stripEl ? stripEl.outerHTML.replace('omf-ph omp', 'omx-ph omp omp-panel') : '', img: bg ? bg[1] : '', tag: 'Featured', tagCls: 'ft',
-      price: price, plab: price ? 'Asking' : '', lock: 'Asking price for members', spec: e(spec), title: title, meta: 'Investor Exchange' }),
+      price: price, plab: price ? 'Asking' : '', lock: 'Asking price for members', spec: e(spec), title: title, meta: 'The Exchange' }),
       open: function () { side = sheetBody; sheetBody.innerHTML = ''; var c = full.cloneNode(true); c.classList.remove('omf-c', 'omf-hit'); sheetBody.appendChild(c); } }]);
     return true;
   }
@@ -408,7 +408,7 @@
       track('offmarket:map-featured');
       if (PHONE.matches) { var ll = lastLL; setLayer('ex', { noFit: true, keepPane: false }); lastLL = ll; if (featPhone(x[0])) return; }
       showFeatured(x[0]); }, 'Featured listing');
-    else pin(L_.ex, x[3], x[4], 'ex', 'Exchange', function () { exCard(x); }, 'Investor Exchange');
+    else pin(L_.ex, x[3], x[4], 'ex', 'Exchange', function () { exCard(x); }, 'The Exchange');
   });
 
   /* ---- tabs, deep links, sign-in ---- */

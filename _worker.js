@@ -714,7 +714,7 @@ function cityFooter(payload) {
     '      <div><h4>Index</h4><a href="/active-listings/">For sale</a><a href="/off-market/">Off market</a><a href="/#atlas">Buildings</a>' +
     (payload.hubPages === false ? '' : '<a href="/neighborhoods">Neighborhoods</a><a href="/san-francisco-condo-market-stats">Market stats</a><a href="/san-francisco-condo-rankings">Rankings</a>') +
     '<a href="/market-reports/">Market reports</a><a href="/news/">News</a>' +
-    '<a href="/intelligence/">Intelligence</a><a href="/how-it-works/">How it works</a><a href="/investor-exchange/">Investor Exchange</a></div>\n' +
+    '<a href="/intelligence/">Intelligence</a><a href="/how-it-works/">How it works</a><a href="/investor-exchange/">The Exchange</a></div>\n' +
     '      <div><h4>Contact</h4><a href="mailto:tim@mcmullen.properties">tim@mcmullen.properties</a><a href="/methodology/">Methodology</a></div>\n' +
     '    </div>\n' +
     '    <p class="disclosure">&copy; 2026 Condo Market SF &middot; Platform operated by McMullen Properties LLC, which is not a real estate brokerage &middot; ' +
@@ -780,7 +780,7 @@ function renderOffMarket(payload) {
   (payload.buildings || []).forEach((b) => { bySlug[b.s] = b; });
   const title = 'Off-Market & Coming-Soon Condos in San Francisco — Owner Prices & Every Building | Condo Market SF';
   const desc = 'The San Francisco condos that never reach a listing site: ' + (csN ? num(csN) + ' coming soon, ' : 'coming-soon listings, ') +
-    'the Investor Exchange, prices owners have named privately, and ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings you can make an offer on — listed or not.';
+    'The Exchange, prices owners have named privately, and ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings you can make an offer on — listed or not.';
   const canonical = 'https://www.sanfranciscocondomarket.com/off-market/';
   const head = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">\n' +
     '<style>' +
@@ -965,7 +965,7 @@ function renderOffMarket(payload) {
         : '<div class="omf-ph"' + (bImg ? ' style="background-image:url(\'' + cityEsc(bImg).replace(/'/g, '%27') + '\')"' : '') +
       (f.photos && f.photos[0] ? ' data-om-cover="' + cityEsc(f.photos[0]) + '"' : '') + '><span class="omf-badge">Featured</span>' +
       (f.photo_count > 1 ? '<span class="omf-n">' + num(f.photo_count) + ' photos</span>' : '') + '</div>') +
-      '<div class="omf-b"><div class="omf-k">' + (compact ? 'Featured &middot; Exchange' : 'Investor Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '')) + '</div>' +
+      '<div class="omf-b"><div class="omf-k">' + (compact ? 'Featured &middot; Exchange' : 'The Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '')) + '</div>' +
       '<div class="omf-t">' + cityEsc(f.street || f.address) + '</div>' +
       '<div class="omf-s">' + cityEsc(spec) + '</div>' +
       (lease && !compact ? '<div class="omf-s">' + cityEsc(lease) + '</div>' : '') +
@@ -989,9 +989,9 @@ function renderOffMarket(payload) {
   const top = '<section class="map-section omap om-top" id="map"' + omCfgAttrs(payload.om) + '>\n  <div class="wrap">\n' +
     '    <div class="omt-head"><div><span class="eyebrow">Off-market &middot; coming soon &middot; members only</span>\n' +
     '      <h1 class="omt-h1">The condos you <em>can&rsquo;t see yet.</em></h1></div>\n' +
-    '      <p class="omt-sub">Coming-soon listings before the listing sites, the Investor Exchange, the prices owners have named privately, and every building you can write an offer in.</p></div>\n' +
+    '      <p class="omt-sub">Coming-soon listings before the listing sites, The Exchange, the prices owners have named privately, and every building you can write an offer in.</p></div>\n' +
     '    <div class="omt-tabs" role="tablist" aria-label="Map layers">' +
-    tab('cs', 'Coming soon', csN, true) + tab('ex', 'Investor Exchange', exN, false) + tab('mm', 'Owners&rsquo; numbers', mmm, false) + tab('b', 'Every building', T.buildings, false) +
+    tab('cs', 'Coming soon', csN, true) + tab('ex', 'The Exchange', exN, false) + tab('mm', 'Owners&rsquo; numbers', mmm, false) + tab('b', 'Every building', T.buildings, false) +
     '</div>\n' +
     '    <div class="omap-frame"><div class="mact-grid">\n' +
     '      <div class="mact-map"><div id="cbmap" role="region" aria-label="Map of off-market and coming-soon condos"></div>\n' +
@@ -1011,10 +1011,10 @@ function renderOffMarket(payload) {
         '<p class="mact-lede">New ones appear here first, as soon as they are entered as coming soon on the MLS. The list is checked twice a day.</p><div id="omCsList"></div>') +
     featMini + '</div>\n' +
     /* the exchange */
-    '        <div class="om-pane" data-pane="ex" hidden><div class="act-k">Investor Exchange &middot; ' + num(exN) + '</div>' +
+    '        <div class="om-pane" data-pane="ex" hidden><div class="act-k">The Exchange &middot; ' + num(exN) + '</div>' +
     '<h3 class="mact-h">Offered privately, to investors</h3><p class="mact-lede">Investor-owned condos for sale without a public listing, often with the tenant in place.</p>' +
     featMini +
-    (exN > feat.length ? '<a class="mp-rec" href="/account/off-market/#investor-exchange" data-cta="offmarket:pane-ex-more">' + num(exN - feat.length) + ' more on the Exchange, for members &rarr;</a>' : '') +
+    (exN > feat.length ? '<a class="mp-rec" href="/account/off-market/#investor-exchange" data-cta="offmarket:pane-ex-more">' + num(exN - feat.length) + ' more on The Exchange, for members &rarr;</a>' : '') +
     '</div>\n' +
     /* owners' numbers */
     '        <div class="om-pane" data-pane="mm" hidden><div class="act-k">Owners&rsquo; private numbers &middot; ' + num(mmm) + '</div>' +
@@ -1061,7 +1061,7 @@ function renderOffMarket(payload) {
     '      <h2 class="om-h1" style="color:var(--chrome-ink);font-size:clamp(1.8rem,3.6vw,2.6rem)">Four ways to buy <em style="color:var(--accent-on-dark)">before everyone else.</em></h2></div>\n' +
     '    <div class="om-doors reveal">\n' +
     door(csN, 'Coming soon, before the listing sites', 'Entered on the MLS as coming soon. The address, price and photos open with a free account.') +
-    door(exN, 'On the Investor Exchange', 'Investor-owned condos offered privately, often with the tenant in place.') +
+    door(exN, 'On The Exchange', 'Investor-owned condos offered privately, often with the tenant in place.') +
     door(mmm, mmm === 1 ? 'Owner who named a private number' : 'Owners who named a private number', 'No listing, no Zillow. A price they would sell at, held quietly until someone meets it.') +
     door(T.not_sold_10y, 'Units with no recorded sale in ten years', 'Of ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings. These units have not changed hands in a decade &mdash; and every one is still open to an offer.') +
     '    </div>\n' +
@@ -1131,7 +1131,7 @@ function renderAccountOffMarket(payload) {
   const T = payload.totals || {};
   const num = (n) => Number(n || 0).toLocaleString('en-US');
   const title = 'Your Off-Market Listings | Condo Market SF';
-  const desc = 'Coming-soon condos before the listing sites, owners\u2019 private numbers and the Investor Exchange, for members.';
+  const desc = 'Coming-soon condos before the listing sites, owners\u2019 private numbers and The Exchange, for members.';
   const canonical = 'https://www.sanfranciscocondomarket.com/account/off-market/';
   const head = '<meta name="robots" content="noindex,follow">\n<style>' +
     '.oma{padding:132px 0 70px;background:#f5f7fa;min-height:70vh}' +
@@ -1149,14 +1149,14 @@ function renderAccountOffMarket(payload) {
   const body = '<section class="oma"><div class="wrap"' + omCfgAttrs(payload.om) + '>\n' +
     '  <span class="eyebrow">Your account &middot; off-market</span>\n' +
     '  <h1>Off-market listings</h1>\n' +
-    '  <p class="sub">San Francisco condos before they reach the listing sites, the prices owners have named privately, and the Investor Exchange. Ask for the disclosures, a Comp Report or a tour on any of them, and Tim has it straight away.</p>\n' +
+    '  <p class="sub">San Francisco condos before they reach the listing sites, the prices owners have named privately, and The Exchange. Ask for the disclosures, a Comp Report or a tour on any of them, and Tim has it straight away.</p>\n' +
     '  <div data-om-account>\n' +
     '    <p class="oma-wait" data-om-wait>Loading your list&hellip;</p>\n' +
     '    <div class="oma-gate" data-om-anon hidden>\n' +
     '      <h2>Sign in to see them</h2>\n' +
     '      <ul><li><b>' + num(T.coming_soon) + '</b> coming soon now, with the address, price and photos</li>' +
     '<li><b>' + num(T.mmm_named) + '</b> ' + (Number(T.mmm_named) === 1 ? 'owner has' : 'owners have') + ' named a private number</li>' +
-    '<li>The Investor Exchange, and a request button on every one</li></ul>\n' +
+    '<li>The Exchange, and a request button on every one</li></ul>\n' +
     '      <button class="btn btn-gold" data-om-signup="" data-cta="account-offmarket:signup">Create a free account &rarr;</button>' +
     '<button class="btn btn-line" data-cm-auth="login" data-cta="account-offmarket:login">Sign in</button>\n' +
     '    </div>\n' +
@@ -3371,13 +3371,13 @@ function renderActiveListingsCity(M, AL, foot) {
 <section class="pg al-sec"><div class="wrap">
     
       <div class="al-blk dark" id="alIx">
-        <span class="eyebrow">Investor Exchange</span>
+        <span class="eyebrow">The Exchange</span>
         <h3>Buy a revenue-generating rental.</h3>
         <p>${M.city} rentals with a tenant already in place &mdash; you take title subject to the
            lease, so the rent starts the day you close. Not on the MLS or any portal.</p>
         <div id="alIxSlot"></div>
         <a class="al-btn" href="/investor-exchange/" data-cta="forsale:exchange">
-          See what&rsquo;s on the Exchange &rarr;</a>
+          See what&rsquo;s on The Exchange &rarr;</a>
       </div>
 
       <div class="al-blk">
@@ -4937,7 +4937,7 @@ function renderInvestorExchange(mk, footerData) {
   const brand = 'Condo Market SF';
   const slug = (mk && mk.slug) || 'san-francisco-condo-market';
 
-  const title = 'Investor Exchange \u00b7 ' + region + ' Rental Condo Marketplace';
+  const title = 'The Exchange \u00b7 ' + region + ' Rental Condo Marketplace';
   const metaDesc = esc('A marketplace to buy and sell tenant-occupied condos in ' + region +
     '. Owners publish price, rent and lease terms; investors hold an account to browse. The tenancy transfers untouched.');
   const canonical = 'https://www.' + domain + '/investor-exchange/';
@@ -5017,8 +5017,8 @@ function renderInvestorExchange(mk, footerData) {
     '<main><div class="wrap">' +
 
     '<div class="ix-wrap">' +
-      '<p class="ix-kick">Investor Exchange \u00b7 ' + region + '</p>' +
-      '<h1 class="ix-h1">Investor Exchange</h1>' +
+      '<p class="ix-kick">The Exchange \u00b7 ' + region + '</p>' +
+      '<h1 class="ix-h1">The Exchange</h1>' +
       '<p class="ix-tag">A marketplace to buy &amp; sell rental condos.</p>' +
       '<p class="ix-sub">A tenant in place is an asset to the right buyer and an obstacle to everyone else. ' +
         'The Exchange puts the two sides in one room: owners who would sell at the right number, and investors ' +
@@ -5069,7 +5069,7 @@ function renderInvestorExchange(mk, footerData) {
     '<div class="ix-terms">' +
       '<p class="ix-kick">Terms, stated plainly</p>' +
       '<ul>' +
-        '<li>Listing on the Exchange is not a listing agreement. No fee to publish, no obligation to sell.</li>' +
+        '<li>Listing on The Exchange is not a listing agreement. No fee to publish, no obligation to sell.</li>' +
         '<li>If a pairing closes, a 3% transaction fee applies. Tim McMullen handles the transaction as agent of record.</li>' +
         '<li>Exchanging into another property: he refers a qualified intermediary for the 1031 and a commercial agent in whatever market you\u2019re buying into.</li>' +
         '<li>The 1031 material on this site is general education. Whether a specific exchange qualifies, and what a deadline means for your transaction, is a question for your intermediary and your CPA.</li>' +
@@ -5089,7 +5089,7 @@ function renderInvestorExchange(mk, footerData) {
     '<style>' + CSS + '</style>\n<style>' + EXTRA_CSS + '</style>\n<style>' + IX_CSS + '</style>\n' +
     '</head>\n<body>\n' +
     CM_MASTHEAD(tag) +
-    '<div class="wrap"><div class="crumb"><a href="/">Condo Market</a><span class="sep">/</span>Investor Exchange</div></div>\n' +
+    '<div class="wrap"><div class="crumb"><a href="/">Condo Market</a><span class="sep">/</span>The Exchange</div></div>\n' +
     body +
     CM_FOOTER(footerData) +
     IX_JS +
@@ -6083,7 +6083,7 @@ function CM_MASTHEAD(tag) {
     '<a href="/active-listings">Active Listings</a><a href="/buy">Buy</a><a href="/sell">Sell</a>' +
     '<a href="/how-it-works/">How it works</a>' +
     '<a href="/news/">Local News</a>' +
-         '<a href="/investor-exchange/">Investor Exchange</a>' +
+         '<a href="/investor-exchange/">The Exchange</a>' +
     '<a href="#signin" data-cm-auth="login" class="signin-btn">Sign in</a>' +
     '</nav></div></div></header>\n\n';
 }
@@ -7641,14 +7641,14 @@ function buildingOffMarketSection(p, slug, name) {
   if (!n) {
     const stats = [
       pub.market_cs ? [nf(pub.market_cs), 'Coming soon', 'entered on the MLS, not yet on the market' + (pub.market_cs_buildings ? ', ' + nf(pub.market_cs_buildings) + ' in catalogued buildings' : '')] : null,
-      pub.market_ex ? [nf(pub.market_ex), 'On the Investor Exchange', Number(pub.market_ex) === 1 ? 'a rented unit offered by its owner' : 'rented units offered by their owners'] : null,
+      pub.market_ex ? [nf(pub.market_ex), 'On The Exchange', Number(pub.market_ex) === 1 ? 'a rented unit offered by its owner' : 'rented units offered by their owners'] : null,
       pub.market_mmm ? [nf(pub.market_mmm), (Number(pub.market_mmm) === 1 ? 'Owner’s number' : 'Owners’ numbers'), 'the price that would make them move, no listing'] : null,
     ].filter(Boolean);
     return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
       '<div class="obm-cta" data-om-anon><div>' +
         '<div class="obm-k">Off market &middot; San Francisco</div>' +
         '<h2>See condos <em>before</em> they reach the listing sites.</h2>' +
-        '<p>Coming-soon listings, owners’ private numbers and the Investor Exchange, with the unit, price and photos of each. Nothing in ' + name + ' is off market today; a free account shows you everything that is.</p>' +
+        '<p>Coming-soon listings, owners’ private numbers and The Exchange, with the unit, price and photos of each. Nothing in ' + name + ' is off market today; a free account shows you everything that is.</p>' +
         '<div class="obm-acts"><button type="button" class="obm-pri" data-om-signup="" data-cta="building:om-signup-empty">Create an account to see off-market properties &rarr;</button>' +
         '<a class="obm-sec" href="/off-market/" data-cta="building:om-browse">Browse the off-market map</a></div></div>' +
         (stats.length ? '<div class="obm-stats">' + stats.map(function (x) { return '<div class="obm-stat"><b>' + x[0] + '</b><span><strong>' + x[1] + '</strong>' + x[2] + '</span></div>'; }).join('') + '</div>' : '') +
@@ -7669,7 +7669,7 @@ function buildingOffMarketSection(p, slug, name) {
     if (l.beds != null) facts.push(l.beds + ' bd');
     if (l.baths) facts.push(l.baths + ' ba');
     if (l.sqft) facts.push(intc(l.sqft) + ' sq ft');
-    return '<div class="obm-card"><div class="obm-ph"' + (l.cover ? ' data-obm-cover="' + esc(l.cover) + '"' : bg) + '><span class="obm-tag ex">Investor Exchange</span>' +
+    return '<div class="obm-card"><div class="obm-ph"' + (l.cover ? ' data-obm-cover="' + esc(l.cover) + '"' : bg) + '><span class="obm-tag ex">The Exchange</span>' +
       '<span class="obm-lock">' + (l.photo_count ? nf(l.photo_count) + ' photos for members' : 'Photos for members') + '</span></div>' +
       '<div class="obm-b"><div class="obm-plab">Asking</div><div class="obm-price">' + blur + '</div>' +
       '<div class="obm-t">' + esc(facts.join(' · ') || 'A unit in ' + p.name) + '</div>' +
@@ -7683,14 +7683,14 @@ function buildingOffMarketSection(p, slug, name) {
       '<div class="obm-s">The number that would make them move, with no listing. Unit and number for members</div>' +
       '<button type="button" class="obm-go" data-om-signup="" data-cta="building:mmm">Create account to view &rarr;</button></div></div>';
   }).join('');
-  const parts = [cs.length ? cs.length + ' coming soon' : '', ex.length ? ex.length + ' on the Investor Exchange' : '',
+  const parts = [cs.length ? cs.length + ' coming soon' : '', ex.length ? ex.length + ' on The Exchange' : '',
     mm ? mm + (mm === 1 ? ' owner’s private number' : ' owners’ private numbers') : ''].filter(Boolean);
   const chip = (cls, label, k) => k ? '<span class="obm-chip"><i' + (cls ? ' class="' + cls + '"' : '') + '></i>' + label + ' <b>' + k + '</b></span>' : '';
   return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
     '<div class="obm-head"><div><div class="obm-k">Off market &middot; before the listing sites</div>' +
     '<h2 class="obm-h">' + (n === 1 ? 'A home off market in' : n + ' homes off market in') + ' <em>this building</em></h2>' +
     '<p class="obm-sub">' + esc(parts.join(', ')) + ' in ' + name + '.<span data-om-anon> The unit, price and photos open with a free account, with disclosures, a Comp Report and a tour a click away.</span></p></div>' +
-    '<div class="obm-chips">' + chip('', 'Coming soon', cs.length) + chip('ex', 'Investor Exchange', ex.length) + chip('mm', 'Make Me Move', mm) + '</div></div>' +
+    '<div class="obm-chips">' + chip('', 'Coming soon', cs.length) + chip('ex', 'The Exchange', ex.length) + chip('mm', 'Make Me Move', mm) + '</div></div>' +
     '<div class="obm-grid" data-om-bcs-grid>' + csCards + exCards + mmCards + '</div>' + memberNone +
     '<div class="obm-bar" data-om-anon><p><b>Members see the unit, price and photos</b> of every off-market home in San Francisco. Free, and it takes a minute.</p>' +
       '<div class="obm-acts"><button type="button" class="obm-pri" data-om-signup="" data-cta="building:om-signup">Create a free account &rarr;</button>' +
