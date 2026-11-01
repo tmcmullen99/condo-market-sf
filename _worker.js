@@ -3961,6 +3961,24 @@ async function handleRequest(request, env) {
        Unlisted pages: noindex, no-store, never in a sitemap. */
     const BAP_MARKET = ({ sf: 5 })[hostMk.tag] || 0;
     const BAP_ORIGIN = 'https://campbellrealestatemarket.com';
+    /* Comp Reports by slug (1 Nov 2026). San Francisco's Comp Reports are kept in the City Markets database (market 5) and
+       the desk links them as /cma/<slug>/, which this site had no route for: every one opened the 404. The city worker
+       draws them at /_ooa/m5/cma/<slug>/ with this market's name and agent; this site serves that, with its assets made
+       absolute. The ?token= form (/cma/?token=) is this site's own report page and is untouched. */
+    const cmaM = BAP_MARKET ? url.pathname.match(/^\/cma\/([a-z0-9][a-z0-9-]{4,120})\/?$/) : null;
+    if (cmaM && request.method === 'GET') {
+      if (!url.pathname.endsWith('/')) return new Response(null, { status: 301, headers: { 'Location': url.pathname + '/' + url.search } });
+      let html = '', upStatus = 0;
+      const ac = new AbortController(), acT = setTimeout(() => ac.abort(), 15000);
+      try {
+        const up = await fetch(BAP_ORIGIN + '/_ooa/m' + BAP_MARKET + '/cma/' + cmaM[1] + '/', { headers: { 'User-Agent': 'condo-market-page-proxy' }, cf: { cacheTtl: 0 }, signal: ac.signal });
+        upStatus = up.status;
+        if (up.ok) html = await up.text();
+      } catch (e) { html = ''; } finally { clearTimeout(acT); }
+      if (!html || html.length < 500) return upStatus === 404 ? wrapStaticWithSwaps(request, env, hostMk) : pageOutageResponse(hostMk);
+      html = html.replace(/(=["'])\/(assets\/|sv\?|og\/)/g, '$1' + BAP_ORIGIN + '/$2');
+      return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow, noarchive' } });
+    }
     const bapM = BAP_MARKET ? url.pathname.match(/^\/(showing|value|strategy|offering|disclosures)\/([a-z0-9][a-z0-9-]{3,120})\/?$/) : null;
     if (bapM && request.method === 'GET') {
       if (!url.pathname.endsWith('/')) return new Response(null, { status: 301, headers: { 'Location': url.pathname + '/' + url.search } });
