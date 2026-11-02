@@ -539,6 +539,13 @@ async function wrapStaticWithSwaps(request, env, mk) {
   try { body = await resp.text(); } catch (e) { return resp; }
   body = applyMarketSwaps(body, mk);
   if (/^\/how-it-works\/?(index\.html)?$/.test(new URL(request.url).pathname)) body = localizeHowItWorks(body, mk);
+  /* Meet Tim on every public SF page (Tim, 2 Nov 2026: "add it on more pages, including the home page"): the static
+     pages carry their own footer, so the card goes just above it. Desk, account and tool pages are left alone. */
+  if (ct.includes('text/html') && /sanfranciscocondomarket\.com$/.test(String(mk && mk.domain || '')) && body.indexOf('mt-sf') === -1 && body.indexOf('class="meet-agent"') === -1
+      && !/^\/(admin|auth|dashboard|building-dashboard|upload|campaigns|petition|welcome|claim|owner-signup|contractor|partner(?:\/|$)|documents|disclosure|cma|hoa-pitch|404)/.test(new URL(request.url).pathname)) {
+    const fi = body.search(/<footer[\s>]/);
+    body = fi !== -1 ? body.slice(0, fi) + meetTimSF() + body.slice(fi) : body.replace('</body>', meetTimSF() + '</body>');
+  }
   body = applyOgRotation(body, new URL(request.url), mk);
   const headers = new Headers(resp.headers);
   headers.delete('content-length');
@@ -687,25 +694,23 @@ function cityNav(active) {
    what he does, the link), larger, self-styled so it reads the same under either footer, on every SF page. */
 const SF_CARTOON = '/assets/tim-sf-cartoon-v4.jpg';
 function meetTimSF() {
+  /* Tim, 2 Nov 2026: "Stick to the current version > add it on more pages, including the home page": the same card the
+     city-style SF pages already had (round cartoon, one line, Meet Tim), self-styled so it shows under either footer. */
   return '<section class="mt-sf" data-sec="agent"><style>' +
-    '.mt-sf{padding:8px 0 44px}.mt-sf .wrap{max-width:1200px;margin:0 auto;padding:0 24px}' +
-    '.mt-sf .mt-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:26px;align-items:center;background:#fff;border:1px solid #e2ddd2;border-radius:18px;padding:24px 28px;box-shadow:0 6px 24px rgba(20,24,33,.06)}' +
-    '.mt-sf .mt-img{width:150px;height:150px;border-radius:18px;object-fit:cover;display:block;border:1px solid #e2ddd2}' +
-    '.mt-sf .mt-eb{display:block;font-family:\'JetBrains Mono\',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#c2410c;margin-bottom:6px}' +
-    '.mt-sf .mt-name{display:block;font-family:\'Playfair Display\',Georgia,serif;font-weight:500;font-size:1.8rem;line-height:1.1;color:#12151d;margin:0 0 8px}' +
-    '.mt-sf p{margin:0 0 6px;max-width:60ch;font-size:.98rem;line-height:1.55;color:#3a3f4b}.mt-sf .mt-lic{font-size:.8rem;color:#6b7280;margin:0}' +
-    '.mt-sf .mt-acts{display:flex;flex-direction:column;gap:8px}' +
-    '.mt-sf .mt-cta{display:block;text-align:center;border-radius:999px;padding:12px 22px;font-weight:600;text-decoration:none;white-space:nowrap}' +
-    '.mt-sf .mt-cta.p{background:#c2410c;color:#fff;border:1px solid #c2410c}.mt-sf .mt-cta.s{border:1px solid #c2410c;color:#c2410c;background:#fff}' +
-    '.mt-sf .mt-cta:hover{filter:brightness(.95)}' +
-    '@media(max-width:760px){.mt-sf .mt-card{grid-template-columns:1fr;text-align:left;padding:20px}.mt-sf .mt-img{width:100%;height:auto;aspect-ratio:1/1;max-width:340px}.mt-sf .mt-acts{flex-direction:row;flex-wrap:wrap}.mt-sf .mt-cta{flex:1 1 140px}}' +
+    '.mt-sf{padding:44px 0;background:#f3f5f8}.mt-sf .wrap{max-width:1440px;margin:0 auto;padding:0 clamp(16px,4vw,64px)}' +
+    '.mt-sf .mt-card{display:flex;gap:22px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid #dde2ea;border-radius:14px;padding:20px 24px;background:#f7f8fa}' +
+    '.mt-sf .mt-img{width:96px;height:96px;flex:0 0 96px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.85);box-shadow:0 2px 10px rgba(0,0,0,.12)}' +
+    '.mt-sf .mt-text{flex:1 1 220px;min-width:0}' +
+    '.mt-sf .mt-eb{display:block;font-family:\'JetBrains Mono\',monospace;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:#c2410c;margin-bottom:7px}' +
+    '.mt-sf p{margin:0;max-width:56ch;font-size:.95rem;line-height:1.55;color:#20242e}' +
+    '.mt-sf .mt-cta{flex-shrink:0;border:1px solid #c2410c;border-radius:999px;padding:11px 20px;color:#c2410c;font-weight:600;text-decoration:none;white-space:nowrap}' +
+    '.mt-sf .mt-cta:hover{background:#c2410c;color:#fff}' +
+    '@media(max-width:640px){.mt-sf .mt-card{padding:18px}.mt-sf .mt-cta{width:100%;text-align:center}}' +
     '</style><div class="wrap"><div class="mt-card">' +
-    '<img class="mt-img" src="' + SF_CARTOON + '" alt="Tim McMullen, the agent behind Condo Market SF" width="150" height="150" loading="lazy">' +
-    '<div><span class="mt-eb">The agent behind Condo Market SF</span><b class="mt-name">Tim McMullen</b>' +
-    '<p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls. No listing required, no obligation.</p>' +
-    '<p class="mt-lic">California real estate broker, CA DRE #02016832 · McMullen Properties</p></div>' +
-    '<div class="mt-acts"><a class="mt-cta p" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>' +
-    '<a class="mt-cta s" href="tel:+14156919272" data-cta="meet_agent:call">Call (415) 691-9272</a></div>' +
+    '<img class="mt-img" src="' + SF_CARTOON + '" alt="Tim McMullen" width="96" height="96" loading="lazy">' +
+    '<div class="mt-text"><span class="mt-eb">The agent behind Condo Market SF</span>' +
+    '<p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls.</p></div>' +
+    '<a class="mt-cta" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>' +
     '</div></div></section>\n';
 }
 
