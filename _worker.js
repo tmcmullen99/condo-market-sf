@@ -682,16 +682,38 @@ function cityNav(active) {
     '</div>\n';
 }
 
+/* MEET TIM, SHOWCASED (Tim, 2 Nov 2026: "include the Meet Tim section at the bottom of all the same pages as the CITY
+   markets on the SF condo market > aka showcase it more"). The city markets' card (the cartoon, the name, the licence,
+   what he does, the link), larger, self-styled so it reads the same under either footer, on every SF page. */
+const SF_CARTOON = '/assets/tim-sf-cartoon-v4.jpg';
+function meetTimSF() {
+  return '<section class="mt-sf" data-sec="agent"><style>' +
+    '.mt-sf{padding:8px 0 44px}.mt-sf .wrap{max-width:1200px;margin:0 auto;padding:0 24px}' +
+    '.mt-sf .mt-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:26px;align-items:center;background:#fff;border:1px solid #e2ddd2;border-radius:18px;padding:24px 28px;box-shadow:0 6px 24px rgba(20,24,33,.06)}' +
+    '.mt-sf .mt-img{width:150px;height:150px;border-radius:18px;object-fit:cover;display:block;border:1px solid #e2ddd2}' +
+    '.mt-sf .mt-eb{display:block;font-family:\'JetBrains Mono\',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#c2410c;margin-bottom:6px}' +
+    '.mt-sf .mt-name{display:block;font-family:\'Playfair Display\',Georgia,serif;font-weight:500;font-size:1.8rem;line-height:1.1;color:#12151d;margin:0 0 8px}' +
+    '.mt-sf p{margin:0 0 6px;max-width:60ch;font-size:.98rem;line-height:1.55;color:#3a3f4b}.mt-sf .mt-lic{font-size:.8rem;color:#6b7280;margin:0}' +
+    '.mt-sf .mt-acts{display:flex;flex-direction:column;gap:8px}' +
+    '.mt-sf .mt-cta{display:block;text-align:center;border-radius:999px;padding:12px 22px;font-weight:600;text-decoration:none;white-space:nowrap}' +
+    '.mt-sf .mt-cta.p{background:#c2410c;color:#fff;border:1px solid #c2410c}.mt-sf .mt-cta.s{border:1px solid #c2410c;color:#c2410c;background:#fff}' +
+    '.mt-sf .mt-cta:hover{filter:brightness(.95)}' +
+    '@media(max-width:760px){.mt-sf .mt-card{grid-template-columns:1fr;text-align:left;padding:20px}.mt-sf .mt-img{width:100%;height:auto;aspect-ratio:1/1;max-width:340px}.mt-sf .mt-acts{flex-direction:row;flex-wrap:wrap}.mt-sf .mt-cta{flex:1 1 140px}}' +
+    '</style><div class="wrap"><div class="mt-card">' +
+    '<img class="mt-img" src="' + SF_CARTOON + '" alt="Tim McMullen, the agent behind Condo Market SF" width="150" height="150" loading="lazy">' +
+    '<div><span class="mt-eb">The agent behind Condo Market SF</span><b class="mt-name">Tim McMullen</b>' +
+    '<p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls. No listing required, no obligation.</p>' +
+    '<p class="mt-lic">California real estate broker, CA DRE #02016832 · McMullen Properties</p></div>' +
+    '<div class="mt-acts"><a class="mt-cta p" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>' +
+    '<a class="mt-cta s" href="tel:+14156919272" data-cta="meet_agent:call">Call (415) 691-9272</a></div>' +
+    '</div></div></section>\n';
+}
+
 function cityFooter(payload) {
   const hoods = (payload.hoods || []).slice(0, 12);
   const blds = (payload.buildings || []).slice(0, 12);
   /* The cartoon (Tim, 1 Nov 2026: "Make a cartoon image of Tim for San Francisco ... add this to all sf pages") */
-  return '<section class="meet-agent"><div class="wrap"><div class="ma-card">\n' +
-    '  <img class="ma-img" src="/assets/tim-sf-cartoon-v4.jpg" alt="Tim McMullen" width="96" height="96" loading="lazy" style="width:96px;height:96px;flex:0 0 96px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.85);box-shadow:0 2px 10px rgba(0,0,0,.12)">\n' +
-    '  <div class="ma-text" style="flex:1 1 220px"><span class="ma-eyebrow">The agent behind Condo Market SF</span>\n' +
-    '    <p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls.</p></div>\n' +
-    '  <a class="ma-cta" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>\n' +
-    '</div></div></section>\n' +
+  return meetTimSF() +
     '<footer>\n  <div class="wrap">\n    <div class="seo-foot" aria-label="Explore San Francisco condos">\n' +
     '  <style>.seo-foot{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:26px 30px;padding:6px 0 30px;margin-bottom:26px;border-bottom:1px solid rgba(255,255,255,.08)}' +
     '.seo-foot h4{font-family:\'JetBrains Mono\',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75;margin:0 0 10px}' +
@@ -6111,6 +6133,7 @@ function CM_MASTHEAD(tag) {
 // footerData = { byCityHood: { city: { hood: [ {slug,name} ] } }, cities: [ {slug,name,n} ] }
 function CM_FOOTER(footerData) {
   const fd = footerData || { byCityHood: {}, cities: [] };
+  const meet = /sanfranciscocondomarket\.com$/.test(String(fd.domain || '')) ? meetTimSF() : '';
   const cities = fd.cities || [];
   const byCityHood = fd.byCityHood || {};
 
@@ -6147,7 +6170,7 @@ function CM_FOOTER(footerData) {
     return '<li><a href="' + (oneCity ? '/sell' : '/sell-a-condo-in-' + esc(c.slug)) + '">Sell in ' + esc(c.name) + '</a></li>';
   }).join('');
 
-  return '<footer class="cf"><div class="wrap">' +
+  return meet + '<footer class="cf"><div class="wrap">' +
     // Top: brand + primary nav
     '<div class="cf-top">' +
     '<div class="cf-brand">' +
@@ -6243,6 +6266,11 @@ const CM_FOOTER_CSS =
    minutes only while the versions cannot be read. A failed or empty read is never kept. */
 const FOOT_DATA_CACHE = {};
 async function fetchFooterData(hostMk) {
+  /* the host rides along so CM_FOOTER knows the market (the Meet Tim card is SF's, 2 Nov 2026) */
+  const v0 = await fetchFooterData0(hostMk);
+  return v0 ? Object.assign({}, v0, { domain: hostMk.domain }) : v0;
+}
+async function fetchFooterData0(hostMk) {
   const ck = hostMk.tag, hit = FOOT_DATA_CACHE[ck];
   const sv = await __condoVersions(hostMk.domain);
   if (hit && (sv ? hit.sv === sv : Date.now() - hit.t < 600000)) return hit.v;
