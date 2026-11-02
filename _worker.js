@@ -687,7 +687,7 @@ function cityFooter(payload) {
   const blds = (payload.buildings || []).slice(0, 12);
   /* The cartoon (Tim, 1 Nov 2026: "Make a cartoon image of Tim for San Francisco ... add this to all sf pages") */
   return '<section class="meet-agent"><div class="wrap"><div class="ma-card">\n' +
-    '  <img class="ma-img" src="/assets/tim-sf-cartoon.jpg" alt="Tim McMullen" width="96" height="96" loading="lazy" style="width:96px;height:96px;flex:0 0 96px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.85);box-shadow:0 2px 10px rgba(0,0,0,.12)">\n' +
+    '  <img class="ma-img" src="/assets/tim-sf-cartoon-v2.jpg" alt="Tim McMullen" width="96" height="96" loading="lazy" style="width:96px;height:96px;flex:0 0 96px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.85);box-shadow:0 2px 10px rgba(0,0,0,.12)">\n' +
     '  <div class="ma-text" style="flex:1 1 220px"><span class="ma-eyebrow">The agent behind Condo Market SF</span>\n' +
     '    <p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls.</p></div>\n' +
     '  <a class="ma-cta" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>\n' +
