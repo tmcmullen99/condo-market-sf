@@ -783,7 +783,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '19';
+const OM_VER = '20';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -1009,6 +1009,9 @@ function renderOffMarket(payload) {
     '.vl-ph:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 14px,transparent 14px 28px);filter:blur(1px)}.vl-ph.own{background:linear-gradient(135deg,#3a3222,#22262f)}' +
     '.vl-badge{position:absolute;left:12px;top:12px;z-index:1;background:rgba(12,15,21,.72);color:#d99a4e;font-family:"JetBrains Mono",monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px}' +
     '.vl-lock{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;color:rgba(236,231,219,.75)}' +
+    '.vl-lock i{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:rgba(11,13,18,.55);border:1px solid rgba(217,154,78,.35)}' +
+    '.vl-ph.img{background-size:cover;background-position:center}.vl-ph.img:after{background:linear-gradient(180deg,rgba(11,13,18,.05) 40%,rgba(11,13,18,.5));filter:none}' +
+    '.vl-ph.img .vl-lock{color:#f6e7c8}' +
     '.vl-body{padding:16px 18px 18px}.vl-type{font-family:"Playfair Display",serif;font-size:1.15rem;color:#f3ede0}.vl-facts{font-size:.88rem;color:#c6cbd6;margin-top:4px}' +
     '.vl-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(217,154,78,.18)}' +
     '.vl-blur{font-size:.88rem;color:#c6cbd6;white-space:nowrap;overflow:hidden;min-width:0;filter:blur(5px);user-select:none}.vl-since{font-size:.72rem;color:#8b94a7;white-space:nowrap}' +
@@ -1064,9 +1067,14 @@ function renderOffMarket(payload) {
   const featCard = (f, compact) => {
     const b = f.building || {};
     const hood = (bySlug[b.slug] && bySlug[b.slug].h) || '';
-    const spec = omSpec({ bd: f.beds, ba: f.baths, sf: f.sqft }) + (f.hoa_fee_monthly ? ' · HOA $' + num(Math.round(f.hoa_fee_monthly)) + '/mo' : '');
-    const lease = f.tenant ? 'Tenant in place' + (f.lease_terms_note ? ', ' + String(f.lease_terms_note).toLowerCase() : '') : '';
-    const item = { type: 'ex', ref: 'ex:' + f.token, key: f.token, title: f.street || f.address, building: b.slug || null, bname: b.name || null };
+    /* A PREVIEW IN PUBLIC (Tim, 16 Nov 2026: "The only way a non-account holder should be able to see this listing is if it
+       was shared to them via email: public site should show a preview, but no price & terms, price and terms require an
+       account to see"). The card carries the building's street address (no unit), the size and the photos. The unit, the
+       asking price, the HOA, the rent and the lease terms are not in the page: a member's price and rent are filled in by
+       cm-offmarket.js, and the full listing (its address names the unit) is reached from the member's own list. */
+    const street = String(f.street || f.address || '').split(',')[0].replace(/\s*#\s*\S+\s*$/, '').trim();
+    const spec = omSpec({ bd: f.beds, ba: f.baths, sf: f.sqft });
+    const item = { type: 'ex', ref: 'ex:' + f.token, key: f.token, title: street || b.name || 'An Exchange listing', building: b.slug || null, bname: b.name || null };
     /* The building's hero photo shows at once; the listing's own cover (private bucket, signed in the page) replaces it. */
     const bImg = bySlug[b.slug] && bySlug[b.slug].img;
     const fp = Array.isArray(f.photos) ? f.photos.filter(Boolean) : [];
@@ -1084,23 +1092,22 @@ function renderOffMarket(payload) {
            the page signs each photo). The first six come from exchange_featured_public; the rest are on the listing. */
         ? '<div class="omf-ph omp" data-omp-total="' + total + '"><div class="omp-s" tabindex="0" role="group" aria-label="' + total + ' photos of this home. Scroll sideways for more.">' +
           fp.map((p, i) => '<img data-om-sign="' + cityEsc(p) + '" alt="Photo ' + (i + 1) + ' of ' + total + '" loading="' + (i < 2 ? 'eager' : 'lazy') + '" decoding="async">').join('') +
-          (total > fp.length && f.url ? '<a class="omp-more" href="' + cityEsc(f.url) + '" data-cta="offmarket:featured-all-photos">All ' + num(total) + ' photos on the full listing &rarr;</a>' : '') +
+          (total > fp.length ? '<a class="omp-more" href="#the-list" data-om-signup="" data-cta="offmarket:featured-all-photos">All ' + num(total) + ' photos for members &rarr;</a>' : '') +
           '</div><span class="omf-badge">Featured</span><span class="omp-n">1 / ' + total + '</span>' +
           '<button type="button" class="omp-p" data-omp-dir="-1" aria-label="Previous photo" disabled>&lsaquo;</button><button type="button" class="omp-p nx" data-omp-dir="1" aria-label="Next photo">&rsaquo;</button></div>'
         : '<div class="omf-ph"' + (bImg ? ' style="background-image:url(\'' + cityEsc(bImg).replace(/'/g, '%27') + '\')"' : '') +
       (f.photos && f.photos[0] ? ' data-om-cover="' + cityEsc(f.photos[0]) + '"' : '') + '><span class="omf-badge">Featured</span>' +
       (f.photo_count > 1 ? '<span class="omf-n">' + num(f.photo_count) + ' photos</span>' : '') + '</div>') +
       '<div class="omf-b"><div class="omf-k">' + (compact ? 'Featured &middot; Exchange' : 'The Exchange' + (hood ? ' &middot; ' + cityEsc(hood) : '')) + '</div>' +
-      '<div class="omf-t">' + cityEsc(f.street || f.address) + '</div>' +
-      '<div class="omf-s">' + cityEsc(spec) + '</div>' +
-      (lease && !compact ? '<div class="omf-s">' + cityEsc(lease) + '</div>' : '') +
-      '<div class="omf-p">Asking <span data-om-fprice="' + cityEsc(f.token) + '"><span class="omf-lock">&middot; price for members</span></span></div>' +
+      '<div class="omf-t">' + cityEsc(street || b.name || 'An Exchange listing') + '</div>' +
+      '<div class="omf-s">' + cityEsc([spec, b.name && street && b.name !== street ? b.name : ''].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="omf-p">Asking <span data-om-fprice="' + cityEsc(f.token) + '"><span class="omf-lock">&middot; unit, price &amp; terms for members</span></span></div>' +
       photoDay +
       '<div class="omf-acts">' +
       '<button type="button" class="omf-go" data-om-anon data-om-signup="" data-cta="offmarket:featured-signup">' + 'Create account to view &rarr;</button>' +
       '<button type="button" class="omf-go" data-om-mem hidden data-om-act="tour" data-cta="offmarket:featured-tour">' + (compact ? 'Tour' : 'Schedule a tour') + '</button>' +
       '<button type="button" class="omf-btn" data-om-mem hidden data-om-act="disclosures" data-cta="offmarket:featured-disclosures">Disclosures</button>' +
-      (f.url ? '<a class="omf-btn" href="' + cityEsc(f.url) + '" data-cta="offmarket:featured-listing">' + (compact ? 'Listing' : 'Full listing') + ' &rarr;</a>' : '') +
+      '<a class="omf-btn" data-om-mem hidden href="/account/off-market/#investor-exchange" data-cta="offmarket:featured-listing">' + (compact ? 'Listing' : 'Full listing') + ' &rarr;</a>' +
       '</div>' +
       (b.slug ? '<a class="omf-up" href="/building/' + cityEsc(b.slug) + '#dossier" data-cta="offmarket:featured-any-unit">Every unit in ' + cityEsc(b.name || 'the building') + ', and an offer on any &rarr;</a>' : '') +
       '</div></div>';
@@ -1188,10 +1195,21 @@ function renderOffMarket(payload) {
 
   /* Inside the List: one locked card per home and per owner's price (real counts, nothing from the listing). A member's own
      cards replace them (cm-offmarket.js mountAll on [data-om-grid]); a card's handle brings them to that home once in. */
-  const dealCard = (c) => '<a class="vl-card" href="#the-list" data-om-signup="' + cityEsc(c.t) + '" data-cta="vip:card_deal">' +
-    '<div class="vl-ph"><span class="vl-badge">Exclusive deal</span><span class="vl-lock">' + lockSvg(18) + '</span></div>' +
-    '<div class="vl-body"><div class="vl-type">San Francisco</div><div class="vl-facts">Details for members</div>' +
-    '<div class="vl-row"><span class="vl-blur" aria-label="Members only">000 Market Street #000 &middot; $0,000,000</span></div></div></a>';
+  /* Tim, 16 Nov 2026: "Include the building address and cover image, but not the individual unit number, specifics".
+     The building's cover photo, its name and street address (cs_bldg: the listing's address without the unit) and the
+     neighbourhood; the unit, price, size and the home's own photos stay for members. A home with no unit outside a
+     catalogued building shows only its street, since its address would be the home itself. */
+  const csAd = payload.cs_bldg || {};
+  const dealCard = (c) => {
+    const ad = csAd[c.t] || '', named = c.bn && !/^\d/.test(c.bn);
+    const t1 = named ? c.bn : (ad || c.bn || (c.st ? 'A home on ' + c.st : 'San Francisco'));
+    const t2 = [named ? ad : '', c.h || ''].filter(Boolean).join(' · ') || 'San Francisco';
+    return '<a class="vl-card" href="#the-list" data-om-signup="' + cityEsc(c.t) + '" data-cta="vip:card_deal">' +
+      '<div class="vl-ph' + (c.img ? ' img' : '') + '"' + (c.img ? ' style="background-image:url(\'' + cityEsc(c.img).replace(/'/g, '%27') + '\')"' : '') + '>' +
+      '<span class="vl-badge">Exclusive deal</span><span class="vl-lock"><i>' + lockSvg(18) + '</i></span></div>' +
+      '<div class="vl-body"><div class="vl-type">' + cityEsc(t1) + '</div><div class="vl-facts">' + cityEsc(t2) + '</div>' +
+      '<div class="vl-row"><span class="vl-blur" aria-label="Members only">Unit #000 &middot; $0,000,000</span><span class="vl-since">Unit &amp; price for members</span></div></div></a>';
+  };
   const ownerCard = '<a class="vl-card" href="#the-list" data-om-signup="" data-cta="vip:card_owner">' +
     '<div class="vl-ph own"><span class="vl-badge">Owner&rsquo;s private price</span><span class="vl-lock">' + lockSvg(18) + '</span></div>' +
     '<div class="vl-body"><div class="vl-type">San Francisco</div><div class="vl-facts">Building, unit and price for members</div>' +
