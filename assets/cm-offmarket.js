@@ -585,6 +585,8 @@
       }
     } catch (e) {}
     track('offmarket:signup', token ? { cs: true } : {});
+    /* The San Francisco List (16 Nov 2026): on /off-market/ an email is the whole sign-up (cm-vip-join.js). */
+    if (window.OMJOIN && window.OMJOIN.open) { window.OMJOIN.open({ token: token || null }); return; }
     window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'signup' } }));
   }
   function load(session) {
@@ -645,7 +647,7 @@
       var items = csShow.map(function (x) { return norm('cs', x); }).concat((m.mmm || []).map(function (x) { return norm('mmm', x); }));
       if (!items.length) return;   // the honest empty state the page rendered stays
       render(box, items);
-      box.classList.add('omx-grid'); box.classList.remove('om-grid');
+      box.classList.add('omx-grid'); box.classList.remove('om-grid', 'vl-grid');
       var more = document.querySelector('.om-more');
       if (more) more.innerHTML = csAll.length > csShow.length ? '<a href="/account/off-market/#coming-soon">All ' + csAll.length + ' coming soon in your off-market list &rarr;</a>' : '';
       focusDeepLink();

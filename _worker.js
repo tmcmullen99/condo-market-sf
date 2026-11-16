@@ -783,7 +783,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '17';
+const OM_VER = '18';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -807,14 +807,27 @@ function renderOffMarket(payload) {
   const exN = exAll.length;
   const bySlug = {};
   (payload.buildings || []).forEach((b) => { bySlug[b.s] = b; });
-  const title = 'Off-Market & Coming-Soon Condos in San Francisco — Owner Prices & Every Building | Condo Market SF';
-  const desc = 'The San Francisco condos that never reach a listing site: ' + (csN ? num(csN) + ' coming soon, ' : 'coming-soon listings, ') +
-    'The Exchange, prices owners have named privately, and ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings you can make an offer on — listed or not.';
+  /* THE SAN FRANCISCO LIST (Tim, 16 Nov 2026): "make the Off Market section require an email to see the VIP list ...
+     Replicate the VIP market experience for off market condos", and "Ensure Off Market condos in san francisco is still SEO
+     relevant, AI searchable". The page is the City Markets' VIP List (renderVipList on the city platform) for condos: a
+     private list behind an email. In public it carries counts and locked cards only, in the City Markets' public wording
+     ("Exclusive Deals": no Coming Soon, no MLS, nothing from a listing). An email opens a free account on the spot
+     (/assets/cm-vip-join.js), and the member's cards, pins and requests load as before (cm-offmarket.js). The words people
+     search for (off-market condos in San Francisco) lead the title, the H1 and an FAQ with its FAQPage markup, and every
+     building is linked by neighborhood. */
+  const region = payload.region || 'San Francisco';
+  const listName = 'The ' + region + ' List';
+  const crest = region.split(/\s+/).map((w) => w.charAt(0)).join('').slice(0, 3).toUpperCase();
+  const newN = cs.filter((c) => c.since && (Date.now() - Date.parse(c.since + 'T12:00:00Z')) < 7 * 864e5).length;
+  const title = 'Off-Market Condos in San Francisco — The San Francisco List | Condo Market SF';
+  const desc = 'Off-market condos in San Francisco: ' + (csN ? num(csN) + ' Exclusive Deals' : 'Exclusive Deals') + ' shown only to members of The San Francisco List, ' +
+    (exN ? num(exN) + ' investor-owned units on The Exchange, ' : 'investor-owned units on The Exchange, ') +
+    'owners’ private prices, and an offer on any of ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings. Free to join with an email.';
   const canonical = 'https://www.sanfranciscocondomarket.com/off-market/';
   const head = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">\n' +
     '<style>' +
-    /* first fold: the map */
-    '.om-top{padding:96px 0 34px!important}' +
+    /* the map: under the List since 16 Nov 2026 (it was the first fold) */
+    '.om-top{padding:64px 0 34px!important}' +
     '.omt-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px 32px;flex-wrap:wrap;margin:0 0 16px}' +
     '.omt-h1{font-family:"Playfair Display",serif;font-size:clamp(1.9rem,4vw,2.9rem);line-height:1.06;letter-spacing:-.01em;margin:8px 0 0;color:var(--ink)}' +
     '.omt-h1 em{color:#C2410C}.omt-sub{max-width:52ch;color:var(--slate);font-size:.95rem;line-height:1.55;margin:0}' +
@@ -886,7 +899,7 @@ function renderOffMarket(payload) {
     '.om-open:hover{background:#9a360c;border-color:#9a360c}' +
     '.om-empty{grid-column:1/-1}.om-empty .om-sp{line-height:1.6;margin-top:8px}' +
     '.om-below{padding-top:64px!important}.om-more{margin:16px 0 0;text-align:center}.om-more a{color:#f28c63;font-weight:600;text-decoration:none}' +
-    '@media(max-width:900px){.om-top{padding-top:84px!important}.om-top .mact-side{width:auto;max-height:none;overflow:visible;top:auto;right:auto}' +
+    '@media(max-width:900px){.om-top{padding-top:48px!important}.om-top .mact-side{width:auto;max-height:none;overflow:visible;top:auto;right:auto}' +
     '.om-top #cbmap{height:calc(100vh - 210px);height:calc(100svh - 210px);min-height:420px;max-height:620px}.om-reopen{top:10px;right:10px}}' +
     /* phones: a tapped pin brings its home up over the map, Zillow's way (cm-offmarket-map.js) */
     '.om-peek{position:fixed;padding:0;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:10020;max-width:520px;margin:0 auto;animation:omPkUp .22s cubic-bezier(.2,.8,.2,1)}' +
@@ -954,14 +967,97 @@ function renderOffMarket(payload) {
       '.om-card.om-cs:has(.om-cs-b) .om-lock{grid-column:1/-1}' +
       '.om-card .om-ad{font-size:1.05rem}' +
       '.om-card .om-lock{flex-wrap:wrap;gap:10px}' +
-      /* the featured card is already under the map; no second copy a screen later */
-      '.om-below .om-grid-head:has(+ .om-feat-row),.om-below .om-feat-row{display:none}' +
     '}' +
     '@media(max-width:900px){body.om-map-view .cmi-launch,body.om-map-view .cmi-prompt{display:none!important}}' +
     /* list rows in the panel: a photo when there is one (members) */
     '.om-row.om-row-ph{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px}' +
     '.om-row-th{flex:0 0 64px;width:64px;height:56px;border-radius:8px;background:#e8ebf1 center/cover no-repeat}' +
     '.om-row-tx{min-width:0;flex:1}.om-row-tx b,.om-row-tx span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+    '</style>\n';
+
+  /* The VIP List's look (the City Markets' vl-/vx- styles, gold written out so no market accent swaps it). */
+  const vipCss = '<style>' +
+    '[data-om-mem][hidden],[data-om-anon][hidden]{display:none!important}' +
+    '.vl-hero{position:relative;overflow:hidden;color:#ece7db;padding:118px 20px 72px;background:radial-gradient(700px 420px at 50% 0%,rgba(217,154,78,.22),transparent 65%),radial-gradient(900px 600px at 50% 120%,rgba(217,154,78,.10),transparent 60%),#0b0d12}' +
+    '.vl-hero:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 2px,transparent 2px 6px)}' +
+    '.vl-in{max-width:1080px;margin:0 auto}.vl-inv{position:relative;max-width:820px;margin:0 auto}' +
+    '.vl-frame{position:relative;text-align:center;padding:52px 40px 44px;border:1px solid rgba(217,154,78,.42);border-radius:4px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0));box-shadow:0 0 0 6px #0b0d12,0 0 0 7px rgba(217,154,78,.18),0 40px 120px rgba(0,0,0,.55)}' +
+    '.vl-corner{position:absolute;width:18px;height:18px;border-color:#d99a4e;border-style:solid;opacity:.9}' +
+    '.vl-corner.tl{top:10px;left:10px;border-width:1px 0 0 1px}.vl-corner.tr{top:10px;right:10px;border-width:1px 1px 0 0}.vl-corner.bl{bottom:10px;left:10px;border-width:0 0 1px 1px}.vl-corner.br{bottom:10px;right:10px;border-width:0 1px 1px 0}' +
+    '.vl-crest{color:#d99a4e;display:flex;justify-content:center;margin-bottom:18px}' +
+    '.vl-ey,.vx-ey{font-family:"JetBrains Mono",monospace;font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:#d99a4e}' +
+    '.vl-h1{font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(2.4rem,6.6vw,4.3rem);line-height:1;margin:18px 0 0;color:#f3ede0;letter-spacing:-.01em}.vl-h1 em{color:#e8c58a}' +
+    '.vl-h1k{display:block;font-style:italic;font-size:clamp(1.05rem,2.4vw,1.4rem);line-height:1.3;color:#c6cbd6;letter-spacing:0;margin:0 0 14px}' +
+    '.vl-rule{display:flex;align-items:center;justify-content:center;gap:14px;margin:26px auto 24px;color:#d99a4e;font-size:.6rem}' +
+    '.vl-rule span{display:block;width:72px;height:1px;background:linear-gradient(90deg,transparent,rgba(217,154,78,.7),transparent)}.vl-rule i{font-style:normal}' +
+    '.vl-cn{font-family:"Playfair Display",serif;font-size:clamp(4.4rem,13vw,7.2rem);line-height:.95;color:#f3ede0;background:linear-gradient(180deg,#f6e7c8 0%,#d99a4e 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}' +
+    '.vl-cl{font-family:"Playfair Display",serif;font-style:italic;font-size:clamp(1.3rem,3vw,1.7rem);color:#f3ede0;margin-top:6px}' +
+    '.vl-cs{font-family:"JetBrains Mono",monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#93a3b8;margin-top:12px;line-height:1.7}' +
+    '.vl-sealed .vl-cn{position:relative;display:inline-flex;align-items:center;justify-content:center;background:none;-webkit-text-fill-color:initial;min-width:2.2em}' +
+    '.vl-cn-blur{color:#e8c58a;filter:blur(16px);opacity:.75;user-select:none}.vl-cn-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#f6e7c8}' +
+    '.vl-sub{color:#c6cbd6;font-size:1.02rem;line-height:1.65;max-width:54ch;margin:26px auto 0}' +
+    '.vl-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;justify-content:center;align-items:center}' +
+    '.vl-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:13px 28px;border-radius:999px;font:600 .95rem "DM Sans",system-ui,sans-serif;text-decoration:none;letter-spacing:.01em;cursor:pointer;border:0;background:none}' +
+    '.vl-btn.gold{background:linear-gradient(180deg,#e2a85c,#b06f24);color:#fff;box-shadow:0 8px 24px rgba(176,111,36,.35),inset 0 1px 0 rgba(255,255,255,.25)}.vl-btn.gold:hover{filter:brightness(1.06)}' +
+    '.vl-btn.line{border:1px solid rgba(217,154,78,.45);color:#f3ede0}.vl-btn.line:hover{border-color:#d99a4e}' +
+    '.vl-not{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 22px;margin-top:26px;font-family:"JetBrains Mono",monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#93a3b8}' +
+    '.vl-not span:before{content:"\\25C6";color:#d99a4e;margin-right:8px;font-size:.5rem;vertical-align:1px}' +
+    '.vl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:28px}' +
+    '.vl-card{display:block;text-decoration:none;color:#f3ede0;background:#12151d;border:1px solid rgba(217,154,78,.28);border-radius:6px;overflow:hidden;transition:transform .2s,box-shadow .2s,border-color .2s}' +
+    '.vl-card:hover{transform:translateY(-3px);border-color:rgba(217,154,78,.7);box-shadow:0 18px 40px rgba(0,0,0,.45)}' +
+    '.vl-ph{position:relative;aspect-ratio:16/10;background:linear-gradient(135deg,#2c3140,#1b1f29 55%,#3a3222);overflow:hidden}' +
+    '.vl-ph:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.04) 0 14px,transparent 14px 28px);filter:blur(1px)}.vl-ph.own{background:linear-gradient(135deg,#3a3222,#22262f)}' +
+    '.vl-badge{position:absolute;left:12px;top:12px;z-index:1;background:rgba(12,15,21,.72);color:#d99a4e;font-family:"JetBrains Mono",monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:999px}' +
+    '.vl-lock{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;color:rgba(236,231,219,.75)}' +
+    '.vl-body{padding:16px 18px 18px}.vl-type{font-family:"Playfair Display",serif;font-size:1.15rem;color:#f3ede0}.vl-facts{font-size:.88rem;color:#c6cbd6;margin-top:4px}' +
+    '.vl-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(217,154,78,.18)}' +
+    '.vl-blur{font-size:.88rem;color:#c6cbd6;white-space:nowrap;overflow:hidden;min-width:0;filter:blur(5px);user-select:none}.vl-since{font-size:.72rem;color:#8b94a7;white-space:nowrap}' +
+    '.vl-more{margin:16px 0 0;color:#c6cbd6}.vl-more:empty{display:none}.vl-more a{color:#e8c58a;font-weight:600;text-decoration:none}' +
+    '.vl-veil{margin-top:30px;text-align:center;padding:48px 24px;border:1px solid rgba(217,154,78,.3);border-radius:6px;background:radial-gradient(500px 220px at 50% 0%,rgba(217,154,78,.12),transparent 70%),#12151d}' +
+    '.vl-veil-lock{color:#d99a4e;display:flex;justify-content:center}.vl-veil-h{font-family:"Playfair Display",serif;font-style:italic;font-size:1.6rem;color:#f3ede0;margin-top:12px}' +
+    '.vl-veil p{color:#c6cbd6;max-width:54ch;margin:12px auto 22px;line-height:1.65}' +
+    '.vx{background:#0b0d12;color:#f3ede0;padding:84px 20px;position:relative}.vx + .vx{border-top:1px solid rgba(217,154,78,.12)}' +
+    '.vx-list{background:linear-gradient(180deg,#0b0d12,#0f1218)}.vx-own{background:radial-gradient(800px 500px at 85% 30%,rgba(217,154,78,.12),transparent 60%),#0f1218}' +
+    '.vx-close{background:radial-gradient(700px 400px at 50% 100%,rgba(217,154,78,.14),transparent 65%),#0b0d12;padding-bottom:64px}' +
+    '.vx-h2{font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(1.9rem,4.6vw,3rem);line-height:1.1;margin:14px 0 0;color:#f3ede0}.vx-h2 em{color:#e8c58a}' +
+    '.vx-lede{color:#c6cbd6;max-width:60ch;margin-top:16px;line-height:1.7;font-size:1rem}.vx-c{text-align:center;margin-left:auto;margin-right:auto}' +
+    '.vx .vl-ctas{justify-content:flex-start}.vx-close .vl-ctas{justify-content:center}' +
+    '.vx-subk{margin:46px 0 14px;font-family:"JetBrains Mono",monospace;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:#d99a4e}' +
+    '.vx-list .om-feat-row{margin:0}' +
+    '.vx-own-in{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr);gap:56px;align-items:center}' +
+    '.vx-tl{list-style:none;padding:0;margin:34px 0 8px;position:relative}' +
+    '.vx-tl:before{content:"";position:absolute;left:21px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,rgba(217,154,78,.7),rgba(217,154,78,.1))}' +
+    '.vx-tl li{display:grid;grid-template-columns:44px 1fr;gap:18px;padding:0 0 26px;position:relative}' +
+    '.vx-tl-n{width:43px;height:43px;border-radius:50%;border:1px solid rgba(217,154,78,.6);background:#0f1218;display:flex;align-items:center;justify-content:center;font-family:"Playfair Display",serif;font-style:italic;color:#d99a4e;font-size:.95rem;position:relative;z-index:1}' +
+    '.vx-tl-when{font-family:"JetBrains Mono",monospace;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:#8b94a7;padding-top:4px}' +
+    '.vx-tl h3{font-family:"Playfair Display",serif;font-weight:500;font-size:1.25rem;margin:6px 0 6px;color:#f3ede0}.vx-tl p{color:#c6cbd6;font-size:.93rem;line-height:1.6;max-width:56ch;margin:0}' +
+    '.vx-free{align-self:center;font-size:.8rem;color:#8b94a7}.vx-mini{padding:44px 30px 34px}' +
+    '.vx-mini-p{font-family:"Playfair Display",serif;font-size:clamp(2.2rem,5vw,3rem);margin-top:16px;letter-spacing:.02em}' +
+    '.vx-blurred{display:inline-block;color:#e8c58a;filter:blur(7px);opacity:.9;user-select:none}.vx-mini-f{font-size:.95rem;color:#c6cbd6}' +
+    '.vx-mini-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:18px}.vx-mini-tags span{border:1px solid rgba(217,154,78,.4);color:#f3ede0;border-radius:999px;padding:6px 12px;font-size:.74rem}' +
+    '.vx-mini-note{margin-top:22px;font-family:"JetBrains Mono",monospace;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:#6f7686}' +
+    '.vx-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin-top:34px;background:rgba(217,154,78,.22);border:1px solid rgba(217,154,78,.22);border-radius:6px;overflow:hidden}' +
+    '.vx-tile{background:#0f1218;padding:28px 26px}.vx-tile-k{font-family:"Playfair Display",serif;font-weight:500;font-size:1.3rem;color:#f3ede0;margin:0}.vx-tile p{color:#c6cbd6;font-size:.92rem;line-height:1.6;margin:10px 0 0}' +
+    '.vx-close-frame{padding:52px 34px 44px}.vl-fine{font-size:.78rem;line-height:1.55;max-width:80ch}.vx-fine{color:#6f7686;margin:34px auto 0;text-align:center}' +
+    '.omt-lock{display:inline-flex;vertical-align:-1px;margin-left:2px;color:#b06f24}.omt-tab.on .omt-lock{color:#e8c58a}' +
+    /* the FAQ and the buildings, on light */
+    '.vf{padding:72px 0;background:#f5f3ee;color:#1a1f2e}.vf-head h2,.vf-dir h2{font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(1.8rem,3.8vw,2.6rem);line-height:1.12;margin:10px 0 0;color:#1a1f2e}' +
+    '.vf-head h2 em,.vf-dir h2 em{color:#9a5b1c}' +
+    '.vf-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 34px;margin-top:30px}' +
+    '.vf-q{border-top:1px solid rgba(26,31,46,.14);padding-top:16px}.vf-q h3{font-family:"Playfair Display",serif;font-weight:600;font-size:1.15rem;line-height:1.3;margin:0;color:#1a1f2e}' +
+    '.vf-q p{margin:8px 0 0;color:#4a5263;font-size:.95rem;line-height:1.65}.vf-q a{color:#9a5b1c;font-weight:600;text-decoration:none}.vf-q a:hover{text-decoration:underline}' +
+    '.vf-dir{margin-top:60px}.vf-sub{color:#4a5263;margin:10px 0 0;max-width:62ch;line-height:1.6}' +
+    '.vf-hoods{columns:3 240px;column-gap:24px;margin-top:24px}' +
+    '.vf-hood{break-inside:avoid;border-bottom:1px solid rgba(26,31,46,.1);padding:10px 0}' +
+    '.vf-hood summary{cursor:pointer;font-weight:600;color:#1a1f2e;list-style:none;display:flex;justify-content:space-between;gap:10px}.vf-hood summary::-webkit-details-marker{display:none}' +
+    '.vf-hood summary:after{content:"+";color:#9a5b1c;font-weight:500}.vf-hood[open] summary:after{content:"\\2212"}.vf-hood summary span{margin-left:auto;font:500 .78rem "JetBrains Mono",monospace;color:#6b7280}' +
+    '.vf-hood ul{list-style:none;margin:10px 0 4px;padding:0}.vf-hood li{margin:0 0 6px;font-size:.9rem;line-height:1.35}.vf-hood li a{color:#1a1f2e;text-decoration:none}.vf-hood li a:hover{color:#9a5b1c;text-decoration:underline}' +
+    '.vf-hood li span{color:#6b7280;font-size:.78rem}.vf-hl{display:inline-block;margin:4px 0 6px;font-size:.84rem;font-weight:600;color:#9a5b1c;text-decoration:none}' +
+    '@media(max-width:900px){.vx-own-in{grid-template-columns:1fr;gap:36px}.vf-grid{grid-template-columns:1fr}}' +
+    '@media(max-width:820px){.vx-tiles{grid-template-columns:1fr}}' +
+    '@media(max-width:600px){.vl-frame{padding:40px 18px 34px}.vl-hero{padding:92px 12px 52px}.vl-btn{width:100%}.vl-ey,.vx-ey{letter-spacing:.2em;font-size:.56rem}.vl-sub{font-size:.97rem}' +
+      '.vl-rule span{width:52px}.vx-mini{padding:36px 18px 28px}.vx-tl li{grid-template-columns:40px 1fr;gap:14px}.vx-tl-n{width:39px;height:39px}.vx-tl:before{left:19px}.vx-free{width:100%;text-align:center}' +
+      '.vx{padding:60px 16px}.vf{padding:56px 0}}' +
     '</style>\n';
 
   /* ---- the featured listing card (premium distribution + a signed listing agreement, from the city platform) ---- */
@@ -1012,32 +1108,32 @@ function renderOffMarket(payload) {
   const featHtml = feat.map((f) => featCard(f, false)).join('');
   const featMini = feat.map((f) => featCard(f, true)).join('');
 
-  /* ---- first fold: the map, on Coming soon ---- */
+  /* ---- the map: every building, and for a member the List's homes ---- */
   const tab = (k, label, n, on) => '<button type="button" role="tab" class="omt-tab' + (on ? ' on' : '') + '" aria-selected="' + (on ? 'true' : 'false') + '" data-om-layer="' + k + '">' +
     '<i class="' + k + '"></i>' + label + ' <b>' + num(n) + '</b></button>';
+  const lockSvg = (w) => '<svg viewBox="0 0 24 24" width="' + w + '" height="' + w + '" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   const top = '<section class="map-section omap om-top" id="map"' + omCfgAttrs(payload.om) + '>\n  <div class="wrap">\n' +
-    '    <div class="omt-head"><div><span class="eyebrow">Off-market &middot; coming soon &middot; members only</span>\n' +
-    '      <h1 class="omt-h1">The condos you <em>can&rsquo;t see yet.</em></h1></div>\n' +
-    '      <p class="omt-sub">Coming-soon listings before the listing sites, The Exchange, the prices owners have named privately, and every building you can write an offer in.</p></div>\n' +
+    '    <div class="omt-head"><div><span class="eyebrow">Every building &middot; listed or not</span>\n' +
+    '      <h2 class="omt-h1">Make an offer on <em>any San Francisco condo.</em></h2></div>\n' +
+    '      <p class="omt-sub">Open any of ' + num(T.buildings) + ' buildings for its record: every unit, its recorded sales, and an offer on any of them. Members also see ' + listName + ' on this map.</p></div>\n' +
     '    <div class="omt-tabs" role="tablist" aria-label="Map layers">' +
-    tab('cs', 'Coming soon', csN, true) + tab('ex', 'The Exchange', exN, false) + tab('mm', 'Owners&rsquo; numbers', mmm, false) + tab('b', 'Every building', T.buildings, false) +
+    tab('cs', 'The List <span class="omt-lock" data-om-anon>' + lockSvg(12) + '</span>', csN, false) + tab('ex', 'The Exchange', exN, false) + tab('mm', 'Owners&rsquo; numbers', mmm, false) + tab('b', 'Every building', T.buildings, true) +
     '</div>\n' +
     '    <div class="omap-frame"><div class="mact-grid">\n' +
-    '      <div class="mact-map"><div id="cbmap" role="region" aria-label="Map of off-market and coming-soon condos"></div>\n' +
-    '        <p class="map-note">Pins are labelled by street. A coming-soon home outside a catalogued building sits near its address until you sign in &mdash; see <a href="/methodology/">methodology</a>.</p>' +
+    '      <div class="mact-map"><div id="cbmap" role="region" aria-label="Map of San Francisco condo buildings"></div>\n' +
+    '        <p class="map-note">A building pin opens its record. Members see the homes on ' + listName + ' here too &mdash; see <a href="/methodology/">methodology</a>.</p>' +
     '<button type="button" class="om-reopen" data-om-open hidden aria-controls="omPanel">Show the list</button></div>\n' +
     '      <aside class="mact-side"><div class="mact-card" id="omPanel">\n' +
     '        <button type="button" class="om-x" data-om-close aria-label="Close this panel and see the whole map" title="See the whole map">&times;</button>\n' +
-    /* coming soon */
-    '        <div class="om-pane" data-pane="cs">' +
-    (csN
-      ? '<div class="act-k">Coming soon &middot; ' + num(csN) + '</div><h3 class="mact-h">Before the listing sites</h3>' +
-        '<p class="mact-lede" data-om-anon>Entered on the MLS as coming soon. Pins are labelled by street; the size and the building are open, the unit, price and photos open with a free account.</p>' +
-        '<p class="mact-lede" data-om-mem hidden>Entered on the MLS as coming soon. Click a pin or a home below for the address, price and requests.</p>' +
-        '<button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:pane-cs" style="margin-top:12px;width:100%">Create account to view &rarr;</button>' +
-        '<div id="omCsList"></div>'
-      : '<div class="act-k">Coming soon</div><h3 class="mact-h">No coming-soon condos right now</h3>' +
-        '<p class="mact-lede">New ones appear here first, as soon as they are entered as coming soon on the MLS. The list is checked twice a day.</p><div id="omCsList"></div>') +
+    /* the List: locked until the email; a member's homes are drawn by cm-offmarket-map.js */
+    '        <div class="om-pane" data-pane="cs" hidden>' +
+    '<div data-om-anon><div class="act-k">' + listName + ' &middot; members only</div>' +
+    '<h3 class="mact-h">' + (csN ? num(csN) + ' Exclusive ' + (csN === 1 ? 'Deal' : 'Deals') : 'Exclusive Deals') + '</h3>' +
+    '<p class="mact-lede">Members see every home on the List on this map, with the address, the price and the photos. An email opens it.</p>' +
+    '<button class="btn btn-gold" data-om-signup="" data-cta="offmarket:pane-list" style="margin-top:12px;width:100%">Request your membership &rarr;</button></div>' +
+    '<div data-om-mem hidden><div class="act-k">' + listName + ' &middot; ' + num(csN) + '</div><h3 class="mact-h">Every home on the List</h3>' +
+    '<p class="mact-lede">Click a pin or a home below for the address, the price, the photos and your requests.</p></div>' +
+    '<div id="omCsList"></div>' +
     featMini + '</div>\n' +
     /* the exchange */
     '        <div class="om-pane" data-pane="ex" hidden><div class="act-k">The Exchange &middot; ' + num(exN) + '</div>' +
@@ -1064,43 +1160,79 @@ function renderOffMarket(payload) {
     '      </div></aside>\n' +
     '    </div></div>\n  </div>\n</section>\n';
 
-  /* ---- below the map: the counts and the cards ---- */
-  /* A listing in a catalogued building shows that building's hero photo and name (Tim, 16 Oct 2026). */
-  const csCard = (c) => '<div class="om-card om-cs" id="cs-' + cityEsc(c.t) + '">' +
-    (c.img ? '<div class="om-cs-ph om-cs-b" style="background-image:url(\'' + cityEsc(c.img).replace(/'/g, '%27') + '\')"><span>' + cityEsc(c.bn || '') + '</span></div>'
-           : '<div class="om-cs-ph"><span>Photos for members</span></div>') +
-    '<span class="om-tag">Coming soon' + (c.h ? ' &middot; ' + cityEsc(c.h) : '') + '</span>' +
-    '<div class="om-ad">' + cityEsc([c.st, omSpec(c)].filter(Boolean).join(' \u00b7 ') || 'A San Francisco condo') + '</div>' +
-    '<div class="om-sp">' + (c.bn ? 'In ' + cityEsc(c.bn) + ' &middot; ' : '') + 'first seen ' + omDay(c.since) + ' &middot; ' + (c.bn ? 'unit' : 'address') + ' and price for members</div>' +
-    '<div class="om-lock"><span class="om-blur">$&#9608;,&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>' +
-    '<button type="button" class="om-open" data-om-signup="' + cityEsc(c.t) + '" data-cta="offmarket:cs-card">Create account to view &rarr;</button></div></div>';
-  /* One locked card per owner who has a number open: a real count, never padding. */
-  const mmCard = '<div class="om-card"><span class="om-tag">Make Me Move</span>' +
-    '<div class="om-ad">An owner&rsquo;s private number</div><div class="om-sp">Building, unit and price for members</div>' +
-    '<div class="om-lock"><span class="om-blur">$&#9608;&#9608;&#9608;,&#9608;&#9608;&#9608;</span>' +
-    '<button type="button" class="om-open" data-om-signup="" data-cta="offmarket:mmm-card">Create account to view &rarr;</button></div></div>';
-  const CS_SHOWN = 12;
-  const cards = cs.slice(0, CS_SHOWN).map(csCard).join('') + Array.from({ length: Math.min(mmm, 12) }, () => mmCard).join('');
-  const csMore = csN > CS_SHOWN ? '<p class="om-more"><a href="#map" data-om-goto="cs">' + num(csN - CS_SHOWN) + ' more coming soon on the map &uarr;</a></p>' : '';
-  const emptyCard = '<div class="om-card om-empty"><div class="om-ad">No coming-soon condos right now.</div>' +
-    '<p class="om-sp">New ones appear here as soon as they are entered as coming soon on the MLS; the list is checked twice a day.</p></div>';
-  const door = (n, label, body) => '      <div class="om-door"><div class="om-door-n">' + num(n) + '</div><div class="om-door-l">' + label + '</div><p class="om-door-b">' + body + '</p></div>\n';
-  const below = '<section id="offmarket" class="om-below" style="background:var(--chrome);color:var(--chrome-ink)">\n  <div class="wrap">\n' +
-    '    <div class="section-head reveal"><span class="eyebrow" style="color:var(--accent-on-dark)">What never reaches a listing site</span>\n' +
-    '      <h2 class="om-h1" style="color:var(--chrome-ink);font-size:clamp(1.8rem,3.6vw,2.6rem)">Four ways to buy <em style="color:var(--accent-on-dark)">before everyone else.</em></h2></div>\n' +
-    '    <div class="om-doors reveal">\n' +
-    door(csN, 'Coming soon, before the listing sites', 'Entered on the MLS as coming soon. The address, price and photos open with a free account.') +
-    door(exN, 'On The Exchange', 'Investor-owned condos offered privately, often with the tenant in place.') +
-    door(mmm, mmm === 1 ? 'Owner who named a private number' : 'Owners who named a private number', 'No listing, no Zillow. A price they would sell at, held quietly until someone meets it.') +
-    door(T.not_sold_10y, 'Units with no recorded sale in ten years', 'Of ' + num(T.homes) + ' homes in ' + num(T.buildings) + ' buildings. These units have not changed hands in a decade &mdash; and every one is still open to an offer.') +
-    '    </div>\n' +
-    (featHtml ? '    <div class="om-grid-head"><span class="om-gh-k">Featured</span></div>\n    <div class="om-feat-row reveal">' + featHtml + '</div>\n' : '') +
-    '    <div class="om-grid-head"><span class="om-gh-k">Coming soon &middot; owners&rsquo; private numbers</span>' +
-    '<a class="om-soon" href="/account/off-market/" data-om-mem hidden>Your off-market list &rarr;</a></div>\n' +
-    '    <div class="om-grid reveal" id="omGrid" data-om-grid>' + (cards || emptyCard) + '</div>\n' + csMore +
-    '    <div class="reveal" style="text-align:center;margin-top:30px">\n' +
-    '      <button class="btn btn-gold" data-om-anon data-om-signup="" data-cta="offmarket:combined-signup">Create a free account to see addresses, prices and photos &rarr;</button>\n' +
-    '    </div>\n  </div>\n</section>\n';
+  /* ---- the VIP List, as on the City Markets ---- */
+  const corners = '<span class="vl-corner tl"></span><span class="vl-corner tr"></span><span class="vl-corner bl"></span><span class="vl-corner br"></span>';
+  const rule = '<div class="vl-rule" aria-hidden="true"><span></span><i>&#9670;</i><span></span></div>';
+  const ownWord = (n) => n === 1 ? 'owner&rsquo;s private price' : 'owners&rsquo; private prices';
+  const extras = [newN ? num(newN) + ' added this week' : '', 'members only', mmm ? 'plus ' + num(mmm) + ' ' + ownWord(mmm) : '',
+    exN ? num(exN) + ' on The Exchange' : ''].filter(Boolean).join(' &middot; ');
+  const hero = '<section class="vl-hero" id="the-list" data-vip-name="' + cityEsc(listName) + '" data-sec="vip_hero"><div class="vl-inv"><div class="vl-frame">' + corners +
+    '<div class="vl-crest" aria-hidden="true"><svg viewBox="0 0 64 64" width="54" height="54" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="32" cy="32" r="30"/>' +
+    '<circle cx="32" cy="32" r="25.5" stroke-dasharray="1.5 3"/><text x="32" y="39" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-size="19" font-style="italic" fill="currentColor" stroke="none">' +
+    cityEsc(crest) + '</text></svg></div>' +
+    '<div class="vl-ey">Private membership &middot; San Francisco condos</div>' +
+    '<h1 class="vl-h1"><span class="vl-h1k">Off-market condos in San Francisco</span>The San Francisco <em>List.</em></h1>' + rule +
+    (csN
+      ? '<div class="vl-count"><div class="vl-cn">' + num(csN) + '</div><div class="vl-cl">Exclusive ' + (csN === 1 ? 'Deal' : 'Deals') + '</div><div class="vl-cs">' + extras + '</div></div>'
+      : '<div class="vl-count vl-sealed"><div class="vl-cn"><span class="vl-cn-blur" aria-hidden="true">00</span><span class="vl-cn-lock">' + lockSvg(26) + '</span></div>' +
+        '<div class="vl-cl">Exclusive Deals</div><div class="vl-cs">The count is revealed to members</div></div>') +
+    '<p class="vl-sub" data-om-anon>A private list of off-market condos in San Francisco: Exclusive Deals shown only to members, investor-owned units on The Exchange, and the prices owners would quietly accept. Your email opens it.</p>' +
+    '<p class="vl-sub" data-om-mem hidden>Welcome to the List. Every home on it is open below, with the address, the price and the photos.</p>' +
+    '<div class="vl-ctas">' +
+    '<a class="vl-btn gold" href="#the-list" data-om-anon data-om-signup="" data-cta="vip:join">Request your membership</a>' +
+    '<button type="button" class="vl-btn line" data-om-anon data-vip-signin data-cta="vip:signin">Members, sign in</button>' +
+    '<a class="vl-btn gold" href="#list" data-om-mem hidden data-cta="vip:open_list">Open the List &darr;</a>' +
+    '<button type="button" class="vl-btn line" data-om-mem hidden data-vip-prefs data-cta="vip:prefs">Your searches &amp; alerts</button></div>' +
+    '<div class="vl-not"><span>Complimentary</span><span>Private</span><span>No public address, price or photos</span></div>' +
+    '</div></div></section>\n';
+
+  /* Inside the List: one locked card per home and per owner's price (real counts, nothing from the listing). A member's own
+     cards replace them (cm-offmarket.js mountAll on [data-om-grid]); a card's handle brings them to that home once in. */
+  const dealCard = (c) => '<a class="vl-card" href="#the-list" data-om-signup="' + cityEsc(c.t) + '" data-cta="vip:card_deal">' +
+    '<div class="vl-ph"><span class="vl-badge">Exclusive deal</span><span class="vl-lock">' + lockSvg(18) + '</span></div>' +
+    '<div class="vl-body"><div class="vl-type">San Francisco</div><div class="vl-facts">Details for members</div>' +
+    '<div class="vl-row"><span class="vl-blur" aria-label="Members only">000 Market Street #000 &middot; $0,000,000</span></div></div></a>';
+  const ownerCard = '<a class="vl-card" href="#the-list" data-om-signup="" data-cta="vip:card_owner">' +
+    '<div class="vl-ph own"><span class="vl-badge">Owner&rsquo;s private price</span><span class="vl-lock">' + lockSvg(18) + '</span></div>' +
+    '<div class="vl-body"><div class="vl-type">San Francisco</div><div class="vl-facts">Building, unit and price for members</div>' +
+    '<div class="vl-row"><span class="vl-blur" aria-label="Members only">$0,000,000</span><span class="vl-since">Not listed</span></div></div></a>';
+  const SHOWN = 12;
+  const locked = cs.slice(0, SHOWN).map(dealCard).join('') + Array.from({ length: Math.min(mmm, 6) }, () => ownerCard).join('');
+  const veil = '<div class="vl-veil"><div class="vl-veil-lock">' + lockSvg(22) + '</div><div class="vl-veil-h">For members&rsquo; eyes only.</div>' +
+    '<p>What is on ' + listName + ', and what arrives next, is shown inside your membership. An email opens it.</p>' +
+    '<a class="vl-btn gold" href="#the-list" data-om-signup="" data-cta="vip:veil_join">Request your membership</a></div>';
+  const list = '<section class="vx vx-list" id="list"><div class="vl-in">\n' +
+    '  <div class="vx-ey">Inside the List &middot; today</div>\n  <h2 class="vx-h2">What members <em>are seeing.</em></h2>\n' +
+    '  <p class="vx-lede" data-om-anon>' + (locked ? 'Each card is a home on ' + listName + ' right now. The address, the price, the photos and the details open inside your membership.'
+      : 'The List is never shown in public. Members see every home on it, with the address, the price and the photos.') + '</p>\n' +
+    '  <p class="vx-lede" data-om-mem hidden>The newest homes on ' + listName + ', open to you. Ask for a showing, the disclosures or a Comp Report from any card.</p>\n' +
+    (locked ? '  <div class="vl-grid" id="omGrid" data-om-grid>' + locked + '</div>\n' : '  <div data-om-grid>' + veil + '</div>\n') +
+    '  <p class="vl-more om-more">' + (csN > SHOWN ? 'And ' + num(csN - SHOWN) + ' more inside.' : '') + '</p>\n' +
+    (locked ? '  <div class="vl-ctas" data-om-anon><a class="vl-btn gold" href="#the-list" data-om-signup="" data-cta="vip:list_join">Request your membership</a></div>\n' : '') +
+    (featHtml ? '  <div class="vx-subk">Featured on The Exchange &middot; open to everyone</div>\n  <div class="om-feat-row">' + featHtml + '</div>\n' : '') +
+    '</div></section>\n';
+
+  const buyers = '<section class="vx vx-buy"><div class="vl-in">\n  <div class="vx-ey">For buyers</div>\n  <h2 class="vx-h2">First look. <em>First offer.</em></h2>\n' +
+    '  <div class="vx-tiles">' +
+    '<div class="vx-tile"><h3 class="vx-tile-k">Exclusive Deals</h3><p>San Francisco condos shown only to members, with the address, the price, the photos and the details.</p></div>' +
+    '<div class="vx-tile"><h3 class="vx-tile-k">The Exchange</h3><p>Investor-owned condos offered privately, often with the tenant in place.</p></div>' +
+    '<div class="vx-tile"><h3 class="vx-tile-k">Owners&rsquo; private prices</h3><p>Numbers owners have named on homes that are not for sale at all. Make an offer on any of them.</p></div>' +
+    '<div class="vx-tile"><h3 class="vx-tile-k">Your own search</h3><p>Bedrooms, neighborhoods, price and the buildings you want. An email when a home that fits joins the List, and Tim on call for a showing, the disclosures or a Comp Report.</p></div>' +
+    '</div>\n  <div class="vl-ctas" data-om-anon><a class="vl-btn gold" href="#the-list" data-om-signup="" data-cta="vip:door_buyer">Join as a buyer</a></div>\n</div></section>\n';
+
+  const owners = '<section class="vx vx-own" id="owners"><div class="vl-in vx-own-in">\n  <div class="vx-own-copy">\n' +
+    '    <div class="vx-ey">For owners &middot; a year or two out</div>\n    <h2 class="vx-h2">Sell on your terms, <em>before you ever list.</em></h2>\n' +
+    '    <p class="vx-lede">Most owners list the month they decide to move and take what that month&rsquo;s market offers. On ' + listName + ' you can name your price a year or two ahead, set it at the top of the market if you like, and let the buyers already looking in San Francisco come to you.</p>\n' +
+    '    <ol class="vx-tl">\n' +
+    '      <li><span class="vx-tl-n">I</span><div><div class="vx-tl-when">Now</div><h3>Name your number, privately.</h3><p>No sign, no open house, no days on market, no listing history. Your name is never shown; members see the home and the number.</p></div></li>\n' +
+    '      <li><span class="vx-tl-n">II</span><div><div class="vx-tl-when">The months ahead</div><h3>Buyers write offers.</h3><p>Members see your home beside the Exclusive Deals and can send a written offer through Tim. You change the number or take it down whenever you like.</p></div></li>\n' +
+    '      <li><span class="vx-tl-n">III</span><div><div class="vx-tl-when">When an offer makes sense</div><h3>Then you engage.</h3><p>Accept it, counter it, or keep waiting. If you would rather test the open market, list it with the offers you have already seen in hand.</p></div></li>\n' +
+    '    </ol>\n' +
+    '    <div class="vl-ctas"><a class="vl-btn gold" href="/owner-signup/" data-cta="vip:door_owner">Put my price on the List</a><span class="vx-free">Complimentary. Change or remove it anytime.</span></div>\n' +
+    '  </div>\n  <div class="vx-own-card" aria-hidden="true"><div class="vl-frame vx-mini">' + corners +
+    '<div class="vx-ey">Owner&rsquo;s private price</div><div class="vx-mini-p"><span class="vx-blurred">$0,000,000</span></div>' + rule +
+    '<div class="vx-mini-f">2 bd &middot; 2 ba &middot; San Francisco</div><div class="vx-mini-tags"><span>Not listed</span><span>Offers welcome</span><span>Owner unnamed</span></div>' +
+    '<div class="vx-mini-note">How your home appears to members</div></div></div>\n</div></section>\n';
 
   const how = '<section class="om-how" id="how"><div class="wrap">\n' +
     '  <div class="om-how-head reveal"><span class="eyebrow">How it works</span><h2>Two ways to trade <em>without a listing.</em></h2>\n' +
@@ -1120,12 +1252,51 @@ function renderOffMarket(payload) {
     '      </ol>\n      <a class="btn btn-line" href="/owner-signup/" data-cta="offmarket:how-mmm">Set my number &rarr;</a>\n    </div>\n' +
     '  </div>\n  <p class="om-how-foot reveal">Questions? <a href="/how-it-works/">See how Condo Market SF works &rarr;</a></p>\n</div></section>\n';
 
-  /* The map's data. No address and no price: buildings, the moved coming-soon pins, the Exchange by building. */
+  /* ---- off-market condos in San Francisco, explained: the FAQ (with its FAQPage markup) and every building ---- */
+  const faq = [
+    ['What is an off-market condo in San Francisco?', 'A condo that is for sale, or could be, without a public listing: you will not find it on Zillow, Redfin or the other listing sites. On Condo Market SF there are three kinds: Exclusive Deals shown only to members of ' + listName + ', investor-owned units offered privately on The Exchange (often with the tenant in place), and the private prices owners have named for homes that are not for sale at all.'],
+    ['How do I see off-market condos in San Francisco?', 'Join ' + listName + '. It is free and needs only an email. Members see every home on the List with its address, price and photos, on the map and in their account, save searches by bedrooms, neighborhood, price and building, and can ask Tim for a private showing, the disclosures or a Comp Report on any home.'],
+    ['How many off-market condos are there in San Francisco right now?', 'Today ' + listName + ' has ' + num(csN) + ' Exclusive ' + (csN === 1 ? 'Deal' : 'Deals') + ' and The Exchange has ' + num(exN) + ' investor-owned ' + (exN === 1 ? 'unit' : 'units') +
+      (mmm ? '; ' + (mmm === 1 ? 'one owner has' : num(mmm) + ' owners have') + ' named a private price' : '') + '. The List is updated twice a day.'],
+    ['Can I make an offer on a San Francisco condo that is not for sale?', 'Yes. Every unit in the ' + num(T.buildings) + ' buildings on file is open to an offer, listed or not, including ' + num(T.not_sold_10y) + ' units with no recorded sale in ten years. Pick the building, read its recorded sales, name your price and terms, and Tim drafts a non-binding letter of intent, reviews it with you and presents it to the owner of record.'],
+    ['Can I sell my San Francisco condo off-market?', 'Yes. Name the price that would make you move, privately: no sign, no listing and no agreement, and your name is never shown. Members can send a written offer through Tim, and you can change or withdraw the number at any time, at no cost. Owners of rented units can also offer them to investors on The Exchange.'],
+    ['Is membership free, and is it private?', 'Membership is complimentary and opens the moment you enter your email. Nothing about you is shown on the site, and no address, price or photo from the List is shown in public. You can stop the emails with one click.'],
+    ['Who runs Condo Market SF?', 'Tim McMullen, Broker, CA DRE #02016832, publishes the record and answers every request. Condo Market SF is a marketing platform and is not a real estate brokerage; real estate services are provided by Tim.'],
+  ];
+  const faqMore = ['', '', '', ' <a href="#map" data-om-goto="b">Pick a building on the map &uarr;</a>', ' <a href="/owner-signup/">Name your price</a> or <a href="/investor-exchange/">see The Exchange</a>.', '', ' <a href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener">Meet Tim &#8599;</a>'];
+  const faqLd = '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faq.map((q) => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }).replace(/</g, '\\u003c') + '</script>\n';
+  const byHood = {};
+  (payload.buildings || []).forEach((b) => { const h = b.h || 'Other'; (byHood[h] = byHood[h] || []).push(b); });
+  const dir = Object.keys(byHood).sort((a, b) => (a === 'Other' ? 1 : b === 'Other' ? -1 : a.localeCompare(b))).map((h) =>
+    '<details class="vf-hood"><summary>' + cityEsc(h) + ' <span>' + byHood[h].length + '</span></summary><ul>' +
+    byHood[h].slice().sort((a, b) => (b.u || 0) - (a.u || 0)).map((b) => '<li><a href="/building/' + cityEsc(b.s) + '">' + cityEsc(b.n) + '</a>' + (b.u ? ' <span>' + num(b.u) + ' units</span>' : '') + '</li>').join('') +
+    '</ul>' + (payload.hubPages !== false && h !== 'Other' ? '<a class="vf-hl" href="/neighborhood/' + citySlug(h) + '">' + cityEsc(h) + ' condos &rarr;</a>' : '') + '</details>').join('');
+  const seo = '<section class="vf" id="faq"><div class="wrap">\n' +
+    '  <div class="vf-head"><span class="eyebrow">Questions</span><h2>Off-market condos in San Francisco, <em>explained.</em></h2></div>\n' +
+    '  <div class="vf-grid">' + faq.map((q, i) => '<div class="vf-q"><h3>' + cityEsc(q[0]) + '</h3><p>' + cityEsc(q[1]) + (faqMore[i] || '') + '</p></div>').join('') + '</div>\n' +
+    '  <div class="vf-dir"><h2>Every condo building in San Francisco, <em>by neighborhood.</em></h2>' +
+    '<p class="vf-sub">' + num(T.buildings) + ' buildings and ' + num(T.homes) + ' homes. Each building&rsquo;s page has every unit, its recorded sales, and an offer on any of them.</p>' +
+    '<div class="vf-hoods">' + dir + '</div></div>\n</div></section>\n';
+  const close = '<section class="vx vx-close"><div class="vl-in"><div class="vl-inv"><div class="vl-frame vx-close-frame">' + corners +
+    '<div class="vx-ey">' + listName + '</div><h2 class="vx-h2 vx-c">Your membership <em>is waiting.</em></h2>' +
+    '<p class="vx-lede vx-c" data-om-anon>Complimentary, private, and open the moment you enter your email.</p>' +
+    '<p class="vx-lede vx-c" data-om-mem hidden>You&rsquo;re a member. Your searches and alerts are in your account.</p>' +
+    '<div class="vl-ctas"><a class="vl-btn gold" href="#the-list" data-om-anon data-om-signup="" data-cta="vip:join_bottom">Request your membership</a>' +
+    '<button type="button" class="vl-btn line" data-om-anon data-vip-signin data-cta="vip:signin_bottom">Members, sign in</button>' +
+    '<button type="button" class="vl-btn gold" data-om-mem hidden data-vip-prefs data-cta="vip:prefs_bottom">Your searches &amp; alerts</button>' +
+    '<a class="vl-btn line" href="/account/off-market/" data-om-mem hidden data-cta="vip:account_bottom">Your off-market list</a></div></div></div>' +
+    '<p class="vl-fine vx-fine">Details of Exclusive Deals are shown to members and are not guaranteed. A home leaves the List when it reaches the open market, goes under contract or sells. ' +
+    'An owner&rsquo;s price is the owner&rsquo;s own number, not an opinion of value from Tim or anyone else, and no buyer or offer is promised. Tim McMullen, Broker, CA DRE #02016832.</p>' +
+    '</div></section>\n';
+
+  /* The map's data. No address and no price: buildings and the Exchange by building. The List's homes are not in it at
+     all (16 Nov 2026): a member's pins come from offmarket_member_payload. */
   const featTok = {}; feat.forEach((f) => { featTok[f.token] = 1; });
   const data = {
-    b: (payload.buildings || []).filter((b) => b.la != null && b.lo != null).map((b) => [b.s, b.n, b.u, b.la, b.lo]),
-    /* [token, y, x, neighbourhood, beds, baths, sq ft, first seen, street, building slug, building name, building hero] */
-    cs: cs.filter((c) => c.y != null && c.x != null).map((c) => [c.t, c.y, c.x, c.h || '', c.bd, c.ba, c.sf, c.since || '', c.st || '', c.b || null, c.bn || null, c.img || null]),
+    /* [slug, name, units, lat, lng, neighbourhood] */
+    b: (payload.buildings || []).filter((b) => b.la != null && b.lo != null).map((b) => [b.s, b.n, b.u, b.la, b.lo, b.h || '']),
+    cs: [],
     ex: exAll.map((x) => { const sl = x.building && x.building.slug, bb = sl && bySlug[sl];
       return [x.token, sl || null, (x.building && x.building.name) || null, bb ? bb.la : null, bb ? bb.lo : null, x.beds, x.baths, x.sqft, featTok[x.token] ? 1 : 0]; }),
   };
@@ -1136,6 +1307,9 @@ function renderOffMarket(payload) {
     '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>\n' +
     '<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' +
     '<script src="/assets/cm-offmarket-map.js?v=' + OM_VER + '"></script>\n' +
+    '<script type="application/json" id="vipData">' + JSON.stringify({ hoods: (payload.hoods || []).map((h) => h.h).filter(Boolean),
+      domain: (payload.om && payload.om.domain) || 'sanfranciscocondomarket.com', n: csN }).replace(/</g, '\\u003c') + '</script>\n' +
+    '<script src="/assets/cm-vip-join.js?v=' + OM_VER + '"></script>\n' +
     '<script>(function(){document.querySelectorAll("[data-om-goto]").forEach(function(a){a.addEventListener("click",function(ev){' +
     'if(!window.OMMAP)return;ev.preventDefault();window.OMMAP.setLayer(a.getAttribute("data-om-goto"));document.getElementById("map").scrollIntoView({behavior:"smooth"});});});' +
     /* Featured covers live in the city platform\'s private bucket: sign the ones on the page. */
@@ -1149,7 +1323,8 @@ function renderOffMarket(payload) {
     '.then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}))).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")";});});' +
     '})();</script>\n';
 
-  return cityHead(title, desc, canonical, head) + cityNav('offmarket') + top + below + how + cityFooter(payload) + cityTail(script);
+  return cityHead(title, desc, canonical, head + vipCss + faqLd) + cityNav('offmarket') + hero + list + buyers + owners + top + how + seo + close +
+    cityFooter(payload) + cityTail(script);
 }
 
 
@@ -4293,6 +4468,7 @@ async function handleRequest(request, env) {
       payload.exchange = exR && Array.isArray(exR.listings) ? exR.listings : [];
       payload.hubPages = !!hostMk.hubPages;
       payload.om = { domain: hostMk.domain, aMarket: A_MARKET_ID_BY_TAG[hostMk.tag] || 0 };
+      payload.region = hostMk.region || 'San Francisco';   // the List's name and crest
       const html = applyMarketSwaps(renderOffMarket(payload), hostMk);
       return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
     }
@@ -6344,6 +6520,7 @@ async function renderLlmsTxt(mk) {
   lines.push('- [All buildings](' + base + '/): every condominium building, searchable');
   lines.push('- [Neighborhoods](' + base + '/neighborhoods): buildings and market data by neighborhood');
   lines.push('- [Active listings](' + base + '/active-listings): every condo currently for sale');
+  lines.push('- [Off-market condos in ' + mk.region + '](' + base + '/off-market/): The ' + mk.region + ' List, a free members-only list of off-market condos (Exclusive Deals, investor-owned units on The Exchange, and the private prices owners have named), opened with an email; and how to make an offer on any unit in any building, listed or not');
   lines.push('- [Market intelligence](' + base + '/intelligence/): citywide price per square foot, sales and trends');
   if (mk.tag === 'sf') {
     lines.push('- [Condo rankings](' + base + '/san-francisco-condo-rankings): buildings ranked by price and activity');

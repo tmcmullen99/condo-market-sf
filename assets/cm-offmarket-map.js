@@ -411,8 +411,12 @@
     else pin(L_.ex, x[3], x[4], 'ex', 'Exchange', function () { exCard(x); }, 'The Exchange');
   });
 
-  /* ---- tabs, deep links, sign-in ---- */
-  tabs.forEach(function (t) { t.addEventListener('click', function () { var k = t.getAttribute('data-om-layer'); track('offmarket:layer-' + k); setLayer(k); }); });
+  /* ---- tabs, deep links, sign-in ----
+     The San Francisco List (16 Nov 2026): the page carries none of the List's homes, so a visitor's map opens on Every
+     building and the List tab shows the membership lock; a member's map turns to the List when their homes load, unless
+     they have already picked a tab or came with one in the link. */
+  var picked = /^#layer-/.test(location.hash);
+  tabs.forEach(function (t) { t.addEventListener('click', function () { var k = t.getAttribute('data-om-layer'); picked = true; track('offmarket:layer-' + k); setLayer(k); }); });
   panel.addEventListener('click', function (ev) { if (ev.target.closest('[data-om-back]')) pane(cur || 'cs'); });
   var Q = null;
   function openQ() {
@@ -423,16 +427,17 @@
     if (c) { setLayer('cs', { keepPane: true, noFit: true }); map.setView([c[1], c[2]], 15); anonCard(c, PHONE.matches ? 'open' : undefined); }
   }
   drawAnon();
-  var start = (location.hash.match(/^#layer-(cs|ex|mm|b)$/) || [])[1] || 'cs';
+  var start = (location.hash.match(/^#layer-(cs|ex|mm|b)$/) || [])[1] || ((D.cs || []).length ? 'cs' : 'b');
   setLayer(start);
   openQ();
   window.addEventListener('om-member', function (ev) {
     MEM = ev.detail || null;
     if (MEM) drawMember(MEM); else drawAnon();
+    if (MEM && !picked && cur !== 'cs') setLayer('cs');
     var itemOpen = !panel.querySelector('[data-pane="item"]').hidden;
     openQ();
     if (itemOpen && !Q) pane(cur);
     if (cur === 'cs' || cur === 'mm') fit(L_[cur]);
   });
-  window.OMMAP = { map: map, setLayer: setLayer, layer: function () { return cur; } };
+  window.OMMAP = { map: map, setLayer: function (k, o) { picked = true; setLayer(k, o); }, layer: function () { return cur; } };
 })();
