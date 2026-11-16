@@ -305,7 +305,7 @@ function ensureChrome(html) {
   return i === -1 ? html : html.slice(0, i) + CITY_CHROME_CSS + html.slice(i);
 }
 
-async function withFavicon(res, mk) {
+async function withFavicon(res, mk, path) {
   try {
     const ct = (res.headers.get('content-type') || '').toLowerCase();
     if (!ct.includes('text/html')) return res;
@@ -314,6 +314,7 @@ async function withFavicon(res, mk) {
     /* One seam, on the path every HTML response already takes - so a map
        added later cannot miss the key. */
     let out = ensureMarketNav(ensureBrand(ensureChrome(ensureGlobals(ensureIntent(ensureFavicon(body)), mk))));   // brand first, then the nav links
+    out = ensureHeader(out, path);   // one header on every public page (16 Nov 2026)
     if (out.indexOf(CARTO_TOKEN) !== -1) out = out.split(CARTO_TOKEN).join(CARTO_KEY);
     out = keyBareTiles(out);
     if (out === body) return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
@@ -783,7 +784,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '21';
+const OM_VER = '22';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -1454,6 +1455,104 @@ function ensureBrand(html) {
     '<a class="cm-wordmark topnav-brand" href="/">Condo Market<span class="cm-sf"> \u00b7 sf</span></a>');
   const i = html.search(/<\/head>/i);
   return i === -1 ? html : html.slice(0, i) + CM_BRAND_CSS + html.slice(i);
+}
+
+/* ONE HEADER (Tim, 16 Nov 2026: "Refer header link shouldnt exist. Review all pages > the header is different on some
+   pages > ensure universal header menu for the condo market"). Six header styles had grown across the templates and the
+   static pages (the home page's cm-header, the masthead of the building, listing, intelligence, buy and sell pages, the
+   How it works topnav, the stats and news header.cm, the press header.site, the payout calculator's header.header), each
+   with its own links. At the seam every HTML page passes, the first of them is swapped for the City Markets header the
+   For sale and Off market pages carry (cityNav): the wordmark; For sale, Off market, Buildings, Reports, Intelligence,
+   How it works; Sign in; and on a phone the burger and drawer. It is self-styled (.cmu), because most of those pages do
+   not load cm-city-ui.css, and sticky rather than fixed, so no page needs new padding; the page's own sticky bars are
+   moved down under it. Ids inside the old header are kept as hidden stubs, so a page script that looks one up still finds
+   it. Internal and token pages keep what they have. */
+const CMU_SKIP = /^\/(?:admin|cma|tools|progress|campaigns|upload-csv|building-dashboard|dashboard|auth-callback|petition|hoa-pitch|disclosure|sign|lease|partners?|welcome|save-10k|refer|rent|tenant|landlord)(?:\/|\.html|$)|\/(?:shared|unit-map)(?:\/|\.html)?$/;
+const CMU_VARIANTS = [/<header class="cm-header">[\s\S]*?<\/header>/, /<header class="masthead">[\s\S]*?<\/header>/, /<nav class="topnav">[\s\S]*?<\/nav>/,
+  /<header class="cm">[\s\S]*?<\/header>/, /<header class="site">[\s\S]*?<\/header>/, /<header class="header">[\s\S]*?<\/header>/];
+const CMU_CSS = '<style id="cmu-css">:root{--cmu-h:56px}@media(max-width:700px){:root{--cmu-h:52px}}'
+  + 'header.cmu{position:sticky!important;top:0!important;z-index:950!important;height:var(--cmu-h)!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;flex-wrap:nowrap!important;gap:0!important;'
+  + 'margin:0!important;padding:0!important;width:100%;box-sizing:border-box;background:rgba(18,21,29,.96)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);'
+  + 'border:0!important;border-bottom:1px solid #262c3a!important;color:#ece7db!important;font-family:"DM Sans",system-ui,-apple-system,sans-serif!important;text-align:left}'
+  + '.cmu *,.cmu-drawer *{box-sizing:border-box}'
+  + '.cmu-in{max-width:1180px;width:100%;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:28px}'
+  + 'header.cmu a.cmu-wm{font-size:20px!important;line-height:1.2!important;flex:0 0 auto}'
+  + 'header.cmu .cmu-links{display:flex!important;align-items:center;gap:22px;margin:0 0 0 auto!important;padding:0!important;background:none!important;border:0!important;position:static!important;height:auto!important}'
+  + 'header.cmu .cmu-links a{font:400 .86rem/1.2 "DM Sans",system-ui,sans-serif!important;letter-spacing:0!important;text-transform:none!important;color:#93a3b8!important;text-decoration:none!important;white-space:nowrap;padding:0!important;margin:0!important;background:none!important;border:0!important}'
+  + 'header.cmu .cmu-links a:hover,header.cmu .cmu-links a.on{color:#ece7db!important}'
+  + '.cmu-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:6px;vertical-align:1px}'
+  + 'header.cmu .cmu-right{display:flex;align-items:center;gap:14px;flex:0 0 auto}'
+  + 'header.cmu .cmu-cta{display:inline-flex!important;align-items:center;gap:7px;font:600 .82rem/1.2 "DM Sans",system-ui,sans-serif!important;letter-spacing:0!important;text-transform:none!important;color:#fff!important;'
+  + 'background:#C2410C!important;border:1px solid #C2410C!important;padding:8px 16px!important;border-radius:999px!important;white-space:nowrap;text-decoration:none!important;box-shadow:none!important;width:auto!important}'
+  + 'header.cmu .cmu-cta:hover{background:#a8370a!important;border-color:#a8370a!important}'
+  + 'header.cmu .cmu-burger{display:none;background:none!important;border:0!important;cursor:pointer;padding:8px!important;margin:0 0 0 auto!important;flex:0 0 auto;width:auto!important;height:auto!important;box-shadow:none!important}'
+  + 'header.cmu .cmu-burger span{display:block;width:20px;height:2px;background:#ece7db;margin:4px 0;border-radius:0}'
+  + '.cmu-drawer{position:fixed;top:0;bottom:0;left:0;width:min(78vw,340px);background:#0c0f15;border-right:1px solid #262c3a;z-index:1201;padding:calc(14px + env(safe-area-inset-top,0px)) 22px calc(26px + env(safe-area-inset-bottom,0px));'
+  + 'display:flex;flex-direction:column;gap:4px;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s;font-family:"DM Sans",system-ui,sans-serif;text-align:left}'
+  + '.cmu-drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}'
+  + '.cmu-drawer a{display:block;padding:11px 0;border-bottom:1px solid #262c3a;font-size:.95rem;color:#93a3b8;text-decoration:none;text-transform:none;letter-spacing:0}.cmu-drawer a.on{color:#ece7db}'
+  + '.cmu-drawer .cmu-dbrand{font-family:"Playfair Display",Georgia,serif;font-size:1.15rem;color:#ece7db;padding:2px 44px 14px 0;border-bottom:1px solid #262c3a;margin-bottom:6px}.cmu-drawer .cmu-dbrand span{color:#e85d2a;font-style:italic}'
+  + '.cmu-drawer .cmu-dx{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;background:transparent;color:#93a3b8;font-size:26px;line-height:1;cursor:pointer;border-radius:50%;padding:0}'
+  + '.cmu-drawer a.cmu-dcta{margin-top:14px;text-align:center;background:#C2410C;color:#fff;border:0;border-radius:999px;padding:11px 16px;font-weight:600}'
+  + '.cmu-scrim{position:fixed;inset:0;background:rgba(8,10,16,.55);z-index:1200;opacity:0;pointer-events:none;transition:opacity .25s}html.cmu-open .cmu-scrim{opacity:1;pointer-events:auto}html.cmu-open,html.cmu-open body{overflow:hidden}'
+  + '@media(max-width:700px){.cmu-in{gap:12px;padding:0 16px}header.cmu .cmu-links{display:none!important}header.cmu .cmu-right .cmu-cta{display:none!important}header.cmu .cmu-burger{display:block}}'
+  + '@media(min-width:701px){.cmu-drawer,.cmu-scrim{display:none}}'
+  /* the pages' own sticky bars sit under the header now */
+  + '.bnav,.sticky-nav,.persona-bar,.hood-rail-wrap,#atlas .hood-rail-wrap{top:var(--cmu-h)!important}'
+  + '</style>';
+const CMU_JS = '<script>(function(){var d=document.querySelector(".cmu-drawer"),b=document.querySelector("header.cmu .cmu-burger"),s=document.querySelector(".cmu-scrim");if(!d||!b)return;var H=document.documentElement;'
+  + 'function set(o){d.classList.toggle("open",o);H.classList.toggle("cmu-open",o);b.setAttribute("aria-expanded",o?"true":"false");d.setAttribute("aria-hidden",o?"false":"true");}'
+  + 'b.addEventListener("click",function(){set(!d.classList.contains("open"));});d.querySelector(".cmu-dx").addEventListener("click",function(){set(false);});if(s)s.addEventListener("click",function(){set(false);});'
+  + 'document.addEventListener("keydown",function(e){if(e.key==="Escape")set(false);});'
+  + 'd.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a");if(!a)return;if(a.hasAttribute("data-cmu-signin")){e.preventDefault();set(false);'
+  + 'var h=document.querySelector("header.cmu .cm-acct-btn")||document.querySelector("header.cmu [data-cm-auth]");if(h)h.click();return;}set(false);});})();</script>\n';
+function cmuActive(path) {
+  path = String(path || '');
+  if (/^\/(?:active-listings|listing)(?:\/|$)/.test(path)) return 'forsale';
+  if (/^\/(?:off-market|account\/off-market|investor-exchange)(?:\/|$)/.test(path)) return 'offmarket';
+  if (/^\/(?:market-reports|news)(?:\/|$)/.test(path)) return 'reports';
+  if (/^\/(?:intelligence(?:\/|$)|san-francisco-condo-(?:market-stats|rankings))/.test(path)) return 'intelligence';
+  if (/^\/how-it-works(?:\/|$)/.test(path)) return 'how';
+  if (/^\/(?:buildings|building|neighborhoods?|san-francisco-condos|condos-in-)/.test(path)) return 'buildings';
+  return '';
+}
+function ensureHeader(html, path) {
+  if (typeof html !== 'string' || html.indexOf('data-cmu') !== -1 || html.indexOf('class="nav-inner"') !== -1) return html;
+  if (CMU_SKIP.test(path || '')) return html;
+  const b = html.search(/<body\b[^>]*>/i);
+  if (b === -1) return html;
+  let hit = null, at = -1;
+  for (const re of CMU_VARIANTS) {
+    const m = re.exec(html.slice(b));
+    if (m && (at === -1 || m.index < at)) { hit = m; at = m.index; }
+  }
+  if (!hit || at > 6000) return html;   // only a header at the top of the page
+  const start = b + at;
+  let end = start + hit[0].length, old = hit[0];
+  /* the home page's own phone drawer goes with its header */
+  const dr = /^\s*<div class="cm-drawer"[^>]*>[\s\S]*?<\/div>/.exec(html.slice(end));
+  if (dr) { old += dr[0]; end += dr[0].length; }
+  const ids = []; old.replace(/\bid="([^"]+)"/g, (m0, id) => { if (ids.indexOf(id) === -1) ids.push(id); return m0; });
+  const on = cmuActive(path);
+  const L = [['/active-listings/', '<span class="cmu-dot"></span>For sale', 'forsale'], ['/off-market/', 'Off market', 'offmarket'], ['/#atlas', 'Buildings', 'buildings'],
+    ['/market-reports/', 'Reports', 'reports'], ['/intelligence/', 'Intelligence', 'intelligence'], ['/how-it-works/', 'How it works', 'how']];
+  const a = (l) => '<a href="' + l[0] + '"' + (l[2] === on ? ' class="on" aria-current="page"' : '') + '>' + l[1] + '</a>';
+  const header = '<header class="cmu" data-cmu><div class="cmu-in">' +
+    '<a class="cm-wordmark cmu-wm" href="/">Condo Market<span class="cm-sf"> · sf</span></a>' +
+    '<nav class="cmu-links" aria-label="Main">' + L.map(a).join('') + '</nav>' +
+    '<div class="cmu-right"><a class="cmu-cta" href="#signin" data-cm-auth="login">Sign in</a></div>' +
+    '<button type="button" class="cmu-burger" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>' +
+    '</div></header>' +
+    '<div class="cmu-drawer" aria-hidden="true"><button type="button" class="cmu-dx" aria-label="Close menu">&times;</button>' +
+    '<div class="cmu-dbrand">Condo Market<span> · sf</span></div>' + L.map(a).join('') +
+    '<a href="/methodology/">Methodology</a><a class="cmu-dcta" href="#signin" data-cmu-signin>Sign in</a></div><div class="cmu-scrim"></div>' +
+    (ids.length ? '<div hidden aria-hidden="true" class="cmu-stubs">' + ids.map((id) => '<span id="' + id + '"></span>').join('') + '</div>' : '');
+  html = html.slice(0, start) + header + html.slice(end);
+  const h = html.search(/<\/head>/i);
+  if (h !== -1) html = html.slice(0, h) + CMU_CSS + html.slice(h);
+  const auth = html.indexOf('cm-auth-nav.js') === -1 ? '<script type="module" src="/assets/cm-auth-nav.js?v=' + NAV_VER + '"></script>\n' : '';
+  const e = html.lastIndexOf('</body>');
+  return e === -1 ? html + auth + CMU_JS : html.slice(0, e) + auth + CMU_JS + html.slice(e);
 }
 
 
@@ -3777,7 +3876,7 @@ async function __renderPage(request, env, reqUrl, reqPath) {
     /* withFavicon is async. Passing its promise straight to withRobots gave the
        noindexed paths an empty 200 body (every /cma/ Comp Report link, 15 Oct
        2026), because the promise has no .body or .status. Await it first. */
-    let res = await withFavicon(await handleRequest(request, env), resolveMarket(reqUrl.hostname));
+    let res = await withFavicon(await handleRequest(request, env), resolveMarket(reqUrl.hostname), reqPath);
     /* Versioned assets (?v=) never change in place: cache them for a year (S81). */
     if (/^\/assets\//.test(reqPath) && reqUrl.searchParams.has('v') && res.status === 200) {
       const h = new Headers(res.headers); h.set('Cache-Control', 'public, max-age=31536000, immutable');
