@@ -783,7 +783,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '18';
+const OM_VER = '19';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -1354,6 +1354,8 @@ function renderAccountOffMarket(payload) {
     '  <span class="eyebrow">Your account &middot; off-market</span>\n' +
     '  <h1>Off-market listings</h1>\n' +
     '  <p class="sub">San Francisco condos before they reach the listing sites, the prices owners have named privately, and The Exchange. Ask for the disclosures, a Comp Report or a tour on any of them, and Tim has it straight away.</p>\n' +
+    /* The San Francisco List (16 Nov 2026): the member's searches and alerts (cm-vip-join.js draws it once signed in) */
+    '  <div data-vip-panel data-vip-name="The San Francisco List"></div>\n' +
     '  <div data-om-account>\n' +
     '    <p class="oma-wait" data-om-wait>Loading your list&hellip;</p>\n' +
     '    <div class="oma-gate" data-om-anon hidden>\n' +
@@ -1372,7 +1374,10 @@ function renderAccountOffMarket(payload) {
     '</div></section>\n';
   return cityHead(title, desc, canonical, head) + cityNav('offmarket') + body + cityFooter(payload) +
     cityTail('<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' +
-      '<script src="/assets/cm-offmarket-explore.js?v=' + OM_VER + '"></script>\n');
+      '<script src="/assets/cm-offmarket-explore.js?v=' + OM_VER + '"></script>\n' +
+      '<script type="application/json" id="vipData">' + JSON.stringify({ hoods: (payload.hoods || []).map((h) => h.h).filter(Boolean),
+        domain: (payload.om && payload.om.domain) || 'sanfranciscocondomarket.com', b: (payload.buildings || []).map((b) => [b.s, b.n]) }).replace(/</g, '\\u003c') + '</script>\n' +
+      '<script src="/assets/cm-vip-join.js?v=' + OM_VER + '"></script>\n');
 }
 
 
@@ -4440,6 +4445,41 @@ async function handleRequest(request, env) {
         try { page = await renderDisclosureSheet(tk); } catch (e) { page = null; }
         if (page) return new Response(page, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, max-age=300', 'X-Robots-Tag': 'noindex' } });
       }
+    }
+
+    /* The List's stop link (16 Nov 2026), from every alert email (om-alerts). GET asks with one button, so a mail scanner
+       opening the link changes nothing; POST (the button, or a mail app's one-click unsubscribe) turns the alerts off. */
+    if (url.pathname === '/off-market/stop' || url.pathname === '/off-market/stop/') {
+      const tok = String(url.searchParams.get('u') || '');
+      const ok = /^[0-9a-f]{64}$/.test(tok);
+      let st = ok ? 'ask' : 'bad';
+      if (ok && request.method === 'POST') {
+        st = 'bad';
+        try {
+          const r = await fetchT(SUPABASE_URL + '/rest/v1/rpc/om_vip_unsub', { method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_token: tok }) }, 5000);
+          const d = r.ok ? await r.json() : null;
+          if (d && d.ok) st = 'done';
+        } catch (e) { st = 'bad'; }
+      }
+      const list = 'The ' + (hostMk.region || 'San Francisco') + ' List';
+      const body = st === 'ask'
+        ? '<h1>Stop the List&rsquo;s emails?</h1><p>You&rsquo;ll stop getting an email for each new home on ' + list + '. You stay a member: the List is open whenever you sign in.</p>' +
+          '<form method="post"><button type="submit">Stop the emails</button></form><p class="alt"><a href="/off-market/?prefs=1#the-list">Change your search instead &rarr;</a></p>'
+        : st === 'done'
+          ? '<h1>Done.</h1><p>You won&rsquo;t get these emails any more. You&rsquo;re still a member of ' + list + ', and you can turn them back on from &ldquo;Your searches &amp; alerts&rdquo; on the List.</p><p class="alt"><a href="/off-market/#the-list">Back to the List &rarr;</a></p>'
+          : '<h1>That link has expired.</h1><p>Sign in on the List and open &ldquo;Your searches &amp; alerts&rdquo; to change your emails.</p><p class="alt"><a href="/off-market/#the-list">Go to the List &rarr;</a></p>';
+      const css = '<meta name="robots" content="noindex,nofollow"><style>.vs{min-height:72vh;display:flex;align-items:center;justify-content:center;padding:120px 20px 80px;background:#0b0d12;color:#f3ede0}' +
+        '.vs-in{max-width:560px;text-align:center;border:1px solid rgba(217,154,78,.42);border-radius:4px;padding:44px 32px}' +
+        '.vs-ey{font-family:"JetBrains Mono",monospace;font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:#d99a4e}' +
+        '.vs h1{font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(1.9rem,5vw,2.6rem);margin:14px auto 0;max-width:none;color:#f3ede0}' +
+        '.vs p{color:#c6cbd6;line-height:1.65;margin:14px 0 0}.vs form{margin-top:26px}' +
+        '.vs button{width:auto;min-height:48px;padding:13px 28px;border:0;border-radius:999px;background:linear-gradient(180deg,#e2a85c,#b06f24);color:#fff;font:600 .95rem "DM Sans",system-ui,sans-serif;cursor:pointer}' +
+        '.vs .alt a{color:#e8c58a;font-weight:600}</style>\n';
+      const html = cityHead(list + ': emails | Condo Market SF', 'Stop or change the emails from ' + list + '.', 'https://www.sanfranciscocondomarket.com/off-market/', css) +
+        cityNav('offmarket') + '<section class="vs"><div class="vs-in"><div class="vs-ey">' + list + '</div>' + body + '</div></section>\n' + cityTail('');
+      return new Response(applyMarketSwaps(html, hostMk), { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
     }
 
     /* Off Market (City Markets UI): counts only - never a price. */

@@ -24,13 +24,13 @@
   var VD = {}; try { VD = JSON.parse((document.getElementById('vipData') || {}).textContent || '{}'); } catch (e) { VD = {}; }
   var OD = {}; try { OD = JSON.parse((document.getElementById('omData') || {}).textContent || '{}'); } catch (e) { OD = {}; }
   var DOMAIN = VD.domain || location.hostname.replace(/^www\./, '');
-  var BLD = (OD.b || []).map(function (b) { return { slug: b[0], name: b[1], units: b[2], hood: b[5] || '' }; });
+  var BLD = (OD.b || VD.b || []).map(function (b) { return { slug: b[0], name: b[1], units: b[2], hood: b[5] || '' }; });
   var BY = {}; BLD.forEach(function (b) { BY[b.slug] = b; });
   var PRICES = [500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 3000000, 4000000, 5000000];
   var BEDS = [[0, 'Studio'], [1, '1 bed'], [2, '2 beds'], [3, '3+ beds']];
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function usd(n) { return n >= 1e6 ? '$' + (Math.round(n / 1e4) / 100).toString().replace(/\.?0+$/, '') + 'M' : '$' + Math.round(n / 1e3) + 'K'; }
+  function usd(n) { return n >= 1e6 ? '$' + (Math.round(n / 1e4) / 100) + 'M' : '$' + Math.round(n / 1e3) + 'K'; }
   function track(ev, x) { try { if (window.cmTrack) window.cmTrack(ev, Object.assign({ via: 'vip_list' }, x || {})); } catch (e) {} }
   function whenCM(cb) {
     if (window.CM) { cb(window.CM); return; }
@@ -66,7 +66,7 @@
       '.vj-go:disabled{opacity:.6;cursor:default}' +
       '.vj-msg{margin-top:12px;font-size:.88rem;line-height:1.5;padding:10px 12px;border-radius:4px}.vj-msg[hidden]{display:none}.vj-msg.err{background:rgba(185,60,40,.16);color:#f5c2b5}.vj-msg.ok{background:rgba(217,154,78,.12);color:#f6e7c8}' +
       '.vj-alt{margin:16px 0 0;text-align:center;font-size:.85rem;color:#93a3b8}.vj-alt a,.vj-alt button{color:#e8c58a;background:none;border:0;font:inherit;cursor:pointer;padding:0;text-decoration:underline}' +
-      '.vj-bar{display:flex;gap:6px;margin:0 0 18px}.vj-bar i{flex:1;height:2px;background:rgba(217,154,78,.18)}.vj-bar i.on{background:#d99a4e}' +
+      '.vj-bar{display:flex;gap:6px;margin:0 46px 18px 0}.vj-bar i{flex:1;height:2px;background:rgba(217,154,78,.18)}.vj-bar i.on{background:#d99a4e}' +
       '.vj-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}' +
       '.vj-chip{border:1px solid rgba(217,154,78,.35);background:transparent;color:#f3ede0;border-radius:999px;padding:9px 14px;font:500 .9rem "DM Sans",system-ui,sans-serif;cursor:pointer}' +
       '.vj-chip:hover{border-color:#d99a4e}.vj-chip[aria-pressed="true"]{background:#d99a4e;border-color:#d99a4e;color:#0b0d12}' +
@@ -116,8 +116,9 @@
   function focusFirst() { setTimeout(function () { var f = body.querySelector('input:not([type=checkbox]):not([type=radio]),select,button.vj-chip,.vj-go'); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} }, 40); }
 
   /* ------------------------------------------------------------------ state */
-  var S = { token: null, step: 'email', beds: [], hoods: [], pmin: 0, pmax: 0, watch: [], alerts: 'each', critId: null, watchId: null, others: [], joinedNow: false, saved: false, state: null };
-  function reset() { S.beds = []; S.hoods = []; S.pmin = 0; S.pmax = 0; S.watch = []; S.alerts = 'each'; S.critId = null; S.watchId = null; S.others = []; S.saved = false; }
+  /* single: editing one search on its own (the account page), its id or 'new'; null in the guided onboarding */
+  var S = { token: null, step: 'email', beds: [], hoods: [], pmin: 0, pmax: 0, watch: [], alerts: 'each', critId: null, watchId: null, others: [], joinedNow: false, saved: false, state: null, single: null, sname: null };
+  function reset() { S.beds = []; S.hoods = []; S.pmin = 0; S.pmax = 0; S.watch = []; S.alerts = 'each'; S.critId = null; S.watchId = null; S.others = []; S.saved = false; S.single = null; S.sname = null; }
 
   /* ------------------------------------------------------------------ step 0: the email */
   function stepEmail() {
@@ -263,9 +264,10 @@
     S.step = 'bldg';
     body.innerHTML = bar('bldg') + '<div class="vj-ey">' + esc(NAME) + ' · 3 of 4</div>' +
       '<h2 class="vj-h" id="vjH">Any buildings <em>in mind?</em></h2>' +
-      '<p class="vj-p">Name a building, or one unit in it. When a home there joins the List, you hear first, whatever else you picked.</p>' +
+      '<p class="vj-p">' + (S.single ? 'Only homes in these buildings or units, with the choices before. Leave it empty for any building.' :
+        'Name a building, or one unit in it. When a home there joins the List, you hear first, whatever else you picked.') + '</p>' +
       '<div class="vj-pick"><label class="vj-l" style="margin:0"><span>Building</span><input type="text" data-vj-b list="vjBl" autocomplete="off" placeholder="e.g. The Infinity"></label>' +
-      '<label class="vj-l" style="margin:0"><span>Unit <i>(optional)</i></span><input type="text" data-vj-u autocomplete="off" placeholder="#1204"></label>' +
+      '<label class="vj-l" style="margin:0"><span>Unit</span><input type="text" data-vj-u autocomplete="off" placeholder="Any" aria-label="Unit, optional"></label>' +
       '<button type="button" class="vj-add" data-vj-add>Add</button></div>' +
       '<datalist id="vjBl">' + BLD.map(function (b) { return '<option value="' + esc(b.name) + '">'; }).join('') + '</datalist>' +
       '<p class="vj-hint" data-vj-hint></p><div class="vj-sel" data-vj-sel></div>' + acts('Next', true, true);
@@ -305,17 +307,23 @@
       '<label class="vj-opt"><input type="radio" name="al" value="each"' + (S.alerts !== 'off' ? ' checked' : '') + '><div><b>Email me each new home that fits</b><span>Usually within hours of it joining the List. Stop any time, with one click.</span></div></label>' +
       '<label class="vj-opt"><input type="radio" name="al" value="off"' + (S.alerts === 'off' ? ' checked' : '') + '><div><b>No emails</b><span>I’ll check the List myself.</span></div></label>' +
       '<div class="vj-sum" data-vj-sum>' + summary() + '</div>' +
-      '<p class="vj-msg" role="status" hidden></p>' + acts('Open the List', true, false);
+      '<p class="vj-msg" role="status" hidden></p>' + acts(S.single ? 'Save' : 'Open the List', true, false);
     body.querySelectorAll('[name=al]').forEach(function (r) { r.addEventListener('change', function () { S.alerts = r.value; }); });
     wire(function () { save(false); }, stepBldg);
     focusFirst();
   }
   /* what they picked, in a sentence, and how many homes on the List fit it now */
   function searches() {
-    var out = [];
-    if (S.beds.length || S.hoods.length || S.pmin || S.pmax) out.push({ id: S.critId || undefined, name: 'My search', beds: S.beds.slice().sort(), hoods: S.hoods.slice(), price_min: S.pmin || null, price_max: S.pmax || null });
-    var b = [], u = [];
+    var out = [], b = [], u = [];
     S.watch.forEach(function (w) { if (w.unit) u.push(w.slug + '|' + w.unit); else b.push(w.slug); });
+    if (S.single) {
+      if (S.beds.length || S.hoods.length || S.pmin || S.pmax || b.length || u.length)
+        out.push({ id: S.single !== 'new' ? S.single : undefined, beds: S.beds.slice().sort(), hoods: S.hoods.slice(), price_min: S.pmin || null, price_max: S.pmax || null, buildings: b, units: u });
+      if (out[0] && !out[0].id && !S.sname) out[0].name = describe(out[0]).slice(0, 60);
+      else if (out[0]) out[0].name = S.sname || describe(out[0]).slice(0, 60);
+      return out.concat(S.others);
+    }
+    if (S.beds.length || S.hoods.length || S.pmin || S.pmax) out.push({ id: S.critId || undefined, name: 'My search', beds: S.beds.slice().sort(), hoods: S.hoods.slice(), price_min: S.pmin || null, price_max: S.pmax || null });
     if (b.length || u.length) out.push({ id: S.watchId || undefined, name: 'Buildings I’m watching', buildings: b, units: u });
     return out.concat(S.others);
   }
@@ -337,7 +345,8 @@
     if (S.hoods.length) bits.push('in ' + (S.hoods.length > 3 ? S.hoods.slice(0, 3).join(', ') + ' and ' + (S.hoods.length - 3) + ' more' : S.hoods.join(', ')));
     if (S.pmin && S.pmax) bits.push(usd(S.pmin) + ' to ' + usd(S.pmax)); else if (S.pmin) bits.push('from ' + usd(S.pmin)); else if (S.pmax) bits.push('up to ' + usd(S.pmax));
     var what = bits.length ? 'Homes ' + bits.join(' · ') : 'Every new home on the List';
-    if (S.watch.length) what += (bits.length ? ', plus ' : ', and ') + 'anything in ' + (S.watch.length === 1 ? 'the building' : 'the ' + S.watch.length + ' buildings') + ' you named';
+    if (S.watch.length) what += S.single ? ' · in ' + (S.watch.length === 1 ? 'the building' : 'the ' + S.watch.length + ' buildings') + ' you named'
+      : (bits.length ? ', plus ' : ', and ') + 'anything in ' + (S.watch.length === 1 ? 'the building' : 'the ' + S.watch.length + ' buildings') + ' you named';
     var m = window.OM && window.OM.member && window.OM.member(), rows = (m && m.coming_soon) || null, line = '';
     if (rows) {
       var ss = searches(), n = rows.filter(function (x) { return !ss.length || ss.some(function (s) { return fits(s, x); }); }).length;
@@ -355,15 +364,16 @@
         S.saved = true;
         if (r && r.error) throw r.error;
         if (r && r.data && r.data.ok) S.state = r.data;
-        track('vip_onboarded', { alerts: S.alerts, searches: searches().length });
-        label();
+        track(S.single ? 'vip_search_saved' : 'vip_onboarded', { alerts: S.alerts, searches: searches().length });
+        label(); panel();
         if (quiet) return;
+        var single = S.single;
         close();
-        if (!new URLSearchParams(location.search).get('cs')) { var l = document.getElementById('list'); if (l) l.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        if (!single && !new URLSearchParams(location.search).get('cs')) { var l = document.getElementById('list'); if (l) l.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       }).catch(function (e) {
         S.saved = false;
         if (quiet) return;
-        if (go) { go.disabled = false; go.textContent = 'Open the List'; }
+        if (go) { go.disabled = false; go.textContent = S.single ? 'Save' : 'Open the List'; }
         say('err', (e && e.message) || 'Your choices didn’t save. Try again.');
       });
     });
@@ -404,7 +414,80 @@
     var st = S.state, t = st && st.member && st.member.onboarded_at ? 'Your searches & alerts' : 'Get alerts for new homes';
     document.querySelectorAll('[data-vip-prefs]').forEach(function (b) { b.textContent = t; });
   }
-  window.addEventListener('om-member', function (ev) { if (ev.detail) load(function () { label(); }); });
+  window.addEventListener('om-member', function (ev) { if (ev.detail) load(function () { label(); panel(); }); else panel(); });
+
+  /* One search on its own: edit it (its id) or add one ('new'). The member's other searches are kept as they are. */
+  function one(id) {
+    S.joinedNow = false; show();
+    body.innerHTML = '<div class="vj-ey">' + esc(NAME) + '</div><p class="vj-p">Loading your searches…</p>';
+    load(function (st) {
+      if (!st) { prefs(); return; }
+      reset();
+      S.alerts = st.member && st.member.alerts === 'off' ? 'off' : 'each';
+      S.single = id || 'new';
+      (st.searches || []).forEach(function (s) {
+        if (s.id !== id) { S.others.push(s); return; }
+        S.sname = s.name || null; S.beds = (s.beds || []).slice(); S.hoods = (s.hoods || []).slice(); S.pmin = Number(s.price_min) || 0; S.pmax = Number(s.price_max) || 0;
+        (s.buildings || []).forEach(function (b) { S.watch.push({ slug: b, unit: '' }); });
+        (s.units || []).forEach(function (u) { var p = String(u).split('|'); S.watch.push({ slug: p[0], unit: p[1] || '' }); });
+      });
+      stepBeds(false);
+    });
+  }
+  /* a search, in words */
+  function describe(s) {
+    var bits = [], bn = function (slug) { return BY[slug] ? BY[slug].name : String(slug).replace(/-/g, ' '); };
+    if ((s.beds || []).length) bits.push(s.beds.slice().sort().map(function (b) { return b === 0 ? 'Studios' : b === 3 ? '3+ beds' : b + ' bed' + (b > 1 ? 's' : ''); }).join(', '));
+    if ((s.hoods || []).length) bits.push((s.hoods.length > 4 ? s.hoods.slice(0, 4).join(', ') + ' +' + (s.hoods.length - 4) : s.hoods.join(', ')));
+    if (s.price_min && s.price_max) bits.push(usd(s.price_min) + '–' + usd(s.price_max)); else if (s.price_min) bits.push('from ' + usd(s.price_min)); else if (s.price_max) bits.push('up to ' + usd(s.price_max));
+    var w = (s.buildings || []).map(bn).concat((s.units || []).map(function (u) { var p = String(u).split('|'); return bn(p[0]) + ' #' + (p[1] || ''); }));
+    if (w.length) bits.push((bits.length ? 'in ' : 'Anything in ') + (w.length > 3 ? w.slice(0, 3).join(', ') + ' +' + (w.length - 3) : w.join(', ')));
+    return bits.join(' · ') || 'Every new home';
+  }
+  /* The account page's panel ([data-vip-panel]): the member's searches, an alerts switch, edit, remove, add. */
+  function pcss() {
+    if (document.getElementById('vjp-css')) return;
+    var s = document.createElement('style'); s.id = 'vjp-css';
+    s.textContent = '.vjp{position:relative;background:radial-gradient(500px 220px at 85% 0%,rgba(217,154,78,.14),transparent 70%),#0b0d12;color:#f3ede0;border:1px solid rgba(217,154,78,.42);border-radius:6px;padding:26px 26px 22px;margin:0 0 30px;font-family:"DM Sans",system-ui,sans-serif}' +
+      '.vjp-top{display:flex;justify-content:space-between;gap:14px 24px;flex-wrap:wrap;align-items:flex-end}' +
+      '.vjp-k{font-family:"JetBrains Mono",monospace;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:#d99a4e}' +
+      '.vjp h2{font-family:"Playfair Display",Georgia,serif;font-weight:500;font-size:1.6rem;margin:8px 0 0;color:#f3ede0}' +
+      '.vjp-sw{display:flex;gap:10px;align-items:center;font-size:.92rem;color:#c6cbd6;cursor:pointer}.vjp-sw input{width:18px;height:18px;accent-color:#d99a4e}' +
+      '.vjp-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:18px}' +
+      '.vjp-s{border:1px solid rgba(217,154,78,.3);border-radius:6px;padding:14px 16px;background:#12151d}' +
+      '.vjp-s b{display:block;font-family:"Playfair Display",Georgia,serif;font-weight:500;font-size:1.05rem;color:#f3ede0}.vjp-s p{margin:6px 0 10px;color:#c6cbd6;font-size:.88rem;line-height:1.5}' +
+      '.vjp-s button,.vjp-add{width:auto;background:none;border:0;color:#e8c58a;font:600 .86rem "DM Sans",system-ui,sans-serif;cursor:pointer;padding:0;margin-right:16px}' +
+      '.vjp-add{margin-top:16px;border:1px dashed rgba(217,154,78,.55);border-radius:999px;padding:10px 18px}' +
+      '.vjp-empty{color:#c6cbd6;margin:14px 0 0;line-height:1.55}.vjp-note{color:#93a3b8;font-size:.82rem;margin:12px 0 0}';
+    document.head.appendChild(s);
+  }
+  function panel() {
+    var box = document.querySelector('[data-vip-panel]'); if (!box) return;
+    var st = S.state;
+    if (!st || !(window.OM && window.OM.member && window.OM.member())) { box.innerHTML = ''; return; }
+    pcss();
+    var ss = st.searches || [], on = !!(st.member && st.member.alerts !== 'off');
+    box.innerHTML = '<div class="vjp"><div class="vjp-top"><div><div class="vjp-k">' + esc(NAME) + ' · your searches</div><h2>Your searches &amp; alerts</h2></div>' +
+      '<label class="vjp-sw"><input type="checkbox" data-vjp-alerts' + (on ? ' checked' : '') + '> Email me each new home that fits</label></div>' +
+      (ss.length ? '<div class="vjp-list">' + ss.map(function (s) {
+        return '<div class="vjp-s"><b>' + esc(s.name || 'Search') + '</b><p>' + esc(describe(s)) + '</p>' +
+          '<button type="button" data-vjp-edit="' + esc(s.id) + '">Edit</button><button type="button" data-vjp-rm="' + esc(s.id) + '">Remove</button></div>'; }).join('') + '</div>'
+        : '<p class="vjp-empty">' + (on ? 'No search yet, so you get an email for every new home on the List.' : 'No search yet.') + ' Add one for bedrooms, neighborhoods, price or the buildings you want.</p>') +
+      '<button type="button" class="vjp-add" data-vjp-add>+ Add a search</button>' +
+      (st.member ? '' : '<p class="vjp-note">Alerts start once you save a search or switch them on.</p>') + '</div>';
+    box.querySelectorAll('[data-vjp-edit]').forEach(function (b) { b.addEventListener('click', function () { track('cta_click', { cta: 'vip:search_edit' }); one(b.getAttribute('data-vjp-edit')); }); });
+    box.querySelector('[data-vjp-add]').addEventListener('click', function () { track('cta_click', { cta: 'vip:search_add' }); one(null); });
+    box.querySelectorAll('[data-vjp-rm]').forEach(function (b) { b.addEventListener('click', function () {
+      var id = b.getAttribute('data-vjp-rm'); b.disabled = true; b.textContent = 'Removing…';
+      whenCM(function (CM) { CM.client.rpc('om_vip_save', { p_domain: DOMAIN, p_alerts: null, p_searches: (S.state.searches || []).filter(function (s) { return s.id !== id; }), p_onboarded: false })
+        .then(function (r) { if (r && r.data && r.data.ok) S.state = r.data; panel(); track('cta_click', { cta: 'vip:search_remove' }); }, function () { panel(); }); });
+    }); });
+    box.querySelector('[data-vjp-alerts]').addEventListener('change', function (ev) {
+      var v = ev.target.checked ? 'each' : 'off';
+      whenCM(function (CM) { CM.client.rpc('om_vip_save', { p_domain: DOMAIN, p_alerts: v, p_searches: null, p_onboarded: false })
+        .then(function (r) { if (r && r.data && r.data.ok) S.state = r.data; panel(); track('cta_click', { cta: 'vip:alerts_' + v }); }, function () { panel(); }); });
+    });
+  }
 
   /* ------------------------------------------------------------------ wiring */
   document.addEventListener('click', function (ev) {
@@ -412,6 +495,11 @@
     ev.preventDefault();
     if (t.hasAttribute('data-vip-prefs')) { track('cta_click', { cta: 'vip:prefs' }); prefs(); } else signin();
   });
+  /* "Change your search" in an alert email lands here with ?prefs=1 */
+  if (new URLSearchParams(location.search).get('prefs')) {
+    try { var u0 = new URL(location.href); u0.searchParams.delete('prefs'); history.replaceState(history.state, '', u0.pathname + u0.search + u0.hash); } catch (e) {}
+    whenCM(function (CM) { CM.getSession().then(function (s) { if (s) prefs(); else setTimeout(signin, 400); }, function () {}); });
+  }
   window.OMJOIN = {
     open: function (o) {
       S.token = (o && o.token) || null; S.joinedNow = false;
@@ -419,5 +507,6 @@
       track('signup_started', { stage: 'modal_open', cs: !!S.token });
     },
     prefs: prefs,
+    edit: one,
   };
 })();
