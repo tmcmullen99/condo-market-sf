@@ -783,7 +783,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '20';
+const OM_VER = '21';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -2975,7 +2975,7 @@ function renderActiveListingsCity(M, AL, foot) {
         el.innerHTML='<div class="al-ixshot ph"></div><div class="al-ixbody">'
           +'<span class="al-ixtag">'+esc2(l.area||'')+' \u00b7 '+esc2(l.property_type||'')+'</span>'
           +'<div class="al-ixaddr">'+esc2(l.address||'')+'</div>'
-          +'<div class="al-ixspec">'+spec+(l.hoa_fee_monthly?' \u00b7 HOA $'+Number(l.hoa_fee_monthly).toLocaleString('en-US')+'/mo':'')+'</div>'
+          +'<div class="al-ixspec">'+spec+'</div>'
           +'<div class="al-ixlock"><span class="al-ixblur">$\u2588\u2588\u2588,\u2588\u2588\u2588</span>'
           +'<span class="al-ixtag">\uD83D\uDD12 Members</span></div></div>';
         slot.appendChild(el);
