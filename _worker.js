@@ -784,7 +784,7 @@ function cityTail(scripts) {
    ------------------------------------------------------------------------- */
 /* cm-auth-nav.js (the account menu). Bump on every change: /assets/* is edge-cached. */
 const NAV_VER = '5';
-const OM_VER = '22';
+const OM_VER = '23';
 const OM_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function omDay(iso) { const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? OM_MON[+m[2] - 1] + ' ' + (+m[3]) : ''; }
 function omSpec(c) {
@@ -1477,7 +1477,7 @@ const CMU_CSS = '<style id="cmu-css">:root{--cmu-h:56px}@media(max-width:700px){
   + '.cmu *,.cmu-drawer *{box-sizing:border-box}'
   + '.cmu-in{max-width:1180px;width:100%;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:28px}'
   + 'header.cmu a.cmu-wm{font-size:20px!important;line-height:1.2!important;flex:0 0 auto}'
-  + 'header.cmu .cmu-links{display:flex!important;align-items:center;gap:22px;margin:0 0 0 auto!important;padding:0!important;background:none!important;border:0!important;position:static!important;height:auto!important}'
+  + 'header.cmu .cmu-links{display:flex!important;align-items:center;gap:22px;margin:0 0 0 auto!important;padding:0!important;background:none!important;border:0!important;position:static!important;height:auto!important;width:auto!important;flex:0 1 auto!important;max-width:none!important}'
   + 'header.cmu .cmu-links a{font:400 .86rem/1.2 "DM Sans",system-ui,sans-serif!important;letter-spacing:0!important;text-transform:none!important;color:#93a3b8!important;text-decoration:none!important;white-space:nowrap;padding:0!important;margin:0!important;background:none!important;border:0!important}'
   + 'header.cmu .cmu-links a:hover,header.cmu .cmu-links a.on{color:#ece7db!important}'
   + '.cmu-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:6px;vertical-align:1px}'
