@@ -525,7 +525,7 @@ if (location.pathname.startsWith('/building/')) {
 if (!document.querySelector('script[src*="cm-track.js"]') &&
     !document.querySelector('script[src*="cm-beacon.js"]')) {
   const cmTrk = document.createElement('script');
-  cmTrk.src = '/assets/cm-track.js';
+  cmTrk.src = '/assets/cm-track.js?v=4';
   cmTrk.defer = true;
   document.head.appendChild(cmTrk);
 }

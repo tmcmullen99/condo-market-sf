@@ -128,6 +128,14 @@
   var EM = emailToken();
 
   function track(eventType, meta) {
+    /* A sign-up, log-in, claim or watchlist step says which click led to it (the last one in this tab, if
+       within ten minutes): "Created an account after clicking 'Save this building'", not just "created". */
+    if (/^(signup_|login_started|claim_|watchlist_add|offer_submit|valuation_request)/.test(eventType) && !(meta && meta.trigger)) {
+      try {
+        var lc = JSON.parse(sessionStorage.getItem("cm_last_click") || "null");
+        if (lc && Date.now() - lc.at < 600000) meta = Object.assign({}, meta || {}, { trigger: lc.label, trigger_section: lc.section || null, trigger_path: lc.path });
+      } catch (e) {}
+    }
     var payload = {
       event_type: eventType,
       visitor_token: VISITOR,
@@ -216,6 +224,77 @@
     var el = e.target.closest("[data-cm-cta]");
     if (el) track("cta_click", { cta_label: el.getAttribute("data-cm-cta") });
   });
+
+  /* ---- 5. Every click, every form (19 Nov 2026) ------------------------------
+     Tim: "ensure we can follow a site visitor's path exactly". Until now only
+     pages, dwell, scroll and a handful of tagged buttons were recorded, so a
+     path read "viewed listing X, created an account" with nothing between: the
+     button that opened the sign-up form was never known. Now every link and
+     button clicked is a `click` event (both gates - track_event's allowlist and
+     the site_events CHECK - already know it) saying what it said, where it went
+     and which part of the page it sat in; a form is recorded when it is first
+     used and when it is sent. Never a value typed into a field, never the
+     address of a mailto: or tel: link. The last click is kept for this tab, so
+     the sign-up and log-in events carry the click that opened them. */
+  var CLICK_SEL = "a[href],button,[role=button],summary,input[type=submit],input[type=button],[data-cm-cta]";
+  function txt(el) {
+    var t = el.getAttribute("aria-label") || el.getAttribute("title") || el.innerText || el.value || el.getAttribute("alt") || "";
+    if (!String(t).trim()) { var im = el.querySelector && el.querySelector("img[alt]"); if (im) t = im.getAttribute("alt"); }
+    t = String(t).replace(/\s+/g, " ").trim();
+    return t.replace(/[^\s@]+@[^\s@]+\.[a-z]{2,}/gi, "[email]").replace(/\+?\d[\d\s().-]{7,}\d/g, "[phone]").slice(0, 60);
+  }
+  function where(el) {
+    var s = el.closest("[data-sec],[data-cm-section],dialog,[role=dialog],form,nav,header,footer,aside,section,article");
+    if (!s) return null;
+    var n = s.getAttribute("data-sec") || s.getAttribute("data-cm-section") || s.getAttribute("aria-label") || s.id || "";
+    if (!n) { var h = s.querySelector("h1,h2,h3,h4,legend"); n = h ? h.textContent : ""; }
+    n = String(n).replace(/\s+/g, " ").trim().slice(0, 50);
+    var tag = s.tagName.toLowerCase(), kind = (s.getAttribute("role") === "dialog" || tag === "dialog") ? "pop-up" : tag;
+    return n ? (/^(nav|header|footer)$/.test(tag) ? tag + ": " + n : n) : (/^(nav|header|footer|form|pop-up)$/.test(kind) ? kind : null);
+  }
+  function dest(el) {
+    var h = el.getAttribute && el.getAttribute("href");
+    if (!h) return null;
+    if (/^mailto:/i.test(h)) return "mailto"; if (/^tel:/i.test(h)) return "tel"; if (/^sms:/i.test(h)) return "sms";
+    if (h.charAt(0) === "#") return h.slice(0, 40);
+    try {
+      var u = new URL(h, location.href);
+      return (u.hostname === location.hostname ? "" : u.hostname) + u.pathname.slice(0, 100);
+    } catch (e) { return null; }
+  }
+  var lastSig = "", lastAt = 0;
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest(CLICK_SEL) : null;
+    if (!el) return;
+    var m = { label: txt(el), section: where(el), to: dest(el),
+              el: el.tagName.toLowerCase(), id: (el.id || "").slice(0, 40) || null };
+    var cta = el.getAttribute("data-cm-cta") || el.getAttribute("data-cta");
+    if (cta) m.cta = cta.slice(0, 60);
+    if (!m.label && !m.to && !m.cta) return;
+    var sig = m.label + "|" + m.to + "|" + m.section, now = Date.now();
+    if (sig === lastSig && now - lastAt < 1500) return;          // a double click is one click
+    lastSig = sig; lastAt = now;
+    try { sessionStorage.setItem("cm_last_click", JSON.stringify({ label: m.label || m.cta || m.to, section: m.section, path: location.pathname, at: now })); } catch (x) {}
+    track("click", m);
+  }, true);
+
+  function formName(f) {
+    var n = f.getAttribute("data-cm-form") || f.getAttribute("aria-label") || f.getAttribute("name") || f.id || "";
+    if (!n) { var h = f.querySelector("h1,h2,h3,h4,legend") || (f.closest("dialog,[role=dialog],section") || f).querySelector("h1,h2,h3,h4"); n = h ? h.textContent : ""; }
+    if (!n) { var b = f.querySelector("button[type=submit],input[type=submit],button:not([type])"); n = b ? txt(b) : "a form"; }
+    return String(n).replace(/\s+/g, " ").trim().slice(0, 60);
+  }
+  var formsStarted = typeof WeakSet === "function" ? new WeakSet() : null;
+  document.addEventListener("focusin", function (e) {
+    var t = e.target, f = t && t.form;
+    if (!f || !formsStarted || formsStarted.has(f) || !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || /^(submit|button|hidden)$/i.test(t.type || "")) return;
+    formsStarted.add(f);
+    track("form_start", { form: formName(f), field: (t.name || t.type || t.tagName).toString().toLowerCase().slice(0, 30), section: where(f) });
+  }, true);
+  document.addEventListener("submit", function (e) {
+    var f = e.target; if (!f || f.tagName !== "FORM") return;
+    track("form_submit", { form: formName(f), section: where(f), fields: f.querySelectorAll("input:not([type=hidden]),textarea,select").length });
+  }, true);
 
   // dwell_seconds lives in its own column server-side; pass it through meta too.
 })();

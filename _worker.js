@@ -173,7 +173,7 @@ function keyBareTiles(html) {
    stays invisible until the cache expires. */
 const OG_VER = '3';
 
-const TRACK_VER = '3';
+const TRACK_VER = '4';
 const INTENT_VER = '26';
 const INTENT_TAG = '<script src="/assets/cm-intent.js?v=' + INTENT_VER + '" defer></script>';
 

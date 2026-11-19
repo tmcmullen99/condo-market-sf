@@ -201,6 +201,10 @@ export const CM = {
           market_slug: CM.marketSlug(),
           signup_host: (typeof location !== 'undefined' && location.hostname) || '',
           persona: CM.sitePersona(),
+          /* the button or link that opened this form (cm-track.js keeps the tab's last click) */
+          signup_trigger: (() => { try { const c = JSON.parse(sessionStorage.getItem('cm_last_click') || 'null');
+            return c && Date.now() - c.at < 600000 ? String(c.label || '').slice(0, 80) : ''; } catch (e) { return ''; } })(),
+          signup_page_title: (typeof document !== 'undefined' && (document.title || '').slice(0, 200)) || '',
         },
       },
     });
