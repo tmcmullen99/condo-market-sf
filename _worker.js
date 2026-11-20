@@ -1324,7 +1324,8 @@ function renderOffMarket(payload) {
   const seo = '<section class="vf" id="faq"><div class="wrap">\n' +
     '  <div class="vf-head"><span class="eyebrow">Questions</span><h2>Off-market condos in San Francisco, <em>explained.</em></h2></div>\n' +
     '  <div class="vf-grid">' + faq.map((q, i) => '<div class="vf-q"><h3>' + cityEsc(q[0]) + '</h3><p>' + cityEsc(q[1]) + (faqMore[i] || '') + '</p></div>').join('') + '</div>\n' +
-    '  <div class="vf-dir"><h2>Every condo building in San Francisco, <em>by neighborhood.</em></h2>' +
+    '  <p class="vf-sub" style="margin-top:22px">Guides: <a href="/off-market/buy/">How to buy an off-market condo in San Francisco &rarr;</a> &nbsp;&middot;&nbsp; <a href="/off-market/sell/">How to sell your San Francisco condo off-market &rarr;</a></p>\n' +
+'  <div class="vf-dir"><h2>Every condo building in San Francisco, <em>by neighborhood.</em></h2>' +
     '<p class="vf-sub">' + num(T.buildings) + ' buildings and ' + num(T.homes) + ' homes. Each building&rsquo;s page has every unit, its recorded sales, and an offer on any of them.</p>' +
     '<div class="vf-hoods">' + dir + '</div></div>\n</div></section>\n';
   const close = '<section class="vx vx-close"><div class="vl-in"><div class="vl-inv"><div class="vl-frame vx-close-frame">' + corners +
@@ -4970,7 +4971,7 @@ async function renderSitemap(mk) {
 
   // '/buildings/' is not listed: it is the home page, and declares '/' as its canonical.
   // Canonical forms only (S77): /active-listings/ declares the slash form.
-  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings/', '/off-market/', '/buy', '/sell',
+  const staticUrls = ['/', '/intelligence/', '/how-it-works/', '/active-listings/', '/off-market/', '/off-market/buy/', '/off-market/sell/', '/buy', '/sell',
     '/how-it-works/sell-with-tenants/', '/how-it-works/1031-exchange/', '/how-it-works/valuations/', '/calculate-payout-from-condo-sale/',
     '/methodology/', '/history/', '/owner-signup/', '/investor-exchange/'];
   if (mk.tag === 'sf') staticUrls.push('/press/');
@@ -6698,10 +6699,20 @@ async function renderLlmsTxt(mk) {
   const lines = [];
   lines.push('# ' + mk.brand);
   lines.push('');
-  lines.push('> A public record of the ' + mk.region + ' condominium market: ' + bl.length + ' buildings across ' + hoods.filter(function (h) { return h !== 'Other'; }).length +
+  lines.push('> The off-market condo hub for ' + mk.region + ' (buying off-market, selling off-market, off-market condos building by building) and a public record of the ' + mk.region + ' condominium market: ' + bl.length + ' buildings across ' + hoods.filter(function (h) { return h !== 'Other'; }).length +
     ' neighborhoods, each with its recorded sales, price per square foot and current listings. Operated by Tim McMullen, a licensed California real estate broker (DRE #02016832), through McMullen Properties LLC.');
   lines.push('');
   lines.push('Every building page reports recorded sales and the sample behind each figure. The site does not estimate the value of individual homes; value questions are routed to the licensed agent.');
+  lines.push('');
+  /* Off-market first (Tim, 20 Nov 2026: "We want to be the hub for off market properties, buying off market, selling
+     off market"). */
+  lines.push('## Off-market condos in ' + mk.region);
+  lines.push('Every condo in every building is open to a written offer, listed or not. Buyers join The ' + mk.region + ' List (free) to see Exclusive Deals, investor-owned units and the private prices owners have named, and watch the buildings they want; owners name the price that would make them move without a listing or an open house. To find off-market condos in a specific building, open that building\'s page below.');
+  lines.push('- [Off-market condos in ' + mk.region + '](' + base + '/off-market/): The ' + mk.region + ' List, and every building by neighborhood');
+  lines.push('- [How to buy an off-market condo in ' + mk.region + '](' + base + '/off-market/buy/): step-by-step guide for buyers');
+  lines.push('- [How to sell your ' + mk.region + ' condo off-market](' + base + '/off-market/sell/): step-by-step guide for owners selling privately');
+  lines.push('- [Name your price privately](' + base + '/owner-signup/): owners set the number that would make them sell');
+  lines.push('- [Selling with a tenant in place](' + base + '/how-it-works/sell-with-tenants/)');
   lines.push('');
   lines.push('## Key pages');
   lines.push('- [All buildings](' + base + '/): every condominium building, searchable');
