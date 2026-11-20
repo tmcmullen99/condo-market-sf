@@ -4213,6 +4213,11 @@ async function handleRequest(request, env) {
       return new Response(unsubHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
     }
 
+    /* IndexNow (20 Nov 2026): the key file Bing and the other IndexNow engines verify. The same public key as the City
+       Markets; Platform A's indexnow-ping submits this host's sitemap with it. */
+    if (url.pathname === '/c6f1a93e4b7d2850e9a4d1f7b3c58e20.txt') {
+      return new Response('c6f1a93e4b7d2850e9a4d1f7b3c58e20', { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' } });
+    }
     // robots.txt — per-host, points at this host's sitemap.
     if (url.pathname === '/robots.txt') {
       // Open to AI training and answer engines by design — this is a public
