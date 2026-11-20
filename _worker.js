@@ -1248,7 +1248,9 @@ function renderOffMarket(payload) {
   const veil = '<div class="vl-veil"><div class="vl-veil-lock">' + lockSvg(22) + '</div><div class="vl-veil-h">For members&rsquo; eyes only.</div>' +
     '<p>What is on ' + listName + ', and what arrives next, is shown inside your membership. An email opens it.</p>' +
     '<a class="vl-btn gold" href="' + join('/list') + '" data-cta="vip:veil_join">Request your membership</a></div>';
-  const list = '<section class="vx vx-list" id="list"><div class="vl-in">\n' +
+  /* the page's settings (domain, the city platform's URL and key for Exchange covers) ride on the List section now that
+     the map section is gone (Tim, 20 Nov 2026: everything it did is in the account app) */
+  const list = '<section class="vx vx-list" id="list"' + omCfgAttrs(payload.om) + '><div class="vl-in">\n' +
     '  <div class="vx-ey">Inside the List &middot; today</div>\n  <h2 class="vx-h2">What members <em>are seeing.</em></h2>\n' +
     '  <p class="vx-lede" data-om-anon>' + (locked ? 'Each card is a home on ' + listName + ' right now. The address, the price, the photos and the details open inside your membership.'
       : 'The List is never shown in public. Members see every home on it, with the address, the price and the photos.') + '</p>\n' +
@@ -1286,11 +1288,11 @@ function renderOffMarket(payload) {
     '    <p class="sub">Neither needs a sign, a listing, or an agreement. Neither costs anything until a sale closes.</p></div>\n' +
     '  <div class="om-how-grid">\n' +
     '    <div class="om-path reveal"><div class="om-path-k">For buyers</div><h3>Write an offer</h3>\n      <ol class="om-steps">\n' +
-    '        <li><b>Find the unit</b><p>Pick the building on the map above, or search any San Francisco condo &mdash; listed, off-market, or never on the market.</p></li>\n' +
+    '        <li><b>Find the unit</b><p>Open any San Francisco condo building &mdash; listed, off-market, or never on the market &mdash; and pick the unit.</p></li>\n' +
     '        <li><b>Read the record</b><p>Every recorded sale in the building, price per foot against the neighborhood, and the HOA figures, on every building&rsquo;s page.</p></li>\n' +
     '        <li><b>Name your terms</b><p>Price, funding, closing and deposit. Tim drafts a non-binding Letter of Intent and reviews it with you.</p></li>\n' +
     '        <li><b>The owner decides, privately</b><p>Tim presents it to the owner of record. Nothing reaches them until you have seen the draft.</p></li>\n' +
-    '      </ol>\n      <a class="btn btn-gold" href="#layer-b" data-om-goto="b" data-cta="offmarket:how-offer">Pick a building on the map &uarr;</a>\n    </div>\n' +
+    '      </ol>\n      <a class="btn btn-gold" href="/san-francisco-condos" data-cta="offmarket:how-offer">Browse every building &rarr;</a>\n    </div>\n' +
     '    <div class="om-path reveal"><div class="om-path-k">For owners</div><h3>Make Me Move</h3>\n      <ol class="om-steps">\n' +
     '        <li><b>Name your number</b><p>The price that would make you move. No sign, no listing, no agreement.</p></li>\n' +
     '        <li><b>It stays private</b><p>Your price opens only to people with a free account here &mdash; never on Zillow, never on the MLS.</p></li>\n' +
@@ -1310,7 +1312,7 @@ function renderOffMarket(payload) {
     ['Is membership free, and is it private?', 'Membership is complimentary and opens the moment you enter your email. Nothing about you is shown on the site, and no address, price or photo from the List is shown in public. You can stop the emails with one click.'],
     ['Who runs Condo Market SF?', 'Tim McMullen, Broker, CA DRE #02016832, publishes the record and answers every request. Condo Market SF is a marketing platform and is not a real estate brokerage; real estate services are provided by Tim.'],
   ];
-  const faqMore = ['', '', '', ' <a href="#map" data-om-goto="b">Pick a building on the map &uarr;</a>', ' <a href="/owner-signup/">Name your price</a> or <a href="/investor-exchange/">see The Exchange</a>.', '', ' <a href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener">Meet Tim &#8599;</a>'];
+  const faqMore = ['', '', '', ' <a href="/san-francisco-condos">Browse every building &rarr;</a>', ' <a href="/owner-signup/">Name your price</a> or <a href="/investor-exchange/">see The Exchange</a>.', '', ' <a href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener">Meet Tim &#8599;</a>'];
   const faqLd = '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage',
     mainEntity: faq.map((q) => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }).replace(/</g, '\\u003c') + '</script>\n';
   const byHood = {};
@@ -1361,7 +1363,7 @@ function renderOffMarket(payload) {
     'if(!window.OMMAP)return;ev.preventDefault();window.OMMAP.setLayer(a.getAttribute("data-om-goto"));document.getElementById("map").scrollIntoView({behavior:"smooth"});});});' +
     /* Featured covers live in the city platform\'s private bucket: sign the ones on the page. */
     'if(window.OM&&window.OM.css)window.OM.css();' +
-    'var A=document.getElementById("map"),U=A&&A.getAttribute("data-om-a-url"),K=A&&A.getAttribute("data-om-a-key");if(!U||!K)return;var done={};' +
+    'var A=document.querySelector("[data-om-a-url]"),U=A&&A.getAttribute("data-om-a-url"),K=A&&A.getAttribute("data-om-a-key");if(!U||!K)return;var done={};' +
     'function sg(p){return done[p]||(done[p]=fetch(U+"/storage/v1/object/sign/exchange-photos/"+encodeURI(p),{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})})' +
     '.then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}));}' +
     'document.querySelectorAll(".omf img[data-om-sign]").forEach(function(el){sg(el.getAttribute("data-om-sign")).then(function(x){if(x&&x.signedURL)el.src=U+"/storage/v1"+x.signedURL;});});' +
@@ -1370,7 +1372,7 @@ function renderOffMarket(payload) {
     '.then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}))).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")";});});' +
     '})();</script>\n';
 
-  return cityHead(title, desc, canonical, head + vipCss + faqLd) + cityNav('offmarket') + hero + list + owners + buyers + close + top + how + seo +
+  return cityHead(title, desc, canonical, head + vipCss + faqLd) + cityNav('offmarket') + hero + list + owners + buyers + close + how + seo +
     cityFooter(payload) + cityTail(script);
 }
 
@@ -1417,7 +1419,7 @@ function renderAccountOffMarket(payload) {
     '  </div>\n' +
     '  <div class="oma-any"><div><h3>Every condo here is open to an offer.</h3>' +
     '<p>Listed or not. Pick the building, choose the unit in its dossier, and write the offer; Tim drafts it with you and brings it to the owner.</p></div>' +
-    '<a class="btn btn-gold" href="/off-market/#map" data-cta="account-offmarket:any-unit">Pick a building &rarr;</a></div>\n' +
+    '<a class="btn btn-gold" href="/san-francisco-condos" data-cta="account-offmarket:any-unit">Pick a building &rarr;</a></div>\n' +
     '</div></section>\n';
   return cityHead(title, desc, canonical, head) + cityNav('offmarket') + body + cityFooter(payload) +
     cityTail('<script src="/assets/cm-offmarket.js?v=' + OM_VER + '"></script>\n' +
