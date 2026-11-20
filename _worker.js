@@ -706,14 +706,27 @@ function meetTimSF() {
     '.mt-sf p{margin:0;max-width:56ch;font-size:.95rem;line-height:1.55;color:#20242e}' +
     '.mt-sf .mt-cta{flex-shrink:0;border:1px solid #c2410c;border-radius:999px;padding:11px 20px;color:#c2410c;font-weight:600;text-decoration:none;white-space:nowrap}' +
     '.mt-sf .mt-cta:hover{background:#c2410c;color:#fff}' +
+    /* 20 Nov 2026: the card follows the theme of the page it sits on (script below) */
+    '.mt-sf.mt-dark .mt-card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));border-color:rgba(217,154,78,.24)}' +
+    '.mt-sf.mt-dark .mt-eb{color:#e6b26f}.mt-sf.mt-dark p{color:#c6cbd6}.mt-sf.mt-dark .mt-img{border-color:rgba(217,154,78,.45);box-shadow:none}' +
+    '.mt-sf.mt-dark .mt-cta{border-color:rgba(217,154,78,.6);color:#e6b26f}.mt-sf.mt-dark .mt-cta:hover{background:#d99a4e;border-color:#d99a4e;color:#0b0d12}' +
     '@media(max-width:640px){.mt-sf .mt-card{padding:18px}.mt-sf .mt-cta{width:100%;text-align:center}}' +
     '</style><div class="wrap"><div class="mt-card">' +
     '<img class="mt-img" src="' + SF_CARTOON + '" alt="Tim McMullen" width="96" height="96" loading="lazy">' +
     '<div class="mt-text"><span class="mt-eb">The agent behind Condo Market SF</span>' +
     '<p>Condo Market SF is run by one licensed agent, not a portal. Tim publishes the record, answers the questions and takes the calls.</p></div>' +
     '<a class="mt-cta" href="https://mcmullenresidential.com/meet-tim" target="_blank" rel="noopener" data-cta="meet_agent">Meet Tim &#8599;</a>' +
-    '</div></div></section>\n';
+    '</div></div></section>' + MT_THEME_JS + '\n';
 }
+/* 20 Nov 2026 (Tim: "the agent section background and palette should always follow the theme of the page"): the card
+   takes the background of the section above it (or that section's last child, when it is a transparent wrapper) and
+   its dark palette when that background is dark. */
+const MT_THEME_JS = '<script>(function(){var s=document.currentScript&&document.currentScript.previousElementSibling;if(!s||!s.classList.contains("mt-sf"))return;' +
+  'function bg(e){if(!e)return "";var b=getComputedStyle(e).backgroundColor||"",v=b.match(/[0-9.]+/g);if(!v||v.length<3||(v.length>3&&+v[3]===0))return "";return b}' +
+  'function prev(e){e=e&&e.previousElementSibling;while(e&&/^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT)$/.test(e.tagName))e=e.previousElementSibling;return e}' +
+  'function last(e){e=e&&e.lastElementChild;while(e&&/^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT)$/.test(e.tagName))e=e.previousElementSibling;return e}' +
+  'var e=prev(s),c="",i=0;while(e&&!c&&i<6){c=bg(e);if(!c)e=last(e);i++}' +
+  'if(!c)return;var v=c.match(/[0-9.]+/g);s.style.setProperty("background",c,"important");if((0.299*v[0]+0.587*v[1]+0.114*v[2])/255<0.45)s.classList.add("mt-dark")})();</script>';
 
 function cityFooter(payload) {
   const hoods = (payload.hoods || []).slice(0, 12);
