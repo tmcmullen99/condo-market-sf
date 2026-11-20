@@ -1189,7 +1189,15 @@ function renderOffMarket(payload) {
     '    </div></div>\n  </div>\n</section>\n';
 
   /* ---- the VIP List, as on the City Markets ---- */
-  const corners = '<span class="vl-corner tl"></span><span class="vl-corner tr"></span><span class="vl-corner bl"></span><span class="vl-corner br"></span>';
+  /* Membership is the account app's List, as on the City Markets (Tim, 20 Nov 2026: "make the VIP page on the condo
+     market mirror the structure and function of the VIP list on the city market"): every join, sign-in and card goes to
+     app.<domain>/list, which carries the same homes (synced to the city platform by sync-sf-list, same tokens), the
+     requests and the alerts. */
+  const omDomain = (payload.om && payload.om.domain) || 'sanfranciscocondomarket.com';
+  const appUrl = 'https://app.' + omDomain;
+  const join = (next) => appUrl + '/signin?mode=signup&next=' + encodeURIComponent(next);
+  const signin = (next) => appUrl + '/signin?next=' + encodeURIComponent(next);
+  const corners ='<span class="vl-corner tl"></span><span class="vl-corner tr"></span><span class="vl-corner bl"></span><span class="vl-corner br"></span>';
   const rule = '<div class="vl-rule" aria-hidden="true"><span></span><i>&#9670;</i><span></span></div>';
   const ownWord = (n) => n === 1 ? 'owner&rsquo;s private price' : 'owners&rsquo; private prices';
   const extras = [newN ? num(newN) + ' added this week' : '', 'members only', mmm ? 'plus ' + num(mmm) + ' ' + ownWord(mmm) : '',
@@ -1207,10 +1215,10 @@ function renderOffMarket(payload) {
     '<p class="vl-sub" data-om-anon>A private list of off-market condos in San Francisco: Exclusive Deals shown only to members, investor-owned units on The Exchange, and the prices owners would quietly accept. Your email opens it.</p>' +
     '<p class="vl-sub" data-om-mem hidden>Welcome to the List. Every home on it is open below, with the address, the price and the photos.</p>' +
     '<div class="vl-ctas">' +
-    '<a class="vl-btn gold" href="#the-list" data-om-anon data-om-signup="" data-cta="vip:join">Request your membership</a>' +
-    '<button type="button" class="vl-btn line" data-om-anon data-vip-signin data-cta="vip:signin">Members, sign in</button>' +
-    '<a class="vl-btn gold" href="#list" data-om-mem hidden data-cta="vip:open_list">Open the List &darr;</a>' +
-    '<button type="button" class="vl-btn line" data-om-mem hidden data-vip-prefs data-cta="vip:prefs">Your searches &amp; alerts</button></div>' +
+    '<a class="vl-btn gold" href="' + join('/list') + '" data-om-anon data-cta="vip:join">Request your membership</a>' +
+    '<a class="vl-btn line" href="' + signin('/list') + '" data-om-anon data-cta="vip:signin">Members, sign in</a>' +
+    '<a class="vl-btn gold" href="' + appUrl + '/list" data-om-mem hidden data-cta="vip:open_list">Open the List</a>' +
+    '<a class="vl-btn line" href="' + appUrl + '/list#alerts" data-om-mem hidden data-cta="vip:prefs">Your searches &amp; alerts</a></div>' +
     '<div class="vl-not"><span>Complimentary</span><span>Private</span><span>No public address, price or photos</span></div>' +
     '</div></div></section>\n';
 
@@ -1225,13 +1233,13 @@ function renderOffMarket(payload) {
     const ad = csAd[c.t] || '', named = c.bn && !/^\d/.test(c.bn);
     const t1 = named ? c.bn : (ad || c.bn || (c.st ? 'A home on ' + c.st : 'San Francisco'));
     const t2 = [named ? ad : '', c.h || ''].filter(Boolean).join(' · ') || 'San Francisco';
-    return '<a class="vl-card" href="#the-list" data-om-signup="' + cityEsc(c.t) + '" data-cta="vip:card_deal">' +
+    return '<a class="vl-card" href="' + cityEsc(join('/list?t=' + c.t)) + '" data-cta="vip:card_deal">' +
       '<div class="vl-ph' + (c.img ? ' img' : '') + '"' + (c.img ? ' style="background-image:url(\'' + cityEsc(c.img).replace(/'/g, '%27') + '\')"' : '') + '>' +
       '<span class="vl-badge">Exclusive deal</span><span class="vl-lock"><i>' + lockSvg(18) + '</i></span></div>' +
       '<div class="vl-body"><div class="vl-type">' + cityEsc(t1) + '</div><div class="vl-facts">' + cityEsc(t2) + '</div>' +
       '<div class="vl-row"><span class="vl-blur" aria-label="Members only">Unit #000 &middot; $0,000,000</span><span class="vl-since">Unit &amp; price for members</span></div></div></a>';
   };
-  const ownerCard = '<a class="vl-card" href="#the-list" data-om-signup="" data-cta="vip:card_owner">' +
+  const ownerCard = '<a class="vl-card" href="' + cityEsc(join('/list?side=owners')) + '" data-cta="vip:card_owner">' +
     '<div class="vl-ph own"><span class="vl-badge">Owner&rsquo;s private price</span><span class="vl-lock">' + lockSvg(18) + '</span></div>' +
     '<div class="vl-body"><div class="vl-type">San Francisco</div><div class="vl-facts">Building, unit and price for members</div>' +
     '<div class="vl-row"><span class="vl-blur" aria-label="Members only">$0,000,000</span><span class="vl-since">Not listed</span></div></div></a>';
@@ -1239,7 +1247,7 @@ function renderOffMarket(payload) {
   const locked = cs.slice(0, SHOWN).map(dealCard).join('') + Array.from({ length: Math.min(mmm, 6) }, () => ownerCard).join('');
   const veil = '<div class="vl-veil"><div class="vl-veil-lock">' + lockSvg(22) + '</div><div class="vl-veil-h">For members&rsquo; eyes only.</div>' +
     '<p>What is on ' + listName + ', and what arrives next, is shown inside your membership. An email opens it.</p>' +
-    '<a class="vl-btn gold" href="#the-list" data-om-signup="" data-cta="vip:veil_join">Request your membership</a></div>';
+    '<a class="vl-btn gold" href="' + join('/list') + '" data-cta="vip:veil_join">Request your membership</a></div>';
   const list = '<section class="vx vx-list" id="list"><div class="vl-in">\n' +
     '  <div class="vx-ey">Inside the List &middot; today</div>\n  <h2 class="vx-h2">What members <em>are seeing.</em></h2>\n' +
     '  <p class="vx-lede" data-om-anon>' + (locked ? 'Each card is a home on ' + listName + ' right now. The address, the price, the photos and the details open inside your membership.'
@@ -1247,7 +1255,7 @@ function renderOffMarket(payload) {
     '  <p class="vx-lede" data-om-mem hidden>The newest homes on ' + listName + ', open to you. Ask for a showing, the disclosures or a Comp Report from any card.</p>\n' +
     (locked ? '  <div class="vl-grid" id="omGrid" data-om-grid>' + locked + '</div>\n' : '  <div data-om-grid>' + veil + '</div>\n') +
     '  <p class="vl-more om-more">' + (csN > SHOWN ? 'And ' + num(csN - SHOWN) + ' more inside.' : '') + '</p>\n' +
-    (locked ? '  <div class="vl-ctas" data-om-anon><a class="vl-btn gold" href="#the-list" data-om-signup="" data-cta="vip:list_join">Request your membership</a></div>\n' : '') +
+    (locked ? '  <div class="vl-ctas" data-om-anon><a class="vl-btn gold" href="' + join('/list') + '" data-cta="vip:list_join">Request your membership</a></div>\n' : '') +
     (featHtml ? '  <div class="vx-subk">Featured on The Exchange &middot; open to everyone</div>\n  <div class="om-feat-row">' + featHtml + '</div>\n' : '') +
     '</div></section>\n';
 
@@ -1257,7 +1265,7 @@ function renderOffMarket(payload) {
     '<div class="vx-tile"><h3 class="vx-tile-k">The Exchange</h3><p>Investor-owned condos offered privately, often with the tenant in place.</p></div>' +
     '<div class="vx-tile"><h3 class="vx-tile-k">Owners&rsquo; private prices</h3><p>Numbers owners have named on homes that are not for sale at all. Make an offer on any of them.</p></div>' +
     '<div class="vx-tile"><h3 class="vx-tile-k">Your own search</h3><p>Bedrooms, neighborhoods, price and the buildings you want. An email when a home that fits joins the List, and Tim on call for a showing, the disclosures or a Comp Report.</p></div>' +
-    '</div>\n  <div class="vl-ctas" data-om-anon><a class="vl-btn gold" href="#the-list" data-om-signup="" data-cta="vip:door_buyer">Join as a buyer</a></div>\n</div></section>\n';
+    '</div>\n  <div class="vl-ctas" data-om-anon><a class="vl-btn gold" href="' + join('/list') + '" data-cta="vip:door_buyer">Join as a buyer</a></div>\n</div></section>\n';
 
   const owners = '<section class="vx vx-own" id="owners"><div class="vl-in vx-own-in">\n  <div class="vx-own-copy">\n' +
     '    <div class="vx-ey">For owners &middot; a year or two out</div>\n    <h2 class="vx-h2">Sell on your terms, <em>before you ever list.</em></h2>\n' +
@@ -1321,10 +1329,10 @@ function renderOffMarket(payload) {
     '<div class="vx-ey">' + listName + '</div><h2 class="vx-h2 vx-c">Your membership <em>is waiting.</em></h2>' +
     '<p class="vx-lede vx-c" data-om-anon>Complimentary, private, and open the moment you enter your email.</p>' +
     '<p class="vx-lede vx-c" data-om-mem hidden>You&rsquo;re a member. Your searches and alerts are in your account.</p>' +
-    '<div class="vl-ctas"><a class="vl-btn gold" href="#the-list" data-om-anon data-om-signup="" data-cta="vip:join_bottom">Request your membership</a>' +
-    '<button type="button" class="vl-btn line" data-om-anon data-vip-signin data-cta="vip:signin_bottom">Members, sign in</button>' +
-    '<button type="button" class="vl-btn gold" data-om-mem hidden data-vip-prefs data-cta="vip:prefs_bottom">Your searches &amp; alerts</button>' +
-    '<a class="vl-btn line" href="/account/off-market/" data-om-mem hidden data-cta="vip:account_bottom">Your off-market list</a></div></div></div>' +
+    '<div class="vl-ctas"><a class="vl-btn gold" href="' + join('/list') + '" data-om-anon data-cta="vip:join_bottom">Request your membership</a>' +
+    '<a class="vl-btn line" href="' + signin('/list') + '" data-om-anon data-cta="vip:signin_bottom">Members, sign in</a>' +
+    '<a class="vl-btn gold" href="' + appUrl + '/list#alerts" data-om-mem hidden data-cta="vip:prefs_bottom">Your searches &amp; alerts</a>' +
+    '<a class="vl-btn line" href="' + appUrl + '/list" data-om-mem hidden data-cta="vip:account_bottom">Open the List</a></div></div></div>' +
     '<p class="vl-fine vx-fine">Details of Exclusive Deals are shown to members and are not guaranteed. A home leaves the List when it reaches the open market, goes under contract or sells. ' +
     'An owner&rsquo;s price is the owner&rsquo;s own number, not an opinion of value from Tim or anyone else, and no buyer or offer is promised. Tim McMullen, Broker, CA DRE #02016832.</p>' +
     '</div></section>\n';
@@ -1362,7 +1370,7 @@ function renderOffMarket(payload) {
     '.then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}))).then(function(x){if(x&&x.signedURL)el.style.backgroundImage="url("+U+"/storage/v1"+x.signedURL+")";});});' +
     '})();</script>\n';
 
-  return cityHead(title, desc, canonical, head + vipCss + faqLd) + cityNav('offmarket') + hero + list + buyers + owners + top + how + seo + close +
+  return cityHead(title, desc, canonical, head + vipCss + faqLd) + cityNav('offmarket') + hero + list + owners + buyers + close + top + how + seo +
     cityFooter(payload) + cityTail(script);
 }
 
