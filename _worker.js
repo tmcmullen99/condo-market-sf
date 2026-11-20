@@ -8062,21 +8062,21 @@ function buildingOffMarketSection(p, slug, name) {
     '.catch(function(){})})})();</script>\n';
   /* the member's version when nothing is here today (cm-offmarket shows it, and hides the visitor's) */
   const memberNone = '<div class="obm-none" data-om-bnone hidden style="display:none"><div><h3>Nothing off market in ' + name + ' today.</h3>' +
-    '<p>Your full off-market list has every coming-soon condo, owner’s number and Exchange listing in San Francisco.</p></div>' +
+    '<p>Your full off-market list has every Exclusive Deal, owner’s number and Exchange listing in San Francisco.</p></div>' +
     '<div class="obm-acts"><a class="obm-pri" href="/account/off-market/" data-cta="building:om-account">Your off-market list &rarr;</a>' +
     '<a class="obm-sec" href="#dossier" data-cta="building:om-any-unit">Write an offer on any unit here</a></div></div>';
 
   if (!n) {
     const stats = [
-      pub.market_cs ? [nf(pub.market_cs), 'Coming soon', 'entered on the MLS, not yet on the market' + (pub.market_cs_buildings ? ', ' + nf(pub.market_cs_buildings) + ' in catalogued buildings' : '')] : null,
+      pub.market_cs ? [nf(pub.market_cs), Number(pub.market_cs) === 1 ? 'Exclusive Deal' : 'Exclusive Deals', 'shown only to members, not yet on the listing sites' + (pub.market_cs_buildings ? ', ' + nf(pub.market_cs_buildings) + ' in catalogued buildings' : '')] : null,
       pub.market_ex ? [nf(pub.market_ex), 'On The Exchange', Number(pub.market_ex) === 1 ? 'a rented unit offered by its owner' : 'rented units offered by their owners'] : null,
       pub.market_mmm ? [nf(pub.market_mmm), (Number(pub.market_mmm) === 1 ? 'Owner’s number' : 'Owners’ numbers'), 'the price that would make them move, no listing'] : null,
     ].filter(Boolean);
     return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
       '<div class="obm-cta" data-om-anon><div>' +
-        '<div class="obm-k">Off market &middot; San Francisco</div>' +
+        '<div class="obm-k">Off-market condos at ' + name + '</div>' +
         '<h2>See condos <em>before</em> they reach the listing sites.</h2>' +
-        '<p>Coming-soon listings, owners’ private numbers and The Exchange, with the unit, price and photos of each. Nothing in ' + name + ' is off market today; a free account shows you everything that is.</p>' +
+        '<p>Exclusive Deals, owners’ private numbers and The Exchange, with the unit, price and photos of each. Nothing in ' + name + ' is off market today; a free account shows you everything that is.</p>' +
         '<div class="obm-acts"><button type="button" class="obm-pri" data-om-signup="" data-cta="building:om-signup-empty">Create an account to see off-market properties &rarr;</button>' +
         '<a class="obm-sec" href="/off-market/" data-cta="building:om-browse">Browse the off-market map</a></div></div>' +
         (stats.length ? '<div class="obm-stats">' + stats.map(function (x) { return '<div class="obm-stat"><b>' + x[0] + '</b><span><strong>' + x[1] + '</strong>' + x[2] + '</span></div>'; }).join('') + '</div>' : '') +
@@ -8086,10 +8086,10 @@ function buildingOffMarketSection(p, slug, name) {
   }
 
   const csCards = cs.map(function (c) {
-    return '<div class="obm-card" id="cs-' + esc(c.t) + '"><div class="obm-ph"' + bg + '><span class="obm-tag">Coming soon</span><span class="obm-lock">Unit and photos for members</span></div>' +
+    return '<div class="obm-card" id="cs-' + esc(c.t) + '"><div class="obm-ph"' + bg + '><span class="obm-tag">Exclusive Deal</span><span class="obm-lock">Unit and photos for members</span></div>' +
       '<div class="obm-b"><div class="obm-plab">Price</div><div class="obm-price">' + blur + '</div>' +
       '<div class="obm-t">' + esc(omSpec(c) || 'A home in ' + p.name) + '</div>' +
-      '<div class="obm-s">Entered as coming soon' + (c.since ? ' ' + omDay(c.since) : '') + ', not yet on the market</div>' +
+      '<div class="obm-s">Exclusive Deal' + (c.since ? ' since ' + omDay(c.since) : '') + ', not yet on the listing sites</div>' +
       '<button type="button" class="obm-go" data-om-signup="' + esc(c.t) + '" data-cta="building:coming-soon">Create account to view &rarr;</button></div></div>';
   }).join('');
   const exCards = ex.map(function (l) {
@@ -8111,14 +8111,14 @@ function buildingOffMarketSection(p, slug, name) {
       '<div class="obm-s">The number that would make them move, with no listing. Unit and number for members</div>' +
       '<button type="button" class="obm-go" data-om-signup="" data-cta="building:mmm">Create account to view &rarr;</button></div></div>';
   }).join('');
-  const parts = [cs.length ? cs.length + ' coming soon' : '', ex.length ? ex.length + ' on The Exchange' : '',
+  const parts = [cs.length ? cs.length + (cs.length === 1 ? ' Exclusive Deal' : ' Exclusive Deals') : '', ex.length ? ex.length + ' on The Exchange' : '',
     mm ? mm + (mm === 1 ? ' owner’s private number' : ' owners’ private numbers') : ''].filter(Boolean);
   const chip = (cls, label, k) => k ? '<span class="obm-chip"><i' + (cls ? ' class="' + cls + '"' : '') + '></i>' + label + ' <b>' + k + '</b></span>' : '';
   return '<section class="section obm" id="off-market" data-om-bcs="' + slug + '"' + omCfgAttrs(p.om) + '><div class="wrap">' + CSS +
-    '<div class="obm-head"><div><div class="obm-k">Off market &middot; before the listing sites</div>' +
+    '<div class="obm-head"><div><div class="obm-k">Off-market condos at ' + name + '</div>' +
     '<h2 class="obm-h">' + (n === 1 ? 'A home off market in' : n + ' homes off market in') + ' <em>this building</em></h2>' +
     '<p class="obm-sub">' + esc(parts.join(', ')) + ' in ' + name + '.<span data-om-anon> The unit, price and photos open with a free account, with disclosures, a Comp Report and a tour a click away.</span></p></div>' +
-    '<div class="obm-chips">' + chip('', 'Coming soon', cs.length) + chip('ex', 'The Exchange', ex.length) + chip('mm', 'Make Me Move', mm) + '</div></div>' +
+    '<div class="obm-chips">' + chip('', 'Exclusive Deals', cs.length) + chip('ex', 'The Exchange', ex.length) + chip('mm', 'Make Me Move', mm) + '</div></div>' +
     '<div class="obm-grid" data-om-bcs-grid>' + csCards + exCards + mmCards + '</div>' + memberNone +
     '<div class="obm-bar" data-om-anon><p><b>Members see the unit, price and photos</b> of every off-market home in San Francisco. Free, and it takes a minute.</p>' +
       '<div class="obm-acts"><button type="button" class="obm-pri" data-om-signup="" data-cta="building:om-signup">Create a free account &rarr;</button>' +
@@ -8699,8 +8699,15 @@ function renderBuilding(p) {
 
   /* SEO */
   const seo = p.seo || {};
-  const title = esc(seo.title || (p.name + ' \u00b7 ' + mkBrand));
-  const descPlain = seo.description ||
+  /* "off market <building>" (Tim, 20 Nov 2026: a buyer found us searching off-market in The Crescent; "complete building
+     by building version"). Every building's title, description, an FAQ with its FAQPage markup, and the off-market
+     section's kicker carry "off-market condos at <Building>". Counts only when there is one; never a zero. */
+  const omN = (Array.isArray(p.coming_soon) ? p.coming_soon.length : 0) +
+    ((p.exchange && Array.isArray(p.exchange.listings)) ? p.exchange.listings.length : 0) + Math.max(0, Number((p.omPub || {}).mmm || 0));
+  const seoTitle0 = seo.title || (p.name + ' \u00b7 ' + mkBrand);
+  const title = esc(/ \u00b7 Condos for Sale \u00b7 /.test(seoTitle0) ? seoTitle0.replace(' \u00b7 Condos for Sale \u00b7 ', ' \u00b7 Condos for Sale & Off-Market \u00b7 ')
+    : seoTitle0.indexOf('Off-Market') < 0 ? seoTitle0 + ' \u00b7 Off-Market Condos' : seoTitle0);
+  const descPlain = (seo.description ? seo.description.replace(/\s*$/, '') + ' Off-market units at ' + p.name + ' for members of The ' + mkRegion + ' List.' : '') ||
     (p.name + ' \u2014 ' + (p.unit_count != null ? intc(p.unit_count) + ' ' + countWord + 's' : (isTownhomes ? 'townhomes' : 'condominiums')) +
       (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built ' + p.year_built : '') +
@@ -8751,6 +8758,37 @@ function renderBuilding(p) {
         dateModified: String(p.recorded_sales_last || (p.stats || {}).as_of || '').slice(0, 10) });
     }
   }
+  /* Off-market questions about this building, answered on the page and marked up as FAQPage (20 Nov 2026). */
+  const omList = 'The ' + mkRegion + ' List';
+  const omParts = [];
+  { const csN = Array.isArray(p.coming_soon) ? p.coming_soon.length : 0, exN = (p.exchange && Array.isArray(p.exchange.listings)) ? p.exchange.listings.length : 0, mmN = Math.max(0, Number((p.omPub || {}).mmm || 0));
+    if (csN) omParts.push(csN === 1 ? 'one Exclusive Deal' : intc(csN) + ' Exclusive Deals');
+    if (exN) omParts.push(exN === 1 ? 'one rented unit on The Exchange' : intc(exN) + ' rented units on The Exchange');
+    if (mmN) omParts.push(mmN === 1 ? 'one owner\u2019s private price' : intc(mmN) + ' owners\u2019 private prices'); }
+  const omJoin = (xs) => xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1];
+  const unitsTxt = p.unit_count != null && Number(p.unit_count) > 0 ? intc(p.unit_count) + ' ' + countWord + 's' : countWord + 's';
+  const salesTxt = buildingSalesSentence(p).replace(/\s*Median time on market:[\s\S]*$/, '').trim();
+  const revAsOf = (p.disclosure && p.disclosure.has_review && p.disclosure.latest_as_of)
+    ? new Date(String(p.disclosure.latest_as_of) + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+  const omFaq = [
+    ['Are there off-market condos at ' + p.name + '?', omN
+      ? 'Yes. Today ' + p.name + ' has ' + omJoin(omParts) + '. Members of ' + omList + ' see the unit, price and photos of each. Membership is free and needs only an email.'
+      : 'Off-market ' + countWord + 's at ' + p.name + ' appear on ' + omList + ' when an owner names a private price, offers a rented ' + countWord + ' on The Exchange, or a ' + countWord + ' comes to market privately. Members of ' + omList + ' who watch ' + p.name + ' from their account hear when one does. Membership is free.'],
+    ['How do I buy an off-market condo at ' + p.name + '?', 'Join ' + omList + ' and watch ' + p.name + '. You can also write an offer on any of its ' + unitsTxt + ', listed or not: Tim McMullen, a licensed broker, delivers it to the owner of record, and nothing is sent until you have read it.'],
+    ['Can I sell a condo at ' + p.name + ' off-market?', 'Yes. Name the price that would make you move, privately: no listing, no open house, and your name is never shown. Members of ' + omList + ' who watch ' + p.name + ' can be told, and can send you a written offer through Tim.'],
+    salesTxt ? ['What have condos at ' + p.name + ' sold for?', salesTxt + ' Every recorded sale is listed on this page, unit by unit.'] : null,
+    revAsOf ? ['Are the HOA documents for ' + p.name + ' on file?', 'Yes. A review of the association\u2019s documents, as of ' + revAsOf + ', is on file. Members can read it before making an offer.'] : null,
+  ].filter(Boolean);
+  const omFaqSection = '<section class="section" id="off-market-faq"><div class="wrap"><div class="section-head"><div class="section-kicker">Off-market</div>' +
+    '<h2 class="section-title">Off-market condos at <em>' + name + '</em></h2></div>' +
+    '<dl class="omfaq">' + omFaq.map(function (q) { return '<dt>' + esc(q[0]) + '</dt><dd>' + esc(q[1]) + '</dd>'; }).join('') + '</dl>' +
+    '<p class="omfaq-more"><a href="/off-market/buy/">How to buy an off-market condo in ' + esc(mkRegion) + ' &rarr;</a><a href="/off-market/sell/">How to sell your condo off-market &rarr;</a><a href="/off-market/">' + esc(omList) + '</a></p>' +
+    '<style>.omfaq{margin:8px 0 0;max-width:760px}.omfaq dt{font-weight:600;margin:20px 0 4px;color:#1a1f2e;font-size:16px}.omfaq dd{margin:0;color:#5d6575;line-height:1.6;font-size:15px}' +
+    '.omfaq-more{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:22px;font-size:14px}.omfaq-more a{color:#C2410C;font-weight:600;text-decoration:none}</style>' +
+    '</div></section>\n';
+  const omFaqLd = { '@type': 'FAQPage', mainEntity: omFaq.map(function (q) { return { '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } }; }) };
+  if (ldObj && Array.isArray(ldObj['@graph'])) ldObj['@graph'].push(omFaqLd);
+  else if (!ldObj) ldObj = { '@context': 'https://schema.org', '@graph': [omFaqLd] };
   const jsonLd = ldObj
     ? '<script type="application/ld+json">' + JSON.stringify(ldObj).replace(/</g, '\\u003c') + '</script>'
     : '';
@@ -8818,6 +8856,7 @@ function renderBuilding(p) {
     dossierSection +
     recordedSalesSection(p) +
     unitsIndexSection(p) +
+    omFaqSection +
     newsAndPairs +
     marketSection +
     compareSection +
