@@ -1043,6 +1043,13 @@ function renderOffMarket(payload) {
     '.vx-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;margin-top:34px;background:rgba(217,154,78,.22);border:1px solid rgba(217,154,78,.22);border-radius:6px;overflow:hidden}' +
     '.vx-tile{background:#0f1218;padding:28px 26px}.vx-tile-k{font-family:"Playfair Display",serif;font-weight:500;font-size:1.3rem;color:#f3ede0;margin:0}.vx-tile p{color:#c6cbd6;font-size:.92rem;line-height:1.6;margin:10px 0 0}' +
     '.vx-close-frame{padding:52px 34px 44px}.vl-fine{font-size:.78rem;line-height:1.55;max-width:80ch}.vx-fine{color:#6f7686;margin:34px auto 0;text-align:center}' +
+    /* 20 Nov 2026: the agent card under the List sits on the List's night background, no seam (the card brings its own
+       light styles, so these use a doubled class to win) */
+    '.vx-close{background:radial-gradient(700px 380px at 50% 62%,rgba(217,154,78,.13),transparent 68%),#0b0d12;padding-bottom:36px}' +
+    'section.mt-sf.mt-sf{background:#0b0d12;padding:4px 0 72px}' +
+    '.mt-sf.mt-sf .mt-card{background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0)),#0f1218;border-color:rgba(217,154,78,.24)}' +
+    '.mt-sf.mt-sf .mt-eb{color:#e6b26f}.mt-sf.mt-sf p{color:#c6cbd6}.mt-sf.mt-sf .mt-img{border-color:rgba(217,154,78,.45);box-shadow:none}' +
+    '.mt-sf.mt-sf .mt-cta{border-color:rgba(217,154,78,.6);color:#e6b26f}.mt-sf.mt-sf .mt-cta:hover{background:#d99a4e;border-color:#d99a4e;color:#0b0d12}' +
     '.omt-lock{display:inline-flex;vertical-align:-1px;margin-left:2px;color:#b06f24}.omt-tab.on .omt-lock{color:#e8c58a}' +
     /* the FAQ and the buildings, on light */
     '.vf{padding:72px 0;background:#f5f3ee;color:#1a1f2e}.vf-head h2,.vf-dir h2{font-family:"Playfair Display",serif;font-weight:500;font-size:clamp(1.8rem,3.8vw,2.6rem);line-height:1.12;margin:10px 0 0;color:#1a1f2e}' +
