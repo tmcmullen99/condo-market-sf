@@ -3921,7 +3921,10 @@ async function __renderPage(request, env, reqUrl, reqPath) {
 /* A deploy that changes the router starts every page fresh; so does a new version of an asset the kept pages load
    (27 Oct 2026: the brochure button shipped in cm-offmarket.js?v=15, and building pages kept in the cache still
    pointed at v=14, so the button never appeared on them). */
-const __PAGE_VER = 'p1-' + handleRequest.toString().length + '-om' + OM_VER;
+/* ...and so does a change to a page's own template (20 Nov 2026: the building pages' off-market FAQ lives in renderBuilding,
+   outside the router, so the kept building pages never picked it up). */
+const __PAGE_VER = 'p1-' + handleRequest.toString().length + '-om' + OM_VER + '-b' +
+  (renderBuilding.toString().length + buildingOffMarketSection.toString().length + renderOffMarket.toString().length);
 const __PAGE_TRACK = /^(utm_[a-z_]+|via|e|fbclid|gclid|msclkid|mc_cid|mc_eid|ref)$/i;
 const __PAGE_RULES = [
   /^\/$/, /^\/buildings\/$/, /^\/intelligence\/$/,
