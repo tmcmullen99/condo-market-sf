@@ -4899,6 +4899,12 @@ async function handleRequest(request, env) {
       headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ p_slug: payload.slug }),
     }, 1200).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    /* floor plans & unit mix from recorded sales (27 Nov 2026); a slow answer drops the section, never the page */
+    const fpP = fetchT(SUPABASE_URL + '/rest/v1/rpc/building_floorplans', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ p_slug: payload.slug }),
+    }, 1500).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     let exMarketN = 0;
     let disclosure = null;
     let exchange = null;
@@ -4947,6 +4953,7 @@ async function handleRequest(request, env) {
     payload.footerData = await footP;
     payload.coming_soon = await csP;
     payload.omPub = Object.assign({ mmm: 0, market_cs: 0, market_cs_buildings: 0, market_mmm: 0 }, (await omPubP) || {}, { market_ex: exMarketN });
+    payload.floorplans = await fpP;
     payload.om = { domain: hostMk.domain, aMarket: A_MARKET_ID_BY_TAG[hostMk.tag] || 0 };
     try { payload.news = newsAbout(await newsIndexCached(hostMk), payload.name, payload.street, payload.slug, 3); } catch (e) { payload.news = []; }
     const bodyHtml = applyMarketSwaps(renderBuilding(payload), hostMk);
@@ -7592,6 +7599,39 @@ function recordedSalesSection(p) {
     '</div></section>\n';
 }
 
+/* FLOOR PLANS & UNIT MIX (27 Nov 2026, SEO; Tim: "Complete 1-4"). "<building> floor plans" is one of this site's biggest
+   searches ("crescent nob hill floor plans", 228 impressions in 90 days). No floor-plan drawings are on file, so the
+   section says what the record shows: each unit's recorded beds, baths and size, grouped by bedroom count and, in a
+   tower, by stack. The $/sq ft is a five-year median of market-rate sales with its count, shown only with 3+ sales;
+   nothing here is a value for any one unit. building_floorplans() returns null under 5 sized units. */
+function floorPlansSection(p) {
+  const f = p.floorplans;
+  if (!f || !Array.isArray(f.by_beds) || !f.by_beds.length) return '';
+  const bedName = (b) => b === 0 ? 'Studio' : b + '-bedroom';
+  const baths = (x) => x == null ? '' : String(Number(x)).replace(/\.0+$/, '') + ' ba';
+  const range = (a, b) => a === b ? intc(a) : intc(a) + '–' + intc(b);
+  const rows = f.by_beds.map(function (r) {
+    return '<tr><td>' + esc(bedName(r.beds)) + '</td><td class="num">' + intc(r.n) + '</td><td class="num">' + range(r.sf_min, r.sf_max) + ' sq ft</td>' +
+      '<td class="num">' + intc(r.sf_med) + '</td><td>' + esc(baths(r.baths)) + '</td>' +
+      '<td class="num">' + (r.psf5 != null ? money(r.psf5) + ' <span style="color:#5d6575;font-size:12px">(' + intc(r.n5) + ' sales)</span>' : '—') + '</td></tr>';
+  }).join('');
+  const stacks = Array.isArray(f.stacks) && f.stacks.length ? f.stacks : null;
+  const stackRows = stacks ? stacks.map(function (s) {
+    return '<tr><td>' + esc(s.stack) + '</td><td>' + esc(bedName(s.beds)) + (s.baths != null ? ', ' + esc(baths(s.baths)) : '') + '</td><td class="num">' + intc(s.sf) + ' sq ft</td>' +
+      '<td class="num">' + (s.fl_lo === s.fl_hi ? 'Floor ' + s.fl_lo : 'Floors ' + s.fl_lo + '–' + s.fl_hi) + '</td><td class="num">' + intc(s.n) + '</td></tr>';
+  }).join('') : '';
+  const mix = f.by_beds.map(function (r) { return intc(r.n) + ' ' + bedName(r.beds).toLowerCase(); }).join(', ');
+  return '<section class="section rs-section" id="floor-plans"><div class="wrap">' +
+    '<div class="section-head"><div class="section-kicker">Floor plans</div>' +
+    '<h2 class="section-title">' + esc(p.name) + ' floor plans <em>&amp; unit mix</em></h2></div>' +
+    '<p class="rs-lede">' + intc(f.units) + ' units at ' + esc(p.name) + ' have a recorded size: ' + esc(mix) + '.' +
+    (stacks ? ' Units sharing the last two digits of their number stack one above another and usually share a layout.' : '') + '</p>' +
+    '<div class="rs-scroll"><table class="rs-table"><thead><tr><th>Layout</th><th class="num">Units</th><th class="num">Size range</th><th class="num">Median sq ft</th><th>Typical baths</th><th class="num">$/sq ft, 5 yr</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    (stacks ? '<h3 style="margin:28px 0 10px;font-size:18px">By stack</h3><div class="rs-scroll"><table class="rs-table"><thead><tr><th>Stack</th><th>Layout</th><th class="num">Typical size</th><th class="num">On record</th><th class="num">Units</th></tr></thead><tbody>' + stackRows + '</tbody></table></div>' : '') +
+    '<p class="rs-note">From recorded sales: each unit’s most recent recorded beds, baths and square feet. The $/sq ft is the median of market-rate sales in the last five years, shown with three or more. No floor-plan drawings are on file; nothing here is an estimate of any unit’s value.</p>' +
+    '</div></section>\n';
+}
+
 function unitsIndexSection(p) {
   const conf = mkConf((p.market || {}).tag || 'sf');
   const list = Array.isArray(p.units_index) ? p.units_index : [];
@@ -8159,6 +8199,7 @@ const BNAV_STOPS = [
   ['active', 'For sale'],
   ['gallery|about', 'The building'],
   ['dossier', 'Dossier'],
+  ['floor-plans', 'Floor plans'],
   ['sales|units', 'Sales'],
   ['market|compare', 'Market'],
   ['mortgage', 'Mortgage'],
@@ -8720,7 +8761,8 @@ function renderBuilding(p) {
       (hood ? ' in ' + p.neighborhood + ', ' + mkRegion : ' in ' + mkRegion) +
       (p.year_built != null ? ', built ' + p.year_built : '') +
       '. Sales, $/ft, owner tenure, and live offer activity.');
-  const desc = esc(descPlain);
+  /* floor plans (27 Nov 2026): named in the description when the section renders */
+  const desc = esc(descPlain + ((p.floorplans && Array.isArray(p.floorplans.by_beds) && p.floorplans.by_beds.length) ? ' Floor plans and unit mix from recorded sales.' : ''));
   const ogImg = seo.og_image ? '<meta property="og:image" content="' + esc(seo.og_image) + '">' : '';
   const canonical = esc(p.canonical_url || ('https://www.' + mkDomain + '/building/' + p.slug));
   /* Visible breadcrumb matching the BreadcrumbList (S25): brand > Neighborhoods > hood > building
@@ -8786,6 +8828,11 @@ function renderBuilding(p) {
     ['Can I sell a condo at ' + p.name + ' off-market?', 'Yes. Name the price that would make you move, privately: no listing, no open house, and your name is never shown. Members of ' + omList + ' who watch ' + p.name + ' can be told, and can send you a written offer through Tim.'],
     salesTxt ? ['What have condos at ' + p.name + ' sold for?', salesTxt + ' Every recorded sale is listed on this page, unit by unit.'] : null,
     revAsOf ? ['Are the HOA documents for ' + p.name + ' on file?', 'Yes. A review of the association\u2019s documents, as of ' + revAsOf + ', is on file. Members can read it before making an offer.'] : null,
+    /* floor plans (27 Nov 2026): the unit mix from recorded sales, as the floor-plans section shows it */
+    (p.floorplans && Array.isArray(p.floorplans.by_beds) && p.floorplans.by_beds.length)
+      ? ['What floor plans does ' + p.name + ' have?', 'From recorded sales, ' + p.floorplans.by_beds.map(function (r) {
+          return intc(r.n) + ' ' + (r.beds === 0 ? 'studio' : r.beds + '-bedroom') + ' unit' + (r.n === 1 ? '' : 's') + ' of ' + (r.sf_min === r.sf_max ? intc(r.sf_min) : intc(r.sf_min) + '\u2013' + intc(r.sf_max)) + ' sq ft';
+        }).join(', ') + '. The floor plans section on this page breaks them down' + (p.floorplans.stacks ? ' by stack.' : ' by bedroom count.')] : null,
   ].filter(Boolean);
   const omFaqSection = '<section class="section" id="off-market-faq"><div class="wrap"><div class="section-head"><div class="section-kicker">Off-market</div>' +
     '<h2 class="section-title">Off-market condos at <em>' + name + '</em></h2></div>' +
@@ -8862,6 +8909,7 @@ function renderBuilding(p) {
     aboutSection +
     amenitiesSection +
     dossierSection +
+    floorPlansSection(p) +
     recordedSalesSection(p) +
     unitsIndexSection(p) +
     omFaqSection +
